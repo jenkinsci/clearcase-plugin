@@ -37,6 +37,9 @@ import hudson.util.ForkOutputStream;
  * 
  * This SCM uses the cleartool to update and get the change log.
  * 
+ * This does not uses the XML Pull parser as it can not handle the FxCop XML
+ * files. The bug is registered at Sun as http: //bugs.sun.com/bugdatabase/view_bug.do?bug_id=4508058
+ * 
  * @author Erik Ramfelt
  */
 public class ClearCaseSCM extends SCM {
@@ -44,12 +47,12 @@ public class ClearCaseSCM extends SCM {
 	public static final ClearCaseSCM.ClearCaseScmDescriptor DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
 
 	private String branch;
-	private String modules;
+	private String viewPaths;
 	private boolean isSnapshot;
 
-	public ClearCaseSCM(String branch, String modules, boolean isSnapshot) {
+	public ClearCaseSCM(String branch, String viewPaths, boolean isSnapshot) {
 		this.branch = branch;
-		this.modules = modules;
+		this.viewPaths = viewPaths;
 		this.isSnapshot = isSnapshot;
 	}
 
@@ -58,8 +61,8 @@ public class ClearCaseSCM extends SCM {
 		return branch;
 	}
 
-	public String getAllModules() {
-		return modules;
+	public String getViewPaths() {
+		return viewPaths;
 	}
 
 	public boolean getIsSnapshot() {
@@ -71,21 +74,22 @@ public class ClearCaseSCM extends SCM {
 		return DESCRIPTOR;
 	}
 
-	// TODO untested
 	@Override
 	public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
 			File changelogFile) throws IOException, InterruptedException {
 
-		for (String modulePath : getAllModulesNormalized()) {
+		for (String modulePath : getAllViewPathsNormalized()) {
 			if (isSnapshot(modulePath, launcher, workspace, listener)) {
+				listener.getLogger().println(modulePath + " is a snapshot.");
+				
 				ArgumentListBuilder cmd = new ArgumentListBuilder();
 				cmd.add(getDescriptor().getCleartoolExe());
 				cmd.add("update");
 				cmd.add("-force");
-				cmd.add(modulePath);
-		
-				// TODO check value from run
+				cmd.add(modulePath);		
 				run(launcher, cmd, listener, workspace, listener.getLogger());
+			} else {
+				listener.getLogger().println(modulePath + " is not a snapshot, no need to update the files.");
 			}
 		}
 
@@ -118,7 +122,17 @@ public class ClearCaseSCM extends SCM {
 		return new ClearCaseChangeLogParser();
 	}
 
-	private List<Object[]> getHistoryEntries(Date startDate, Launcher launcher, FilePath workspace,
+	/**
+	 * Returns the latest history for the specified module paths.
+	 * @param lastBuildDate the last time build date
+	 * @param launcher 
+	 * @param workspace
+	 * @param listener
+	 * @return array of objects containing history entries
+	 * @throws IOException thrown if there was a problem reading from the output from the tool
+	 * @throws InterruptedException
+	 */
+	private List<Object[]> getHistoryEntries(Date lastBuildDate, Launcher launcher, FilePath workspace,
 			TaskListener listener) throws IOException, InterruptedException {
 		try {
 			SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm");
@@ -129,26 +143,34 @@ public class ClearCaseSCM extends SCM {
 			ArgumentListBuilder cmd = new ArgumentListBuilder();
 			cmd.add(getDescriptor().getCleartoolExe());
 			cmd.add("lshistory");
-			cmd.add("-since", formatter.format(startDate));
+			cmd.add("-since", formatter.format(lastBuildDate));
 			cmd.add("-branch", branch);
 			cmd.add("-recurse");
 			cmd.add("-nco");
-			cmd.add(getAllModulesNormalized());
+			cmd.add(getAllViewPathsNormalized());
 
 			if (run(launcher, cmd, listener, workspace, new ForkOutputStream(baos, listener.getLogger()))) {
 				ClearToolHistoryParser parser = new ClearToolHistoryParser();
 				parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), historyEntries);
 			}
-
+			baos.close();
 			return historyEntries;
 		} catch (RuntimeException error) {
-			// Some COM error.
 			throw new IOException(error.getMessage());
 		}
 	}
 
-	// TODO untested
-	private boolean isSnapshot(String modulePath, Launcher launcher, FilePath workspace, TaskListener listener)
+	/**
+	 * Returns if the view path is a snapshot view or not
+	 * @param viewPath view path
+	 * @param launcher
+	 * @param workspace
+	 * @param listener
+	 * @return if the view path is a snapshot view or not
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private boolean isSnapshot(String viewPath, Launcher launcher, FilePath workspace, TaskListener listener)
 		throws IOException, InterruptedException {
 		boolean isSnapshot = false;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -159,9 +181,8 @@ public class ClearCaseSCM extends SCM {
 		cmd.add("-cview");
 		cmd.add("-properties");
 		cmd.add("-full");
-		cmd.add(modulePath);
 
-		if (run(launcher, cmd, listener, workspace, baos)) {
+		if (run(launcher, cmd, listener, new FilePath(new File(viewPath)), baos)) {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
 			String line = reader.readLine();
 			while ((line != null) && (!isSnapshot)){
@@ -171,13 +192,14 @@ public class ClearCaseSCM extends SCM {
 				line = reader.readLine();
 			}
 		}
+		baos.close();
 
 		return isSnapshot;
 	}
 
-	private String[] getAllModulesNormalized() {
+	private String[] getAllViewPathsNormalized() {
 		// split by whitespace, except "\ "
-		String[] r = modules.split("(?<!\\\\)[ \\r\\n]+");
+		String[] r = viewPaths.split("(?<!\\\\)[ \\r\\n]+");
 		// now replace "\ " to " ".
 		for (int i = 0; i < r.length; i++)
 			r[i] = r[i].replaceAll("\\\\ ", " ");
@@ -188,8 +210,18 @@ public class ClearCaseSCM extends SCM {
 			OutputStream out) throws IOException, InterruptedException {
 		Map<String, String> env = new HashMap<String, String>();
 		int r = launcher.launch(cmd.toCommandArray(), env, out, dir).join();
-		if (r != 0)
+		if (r != 0) {
+			StringBuilder builder = new StringBuilder();
+			for (String cmdParam : cmd.toList()) {
+				if (builder.length() > 0) {
+					builder.append(" ");
+				}
+				builder.append(cmdParam);
+			}
 			listener.fatalError(getDescriptor().getDisplayName() + " failed. exit code=" + r);
+			throw new IOException("Clear tool did not return the expected exit code. Command line=\"" + 
+						 builder.toString() + "\", actual exit code=" + r);
+		}
 		return r == 0;
 	}
 
@@ -228,7 +260,7 @@ public class ClearCaseSCM extends SCM {
 
 		@Override
 		public SCM newInstance(StaplerRequest req) throws FormException {
-			return new ClearCaseSCM(req.getParameter("clearcase.branch"), req.getParameter("clearcase.module"), true);
+			return new ClearCaseSCM(req.getParameter("clearcase.branch"), req.getParameter("clearcase.viewpaths"), true);
 		}
 	}
 }
