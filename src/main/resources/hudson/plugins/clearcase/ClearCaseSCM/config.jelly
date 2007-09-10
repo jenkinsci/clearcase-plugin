@@ -1,6 +1,6 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 	<f:entry title="Module(s)"  help="/plugin/clearcase/modules.html">
-	  <f:expandableTextbox name="clearcase.module" value="${scm.allModules}"/>
+	  <f:expandableTextbox name="clearcase.viewpaths" value="${scm.viewPaths}"/>
 	</f:entry>
 	<f:entry title="Branch">
 	  <f:textbox name="clearcase.branch" value="${scm.branch}"/>
