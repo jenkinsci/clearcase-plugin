@@ -24,7 +24,7 @@ public class ClearToolHistoryParser {
 	public static final int VERSION_INDEX = 5;
 
 	private final transient Pattern pattern;
-	private SimpleDateFormat dateFormatter;
+	private final transient SimpleDateFormat dateFormatter;
 
 	public ClearToolHistoryParser() {
 		pattern = Pattern.compile("^(\\S+)\\s+(\\w+)\\s+(.+)\\s+\"(.+)@@(.+)\"");
