@@ -20,7 +20,7 @@ public class ClearToolHistoryParserTest {
 		ClearToolHistoryParser parser = new ClearToolHistoryParser();
 		
 		List<Object[]> historyEntries = new ArrayList<Object[]>();
-		parser.parse(new StringReader("27-aug.08:48   inttest14  create version \"Source\\Definitions\\Definitions.csproj@@\\main\\sit_r5_maint\\0\""), historyEntries );
+		parser.parse(new StringReader("27-aug.08:48   inttest14  create version \"Source\\Definitions\\Definitions.csproj@@\\main\\sit_r5_maint\\1\""), historyEntries );
 		
 		Assert.assertEquals("Number of history entries are incorrect", 1, historyEntries.size());
 		
@@ -29,7 +29,7 @@ public class ClearToolHistoryParserTest {
 		Assert.assertEquals("User is incorrect", "inttest14", entry[ClearToolHistoryParser.USER_INDEX]);
 		//Assert.assertEquals("Date is incorrect", getDate(8, 27, 8, 8), entry[ClearToolHistoryParser.DATE_INDEX]);
 		Assert.assertEquals("Action is incorrect", "create version", entry[ClearToolHistoryParser.ACTION_INDEX]);
-		Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\0", entry[ClearToolHistoryParser.VERSION_INDEX]);
+		Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\1", entry[ClearToolHistoryParser.VERSION_INDEX]);
 		Assert.assertEquals("Comment is incorrect", "", entry[ClearToolHistoryParser.COMMENT_INDEX]);
 	}
 
@@ -98,6 +98,24 @@ public class ClearToolHistoryParserTest {
 		Assert.assertEquals("Number of history entries are incorrect", 1, historyEntries.size());		
 		Object[] entry = historyEntries.get(0);
 		Assert.assertEquals("Action is incorrect", "create a version", entry[ClearToolHistoryParser.ACTION_INDEX]);
+	}
+
+
+	@Test
+	public void testCreateBranchAction() throws IOException, ParseException {
+	
+		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
+		List<Object[]> historyEntries = new ArrayList<Object[]>();
+		parser.parse(new StringReader("06-sep.09:17   egsperi    create branch \"\\ApplicationConfiguration@@\\main\\sit_r6a\\1\"\n"), historyEntries );
+		Assert.assertEquals("Number of history entries are incorrect", 0, historyEntries.size());		
+	}
+
+	@Test
+	public void testFirstVersion() throws IOException, ParseException {	
+		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
+		List<Object[]> historyEntries = new ArrayList<Object[]>();		                
+		parser.parse(new StringReader("06-sep.09:17   egsperi    create version \"\\ApplicationConfiguration@@\\main\\sit_r6a\\0\"\n"), historyEntries );
+		Assert.assertEquals("Number of history entries are incorrect", 0, historyEntries.size());		
 	}
 
 	private Date getDate(int month, int day, int hour, int min) {
