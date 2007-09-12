@@ -80,16 +80,17 @@ public class ClearCaseSCM extends SCM {
 
 		for (String modulePath : getAllViewPathsNormalized()) {
 			if (isSnapshot(modulePath, launcher, workspace, listener)) {
-				listener.getLogger().println(modulePath + " is a snapshot.");
+				listener.getLogger().println(modulePath + " is a snapshot, updating view.");
 				
 				ArgumentListBuilder cmd = new ArgumentListBuilder();
 				cmd.add(getDescriptor().getCleartoolExe());
 				cmd.add("update");
 				cmd.add("-force");
+				cmd.add("-log", "NUL");
 				cmd.add(modulePath);		
 				run(launcher, cmd, listener, workspace, listener.getLogger());
 			} else {
-				listener.getLogger().println(modulePath + " is not a snapshot, no need to update the files.");
+				listener.getLogger().println(modulePath + " is not a snapshot, no need to update view.");
 			}
 		}
 
@@ -135,7 +136,7 @@ public class ClearCaseSCM extends SCM {
 	private List<Object[]> getHistoryEntries(Date lastBuildDate, Launcher launcher, FilePath workspace,
 			TaskListener listener) throws IOException, InterruptedException {
 		try {
-			SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm");
+                    SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm:ss");
 
 			List<Object[]> historyEntries = new ArrayList<Object[]>();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
