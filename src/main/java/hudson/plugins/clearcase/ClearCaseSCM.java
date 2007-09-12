@@ -48,12 +48,10 @@ public class ClearCaseSCM extends SCM {
 
 	private String branch;
 	private String viewPaths;
-	private boolean isSnapshot;
 
-	public ClearCaseSCM(String branch, String viewPaths, boolean isSnapshot) {
+	public ClearCaseSCM(String branch, String viewPaths) {
 		this.branch = branch;
 		this.viewPaths = viewPaths;
-		this.isSnapshot = isSnapshot;
 	}
 
 	// Get methods
@@ -63,10 +61,6 @@ public class ClearCaseSCM extends SCM {
 
 	public String getViewPaths() {
 		return viewPaths;
-	}
-
-	public boolean getIsSnapshot() {
-		return isSnapshot;
 	}
 
 	@Override
@@ -183,7 +177,7 @@ public class ClearCaseSCM extends SCM {
 		cmd.add("-properties");
 		cmd.add("-full");
 
-		if (run(launcher, cmd, listener, new FilePath(new File(viewPath)), baos)) {
+		if (run(launcher, cmd, listener, new FilePath(new File(viewPath)), new ForkOutputStream(baos, listener.getLogger()))) {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
 			String line = reader.readLine();
 			while ((line != null) && (!isSnapshot)){
@@ -261,7 +255,7 @@ public class ClearCaseSCM extends SCM {
 
 		@Override
 		public SCM newInstance(StaplerRequest req) throws FormException {
-			return new ClearCaseSCM(req.getParameter("clearcase.branch"), req.getParameter("clearcase.viewpaths"), true);
+			return new ClearCaseSCM(req.getParameter("clearcase.branch"), req.getParameter("clearcase.viewpaths"));
 		}
 	}
 }
