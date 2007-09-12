@@ -66,9 +66,12 @@ public class ClearToolHistoryParser {
 					commentBuilder.deleteCharAt(0);
 					commentBuilder.deleteCharAt(commentBuilder.length() - 1);
 				}
-
 				content[COMMENT_INDEX] = commentBuilder.toString();
-				historyEntries.add(content);
+				
+				if (! (		((String)content[ACTION_INDEX]).equalsIgnoreCase("create branch")
+						||  ((String) content[VERSION_INDEX]).endsWith("\\0") ) ) {
+					historyEntries.add(content);
+				}
 			} else {
 				line = reader.readLine();
 			}
