@@ -71,29 +71,26 @@ public class ClearCaseSCM extends SCM {
 	@Override
 	public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
 			File changelogFile) throws IOException, InterruptedException {
-
-		for (String modulePath : getAllViewPathsNormalized()) {
-			if (isSnapshot(modulePath, launcher, workspace, listener)) {
-				listener.getLogger().println(modulePath + " is a snapshot, updating view.");
-				
-				ArgumentListBuilder cmd = new ArgumentListBuilder();
-				cmd.add(getDescriptor().getCleartoolExe());
-				cmd.add("update");
-				cmd.add("-force");
-				cmd.add("-log", "NUL");
-				cmd.add(modulePath);		
-				run(launcher, cmd, listener, workspace, listener.getLogger());
+		List<Object[]> history = new ArrayList<Object[]>();
+		
+		for (String viewPath : getAllViewPathsNormalized()) {
+			if (isSnapshot(viewPath, launcher, workspace, listener)) {
+				listener.getLogger().println(viewPath + " is a snapshot, updating view.");				
+				updateViewPath(launcher, workspace, listener, viewPath);
 			} else {
-				listener.getLogger().println(modulePath + " is not a snapshot, no need to update view.");
+				listener.getLogger().println(viewPath + " is not a snapshot, no need to update view.");
+			}
+			
+			if (build.getPreviousBuild() != null) {
+				history.addAll(getHistoryEntries(build.getPreviousBuild().getTimestamp().getTime(), 
+					launcher, workspace, listener, new String[] { viewPath }));
 			}
 		}
 
-		if (build.getPreviousBuild() == null) {
+		if (history.isEmpty()) {
 			// nothing to compare against, or no changes
 			return createEmptyChangeLog(changelogFile, listener, "changelog");
 		} else {
-			List<Object[]> history = getHistoryEntries(build.getPreviousBuild().getTimestamp().getTime(), launcher,
-					workspace, listener);
 			ClearCaseChangeLogSet.saveToChangeLog(new FileOutputStream(changelogFile), history);
 			return true;
 		}
@@ -108,13 +105,33 @@ public class ClearCaseSCM extends SCM {
 			return true;
 		} else {
 			Date buildTime = lastBuild.getTimestamp().getTime();
-			return !getHistoryEntries(buildTime, launcher, workspace, listener).isEmpty();
+			return !getHistoryEntries(buildTime, launcher, workspace, listener, getAllViewPathsNormalized()).isEmpty();
 		}
 	}
 
 	@Override
 	public ChangeLogParser createChangeLogParser() {
 		return new ClearCaseChangeLogParser();
+	}
+
+	/**
+	 * Updates the view path
+	 * @param launcher
+	 * @param workspace
+	 * @param listener
+	 * @param viewPath
+	 * @throws IOException 
+	 * @throws InterruptedException
+	 */
+	private void updateViewPath(Launcher launcher, FilePath workspace, BuildListener listener, String viewPath)
+			throws IOException, InterruptedException {
+		ArgumentListBuilder cmd = new ArgumentListBuilder();
+		cmd.add(getDescriptor().getCleartoolExe());
+		cmd.add("update");
+		cmd.add("-force");
+		cmd.add("-log", "NUL");
+		cmd.add(viewPath);		
+		run(launcher, cmd, listener, workspace, listener.getLogger());
 	}
 
 	/**
@@ -128,31 +145,27 @@ public class ClearCaseSCM extends SCM {
 	 * @throws InterruptedException
 	 */
 	private List<Object[]> getHistoryEntries(Date lastBuildDate, Launcher launcher, FilePath workspace,
-			TaskListener listener) throws IOException, InterruptedException {
-		try {
-                    SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm:ss");
+			TaskListener listener, String[] viewPaths) throws IOException, InterruptedException {
+		SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm:ss");
 
-			List<Object[]> historyEntries = new ArrayList<Object[]>();
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		List<Object[]> historyEntries = new ArrayList<Object[]>();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-			ArgumentListBuilder cmd = new ArgumentListBuilder();
-			cmd.add(getDescriptor().getCleartoolExe());
-			cmd.add("lshistory");
-			cmd.add("-since", formatter.format(lastBuildDate));
-			cmd.add("-branch", branch);
-			cmd.add("-recurse");
-			cmd.add("-nco");
-			cmd.add(getAllViewPathsNormalized());
+		ArgumentListBuilder cmd = new ArgumentListBuilder();
+		cmd.add(getDescriptor().getCleartoolExe());
+		cmd.add("lshistory");
+		cmd.add("-since", formatter.format(lastBuildDate));
+		cmd.add("-branch", branch);
+		cmd.add("-recurse");
+		cmd.add("-nco");
+		cmd.add(viewPaths);
 
-			if (run(launcher, cmd, listener, workspace, new ForkOutputStream(baos, listener.getLogger()))) {
-				ClearToolHistoryParser parser = new ClearToolHistoryParser();
-				parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), historyEntries);
-			}
-			baos.close();
-			return historyEntries;
-		} catch (RuntimeException error) {
-			throw new IOException(error.getMessage());
+		if (run(launcher, cmd, listener, workspace, new ForkOutputStream(baos, listener.getLogger()))) {
+			ClearToolHistoryParser parser = new ClearToolHistoryParser();
+			parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), historyEntries);
 		}
+		baos.close();
+		return historyEntries;
 	}
 
 	/**
