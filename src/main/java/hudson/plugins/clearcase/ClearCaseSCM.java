@@ -155,7 +155,9 @@ public class ClearCaseSCM extends SCM {
 		cmd.add(getDescriptor().getCleartoolExe());
 		cmd.add("lshistory");
 		cmd.add("-since", formatter.format(lastBuildDate));
-		cmd.add("-branch", branch);
+		if ((branch != null) && (branch.length() > 0)) {
+			cmd.add("-branch", branch);
+		}
 		cmd.add("-recurse");
 		cmd.add("-nco");
 		cmd.add(viewPaths);
