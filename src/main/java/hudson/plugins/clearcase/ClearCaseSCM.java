@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -36,9 +38,6 @@ import hudson.util.ForkOutputStream;
  * Clear case SCM.
  * 
  * This SCM uses the cleartool to update and get the change log.
- * 
- * This does not uses the XML Pull parser as it can not handle the FxCop XML
- * files. The bug is registered at Sun as http: //bugs.sun.com/bugdatabase/view_bug.do?bug_id=4508058
  * 
  * @author Erik Ramfelt
  */
@@ -91,6 +90,14 @@ public class ClearCaseSCM extends SCM {
 			// nothing to compare against, or no changes
 			return createEmptyChangeLog(changelogFile, listener, "changelog");
 		} else {
+			
+			Collections.sort(history, new Comparator<Object[]>() {
+				public int compare(Object[] arg0, Object[] arg1) {
+					return ((Date) arg1[ClearToolHistoryParser.DATE_INDEX]).compareTo(
+							((Date) arg0[ClearToolHistoryParser.DATE_INDEX]));
+				}				
+			});
+			
 			ClearCaseChangeLogSet.saveToChangeLog(new FileOutputStream(changelogFile), history);
 			return true;
 		}
