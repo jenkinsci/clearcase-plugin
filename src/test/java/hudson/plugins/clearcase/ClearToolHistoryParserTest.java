@@ -27,7 +27,7 @@ public class ClearToolHistoryParserTest {
 		Object[] entry = historyEntries.get(0);
 		Assert.assertEquals("File is incorrect", "Source\\Definitions\\Definitions.csproj", entry[ClearToolHistoryParser.FILE_INDEX]);
 		Assert.assertEquals("User is incorrect", "inttest14", entry[ClearToolHistoryParser.USER_INDEX]);
-		//Assert.assertEquals("Date is incorrect", getDate(8, 27, 8, 8), entry[ClearToolHistoryParser.DATE_INDEX]);
+		Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 48), entry[ClearToolHistoryParser.DATE_INDEX]);
 		Assert.assertEquals("Action is incorrect", "create version", entry[ClearToolHistoryParser.ACTION_INDEX]);
 		Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\1", entry[ClearToolHistoryParser.VERSION_INDEX]);
 		Assert.assertEquals("Comment is incorrect", "", entry[ClearToolHistoryParser.COMMENT_INDEX]);
@@ -118,8 +118,10 @@ public class ClearToolHistoryParserTest {
 		Assert.assertEquals("Number of history entries are incorrect", 0, historyEntries.size());		
 	}
 
-	private Date getDate(int month, int day, int hour, int min) {
+	private Date getDate(int year, int month, int day, int hour, int min) {
 		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(0);
+		calendar.set(Calendar.YEAR, year);
 		calendar.set(Calendar.MONTH, month);
 		calendar.set(Calendar.DATE, day);
 		calendar.set(Calendar.HOUR, hour);

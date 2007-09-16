@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +30,7 @@ public class ClearToolHistoryParser {
 
 	public ClearToolHistoryParser() {
 		pattern = Pattern.compile("^(\\S+)\\s+(\\w+)\\s+(.+)\\s+\"(.+)@@(.+)\"");
-		dateFormatter = new SimpleDateFormat("dd-MMM.HH:mm");
+		dateFormatter = new SimpleDateFormat("dd-MMM.HH:mm yyyy");
 	}
 
 	public void parse(Reader inReader, List<Object[]> historyEntries) throws IOException {
@@ -43,7 +45,8 @@ public class ClearToolHistoryParser {
 
 			if (matcher.find() && matcher.groupCount() == 5) {
 				try {
-					content[DATE_INDEX] = dateFormatter.parse(matcher.group(1));
+					Date date = dateFormatter.parse(matcher.group(1) + " " + Calendar.getInstance().get(Calendar.YEAR));
+					content[DATE_INDEX] = date;
 				} catch (ParseException e) {
 				}
 				content[USER_INDEX] = matcher.group(2);
