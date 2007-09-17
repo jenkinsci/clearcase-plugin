@@ -10,7 +10,7 @@
   <artifactId>clearcase</artifactId>
   <packaging>hpi</packaging>
   <name>Hudson Visual Clear Case Plug-in</name>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <licenses>
     <license><name>MIT license</name><comments>All source code is under the MIT license.</comments></license>
   </licenses>
@@ -24,4 +24,8 @@
     </dependency>
   </dependencies>
 
+
+  <scm>
+    <tag>clearcase-0_1</tag>
+  </scm>
 </project>
