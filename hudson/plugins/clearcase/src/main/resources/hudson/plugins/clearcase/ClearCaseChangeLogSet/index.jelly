@@ -1,0 +1,23 @@
+<!--
+  Displays the Clear case change log.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+  <j:choose>
+    <j:when test="${it.emptySet}">
+      No changes from last build.
+    </j:when>
+    <j:otherwise>
+	  <j:forEach var="cs" items="${it.logs}" varStatus="loop">
+	    <div class="changeset-message">
+	      <a name="detail${loop.index}"></a>
+	      <b>${loop.index + 1}. <a href="${rootURL}/${cs.author.url}/">${cs.author}</a> on ${cs.date}</b>
+	      <br/>
+	      ${cs.file}(${cs.version}) - ${cs.action}:
+	      <br/>
+	      ${cs.comment}
+	    </div>
+	    <br/>
+	  </j:forEach>
+	</j:otherwise>
+  </j:choose>
+</j:jelly>
