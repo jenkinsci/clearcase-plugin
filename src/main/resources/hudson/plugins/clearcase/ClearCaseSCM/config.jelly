@@ -1,8 +1,32 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+	<f:entry title="Configspec" help="/plugin/clearcase/configspec.html">
+    	<textarea class="setting-input" name="clearcase.configspec"
+      		rows="8" style="width:100%"
+      		checkUrl="'${rootURL}/scm/ClearCaseSCM/configSpecCheck?value='+escape(this.value)"
+      		>${scm.configSpec}</textarea>
+  	</f:entry>
+  	<f:entry title="Local directory" help="/plugin/clearcase/localdir.html">
+  		<f:textbox name="clearcase.localdirectory" value="${scm.localDirectory}" 
+  			checkUrl="'${rootURL}/scm/ClearCaseSCM/localDirectoryCheck?value='+escape(this.value)"/>     
+    </f:entry>
+
+	
+	<f:entry title="Use update"
+ 		description="
+      		If checked, Hudson will use 'cleartool update' whenever possible, making the build faster.
+      		But this causes the artifacts from the previous build to remain when a new build starts.">
+    		<f:checkbox name="clearcase.useupdate" checked="${h.defaultToTrue(scm.useUpdate)}"/>
+	</f:entry>
+	
+	
+
+<!--
 	<f:entry title="View Path(s)"  help="/plugin/clearcase/modules.html">
 	  <f:expandableTextbox name="clearcase.viewpaths" value="${scm.viewPaths}"/>
 	</f:entry>
-	<f:entry title="Branch">
+	-->
+	<f:entry title="Branch" help="/plugin/clearcase/branch.html">
 	  <f:textbox name="clearcase.branch" value="${scm.branch}"/>
-	</f:entry>
+	</f:entry>	
 </j:jelly>
