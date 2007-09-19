@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,21 +19,30 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.kohsuke.stapler.StaplerRequest;
 
+import javax.servlet.ServletException;
+
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+
+import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Proc;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
 import hudson.model.BuildListener;
+import hudson.model.Hudson;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.ByteBuffer;
 import hudson.util.ForkOutputStream;
+import hudson.util.FormFieldValidator;
 
 /**
  * Clear case SCM.
@@ -47,10 +57,17 @@ public class ClearCaseSCM extends SCM {
 
 	private String branch;
 	private String viewPaths;
+	
+	private boolean useUpdate;
+	private String configSpec;
+	private String localDirectory;
 
-	public ClearCaseSCM(String branch, String viewPaths) {
+	public ClearCaseSCM(String branch, String viewPaths, String configSpec, String localDirectory, boolean useUpdate) {
 		this.branch = branch;
 		this.viewPaths = viewPaths;
+		this.configSpec = configSpec;
+		this.localDirectory = localDirectory;
+		this.useUpdate = useUpdate;
 	}
 
 	// Get methods
@@ -62,6 +79,16 @@ public class ClearCaseSCM extends SCM {
 		return viewPaths;
 	}
 
+	public String getConfigSpec() {
+		return configSpec;
+	}
+	public String getLocalDirectory() {
+		return localDirectory;
+	}
+	public boolean isUseUpdate() {
+		return useUpdate;
+	}
+	
 	@Override
 	public ClearCaseScmDescriptor getDescriptor() {
 		return DESCRIPTOR;
@@ -69,6 +96,40 @@ public class ClearCaseSCM extends SCM {
 
 	@Override
 	public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
+			File changelogFile) throws IOException, InterruptedException {
+		List<Object[]> history = new ArrayList<Object[]>();
+		
+		boolean localViewPathExists = new FilePath(workspace, localDirectory).exists();
+		
+		if ((! useUpdate) && localViewPathExists) {
+			removeView(launcher, workspace, listener, localDirectory);
+			localViewPathExists = false;
+		}
+		
+		if (! localViewPathExists) {
+			createView(launcher, workspace, listener, "HUDSON", localDirectory);
+			editConfigSpec(launcher, workspace, listener, localDirectory);
+		}
+
+		if (useUpdate) {
+			updateViewPath(launcher, workspace, listener, localDirectory);                
+		}
+		
+		if (build.getPreviousBuild() != null) {
+			history.addAll(getHistoryEntries(build.getPreviousBuild().getTimestamp().getTime(), 
+				launcher, workspace, listener, new String[] { localDirectory }));
+		}
+
+		if (history.isEmpty()) {
+			// nothing to compare against, or no changes
+			return createEmptyChangeLog(changelogFile, listener, "changelog");
+		} else {
+			ClearCaseChangeLogSet.saveToChangeLog(new FileOutputStream(changelogFile), history);
+			return true;
+		}
+	}
+	
+	/*public boolean checkoutOtherViewPaths(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
 			File changelogFile) throws IOException, InterruptedException {
 		List<Object[]> history = new ArrayList<Object[]>();
 		
@@ -101,7 +162,7 @@ public class ClearCaseSCM extends SCM {
 			ClearCaseChangeLogSet.saveToChangeLog(new FileOutputStream(changelogFile), history);
 			return true;
 		}
-	}
+	}*/
 
 	@Override
 	public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener)
@@ -112,7 +173,7 @@ public class ClearCaseSCM extends SCM {
 			return true;
 		} else {
 			Date buildTime = lastBuild.getTimestamp().getTime();
-			return !getHistoryEntries(buildTime, launcher, workspace, listener, getAllViewPathsNormalized()).isEmpty();
+			return !getHistoryEntries(buildTime, launcher, workspace, listener, new String[]{localDirectory}).isEmpty();
 		}
 	}
 
@@ -141,6 +202,43 @@ public class ClearCaseSCM extends SCM {
 		run(launcher, cmd, listener, workspace, listener.getLogger());
 	}
 
+	private void createView(Launcher launcher, FilePath workspace, BuildListener listener, String viewTag, String viewPath)
+			throws IOException, InterruptedException {
+		ArgumentListBuilder cmd = new ArgumentListBuilder();
+		cmd.add(getDescriptor().getCleartoolExe());
+		cmd.add("mkview");
+		cmd.add("-snapshot");
+		cmd.add(viewPath);
+		run(launcher, cmd, listener, workspace, listener.getLogger());
+	}
+
+	private void removeView(Launcher launcher, FilePath workspace, BuildListener listener, String viewPath)
+			throws IOException, InterruptedException {
+		ArgumentListBuilder cmd = new ArgumentListBuilder();
+		cmd.add(getDescriptor().getCleartoolExe());
+		cmd.add("rmview");
+		cmd.add("-force");
+		cmd.add(viewPath);
+		run(launcher, cmd, listener, workspace, listener.getLogger());
+		FilePath viewFilePath = new FilePath(workspace, viewPath);
+		if (viewFilePath.exists()) {
+			viewFilePath.deleteRecursive();
+		}
+	}
+
+	private void editConfigSpec(Launcher launcher, FilePath workspace, BuildListener listener, String viewPath)
+			throws IOException, InterruptedException {
+		FilePath configSpecFile = workspace.createTextTempFile("configspec", ".txt", configSpec);
+		
+		ArgumentListBuilder cmd = new ArgumentListBuilder();
+		cmd.add(getDescriptor().getCleartoolExe());
+		cmd.add("setcs");
+		cmd.add(".." + File.separatorChar + configSpecFile.getName());
+		run(launcher, cmd, listener, new FilePath(workspace, viewPath), listener.getLogger());
+		
+		configSpecFile.delete();
+	}
+
 	/**
 	 * Returns the latest history for the specified module paths.
 	 * @param lastBuildDate the last time build date
@@ -162,16 +260,19 @@ public class ClearCaseSCM extends SCM {
 		cmd.add(getDescriptor().getCleartoolExe());
 		cmd.add("lshistory");
 		cmd.add("-since", formatter.format(lastBuildDate));
+		cmd.add("-fmt", ClearToolHistoryParser.getLogFormat());
 		if ((branch != null) && (branch.length() > 0)) {
 			cmd.add("-branch", branch);
 		}
-		cmd.add("-recurse");
 		cmd.add("-nco");
-		cmd.add(viewPaths);
-
-		if (run(launcher, cmd, listener, workspace, new ForkOutputStream(baos, listener.getLogger()))) {
+		cmd.add("-avobs");
+		if (run(launcher, cmd, listener, new FilePath(workspace, viewPaths[0]), new ForkOutputStream(baos, listener.getLogger()))) {
 			ClearToolHistoryParser parser = new ClearToolHistoryParser();
-			parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), historyEntries);
+			try {
+				parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), historyEntries);
+			} catch (ParseException pe) {
+				throw new IOException("There was a problem parsing the history log.", pe);
+			}
 		}
 		baos.close();
 		return historyEntries;
@@ -210,11 +311,10 @@ public class ClearCaseSCM extends SCM {
 			}
 		}
 		baos.close();
-
 		return isSnapshot;
 	}
 
-	private String[] getAllViewPathsNormalized() {
+/*	private String[] getAllViewPathsNormalized() {
 		// split by whitespace, except "\ "
 		String[] r = viewPaths.split("(?<!\\\\)[ \\r\\n]+");
 		// now replace "\ " to " ".
@@ -222,7 +322,7 @@ public class ClearCaseSCM extends SCM {
 			r[i] = r[i].replaceAll("\\\\ ", " ");
 		return r;
 	}
-
+*/
 	private final boolean run(Launcher launcher, ArgumentListBuilder cmd, TaskListener listener, FilePath dir,
 			OutputStream out) throws IOException, InterruptedException {
 		Map<String, String> env = new HashMap<String, String>();
@@ -277,7 +377,61 @@ public class ClearCaseSCM extends SCM {
 
 		@Override
 		public SCM newInstance(StaplerRequest req) throws FormException {
-			return new ClearCaseSCM(req.getParameter("clearcase.branch"), req.getParameter("clearcase.viewpaths"));
+			return new ClearCaseSCM(req.getParameter("clearcase.branch"), 
+					req.getParameter("clearcase.viewpaths"),
+					req.getParameter("clearcase.configspec"),
+					req.getParameter("clearcase.localdirectory"),
+					req.getParameter("clearcase.useupdate") != null);
 		}
+		
+        /**
+         * Checks if clear tool executable exists.
+         */
+        public void doCleartoolExeCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+            new FormFieldValidator.Executable(req,rsp).process();
+        }
+        public void doLocalDirectoryCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+            new FormFieldValidator(req,rsp,false) {
+                protected void check() throws IOException, ServletException {
+                    String v = fixEmpty(request.getParameter("value"));
+                    if(v==null) {
+                        error("Local directory is mandatory");
+                        return;
+                    }
+                    // all tests passed so far
+                    ok();
+                }
+            }.process();
+        }
+        public void doConfigSpecCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+            new FormFieldValidator(req,rsp,false) {
+                protected void check() throws IOException, ServletException {
+                    String v = fixEmpty(request.getParameter("value"));
+                    if(v==null) {
+                        error("Config spec is mandatory");
+                        return;
+                    }
+                    // all tests passed so far
+                    ok();
+                }
+            }.process();
+        }
+		
+        /**
+         * Displays "cleartool -version" for trouble shooting.
+         */
+        public void doVersion(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException, InterruptedException {
+            ByteBuffer baos = new ByteBuffer();
+            try {
+                Proc proc = Hudson.getInstance().createLauncher(TaskListener.NULL).launch(
+                    new String[]{getCleartoolExe(), "-version"}, new String[0], baos, null);
+                proc.join();
+                rsp.setContentType("text/plain");
+                baos.writeTo(rsp.getOutputStream());
+            } catch (IOException e) {
+                req.setAttribute("error",e);
+                rsp.forward(this,"versionCheckError",req);
+            }
+        }
 	}
 }
