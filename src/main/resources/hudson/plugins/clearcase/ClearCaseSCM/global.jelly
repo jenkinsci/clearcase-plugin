@@ -1,8 +1,14 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 	<f:section title="Clear Case">
-    <f:entry title="Clear tool executable">
-	    <f:textbox name="clearcase.cleartoolExe" value="${descriptor.cleartoolExe}"/>
-	  </f:entry>
-
-  </f:section>
+		<f:description>
+			<div align="right">
+				<a href="${rootURL}/scm/ClearCaseSCM/version">Check cleartool version</a>
+  			</div>
+    	</f:description>
+    	
+    	<f:entry title="Clear tool executable"  help="/plugin/clearcase/cleartoolexe.html">
+	    	<f:textbox name="clearcase.cleartoolExe" value="${descriptor.cleartoolExe}"
+	    		checkUrl="'${rootURL}/scm/ClearCaseSCM/cleartoolExeCheck?value='+escape(this.value)"/>
+	  	</f:entry>
+ 	 </f:section>
 </j:jelly>
