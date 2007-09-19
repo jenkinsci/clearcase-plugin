@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -29,55 +30,68 @@ public class ClearToolHistoryParser {
 	private final transient SimpleDateFormat dateFormatter;
 
 	public ClearToolHistoryParser() {
-		pattern = Pattern.compile("^(\\S+)\\s+(\\w+)\\s+(.+)\\s+\"(.+)@@(.+)\"");
-		dateFormatter = new SimpleDateFormat("dd-MMM.HH:mm yyyy");
+		//pattern = Pattern.compile("^(\\S+)\\s+(\\w+)\\s+(.+)\\s+\"(.+)@@(.+)\"");
+		pattern = Pattern.compile("\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"");
+		dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
+	}
+	
+	/**
+	 * Returns the log format that the parser supports
+	 * @return the format for the 'cleartool lshistory' command 
+	 */
+	public static String getLogFormat() {
+		return "\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\"\\n%c\\n";
 	}
 
-	public void parse(Reader inReader, List<Object[]> historyEntries) throws IOException {
+	public void parse(Reader inReader, List<Object[]> historyEntries) throws IOException, ParseException {
 
 		BufferedReader reader = new BufferedReader(inReader);
 
+		Object[] content = null;
+		StringBuilder commentBuilder = new StringBuilder();
 		String line = reader.readLine();
 		while (line != null) {
-
-			Object[] content = new Object[6];
-			Matcher matcher = pattern.matcher(line);
-
-			if (matcher.find() && matcher.groupCount() == 5) {
-				try {
-					Date date = dateFormatter.parse(matcher.group(1) + " " + Calendar.getInstance().get(Calendar.YEAR));
+			
+			if (!line.startsWith("cleartool: Error:")) {
+				Matcher matcher = pattern.matcher(line);		
+				if (matcher.find() && matcher.groupCount() == 5) {					
+					if (content != null) {
+						content[COMMENT_INDEX] = commentBuilder.toString();
+						if (! (		((String)content[ACTION_INDEX]).equalsIgnoreCase("create branch")
+								||  ((String) content[VERSION_INDEX]).endsWith("\\0") ) ) {
+							historyEntries.add(content);
+						}	
+					}
+					commentBuilder = new StringBuilder();
+					content = new Object[6];
+					Date date = dateFormatter.parse(matcher.group(1));
 					content[DATE_INDEX] = date;
-				} catch (ParseException e) {
-				}
-				content[USER_INDEX] = matcher.group(2);
-				content[ACTION_INDEX] = matcher.group(3);
-				content[VERSION_INDEX] = matcher.group(5);
-				content[FILE_INDEX] = matcher.group(4);
-
-				line = reader.readLine();
-
-				StringBuilder commentBuilder = new StringBuilder();
-				while ((line != null) && ((line.length() == 0) || (line.charAt(0) == ' '))) {
+					content[USER_INDEX] = matcher.group(2);
+					content[ACTION_INDEX] = matcher.group(3);
+					content[VERSION_INDEX] = matcher.group(5);
+					content[FILE_INDEX] = matcher.group(4);
+				} else {
 					if (commentBuilder.length() > 0) {
 						commentBuilder.append("\n");
 					}
-					commentBuilder.append(line.trim());
-					line = reader.readLine();
-				}
-
-				if (commentBuilder.length() > 0) {
-					commentBuilder.deleteCharAt(0);
-					commentBuilder.deleteCharAt(commentBuilder.length() - 1);
-				}
-				content[COMMENT_INDEX] = commentBuilder.toString();
-				
-				if (! (		((String)content[ACTION_INDEX]).equalsIgnoreCase("create branch")
-						||  ((String) content[VERSION_INDEX]).endsWith("\\0") ) ) {
-					historyEntries.add(content);
-				}
-			} else {
-				line = reader.readLine();
+					commentBuilder.append(line);	
+				}				
 			}
+			line = reader.readLine();			
 		}
+		if (content != null) {
+			content[COMMENT_INDEX] = commentBuilder.toString();
+			if (! (		((String)content[ACTION_INDEX]).equalsIgnoreCase("create branch")
+					||  ((String) content[VERSION_INDEX]).endsWith("\\0") ) ) {
+				historyEntries.add(content);
+			}	
+		}
+
+		Collections.sort(historyEntries, new Comparator<Object[]>() {
+			public int compare(Object[] arg0, Object[] arg1) {
+				return ((Date) arg1[ClearToolHistoryParser.DATE_INDEX]).compareTo(
+						((Date) arg0[ClearToolHistoryParser.DATE_INDEX]));
+			}
+		});
 	}
 }
