@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -56,17 +57,15 @@ public class ClearCaseSCM extends SCM {
 	public static final ClearCaseSCM.ClearCaseScmDescriptor DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
 
 	private String branch;
-	private String viewPaths;
-	
+
 	private boolean useUpdate;
 	private String configSpec;
-	private String localDirectory;
+	private String viewName;
 
-	public ClearCaseSCM(String branch, String viewPaths, String configSpec, String localDirectory, boolean useUpdate) {
+	public ClearCaseSCM(String branch, String configSpec, String viewName, boolean useUpdate) {
 		this.branch = branch;
-		this.viewPaths = viewPaths;
 		this.configSpec = configSpec;
-		this.localDirectory = localDirectory;
+		this.viewName = viewName;
 		this.useUpdate = useUpdate;
 	}
 
@@ -74,16 +73,15 @@ public class ClearCaseSCM extends SCM {
 	public String getBranch() {
 		return branch;
 	}
-
-	public String getViewPaths() {
-		return viewPaths;
-	}
-
 	public String getConfigSpec() {
 		return configSpec;
 	}
-	public String getLocalDirectory() {
-		return localDirectory;
+	public String getViewName() {
+		if (viewName == null) {
+			return "HUDSON_VIEW";
+		} else {
+			return viewName;
+		}
 	}
 	public boolean isUseUpdate() {
 		return useUpdate;
@@ -99,25 +97,25 @@ public class ClearCaseSCM extends SCM {
 			File changelogFile) throws IOException, InterruptedException {
 		List<Object[]> history = new ArrayList<Object[]>();
 		
-		boolean localViewPathExists = new FilePath(workspace, localDirectory).exists();
+		boolean localViewPathExists = new FilePath(workspace, viewName).exists();
 		
 		if ((! useUpdate) && localViewPathExists) {
-			removeView(launcher, workspace, listener, localDirectory);
+			removeView(launcher, workspace, listener, viewName);
 			localViewPathExists = false;
 		}
 		
 		if (! localViewPathExists) {
-			createView(launcher, workspace, listener, "HUDSON", localDirectory);
-			editConfigSpec(launcher, workspace, listener, localDirectory);
+			createView(launcher, workspace, listener, "HUDSON", viewName);
+			editConfigSpec(launcher, workspace, listener, viewName);
 		}
 
 		if (useUpdate) {
-			updateViewPath(launcher, workspace, listener, localDirectory);                
+			updateViewPath(launcher, workspace, listener, viewName);                
 		}
 		
 		if (build.getPreviousBuild() != null) {
 			history.addAll(getHistoryEntries(build.getPreviousBuild().getTimestamp().getTime(), 
-				launcher, workspace, listener, new String[] { localDirectory }));
+				launcher, workspace, listener, viewName));
 		}
 
 		if (history.isEmpty()) {
@@ -129,41 +127,6 @@ public class ClearCaseSCM extends SCM {
 		}
 	}
 	
-	/*public boolean checkoutOtherViewPaths(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
-			File changelogFile) throws IOException, InterruptedException {
-		List<Object[]> history = new ArrayList<Object[]>();
-		
-		for (String viewPath : getAllViewPathsNormalized()) {
-			if (isSnapshot(viewPath, launcher, workspace, listener)) {
-				listener.getLogger().println(viewPath + " is a snapshot, updating view.");				
-				updateViewPath(launcher, workspace, listener, viewPath);
-			} else {
-				listener.getLogger().println(viewPath + " is not a snapshot, no need to update view.");
-			}
-			
-			if (build.getPreviousBuild() != null) {
-				history.addAll(getHistoryEntries(build.getPreviousBuild().getTimestamp().getTime(), 
-					launcher, workspace, listener, new String[] { viewPath }));
-			}
-		}
-
-		if (history.isEmpty()) {
-			// nothing to compare against, or no changes
-			return createEmptyChangeLog(changelogFile, listener, "changelog");
-		} else {
-			
-			Collections.sort(history, new Comparator<Object[]>() {
-				public int compare(Object[] arg0, Object[] arg1) {
-					return ((Date) arg1[ClearToolHistoryParser.DATE_INDEX]).compareTo(
-							((Date) arg0[ClearToolHistoryParser.DATE_INDEX]));
-				}				
-			});
-			
-			ClearCaseChangeLogSet.saveToChangeLog(new FileOutputStream(changelogFile), history);
-			return true;
-		}
-	}*/
-
 	@Override
 	public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener)
 			throws IOException, InterruptedException {
@@ -173,7 +136,7 @@ public class ClearCaseSCM extends SCM {
 			return true;
 		} else {
 			Date buildTime = lastBuild.getTimestamp().getTime();
-			return !getHistoryEntries(buildTime, launcher, workspace, listener, new String[]{localDirectory}).isEmpty();
+			return !getHistoryEntries(buildTime, launcher, workspace, listener, viewName).isEmpty();
 		}
 	}
 
@@ -222,6 +185,7 @@ public class ClearCaseSCM extends SCM {
 		run(launcher, cmd, listener, workspace, listener.getLogger());
 		FilePath viewFilePath = new FilePath(workspace, viewPath);
 		if (viewFilePath.exists()) {
+			listener.getLogger().println("Removing view folder as it was not removed when the view was removed.");
 			viewFilePath.deleteRecursive();
 		}
 	}
@@ -245,28 +209,42 @@ public class ClearCaseSCM extends SCM {
 	 * @param launcher 
 	 * @param workspace
 	 * @param listener
+	 * @param viewName the name of the view
 	 * @return array of objects containing history entries
 	 * @throws IOException thrown if there was a problem reading from the output from the tool
 	 * @throws InterruptedException
 	 */
 	private List<Object[]> getHistoryEntries(Date lastBuildDate, Launcher launcher, FilePath workspace,
-			TaskListener listener, String[] viewPaths) throws IOException, InterruptedException {
+			TaskListener listener, String viewName) throws IOException, InterruptedException {
+		
 		SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm:ss");
-
+		FilePath viewPath = workspace.child(viewName);
+		String[] vobNames = null;
+		List<FilePath> subFilePaths = viewPath.list((FileFilter) null);
+		if ((subFilePaths != null) && (subFilePaths.size() > 0)) {
+			vobNames = new String[subFilePaths.size()];
+			for (int i = 0; i < subFilePaths.size(); i++) {
+				vobNames[i] = subFilePaths.get(i).getName();
+			}
+		}
+		
 		List<Object[]> historyEntries = new ArrayList<Object[]>();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		ArgumentListBuilder cmd = new ArgumentListBuilder();
 		cmd.add(getDescriptor().getCleartoolExe());
 		cmd.add("lshistory");
+		cmd.add("-r");
 		cmd.add("-since", formatter.format(lastBuildDate));
 		cmd.add("-fmt", ClearToolHistoryParser.getLogFormat());
 		if ((branch != null) && (branch.length() > 0)) {
 			cmd.add("-branch", branch);
 		}
 		cmd.add("-nco");
-		cmd.add("-avobs");
-		if (run(launcher, cmd, listener, new FilePath(workspace, viewPaths[0]), new ForkOutputStream(baos, listener.getLogger()))) {
+		if (vobNames != null) {
+			cmd.add(vobNames);
+		}
+		if (run(launcher, cmd, listener, viewPath, new ForkOutputStream(baos, listener.getLogger()))) {
 			ClearToolHistoryParser parser = new ClearToolHistoryParser();
 			try {
 				parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), historyEntries);
@@ -278,51 +256,6 @@ public class ClearCaseSCM extends SCM {
 		return historyEntries;
 	}
 
-	/**
-	 * Returns if the view path is a snapshot view or not
-	 * @param viewPath view path
-	 * @param launcher
-	 * @param workspace
-	 * @param listener
-	 * @return if the view path is a snapshot view or not
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	private boolean isSnapshot(String viewPath, Launcher launcher, FilePath workspace, TaskListener listener)
-		throws IOException, InterruptedException {
-		boolean isSnapshot = false;
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add(getDescriptor().getCleartoolExe());
-		cmd.add("lsview");
-		cmd.add("-cview");
-		cmd.add("-properties");
-		cmd.add("-full");
-
-		if (run(launcher, cmd, listener, new FilePath(new File(viewPath)), new ForkOutputStream(baos, listener.getLogger()))) {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-			String line = reader.readLine();
-			while ((line != null) && (!isSnapshot)){
-				if (line.contains("Properties: snapshot")) {
-					isSnapshot = true;
-				}
-				line = reader.readLine();
-			}
-		}
-		baos.close();
-		return isSnapshot;
-	}
-
-/*	private String[] getAllViewPathsNormalized() {
-		// split by whitespace, except "\ "
-		String[] r = viewPaths.split("(?<!\\\\)[ \\r\\n]+");
-		// now replace "\ " to " ".
-		for (int i = 0; i < r.length; i++)
-			r[i] = r[i].replaceAll("\\\\ ", " ");
-		return r;
-	}
-*/
 	private final boolean run(Launcher launcher, ArgumentListBuilder cmd, TaskListener listener, FilePath dir,
 			OutputStream out) throws IOException, InterruptedException {
 		Map<String, String> env = new HashMap<String, String>();
@@ -377,10 +310,9 @@ public class ClearCaseSCM extends SCM {
 
 		@Override
 		public SCM newInstance(StaplerRequest req) throws FormException {
-			return new ClearCaseSCM(req.getParameter("clearcase.branch"), 
-					req.getParameter("clearcase.viewpaths"),
+			return new ClearCaseSCM(req.getParameter("clearcase.branch"),
 					req.getParameter("clearcase.configspec"),
-					req.getParameter("clearcase.localdirectory"),
+					req.getParameter("clearcase.viewname"),
 					req.getParameter("clearcase.useupdate") != null);
 		}
 		
@@ -390,12 +322,13 @@ public class ClearCaseSCM extends SCM {
         public void doCleartoolExeCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
             new FormFieldValidator.Executable(req,rsp).process();
         }
-        public void doLocalDirectoryCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+        
+        public void doViewNameCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
             new FormFieldValidator(req,rsp,false) {
                 protected void check() throws IOException, ServletException {
                     String v = fixEmpty(request.getParameter("value"));
                     if(v==null) {
-                        error("Local directory is mandatory");
+                        error("View name is mandatory");
                         return;
                     }
                     // all tests passed so far
@@ -403,11 +336,13 @@ public class ClearCaseSCM extends SCM {
                 }
             }.process();
         }
+        
         public void doConfigSpecCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+        	System.out.println("doConfigSpecCheck");
             new FormFieldValidator(req,rsp,false) {
                 protected void check() throws IOException, ServletException {
                     String v = fixEmpty(request.getParameter("value"));
-                    if(v==null) {
+                    if ((v==null) || (v.length() == 0)) {
                         error("Config spec is mandatory");
                         return;
                     }
