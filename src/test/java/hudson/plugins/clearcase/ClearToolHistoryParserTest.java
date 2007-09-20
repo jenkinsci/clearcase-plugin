@@ -189,7 +189,7 @@ public class ClearToolHistoryParserTest {
 		calendar.set(Calendar.YEAR, year);
 		calendar.set(Calendar.MONTH, month);
 		calendar.set(Calendar.DATE, day);
-		calendar.set(Calendar.HOUR, hour);
+		calendar.set(Calendar.HOUR_OF_DAY, hour);
 		calendar.set(Calendar.MINUTE, min);
 		calendar.set(Calendar.SECOND, sec);
 		return calendar.getTime();
