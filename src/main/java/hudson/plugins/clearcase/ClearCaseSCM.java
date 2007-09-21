@@ -1,35 +1,9 @@
 package hudson.plugins.clearcase;
 
-import static hudson.Util.fixEmpty;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-
-import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
+import static hudson.Util.fixEmpty;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
@@ -44,6 +18,26 @@ import hudson.util.ArgumentListBuilder;
 import hudson.util.ByteBuffer;
 import hudson.util.ForkOutputStream;
 import hudson.util.FormFieldValidator;
+import hudson.util.IOException2;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+
+import javax.servlet.ServletException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Clear case SCM.
@@ -249,7 +243,7 @@ public class ClearCaseSCM extends SCM {
 			try {
 				parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), historyEntries);
 			} catch (ParseException pe) {
-				throw new IOException("There was a problem parsing the history log.", pe);
+				throw new IOException2("There was a problem parsing the history log.", pe);
 			}
 		}
 		baos.close();
