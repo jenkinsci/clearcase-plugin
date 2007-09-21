@@ -50,7 +50,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 	 * Parses the change log file and returns a clear case change log set.
 	 * 
 	 * @param build the build for the change log
-	 * @param f the change log file
+	 * @param changeLogFile the change log file
 	 * @return the change log set
 	 */
 	public static ClearCaseChangeLogSet parse(AbstractBuild build, File changeLogFile) throws IOException,
