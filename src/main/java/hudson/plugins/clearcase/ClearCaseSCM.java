@@ -72,7 +72,7 @@ public class ClearCaseSCM extends SCM {
 	}
 	public String getViewName() {
 		if (viewName == null) {
-			return "HUDSON_VIEW";
+			return "hudson_view";
 		} else {
 			return viewName;
 		}
