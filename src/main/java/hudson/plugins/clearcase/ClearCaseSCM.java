@@ -87,6 +87,12 @@ public class ClearCaseSCM extends SCM {
 	}
 
 	@Override
+	public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
+        if (viewName != null)
+            env.put("CLEARCASE_VIEWNAME", viewName);
+	}
+	
+	@Override
 	public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
 			File changelogFile) throws IOException, InterruptedException {
 		List<Object[]> history = new ArrayList<Object[]>();
