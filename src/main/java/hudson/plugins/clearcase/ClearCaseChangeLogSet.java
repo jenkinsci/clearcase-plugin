@@ -30,6 +30,9 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 
 	public ClearCaseChangeLogSet(AbstractBuild<?, ?> build, List<ClearCaseChangeLogEntry> logs) {
 		super(build);
+		for (ClearCaseChangeLogEntry entry : logs) {
+			entry.setParent(this);
+		}
 		this.history = Collections.unmodifiableList(logs);
 	}
 

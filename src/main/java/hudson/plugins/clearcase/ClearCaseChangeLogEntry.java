@@ -63,7 +63,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 	public String getVersion() {
 		return version;
 	}
-
+	
 	public void setVersion(String version) {
 		this.version = version;
 	}
@@ -81,5 +81,13 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 	@Override
 	public String getMsg() {
 		return comment;
+	}
+
+	/**
+	 * Overrides the setParent() method so the ClearCaseChangeLogSet can access it.
+	 */
+	@Override
+	public void setParent(ChangeLogSet parent) {
+		super.setParent(parent);
 	}
 }
