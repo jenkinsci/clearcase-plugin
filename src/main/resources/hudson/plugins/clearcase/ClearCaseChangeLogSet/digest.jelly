@@ -15,7 +15,7 @@
             <td>${loop.index + 1}.</td>
             <td><a href="${rootURL}/${cs.author.url}/">${cs.author}</a></td>
             <td><i>(<a href="changes#detail${loop.index}">detail</a>)</i></td>
-            <td> ${cs.msgEscaped}</td>
+            <td> ${cs.msgAnnotated}</td>
           </tr>
         </j:forEach>
       </table>

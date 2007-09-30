@@ -14,7 +14,7 @@
 	      <br/>
 	      ${cs.file}(${cs.version}) - ${cs.action}:
 	      <br/>
-	      ${cs.comment}
+	      ${cs.msgAnnotated}
 	    </div>
 	    <br/>
 	  </j:forEach>
