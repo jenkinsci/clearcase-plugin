@@ -98,9 +98,10 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 	 * @throws IOException
 	 */
 	public static void saveToChangeLog(OutputStream outputStream, List<Object[]> history) throws IOException {
-		PrintStream stream = new PrintStream(outputStream);
+		PrintStream stream = new PrintStream(outputStream, false, "UTF-8");
 
 		int tagcount = ClearCaseChangeLogSet.TAGS.length;
+		stream.println("<?xml version='1.0' encoding='UTF-8'?>");
 		stream.println("<history>");
 		for (Object[] entry : history) {
 			stream.println("\t<entry>");
