@@ -4,7 +4,7 @@
 		<user>qhensam</user>
 		<comment></comment>
 		<action>create version</action>
-		<date>Fri Aug 28 15:27:00 CET 2007</date>
+		<date>Tue Aug 28 15:27:00 CEST 2007</date>
 		<version>\main\sit_r5_maint\3</version>
 	</entry>
 	<entry>
@@ -12,7 +12,7 @@
 		<user>qhensam</user>
 		<comment></comment>
 		<action>create version</action>
-		<date>Fri Aug 28 15:27:00 CET 2007</date>
+		<date>Tue Aug 28 15:27:00 CEST 2007</date>
 		<version>\main\sit_r5_maint\4</version>
 	</entry>
 	<entry>
@@ -20,7 +20,7 @@
 		<user>qrameri</user>
 		<comment>BUG9391 - </comment>
 		<action>create version</action>
-		<date>Fri Aug 28 15:24:00 CET 2007</date>
+		<date>Tue Aug 28 15:24:00 CEST 2007</date>
 		<version>\main\sit_r5_maint\1</version>
 	</entry>
 </history>

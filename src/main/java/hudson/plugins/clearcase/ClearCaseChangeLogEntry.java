@@ -1,7 +1,12 @@
 package hudson.plugins.clearcase;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
@@ -13,12 +18,40 @@ import hudson.scm.ChangeLogSet;
  */
 public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 
+	private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
+	
 	private String user = null;
 	private String action = null;
-	private String date = null;
+	private String dateStr = null;
+	private Date date = null;
 	private String comment = null;
-	private String file = null;
+	private List<String> files = null;
 	private String version = null;
+
+	public ClearCaseChangeLogEntry() {
+	}
+	
+	public ClearCaseChangeLogEntry(Date date, String user, String action, String comment, String file, String version) {
+		this.date = date;
+		this.user = user;
+		this.action = action;
+		this.comment = comment;
+		this.version = version;
+		addFile(file);
+	}
+
+	public void addFile(String file) {
+		if (files == null) {
+			files = new ArrayList<String>();
+		}
+		files.add(file);
+	}
+	public void addFiles(Collection<String> files) {
+		if (files == null) {
+			files = new ArrayList<String>();
+		}
+		this.files.addAll(files);
+	}
 
 	public String getAction() {
 		return action;
@@ -36,20 +69,39 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 		this.comment = comment;
 	}
 
-	public String getDate() {
+	public String getDateStr() {
+		if (date == null) {
+			return dateStr;
+		} else {
+			return DATE_FORMATTER.format(date);
+		}
+	}
+
+	public void setDateStr(String date) {
+		try {
+			this.date = DATE_FORMATTER.parse(date);
+		} catch (ParseException e) {
+			this.dateStr = date;
+		}
+	}
+
+	public Date getDate() {
 		return date;
 	}
 
-	public void setDate(String date) {
+	public void setDate(Date date) {
 		this.date = date;
 	}
 
 	public String getFile() {
-		return file;
+		if ((files == null) || (files.size() == 0))
+			return "";
+		else
+			return files.get(0);
 	}
 
 	public void setFile(String file) {
-		this.file = file;
+		addFile(file);
 	}
 
 	public String getUser() {
@@ -75,7 +127,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 
 	@Override
 	public Collection<String> getAffectedPaths() {
-		return Collections.singletonList(file);
+		return files;
 	}
 
 	@Override

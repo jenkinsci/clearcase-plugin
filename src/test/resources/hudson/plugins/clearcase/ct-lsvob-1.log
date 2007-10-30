@@ -1,0 +1,6 @@
+* /vobs/demo    /net/host5/usr/vobstore/demo_vob public
+  /vobs/pvoba    /net/host7/usr/vobstore/p_voba private (pvob)
+  /vobs/doc     /net/host2/usr/vobstore/doc_vob public
+*   \demoa     \\neptune\vbstore\demoa_vob public
+*   \pvob     \\sunfield\users\vbstore\p_vob private (pvob)
+    \bugvob    \\luna\users\anne\vbstore\bug_vob private
