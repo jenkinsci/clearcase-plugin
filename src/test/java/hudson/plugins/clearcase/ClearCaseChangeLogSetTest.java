@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.junit.Assert;
@@ -16,9 +17,12 @@ public class ClearCaseChangeLogSetTest {
 	@Test
 	public void testParse() throws IOException, SAXException {
 		ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, getClass().getResourceAsStream("changelog.xml"));
-		List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
-		
+		List<ClearCaseChangeLogEntry> logs = logSet.getLogs();		
 		Assert.assertEquals("Number of logs are incorrect", 3, logs.size());
+		Calendar cal = Calendar.getInstance();
+		cal.set(2007, 7, 28, 15, 27, 0);
+		Assert.assertEquals("The user is incorrect", "qhensam", logs.get(0).getUser());
+		Assert.assertEquals("The date is incorrect", cal.getTime().toString(), logs.get(0).getDateStr());
 	}
 	
 	@Test
@@ -31,11 +35,15 @@ public class ClearCaseChangeLogSetTest {
 	
 	@Test
 	public void testUnicodeXml() throws IOException, SAXException {
-		Object[] logEntry = new Object[6];
-		logEntry[2] = "Bülow";
+		ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
+		entry.setUser("Bülow");
+		entry.setAction("action");
+		entry.setComment("comment");
+		entry.setDate(Calendar.getInstance().getTime());
+		entry.setVersion("version");
 		
-		List<Object[]> history = new ArrayList<Object[]>();
-		history.add(logEntry);
+		List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
+		history.add(entry);
 		
 		File tempLogFile = File.createTempFile("clearcase", "xml");
 		FileOutputStream fileOutputStream = new FileOutputStream(tempLogFile);
@@ -47,6 +55,6 @@ public class ClearCaseChangeLogSetTest {
 		ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, fileInputStream);
 		List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
 		
-		Assert.assertEquals("The comment wasnt correct", "Bülow", logs.get(0).getComment());
+		Assert.assertEquals("The comment wasnt correct", "Bülow", logs.get(0).getUser());
 	}
 }
