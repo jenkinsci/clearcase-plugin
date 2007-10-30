@@ -10,7 +10,7 @@
 	  <j:forEach var="cs" items="${it.logs}" varStatus="loop">
 	    <div class="changeset-message">
 	      <a name="detail${loop.index}"></a>
-	      <b>${loop.index + 1}. <a href="${rootURL}/${cs.author.url}/">${cs.author}</a> on ${cs.date}</b>
+	      <b>${loop.index + 1}. <a href="${rootURL}/${cs.author.url}/">${cs.author}</a> on ${cs.dateStr}</b>
 	      <br/>
 	      ${cs.file}(${cs.version}) - ${cs.action}:
 	      <br/>

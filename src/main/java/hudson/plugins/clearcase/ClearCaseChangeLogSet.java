@@ -79,11 +79,13 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 		digester.push(history);
 		digester.addObjectCreate("*/entry", ClearCaseChangeLogEntry.class);
 
-		int tagCount = TAGS.length;
-		for (int tag = 0; tag < tagCount; tag++) {
-			digester.addBeanPropertySetter("*/entry/" + TAGS[tag]);
-		}
-
+		digester.addBeanPropertySetter("*/entry/date", "dateStr");
+		digester.addBeanPropertySetter("*/entry/comment");
+		digester.addBeanPropertySetter("*/entry/user");
+		digester.addBeanPropertySetter("*/entry/file");
+		digester.addBeanPropertySetter("*/entry/action");
+		digester.addBeanPropertySetter("*/entry/version");
+		
 		digester.addSetNext("*/entry", "add");
 		digester.parse(changeLogStream);
 
@@ -97,19 +99,20 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 	 * @param history the history objects to store
 	 * @throws IOException
 	 */
-	public static void saveToChangeLog(OutputStream outputStream, List<Object[]> history) throws IOException {
+	public static void saveToChangeLog(OutputStream outputStream, List<ClearCaseChangeLogEntry> history) throws IOException {
 		PrintStream stream = new PrintStream(outputStream, false, "UTF-8");
 
 		int tagcount = ClearCaseChangeLogSet.TAGS.length;
 		stream.println("<?xml version='1.0' encoding='UTF-8'?>");
 		stream.println("<history>");
-		for (Object[] entry : history) {
+		for (ClearCaseChangeLogEntry entry : history) {
 			stream.println("\t<entry>");
+			String[] strings = getEntryAsStrings(entry);
 			for (int tag = 0; tag < tagcount; tag++) {
 				stream.print("\t\t<");
 				stream.print(ClearCaseChangeLogSet.TAGS[tag]);
 				stream.print('>');
-				stream.print(escapeForXml(entry[tag]));
+				stream.print(escapeForXml(strings[tag]));
 				stream.print("</");
 				stream.print(ClearCaseChangeLogSet.TAGS[tag]);
 				stream.println('>');
@@ -119,14 +122,24 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 		stream.println("</history>");
 		stream.close();
 	}
+	
+	private static String[] getEntryAsStrings(ClearCaseChangeLogEntry entry) {
+		String[] array = new String[TAGS.length];
+		array[0] = entry.getFile();
+		array[1] = entry.getUser();
+		array[2] = entry.getComment();
+		array[3] = entry.getAction();
+		array[4] = entry.getDateStr();
+		array[5] = entry.getVersion();
+		return array;
+	}
 
-	private static String escapeForXml(Object object) {
-		if (object == null) {
+	private static String escapeForXml(String string) {
+		if (string == null) {
 			return null;
 		}
 
 		// Loop through and replace the special chars.
-		String string = object.toString();
 		int size = string.length();
 		char ch = 0;
 		StringBuffer escapedString = new StringBuffer(size);

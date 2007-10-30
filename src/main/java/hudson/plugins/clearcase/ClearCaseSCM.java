@@ -14,28 +14,19 @@ import hudson.model.TaskListener;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
-import hudson.util.ArgumentListBuilder;
 import hudson.util.ByteBuffer;
-import hudson.util.ForkOutputStream;
 import hudson.util.FormFieldValidator;
-import hudson.util.IOException2;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-
+import hudson.util.ForkOutputStream;
 import javax.servlet.ServletException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,15 +39,20 @@ import java.util.Map;
  */
 public class ClearCaseSCM extends SCM {
 
-	public static final ClearCaseSCM.ClearCaseScmDescriptor DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
+	//public static final ClearCaseSCM.ClearCaseScmDescriptor DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
+
+	public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
 
 	private String branch;
 
 	private boolean useUpdate;
 	private String configSpec;
 	private String viewName;
+	
+	private transient ClearTool clearTool;
 
-	public ClearCaseSCM(String branch, String configSpec, String viewName, boolean useUpdate) {
+	public ClearCaseSCM(ClearTool clearTool, String branch, String configSpec, String viewName, boolean useUpdate) {
+		this.clearTool = clearTool;
 		this.branch = branch;
 		this.configSpec = configSpec;
 		this.viewName = viewName;
@@ -83,46 +79,54 @@ public class ClearCaseSCM extends SCM {
 	
 	@Override
 	public ClearCaseScmDescriptor getDescriptor() {
-		return DESCRIPTOR;
+		return PluginImpl.DESCRIPTOR;
 	}
 
 	@Override
 	public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
         if (viewName != null)
-            env.put("CLEARCASE_VIEWNAME", viewName);
+            env.put(CLEARCASE_VIEWNAME_ENVSTR, viewName);
 	}
 	
 	@Override
 	public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
 			File changelogFile) throws IOException, InterruptedException {
-		List<Object[]> history = new ArrayList<Object[]>();
+		
+		if (clearTool == null) {
+			clearTool = new ClearToolExec(getDescriptor().getCleartoolExe());
+		}
+		
+		List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
+		ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
 		
 		boolean localViewPathExists = new FilePath(workspace, viewName).exists();
-		
-		if ((! useUpdate) && localViewPathExists) {
-			removeView(launcher, workspace, listener, viewName);
+		boolean updateView = useUpdate;
+		if ((! updateView) && localViewPathExists) {
+			clearTool.rmview(ctLauncher, viewName);
 			localViewPathExists = false;
 		}
 		
 		if (! localViewPathExists) {
-			createView(launcher, workspace, listener, "HUDSON", viewName);
-			editConfigSpec(launcher, workspace, listener, viewName);
+			clearTool.mkview(ctLauncher, viewName);
+			clearTool.setcs(ctLauncher, viewName, configSpec);
+			updateView = false;
 		}
 
-		if (useUpdate) {
-			updateViewPath(launcher, workspace, listener, viewName);                
+		if (updateView) {
+			clearTool.update(ctLauncher, viewName);                
 		}
 		
 		if (build.getPreviousBuild() != null) {
-			history.addAll(getHistoryEntries(build.getPreviousBuild().getTimestamp().getTime(), 
-				launcher, workspace, listener, viewName));
+			history.addAll(clearTool.lshistory(ctLauncher, build.getPreviousBuild().getTimestamp().getTime(), 
+				viewName, branch));
 		}
 
 		if (history.isEmpty()) {
 			// nothing to compare against, or no changes
 			return createEmptyChangeLog(changelogFile, listener, "changelog");
 		} else {
-			ClearCaseChangeLogSet.saveToChangeLog(new FileOutputStream(changelogFile), history);
+			FileOutputStream fileOutputStream = new FileOutputStream(changelogFile);
+			ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, history);
 			return true;
 		}
 	}
@@ -135,8 +139,10 @@ public class ClearCaseSCM extends SCM {
 		if (lastBuild == null) {
 			return true;
 		} else {
+			ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
 			Date buildTime = lastBuild.getTimestamp().getTime();
-			return !getHistoryEntries(buildTime, launcher, workspace, listener, viewName).isEmpty();
+			List<ClearCaseChangeLogEntry> data = clearTool.lshistory(ctLauncher, buildTime, viewName, branch);
+			return !data.isEmpty();
 		}
 	}
 
@@ -144,135 +150,59 @@ public class ClearCaseSCM extends SCM {
 	public ChangeLogParser createChangeLogParser() {
 		return new ClearCaseChangeLogParser();
 	}
+	
+	final static class ClearToolLauncherImpl implements ClearToolLauncher {
 
-	/**
-	 * Updates the view path
-	 * @param launcher
-	 * @param workspace
-	 * @param listener
-	 * @param viewPath
-	 * @throws IOException 
-	 * @throws InterruptedException
-	 */
-	private void updateViewPath(Launcher launcher, FilePath workspace, BuildListener listener, String viewPath)
-			throws IOException, InterruptedException {
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add(getDescriptor().getCleartoolExe());
-		cmd.add("update");
-		cmd.add("-force");
-		cmd.add("-log", "NUL");
-		cmd.add(viewPath);		
-		run(launcher, cmd, listener, workspace, listener.getLogger());
-	}
+		private final TaskListener listener;
+		private final FilePath workspace;
+		private final Launcher launcher;
 
-	private void createView(Launcher launcher, FilePath workspace, BuildListener listener, String viewTag, String viewPath)
-			throws IOException, InterruptedException {
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add(getDescriptor().getCleartoolExe());
-		cmd.add("mkview");
-		cmd.add("-snapshot");
-		cmd.add(viewPath);
-		run(launcher, cmd, listener, workspace, listener.getLogger());
-	}
-
-	private void removeView(Launcher launcher, FilePath workspace, BuildListener listener, String viewPath)
-			throws IOException, InterruptedException {
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add(getDescriptor().getCleartoolExe());
-		cmd.add("rmview");
-		cmd.add("-force");
-		cmd.add(viewPath);
-		run(launcher, cmd, listener, workspace, listener.getLogger());
-		FilePath viewFilePath = new FilePath(workspace, viewPath);
-		if (viewFilePath.exists()) {
-			listener.getLogger().println("Removing view folder as it was not removed when the view was removed.");
-			viewFilePath.deleteRecursive();
+		public ClearToolLauncherImpl(TaskListener listener, FilePath workspace, Launcher launcher) {
+			this.listener = listener;
+			this.workspace = workspace;
+			this.launcher = launcher;
 		}
-	}
+		
+		public TaskListener getListener() {
+			return listener;
+		}
 
-	private void editConfigSpec(Launcher launcher, FilePath workspace, BuildListener listener, String viewPath)
-			throws IOException, InterruptedException {
-		FilePath configSpecFile = workspace.createTextTempFile("configspec", ".txt", configSpec);
-		
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add(getDescriptor().getCleartoolExe());
-		cmd.add("setcs");
-		cmd.add(".." + File.separatorChar + configSpecFile.getName());
-		run(launcher, cmd, listener, new FilePath(workspace, viewPath), listener.getLogger());
-		
-		configSpecFile.delete();
-	}
+		public FilePath getWorkspace() {
+			return workspace;
+		}
 
-	/**
-	 * Returns the latest history for the specified module paths.
-	 * @param lastBuildDate the last time build date
-	 * @param launcher 
-	 * @param workspace
-	 * @param listener
-	 * @param viewName the name of the view
-	 * @return array of objects containing history entries
-	 * @throws IOException thrown if there was a problem reading from the output from the tool
-	 * @throws InterruptedException
-	 */
-	private List<Object[]> getHistoryEntries(Date lastBuildDate, Launcher launcher, FilePath workspace,
-			TaskListener listener, String viewName) throws IOException, InterruptedException {
-		
-		SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm:ss");
-		FilePath viewPath = workspace.child(viewName);
-		String[] vobNames = null;
-		List<FilePath> subFilePaths = viewPath.list((FileFilter) null);
-		if ((subFilePaths != null) && (subFilePaths.size() > 0)) {
-			vobNames = new String[subFilePaths.size()];
-			for (int i = 0; i < subFilePaths.size(); i++) {
-				vobNames[i] = subFilePaths.get(i).getName();
+		public boolean run(String[] cmd, InputStream in, OutputStream out, String relativePathStr)
+				throws IOException, InterruptedException {
+			String[] env = new String[0];
+			FilePath path = workspace;
+			if (relativePathStr != null) {
+				path = workspace.child(relativePathStr);
 			}
-		}
-		
-		List<Object[]> historyEntries = new ArrayList<Object[]>();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add(getDescriptor().getCleartoolExe());
-		cmd.add("lshistory");
-		cmd.add("-r");
-		cmd.add("-since", formatter.format(lastBuildDate));
-		cmd.add("-fmt", ClearToolHistoryParser.getLogFormat());
-		if ((branch != null) && (branch.length() > 0)) {
-			cmd.add("-branch", branch);
-		}
-		cmd.add("-nco");
-		if (vobNames != null) {
-			cmd.add(vobNames);
-		}
-		if (run(launcher, cmd, listener, viewPath, new ForkOutputStream(baos, listener.getLogger()))) {
-			ClearToolHistoryParser parser = new ClearToolHistoryParser();
-			try {
-				parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), historyEntries);
-			} catch (ParseException pe) {
-				throw new IOException2("There was a problem parsing the history log.", pe);
+			
+			if (out == null)
+			{
+				out = listener.getLogger();
+			}else
+			{
+				out = new ForkOutputStream(out, listener.getLogger());
 			}
-		}
-		baos.close();
-		return historyEntries;
-	}
-
-	private final boolean run(Launcher launcher, ArgumentListBuilder cmd, TaskListener listener, FilePath dir,
-			OutputStream out) throws IOException, InterruptedException {
-		Map<String, String> env = new HashMap<String, String>();
-		int r = launcher.launch(cmd.toCommandArray(), env, out, dir).join();
-		if (r != 0) {
-			StringBuilder builder = new StringBuilder();
-			for (String cmdParam : cmd.toList()) {
-				if (builder.length() > 0) {
-					builder.append(" ");
+			
+			int r = launcher.launch(cmd, env , in, out, path).join();
+			if (r != 0) {
+				StringBuilder builder = new StringBuilder();
+				for (String cmdParam : cmd) {
+					if (builder.length() > 0) {
+						builder.append(" ");
+					}
+					builder.append(cmdParam);
 				}
-				builder.append(cmdParam);
+				listener.fatalError(PluginImpl.getDescriptor().getDisplayName() + " failed. exit code=" + r);
+				throw new IOException("Clear tool did not return the expected exit code. Command line=\"" + 
+							 builder.toString() + "\", actual exit code=" + r);
 			}
-			listener.fatalError(getDescriptor().getDisplayName() + " failed. exit code=" + r);
-			throw new IOException("Clear tool did not return the expected exit code. Command line=\"" + 
-						 builder.toString() + "\", actual exit code=" + r);
+			return r == 0;
 		}
-		return r == 0;
+		
 	}
 
 	/**
@@ -310,7 +240,8 @@ public class ClearCaseSCM extends SCM {
 
 		@Override
 		public SCM newInstance(StaplerRequest req) throws FormException {
-			return new ClearCaseSCM(req.getParameter("clearcase.branch"),
+			return new ClearCaseSCM(new ClearToolExec(cleartoolExe),
+					req.getParameter("clearcase.branch"),
 					req.getParameter("clearcase.configspec"),
 					req.getParameter("clearcase.viewname"),
 					req.getParameter("clearcase.useupdate") != null);
@@ -325,7 +256,8 @@ public class ClearCaseSCM extends SCM {
         
         public void doViewNameCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
             new FormFieldValidator(req,rsp,false) {
-                protected void check() throws IOException, ServletException {
+                @Override
+				protected void check() throws IOException, ServletException {
                     String v = fixEmpty(request.getParameter("value"));
                     if(v==null) {
                         error("View name is mandatory");
@@ -340,7 +272,8 @@ public class ClearCaseSCM extends SCM {
         public void doConfigSpecCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
         	System.out.println("doConfigSpecCheck");
             new FormFieldValidator(req,rsp,false) {
-                protected void check() throws IOException, ServletException {
+                @Override
+				protected void check() throws IOException, ServletException {
                     String v = fixEmpty(request.getParameter("value"));
                     if ((v==null) || (v.length() == 0)) {
                         error("Config spec is mandatory");
