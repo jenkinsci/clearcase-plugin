@@ -9,7 +9,7 @@
 
   <artifactId>clearcase</artifactId>
   <packaging>hpi</packaging>
-  <name>Hudson Visual Clear Case Plug-in</name>
+  <name>Hudson Clear Case Plug-in</name>
   <version>0.3-SNAPSHOT</version>
   <licenses>
     <license><name>MIT license</name><comments>All source code is under the MIT license.</comments></license>
