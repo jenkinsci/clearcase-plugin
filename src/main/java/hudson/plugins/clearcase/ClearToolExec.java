@@ -97,7 +97,7 @@ public class ClearToolExec implements ClearTool {
 		cmd.add(clearToolExec);
 		cmd.add("lshistory");
 		cmd.add("-r");
-		cmd.add("-since", formatter.format(lastBuildDate));
+		cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
 		cmd.add("-fmt", ClearToolHistoryParser.getLogFormat());
 		if ((branch != null) && (branch.length() > 0)) {
 			cmd.add("-branch", branch);
