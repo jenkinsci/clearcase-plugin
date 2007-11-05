@@ -19,10 +19,8 @@ public class ClearCaseChangeLogSetTest {
 		ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, getClass().getResourceAsStream("changelog.xml"));
 		List<ClearCaseChangeLogEntry> logs = logSet.getLogs();		
 		Assert.assertEquals("Number of logs are incorrect", 3, logs.size());
-		Calendar cal = Calendar.getInstance();
-		cal.set(2007, 7, 28, 15, 27, 0);
 		Assert.assertEquals("The user is incorrect", "qhensam", logs.get(0).getUser());
-		Assert.assertEquals("The date is incorrect", cal.getTime().toString(), logs.get(0).getDateStr());
+		Assert.assertEquals("The date is incorrect", "Tue Aug 28 15:27:00 CEST 2007", logs.get(0).getDateStr());
 	}
 	
 	@Test
