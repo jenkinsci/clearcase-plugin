@@ -59,8 +59,8 @@ public class ClearToolHistoryParser {
 				if (matcher.find() && matcher.groupCount() == 5) {					
 					if (content != null) {
 						content.setComment(commentBuilder.toString());
-						if (! (		((String)content.getAction()).equalsIgnoreCase("create branch")
-								||  ((String) content.getVersion()).endsWith("\\0") ) ) {
+						if (! (		(content.getAction()).equalsIgnoreCase("create branch")
+								||  (content.getVersion()).endsWith("\\0") ) ) {
 							entries.add(content);
 						}	
 					}

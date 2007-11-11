@@ -17,10 +17,10 @@ public interface ClearToolLauncher {
 	 * @param cmds the command to launch
 	 * @param in optional, if the command should be able to receive input
 	 * @param out optional, can be used to gather the output stream
-	 * @param relativePath optional, the relative path where the command should be issued
+	 * @param execPath optional, the path where the command should be launched
 	 * @return true if the command was successful, false otherwise
 	 */
-	boolean run(String[] cmds, InputStream in, OutputStream out, String relativePathStr) 
+	boolean run(String[] cmds, InputStream in, OutputStream out, FilePath execPath) 
 		throws IOException, InterruptedException;
 	
 	/**

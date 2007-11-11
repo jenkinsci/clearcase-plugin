@@ -169,5 +169,4 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 
 		return escapedString.toString();
 	}
-
 }
