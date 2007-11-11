@@ -1,158 +1,49 @@
 package hudson.plugins.clearcase;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import hudson.FilePath;
-import hudson.model.TaskListener;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.Calendar;
 import java.util.List;
 
-import org.hamcrest.Description;
-import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
-import org.jmock.api.Action;
-import org.jmock.api.Invocation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ClearToolExecTest {
-
-	private static final File PARENT_FILE = new File(System.getProperty("java.io.tmpdir"), "cc-files");
+public class ClearToolExecTest extends AbstractWorkspaceTest {
 
 	private Mockery context;
 	
 	private ClearToolExec clearToolExec;
 	private ClearToolLauncher launcher;
-	private FilePath workspace;
-
-	private TaskListener listener;
-
 	@Before
 	public void setUp() throws Exception {
-		workspace = new FilePath(PARENT_FILE);
-		workspace.mkdirs();
+		createWorkspace();
 		
 		context = new Mockery();
 	    
-		clearToolExec = new ClearToolExec("commandname");
+		clearToolExec = new ClearToolImpl("commandname");
 		launcher = context.mock(ClearToolLauncher.class);
-		listener = context.mock(TaskListener.class);
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		workspace.deleteRecursive();
+		deleteWorkspace();
 	}
-
+	
 	@Test
-	public void testCreateView() throws Exception {
-		context.checking(new Expectations() {{
-		    one(launcher).run(with(equal(new String[]{"commandname", "mkview", "-snapshot", "-tag", "viewName", "viewName"})), 
-		    		with(aNull(InputStream.class)), 
-		    		with(aNull(OutputStream.class)),
-		    		with(aNull(String.class)));
-		    		will(returnValue(Boolean.TRUE));
-		}});
-
-		clearToolExec.mkview(launcher, "viewName");		
-		context.assertIsSatisfied();
-	}
-
-	@Test
-	public void testEditConfigSpec() throws Exception {
-		context.checking(new Expectations() {{
-			one(launcher).getWorkspace(); will(returnValue(workspace));
-		    one(launcher).run(with(Matchers.hasItemInArray("commandname")), 
-		    		with(aNull(InputStream.class)), 
-		    		with(aNull(OutputStream.class)),
-		    		with(equal("viewName"))); 
-		    		will(returnValue(Boolean.TRUE));
-		}});
-		
-		clearToolExec.setcs(launcher, "viewName", "configspec");		
-		context.assertIsSatisfied();
-	}
-
-	@Test
-	public void testRemoveView() throws Exception {
-		context.checking(new Expectations() {{
-			one(launcher).getWorkspace(); will(returnValue(workspace));
-		    one(launcher).run(with(equal(new String[]{"commandname", "rmview", "-force", "viewName"})), 
-		    		with(aNull(InputStream.class)), 
-		    		with(aNull(OutputStream.class)),
-		    		with(aNull(String.class)));
-		    		will(returnValue(Boolean.TRUE));
-		}});
-		
-		clearToolExec.rmview(launcher, "viewName");		
-		context.assertIsSatisfied();
-	}
-
-	@Test
-	public void testForcedRemoveView() throws Exception {
-		workspace.child("viewName").mkdirs();
-		
-		context.checking(new Expectations() {{
-			one(launcher).getWorkspace(); will(returnValue(workspace));
-		    one(launcher).run(with(equal(new String[]{"commandname", "rmview", "-force", "viewName"})), 
-		    		with(aNull(InputStream.class)), 
-		    		with(aNull(OutputStream.class)),
-		    		with(aNull(String.class)));
-		    		will(returnValue(Boolean.TRUE));
-		    one(launcher).getListener(); will(returnValue(listener));
-		    one(listener).getLogger(); will(returnValue(new PrintStream(new ByteArrayOutputStream())));		    
-		}});
-		
-		clearToolExec.rmview(launcher, "viewName");
-		assertFalse("View folder still exists", workspace.child("viewName").exists());
-		context.assertIsSatisfied();
-	}
-
-	@Test
-	public void testUpdate() throws Exception {
-		context.checking(new Expectations() {{
-		    one(launcher).run(with(equal(new String[]{"commandname", "update", "-force", "-log", "NUL", "viewName"})), 
-		    		with(aNull(InputStream.class)), 
-		    		with(aNull(OutputStream.class)),
-		    		with(aNull(String.class)));
-		    will(returnValue(Boolean.TRUE));
-		}});
-		
-		clearToolExec.update(launcher, "viewName");
-		context.assertIsSatisfied();
-	}
-
-	@Test
-	public void testListHistory() throws Exception {
-		workspace.child("viewName").mkdirs();
-		workspace.child("viewName").child("vob1").mkdirs();
-		workspace.child("viewName").child("vob2").mkdirs();
-		workspace.child("viewName").createTextTempFile("view", ".dat", "text");
-
-		final Calendar mockedCalendar = Calendar.getInstance();
-		mockedCalendar.set(2007, 10, 18, 15, 05, 25);
-		
-		context.checking(new Expectations() {{
-			one(launcher).getWorkspace(); will(returnValue(workspace));
-		    one(launcher).run(with(equal(new String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt", ClearToolHistoryParser.getLogFormat(), "-branch", "branch", "-nco", "vob1", "vob2"})), 
-		    		(InputStream) with(anything()), 
-		    		(OutputStream) with(an(OutputStream.class)),
-		    		with(equal("viewName")));
-		    		will(doAll(new Streamer(2, ClearToolExecTest.class.getResourceAsStream("ct-lshistory-1.log")), returnValue(Boolean.TRUE))); 
-		}});
-		
-		List<ClearCaseChangeLogEntry> lshistory = clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
-		assertEquals("The history should contain 2 items", 2, lshistory.size());
-
-		context.assertIsSatisfied();
+	public void testVobPathProperty() {
+		assertNull("The vob path is set", clearToolExec.getVobPaths());
+		clearToolExec.setVobPaths("VOBS");
+		assertEquals("The vob path is incorrect", "VOBS", clearToolExec.getVobPaths());
 	}
 
 	@Test
@@ -161,8 +52,8 @@ public class ClearToolExecTest {
 		    one(launcher).run(with(equal(new String[]{"commandname", "lsview"})), 
 		    		(InputStream) with(anything()), 
 		    		(OutputStream) with(an(OutputStream.class)),
-		    		with(aNull(String.class)));
-		    		will(doAll(new Streamer(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")), returnValue(Boolean.TRUE))); 
+		    		with(aNull(FilePath.class)));
+		    		will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")), returnValue(Boolean.TRUE))); 
 		}});
 		
 		List<String> views = clearToolExec.lsview(launcher, false);
@@ -181,8 +72,8 @@ public class ClearToolExecTest {
 		    one(launcher).run(with(equal(new String[]{"commandname", "lsview"})), 
 		    		(InputStream) with(anything()), 
 		    		(OutputStream) with(an(OutputStream.class)),
-		    		with(aNull(String.class)));
-		    		will(doAll(new Streamer(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")), returnValue(Boolean.TRUE))); 
+		    		with(aNull(FilePath.class)));
+		    		will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")), returnValue(Boolean.TRUE))); 
 		}});
 		
 		List<String> views = clearToolExec.lsview(launcher, true);
@@ -198,8 +89,8 @@ public class ClearToolExecTest {
 		    one(launcher).run(with(equal(new String[]{"commandname", "lsvob"})), 
 		    		(InputStream) with(anything()), 
 		    		(OutputStream) with(an(OutputStream.class)),
-		    		with(aNull(String.class)));
-		    		will(doAll(new Streamer(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")), returnValue(Boolean.TRUE))); 
+		    		with(aNull(FilePath.class)));
+		    		will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")), returnValue(Boolean.TRUE))); 
 		}});
 		
 		List<String> vobs = clearToolExec.lsvob(launcher, false);
@@ -220,8 +111,8 @@ public class ClearToolExecTest {
 		    one(launcher).run(with(equal(new String[]{"commandname", "lsvob"})), 
 		    		(InputStream) with(anything()), 
 		    		(OutputStream) with(an(OutputStream.class)),
-		    		with(aNull(String.class)));
-		    		will(doAll(new Streamer(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")), returnValue(Boolean.TRUE))); 
+		    		with(aNull(FilePath.class)));
+		    		will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")), returnValue(Boolean.TRUE))); 
 		}});
 		
 		List<String> vobs = clearToolExec.lsvob(launcher, true);
@@ -233,30 +124,115 @@ public class ClearToolExecTest {
 		context.assertIsSatisfied();
 	}
 	
-	
-	private class Streamer implements Action {
-		private InputStream inputStream;
-		private int parameterIndex;
+	@Test
+	public void testLshistoryNoVobPaths() throws Exception {
 
-		/**
-		 * @param inputStream
-		 */
-		public Streamer(int parameterIndex, InputStream inputStream) {
-			this.inputStream = inputStream;
-			this.parameterIndex = parameterIndex;
-		}
+		workspace.child("viewName").mkdirs();
+		workspace.child("viewName").child("vob1").mkdirs();
+		workspace.child("viewName").child("vob2").child("vob2-1").mkdirs();
+		workspace.child("viewName").child("vob 4").mkdirs();
+		workspace.child("viewName").createTextTempFile("view", ".dat", "text");
 
-		public void describeTo(Description description) {
-		}
+		final Calendar mockedCalendar = Calendar.getInstance();
+		mockedCalendar.set(2007, 10, 18, 15, 05, 25);
 		
-		public Object invoke(Invocation invocation) throws Throwable {
-			int read = inputStream.read();
-			while (read != -1) {
-				((OutputStream)invocation.getParameter(parameterIndex)).write(read);
-				read = inputStream.read();
-			}
-			inputStream.close();
-			return null;
+		context.checking(new Expectations() {{
+			one(launcher).getWorkspace(); will(returnValue(workspace));
+		    one(launcher).run(with(
+		    		allOf(hasItemInArray("commandname"), 
+	    					hasItemInArray("lshistory"), 
+	    					hasItemInArray("-r"), 
+	    					hasItemInArray("vob1"), 
+	    					hasItemInArray("vob2"), 
+	    					hasItemInArray("vob 4"))),
+		    		(InputStream) with(anything()), 
+		    		(OutputStream) with(an(OutputStream.class)),
+		    		with(aNonNull(FilePath.class)));
+		    		will(returnValue(Boolean.TRUE)); 
+		}});
+
+		clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+
+		context.assertIsSatisfied();
+	}
+	
+	@Test
+	public void testLshistory() throws Exception {
+		final Calendar mockedCalendar = Calendar.getInstance();
+		mockedCalendar.set(2007, 10, 18, 15, 05, 25);
+		
+		context.checking(new Expectations() {{
+			one(launcher).getWorkspace(); will(returnValue(workspace));
+		    one(launcher).run(with(equal(new String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt", ClearToolHistoryParser.getLogFormat(), "-branch", "branch", "-nco", "vob1"})), 
+		    		(InputStream) with(anything()), 
+		    		(OutputStream) with(an(OutputStream.class)),
+		    		with(aNonNull(FilePath.class)));
+		    		will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lshistory-1.log")), returnValue(Boolean.TRUE))); 
+		}});
+
+		clearToolExec.setVobPaths("vob1");
+		List<ClearCaseChangeLogEntry> lshistory = clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+		assertEquals("The history should contain 2 items", 2, lshistory.size());
+
+		context.assertIsSatisfied();
+	}
+
+	@Test
+	public void testLshistoryWithVobNames() throws Exception {
+
+		final Calendar mockedCalendar = Calendar.getInstance();
+		mockedCalendar.set(2007, 10, 18, 15, 05, 25);
+		
+		context.checking(new Expectations() {{
+			one(launcher).getWorkspace(); will(returnValue(workspace));
+		    one(launcher).run(with(equal(new String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt", ClearToolHistoryParser.getLogFormat(), "-branch", "branch", "-nco", "vob2/vob2-1", "vob4"})), 
+		    		(InputStream) with(anything()), 
+		    		(OutputStream) with(an(OutputStream.class)),
+		    		with(aNonNull(FilePath.class)));
+		    		will(returnValue(Boolean.TRUE)); 
+		}});
+		
+
+		clearToolExec.setVobPaths("vob2/vob2-1 vob4");
+		clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+
+		context.assertIsSatisfied();
+	}
+	
+	/**
+	 * Simple impl of ClearToolExec to help testing the methods in the class
+	 */
+	private class ClearToolImpl extends ClearToolExec {
+
+		public ClearToolImpl(String clearToolExec) {
+			super(clearToolExec);
+		}
+
+		public void checkout(ClearToolLauncher launcher, String configSpec, String viewName) throws IOException,
+				InterruptedException {
+			throw new IllegalStateException("Not implemented");
+		}
+
+		public void mkview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+			throw new IllegalStateException("Not implemented");
+		}
+
+		public void rmview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+			throw new IllegalStateException("Not implemented");
+		}
+
+		public void setcs(ClearToolLauncher launcher, String viewName, String configSpec) throws IOException,
+				InterruptedException {
+			throw new IllegalStateException("Not implemented");
+		}
+
+		public void update(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+			throw new IllegalStateException("Not implemented");
+		}
+
+		@Override
+		protected FilePath getRootViewPath(ClearToolLauncher launcher) {
+			return launcher.getWorkspace();
 		}		
 	}
 }

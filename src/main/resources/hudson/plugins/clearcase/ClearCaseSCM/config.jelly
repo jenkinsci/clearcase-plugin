@@ -1,10 +1,8 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
 	<f:entry title="Config spec" help="/plugin/clearcase/configspec.html">
-    	<textarea class="setting-input" name="clearcase.configspec"
-      		rows="8" style="width:100%"
-      		checkUrl="'${rootURL}/scm/ClearCaseSCM/configSpecCheck?value='+escape(this.value)"
-      		>${scm.configSpec}</textarea>
+    	<f:expandableTextbox name="clearcase.configspec" value="${scm.configSpec}"
+      		checkUrl="'${rootURL}/scm/ClearCaseSCM/configSpecCheck?value='+escape(this.value)"/>
   	</f:entry>
   	
   	<f:entry title="View name" help="/plugin/clearcase/localdir.html">
@@ -20,5 +18,19 @@
 
 	<f:entry title="Branch" help="/plugin/clearcase/branch.html">
 	  <f:textbox name="clearcase.branch" value="${scm.branch}"/>
-	</f:entry>	
+	</f:entry>
+	
+	<f:block>
+		<f:entry title="VOB path(s)" help="/plugin/clearcase/vobpaths.html">
+			<f:expandableTextbox name="clearcase.vobpaths" value="${scm.vobPaths}"/>
+		</f:entry>
+
+		<f:optionalBlock name="clearcase.usedynamicview" title="Use existing dynamic view" 
+				checked="${scm.useDynamicView}" help="/plugin/clearcase/dynamicview.html">
+			<f:entry title="View drive" help="/plugin/clearcase/viewdrive.html">
+				<f:textbox name="clearcase.viewdrive" value="${scm.viewDrive}"/>
+			</f:entry>
+		</f:optionalBlock>
+
+	</f:block>
 </j:jelly>

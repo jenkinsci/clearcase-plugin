@@ -69,4 +69,6 @@ public interface ClearTool {
 	 * @return list of vob names
 	 */
 	List<String> lsvob(ClearToolLauncher launcher, boolean onlyMOunted) throws IOException, InterruptedException;
+	
+	void setVobPaths(String vobPaths);
 }
