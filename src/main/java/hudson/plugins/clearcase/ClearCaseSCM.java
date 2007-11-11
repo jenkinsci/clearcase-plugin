@@ -39,24 +39,37 @@ import java.util.Map;
  */
 public class ClearCaseSCM extends SCM {
 
-	//public static final ClearCaseSCM.ClearCaseScmDescriptor DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
-
 	public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
 
 	private String branch;
-
 	private boolean useUpdate;
 	private String configSpec;
 	private String viewName;
+	private String vobPaths;
+	private boolean useDynamicView;
+	private String viewDrive;
 	
 	private transient ClearTool clearTool;
 
-	public ClearCaseSCM(ClearTool clearTool, String branch, String configSpec, String viewName, boolean useUpdate) {
+	public ClearCaseSCM(ClearTool clearTool, String branch, String configSpec, String viewName, 
+			boolean useUpdate, String vobPaths, boolean useDynamicView, String viewDrive) {
 		this.clearTool = clearTool;
 		this.branch = branch;
 		this.configSpec = configSpec;
 		this.viewName = viewName;
 		this.useUpdate = useUpdate;
+		this.useDynamicView = useDynamicView;
+		this.viewDrive = viewDrive;
+		this.vobPaths = vobPaths;
+		
+		if (this.useDynamicView) {
+			this.useUpdate = false;
+		}
+	}
+	
+	public ClearCaseSCM(String branch, String configSpec, String viewName, 
+			boolean useUpdate, String vobPaths, boolean useDynamicView, String viewDrive) {
+		this(null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
 	}
 
 	// Get methods
@@ -76,6 +89,15 @@ public class ClearCaseSCM extends SCM {
 	public boolean isUseUpdate() {
 		return useUpdate;
 	}
+	public String getVobPaths() {
+		return vobPaths;
+	}
+	public boolean isUseDynamicView() {
+		return useDynamicView;
+	}
+	public String getViewDrive() {
+		return viewDrive;
+	}
 	
 	@Override
 	public ClearCaseScmDescriptor getDescriptor() {
@@ -87,37 +109,40 @@ public class ClearCaseSCM extends SCM {
         if (viewName != null)
             env.put(CLEARCASE_VIEWNAME_ENVSTR, viewName);
 	}
-	
+		
 	@Override
 	public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
 			File changelogFile) throws IOException, InterruptedException {
+
+		getClearTool(listener).setVobPaths(vobPaths);
 		
-		if (clearTool == null) {
-			clearTool = new ClearToolExec(getDescriptor().getCleartoolExe());
-		}
+		ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
+
+		boolean updateView = useUpdate;
+		if (!useDynamicView) 
+		{
+			boolean localViewPathExists = new FilePath(workspace, viewName).exists();
+			if ((! updateView) && localViewPathExists) {
+				getClearTool(listener).rmview(ctLauncher, viewName);
+				localViewPathExists = false;
+			}
+			
+			if (! localViewPathExists) {
+				getClearTool(listener).mkview(ctLauncher, viewName);
+				getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
+				updateView = false;
+			}
+
+			if (updateView) {
+				getClearTool(listener).update(ctLauncher, viewName);                
+			}
+        } else {
+        	getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
+        }
 		
 		List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
-		ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
-		
-		boolean localViewPathExists = new FilePath(workspace, viewName).exists();
-		boolean updateView = useUpdate;
-		if ((! updateView) && localViewPathExists) {
-			clearTool.rmview(ctLauncher, viewName);
-			localViewPathExists = false;
-		}
-		
-		if (! localViewPathExists) {
-			clearTool.mkview(ctLauncher, viewName);
-			clearTool.setcs(ctLauncher, viewName, configSpec);
-			updateView = false;
-		}
-
-		if (updateView) {
-			clearTool.update(ctLauncher, viewName);                
-		}
-		
-		if (build.getPreviousBuild() != null) {
-			history.addAll(clearTool.lshistory(ctLauncher, build.getPreviousBuild().getTimestamp().getTime(), 
+		if ((build.getPreviousBuild() != null) && (!useDynamicView)) {
+			history.addAll(getClearTool(listener).lshistory(ctLauncher, build.getPreviousBuild().getTimestamp().getTime(), 
 				viewName, branch));
 		}
 
@@ -130,6 +155,7 @@ public class ClearCaseSCM extends SCM {
 			return true;
 		}
 	}
+
 	
 	@Override
 	public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener)
@@ -139,9 +165,10 @@ public class ClearCaseSCM extends SCM {
 		if (lastBuild == null) {
 			return true;
 		} else {
+			getClearTool(listener).setVobPaths(vobPaths);
 			ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
 			Date buildTime = lastBuild.getTimestamp().getTime();
-			List<ClearCaseChangeLogEntry> data = clearTool.lshistory(ctLauncher, buildTime, viewName, branch);
+			List<ClearCaseChangeLogEntry> data = getClearTool(listener).lshistory(ctLauncher, buildTime, viewName, branch);
 			return !data.isEmpty();
 		}
 	}
@@ -149,6 +176,19 @@ public class ClearCaseSCM extends SCM {
 	@Override
 	public ChangeLogParser createChangeLogParser() {
 		return new ClearCaseChangeLogParser();
+	}
+	
+	public ClearTool getClearTool(TaskListener listener) {
+		if (clearTool == null) {
+			if (useDynamicView) {
+				clearTool = new ClearToolDynamic(getDescriptor().cleartoolExe, viewDrive);
+                                listener.getLogger().println("Creating a dynamic clear tool");
+			} else {
+				clearTool = new ClearToolSnapshot(getDescriptor().cleartoolExe);
+                                listener.getLogger().println("Creating a snapshot clear tool");
+			}
+		}
+		return clearTool;
 	}
 	
 	final static class ClearToolLauncherImpl implements ClearToolLauncher {
@@ -171,12 +211,12 @@ public class ClearCaseSCM extends SCM {
 			return workspace;
 		}
 
-		public boolean run(String[] cmd, InputStream in, OutputStream out, String relativePathStr)
+		public boolean run(String[] cmd, InputStream in, OutputStream out, FilePath path)
 				throws IOException, InterruptedException {
 			String[] env = new String[0];
-			FilePath path = workspace;
-			if (relativePathStr != null) {
-				path = workspace.child(relativePathStr);
+			
+			if (path == null) {
+				path = workspace;
 			}
 			
 			if (out == null)
@@ -201,8 +241,7 @@ public class ClearCaseSCM extends SCM {
 							 builder.toString() + "\", actual exit code=" + r);
 			}
 			return r == 0;
-		}
-		
+		}		
 	}
 
 	/**
@@ -240,11 +279,15 @@ public class ClearCaseSCM extends SCM {
 
 		@Override
 		public SCM newInstance(StaplerRequest req) throws FormException {
-			return new ClearCaseSCM(new ClearToolExec(cleartoolExe),
+			ClearCaseSCM scm = new ClearCaseSCM(
 					req.getParameter("clearcase.branch"),
 					req.getParameter("clearcase.configspec"),
 					req.getParameter("clearcase.viewname"),
-					req.getParameter("clearcase.useupdate") != null);
+					req.getParameter("clearcase.useupdate") != null,
+					req.getParameter("clearcase.vobpaths"),
+					req.getParameter("clearcase.usedynamicview") != null,
+					req.getParameter("clearcase.viewdrive"));			
+			return scm;
 		}
 		
         /**
