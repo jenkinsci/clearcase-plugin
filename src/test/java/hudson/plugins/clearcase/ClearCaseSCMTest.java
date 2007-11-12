@@ -245,7 +245,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 	}
 
 	@Test
-	public void testCheckoutWithHistory() throws Exception {
+	public void testSnapshotCheckoutWithHistory() throws Exception {
 		workspace.child("viewname").mkdirs();
 		final ArrayList<ClearCaseChangeLogEntry> list = new ArrayList<ClearCaseChangeLogEntry>();
 		list.add(new ClearCaseChangeLogEntry());
@@ -272,6 +272,42 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 		}});
 						
 		ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branch", "configspec", "viewname", false, "vob", false, "");
+		File changelogFile = new File(PARENT_FILE, "changelog.xml");
+		boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
+		assertTrue("The first time should always return true", hasChanges);
+
+		FilePath changeLogFilePath = new FilePath(changelogFile);
+		assertTrue("The change log file is empty", changeLogFilePath.length() > 20);
+		context.assertIsSatisfied();
+		classContext.assertIsSatisfied();
+	}
+
+	@Test
+	public void testDynamicCheckoutWithHistory() throws Exception {
+		workspace.child("viewname").mkdirs();
+		final ArrayList<ClearCaseChangeLogEntry> list = new ArrayList<ClearCaseChangeLogEntry>();
+		list.add(new ClearCaseChangeLogEntry());
+		list.add(new ClearCaseChangeLogEntry());
+
+		final Calendar mockedCalendar = Calendar.getInstance();
+		mockedCalendar.setTimeInMillis(100000);
+		
+		context.checking(new Expectations() {{
+		    one(clearTool).setcs(with(any(ClearToolLauncher.class)), 
+		    		with(equal("viewname")), 
+		    		with(equal("configspec")));
+			one(clearTool).lshistory(with(any(ClearToolLauncher.class)),
+		    		with(equal(mockedCalendar.getTime())),
+		    		with(equal("viewname")), 
+		    		with(equal("branch"))); will(returnValue(list));
+		    one(clearTool).setVobPaths(with(equal("vob")));
+		}});
+		classContext.checking(new Expectations() {{
+		    exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
+		    one(build).getTimestamp(); will(returnValue(mockedCalendar));
+		}});
+						
+		ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branch", "configspec", "viewname", false, "vob", true, "");
 		File changelogFile = new File(PARENT_FILE, "changelog.xml");
 		boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
 		assertTrue("The first time should always return true", hasChanges);
