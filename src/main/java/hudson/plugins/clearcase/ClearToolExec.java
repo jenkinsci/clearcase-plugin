@@ -25,7 +25,7 @@ public abstract class ClearToolExec implements ClearTool {
 	private transient Pattern viewListPattern;
 	protected transient String clearToolExec;
 	protected transient String vobPaths;
-
+            private transient ClearToolLauncher laun;
 	public ClearToolExec(String clearToolExec) {
 		this.clearToolExec = clearToolExec;
 	}
@@ -51,12 +51,10 @@ public abstract class ClearToolExec implements ClearTool {
 		if ((branch != null) && (branch.length() > 0)) {
 			cmd.add("-branch", branch);
 		}
-		cmd.add("-nco");
+		cmd.add("-nco");		
 		
-		String[] vobNameArray;
 		FilePath viewPath = getRootViewPath(launcher).child(viewName);
-		vobNameArray = getVobNames(viewPath);
-		
+		String[] vobNameArray = getVobNames(viewPath);		
 		for (String vob : vobNameArray) {
 			cmd.add(vob);
 		}
@@ -75,10 +73,11 @@ public abstract class ClearToolExec implements ClearTool {
 
 	private String[] getVobNames(FilePath viewPath) throws IOException, InterruptedException {
 		String[] vobNameArray;
-		if ((vobPaths == null) || (vobPaths.isEmpty())) {
+		if ((vobPaths == null) || (vobPaths.trim().isEmpty())) {
 			List<String> vobList = new ArrayList<String>();
 			List<FilePath> subFilePaths = viewPath.list((FileFilter) null);
 			if ((subFilePaths != null) && (subFilePaths.size() > 0)) {
+
 				for (int i = 0; i < subFilePaths.size(); i++) {
 					if (subFilePaths.get(i).isDirectory()) {
 						vobList.add(subFilePaths.get(i).getName());

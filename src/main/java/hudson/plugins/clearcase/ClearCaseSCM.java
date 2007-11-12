@@ -141,7 +141,7 @@ public class ClearCaseSCM extends SCM {
         }
 		
 		List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
-		if ((build.getPreviousBuild() != null) && (!useDynamicView)) {
+		if (build.getPreviousBuild() != null) {
 			history.addAll(getClearTool(listener).lshistory(ctLauncher, build.getPreviousBuild().getTimestamp().getTime(), 
 				viewName, branch));
 		}
