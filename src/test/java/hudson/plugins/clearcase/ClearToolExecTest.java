@@ -5,10 +5,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import hudson.FilePath;
+import hudson.model.BuildListener;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Calendar;
 import java.util.List;
 
@@ -24,6 +27,8 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
 	
 	private ClearToolExec clearToolExec;
 	private ClearToolLauncher launcher;
+	private BuildListener taskListener;
+	
 	@Before
 	public void setUp() throws Exception {
 		createWorkspace();
@@ -32,6 +37,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
 	    
 		clearToolExec = new ClearToolImpl("commandname");
 		launcher = context.mock(ClearToolLauncher.class);
+		taskListener = context.mock(BuildListener.class);
 	}
 
 	@After
@@ -186,6 +192,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
 	
 	@Test
 	public void testLshistory() throws Exception {
+		workspace.child("viewName").mkdirs();
 		final Calendar mockedCalendar = Calendar.getInstance();
 		mockedCalendar.set(2007, 10, 18, 15, 05, 25);
 		
@@ -207,7 +214,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
 
 	@Test
 	public void testLshistoryWithVobNames() throws Exception {
-
+		workspace.child("viewName").mkdirs();
 		final Calendar mockedCalendar = Calendar.getInstance();
 		mockedCalendar.set(2007, 10, 18, 15, 05, 25);
 		
@@ -222,6 +229,23 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
 		
 
 		clearToolExec.setVobPaths("vob2/vob2-1 vob4");
+		clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+
+		context.assertIsSatisfied();
+	}
+
+	
+	@Test
+	public void testLshistoryNoViewPath() throws Exception {
+		final Calendar mockedCalendar = Calendar.getInstance();
+		mockedCalendar.set(2007, 10, 18, 15, 05, 25);
+		
+		context.checking(new Expectations() {{
+			one(launcher).getWorkspace(); will(returnValue(workspace));
+			one(launcher).getListener(); will(returnValue(taskListener));
+			one(taskListener).fatalError(with(any(String.class)));
+		}});
+
 		clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
 
 		context.assertIsSatisfied();
