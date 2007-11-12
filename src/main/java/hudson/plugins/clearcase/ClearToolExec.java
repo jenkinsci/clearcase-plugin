@@ -25,7 +25,7 @@ public abstract class ClearToolExec implements ClearTool {
 	private transient Pattern viewListPattern;
 	protected transient String clearToolExec;
 	protected transient String vobPaths;
-            private transient ClearToolLauncher laun;
+
 	public ClearToolExec(String clearToolExec) {
 		this.clearToolExec = clearToolExec;
 	}
@@ -54,19 +54,24 @@ public abstract class ClearToolExec implements ClearTool {
 		cmd.add("-nco");		
 		
 		FilePath viewPath = getRootViewPath(launcher).child(viewName);
-		String[] vobNameArray = getVobNames(viewPath);		
-		for (String vob : vobNameArray) {
-			cmd.add(vob);
-		}
 		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
-			try {
-				ClearToolHistoryParser parser = new ClearToolHistoryParser();
-				return parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-			} catch (ParseException pe) {
-				throw new IOException2("There was a problem parsing the history log.", pe);
+		if (viewPath.exists()) {		
+			String[] vobNameArray = getVobNames(viewPath);		
+			for (String vob : vobNameArray) {
+				cmd.add(vob);
 			}
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
+				try {
+					ClearToolHistoryParser parser = new ClearToolHistoryParser();
+					return parser.parse(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+				} catch (ParseException pe) {
+					throw new IOException2("There was a problem parsing the history log.", pe);
+				}
+			}
+		} else {
+			launcher.getListener().fatalError("No view found. Create the view by initiating a build manually.");
 		}
 		return new ArrayList<ClearCaseChangeLogEntry>();
 	}
