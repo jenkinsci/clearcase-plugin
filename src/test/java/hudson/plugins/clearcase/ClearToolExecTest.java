@@ -125,6 +125,34 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
 	}
 	
 	@Test
+	public void testLshistoryEmptyVobPath() throws Exception {
+
+		workspace.child("viewName").mkdirs();
+		workspace.child("viewName").child("vob1").mkdirs();
+
+		final Calendar mockedCalendar = Calendar.getInstance();
+		mockedCalendar.set(2007, 10, 18, 15, 05, 25);
+		
+		context.checking(new Expectations() {{
+			one(launcher).getWorkspace(); will(returnValue(workspace));
+		    one(launcher).run(with(
+		    		allOf(hasItemInArray("commandname"), 
+	    					hasItemInArray("lshistory"), 
+	    					hasItemInArray("-r"), 
+	    					hasItemInArray("vob1"))),
+		    		(InputStream) with(anything()), 
+		    		(OutputStream) with(an(OutputStream.class)),
+		    		with(aNonNull(FilePath.class)));
+		    		will(returnValue(Boolean.TRUE)); 
+		}});
+
+		clearToolExec.setVobPaths(" ");
+		clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+
+		context.assertIsSatisfied();
+	}
+	
+	@Test
 	public void testLshistoryNoVobPaths() throws Exception {
 
 		workspace.child("viewName").mkdirs();
