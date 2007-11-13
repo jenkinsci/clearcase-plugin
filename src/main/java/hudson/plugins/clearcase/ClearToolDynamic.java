@@ -16,7 +16,7 @@ public class ClearToolDynamic extends ClearToolExec {
 
 	@Override
 	protected FilePath getRootViewPath(ClearToolLauncher launcher) {
-		return new FilePath(new File(viewDrive));
+		return new FilePath(launcher.getWorkspace().getChannel(), viewDrive);
 	}	
 
 	public void setcs(ClearToolLauncher launcher, String viewName, String configSpec) throws IOException, InterruptedException {

@@ -71,7 +71,7 @@ public abstract class ClearToolExec implements ClearTool {
 				}
 			}
 		} else {
-			launcher.getListener().fatalError("No view found. Create the view by initiating a build manually.");
+			launcher.getListener().fatalError("No view found at '" + viewPath + "'. Create the view by initiating a build manually.");
 		}
 		return new ArrayList<ClearCaseChangeLogEntry>();
 	}
