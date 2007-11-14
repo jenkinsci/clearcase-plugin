@@ -49,7 +49,7 @@ public abstract class ClearToolExec implements ClearTool {
 		cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
 		cmd.add("-fmt", ClearToolHistoryParser.getLogFormat());
 		if ((branch != null) && (branch.length() > 0)) {
-			cmd.add("-branch", branch);
+			cmd.add("-branch", "brtype:" + branch);
 		}
 		cmd.add("-nco");		
 		
