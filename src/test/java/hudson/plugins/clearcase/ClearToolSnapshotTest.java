@@ -66,7 +66,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 		
 		context.checking(new Expectations() {{
 			one(launcher).getWorkspace(); will(returnValue(workspace));
-		    one(launcher).run(with(equal(new String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt", ClearToolHistoryParser.getLogFormat(), "-branch", "branch", "-nco", "vob1"})), 
+		    one(launcher).run(with(equal(new String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt", ClearToolHistoryParser.getLogFormat(), "-branch", "brtype:branch", "-nco", "vob1"})), 
 		    		(InputStream) with(anything()), 
 		    		(OutputStream) with(an(OutputStream.class)),
 		    		with(aNonNull(FilePath.class)));
@@ -88,7 +88,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 		
 		context.checking(new Expectations() {{
 			one(launcher).getWorkspace(); will(returnValue(workspace));
-		    one(launcher).run(with(equal(new String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt", ClearToolHistoryParser.getLogFormat(), "-branch", "branch", "-nco", "vob2/vob2-1", "vob4"})), 
+		    one(launcher).run(with(equal(new String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt", ClearToolHistoryParser.getLogFormat(), "-branch", "brtype:branch", "-nco", "vob2/vob2-1", "vob4"})), 
 		    		(InputStream) with(anything()), 
 		    		(OutputStream) with(an(OutputStream.class)),
 		    		with(aNonNull(FilePath.class)));
