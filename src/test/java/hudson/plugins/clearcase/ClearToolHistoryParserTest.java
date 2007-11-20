@@ -13,160 +13,182 @@ import org.junit.Test;
 
 public class ClearToolHistoryParserTest {
 
-	@Test
-	public void testParseNoComment() throws IOException, ParseException {
+    @Test
+    public void testParseNoComment() throws IOException, ParseException {
 
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();
-		List<ClearCaseChangeLogEntry> entries = parser.parse(new StringReader("\"20070827.084801\" \"inttest14\" \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
-		
-		ClearCaseChangeLogEntry entry = entries.get(0);
-		Assert.assertEquals("File is incorrect", "Source\\Definitions\\Definitions.csproj", entry.getFile());
-		Assert.assertEquals("User is incorrect", "inttest14", entry.getUser());
-		Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 48, 1), entry.getDate());
-		Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
-		Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\1", entry.getVersion());
-		Assert.assertEquals("Comment is incorrect", "", entry.getComment());
-	}
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070827.084801\" \"inttest14\" \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
 
-	@Test
-	public void testEmptyComment() throws IOException, ParseException {
-	
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries = parser.parse(new StringReader("\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
-		ClearCaseChangeLogEntry entry = entries.get(0);
-		Assert.assertEquals("Comment is incorrect", "", entry.getComment());
-	}
+        Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
 
-	@Test
-	public void testCommentWithEmptyLine() throws IOException, ParseException {
-	
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries = parser.parse(new StringReader("\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\ntext\n\nend of comment"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
-		ClearCaseChangeLogEntry entry = entries.get(0);
-		Assert.assertEquals("Comment is incorrect", "text\n\nend of comment", entry.getComment());
-	}
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        Assert.assertEquals("File is incorrect", "Source\\Definitions\\Definitions.csproj", entry.getFile());
+        Assert.assertEquals("User is incorrect", "inttest14", entry.getUser());
+        Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 48, 1), entry.getDate());
+        Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
+        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\1", entry.getVersion());
+        Assert.assertEquals("Comment is incorrect", "", entry.getComment());
+    }
 
-	@Test
-	public void testParseWithComment() throws IOException, ParseException {
-		
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries = parser.parse(new StringReader("\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\nBUG8949"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
+    @Test
+    public void testEmptyComment() throws IOException, ParseException {
 
-		ClearCaseChangeLogEntry entry = entries.get(0);
-		Assert.assertEquals("File is incorrect", "Source\\Operator\\FormMain.cs", entry.getFile());
-		Assert.assertEquals("User is incorrect", "aname", entry.getUser());
-		Assert.assertEquals("Date is incorrect", getDate(2007, 7,27,8,59, 01), entry.getDate());
-		Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
-		Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\2", entry.getVersion());
-		Assert.assertEquals("Comment is incorrect", "BUG8949", entry.getComment());
-	}
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"));
 
-	@Test
-	public void testParseWithTwoLineComment() throws IOException, ParseException {
-		
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries = parser.parse(new StringReader("\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\nBUG8949\nThis fixed the problem"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
+        Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        Assert.assertEquals("Comment is incorrect", "", entry.getComment());
+    }
 
-		ClearCaseChangeLogEntry entry = entries.get(0);
-		Assert.assertEquals("File is incorrect", "Source\\Operator\\FormMain.cs", entry.getFile());
-		Assert.assertEquals("User is incorrect", "aname", entry.getUser());
-		Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 59, 01), entry.getDate());
-		Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
-		Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\2", entry.getVersion());
-		Assert.assertEquals("Comment is incorrect", "BUG8949\nThis fixed the problem", entry.getComment());
-	}
-	
-	@Test
-	public void testParseWithLongAction() throws IOException, ParseException {
-		
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries = parser.parse(new StringReader("\"20070827.085901\"   \"aname\"    \"create a version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\n"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
-		ClearCaseChangeLogEntry entry = entries.get(0);
-		Assert.assertEquals("Action is incorrect", "create a version", entry.getAction());
-	}
+    @Test
+    public void testCommentWithEmptyLine() throws IOException, ParseException {
 
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\ntext\n\nend of comment"));
 
-	@Test
-	public void testCreateBranchAction() throws IOException, ParseException {
-	
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries = parser.parse(new StringReader("\"20070906.091701\"   \"egsperi\"    \"create branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"));
-		Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());		
-	}
+        Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        Assert.assertEquals("Comment is incorrect", "text\n\nend of comment", entry.getComment());
+    }
 
-	@Test
-	public void testFirstVersion() throws IOException, ParseException {	
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries =parser.parse(new StringReader("\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\0\"\n"));
-		Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());		
-	}
+    @Test
+    public void testParseWithComment() throws IOException, ParseException {
 
-	@Test
-	public void testSorted() throws IOException, ParseException {
-		
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries = parser.parse(new StringReader("\"20070827.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n" +
-									  "\"20070825.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n" +
-									  "\"20070830.084801\"   \"inttest1\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 3, entries.size());
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\nBUG8949"));
 
-		Assert.assertEquals("First entry is incorrect", "inttest1", entries.get(0).getUser());
-		Assert.assertEquals("First entry is incorrect", "inttest2", entries.get(1).getUser());
-		Assert.assertEquals("First entry is incorrect", "inttest3", entries.get(2).getUser());
-	}
+        Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
 
-	@Test
-	public void testMultiline() throws IOException, ParseException {
-		
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries =parser.parse(new StringReader("\"20070830.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n" +
-									  "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 2, entries.size());
-	}
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        Assert.assertEquals("File is incorrect", "Source\\Operator\\FormMain.cs", entry.getFile());
+        Assert.assertEquals("User is incorrect", "aname", entry.getUser());
+        Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 59, 01), entry.getDate());
+        Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
+        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\2", entry.getVersion());
+        Assert.assertEquals("Comment is incorrect", "BUG8949", entry.getComment());
+    }
 
-	@Test
-	public void testErrorOutput() throws IOException, ParseException {
-		
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();		
-		List<ClearCaseChangeLogEntry> entries =parser.parse(new StringReader("\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n" + 
-									  "cleartool: Error: Branch type not found: \"sit_r6a\".\n" +
-									  "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
-		
-		Assert.assertEquals("Number of history entries are incorrect", 2, entries.size());
-		Assert.assertEquals("First entry is incorrect", "", entries.get(0).getComment());
-		Assert.assertEquals("Scond entry is incorrect", "", entries.get(1).getComment());
-	}
+    @Test
+    public void testParseWithTwoLineComment() throws IOException, ParseException {
 
-	@Test
-	public void testUserOutput() throws IOException, ParseException {	
-		ClearToolHistoryParser parser = new ClearToolHistoryParser();
-		List<ClearCaseChangeLogEntry> list = parser.parse(new InputStreamReader(getClass().getResourceAsStream("ct-lshistory-1.log")) );
-		Assert.assertEquals("Number of history entries are incorrect", 2, list.size());		
-	}
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\nBUG8949\nThis fixed the problem"));
 
-	private Date getDate(int year, int month, int day, int hour, int min, int sec) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTimeInMillis(0);
-		calendar.set(Calendar.YEAR, year);
-		calendar.set(Calendar.MONTH, month);
-		calendar.set(Calendar.DATE, day);
-		calendar.set(Calendar.HOUR_OF_DAY, hour);
-		calendar.set(Calendar.MINUTE, min);
-		calendar.set(Calendar.SECOND, sec);
-		return calendar.getTime();
-	}
+        Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
+
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        Assert.assertEquals("File is incorrect", "Source\\Operator\\FormMain.cs", entry.getFile());
+        Assert.assertEquals("User is incorrect", "aname", entry.getUser());
+        Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 59, 01), entry.getDate());
+        Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
+        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\2", entry.getVersion());
+        Assert.assertEquals("Comment is incorrect", "BUG8949\nThis fixed the problem", entry.getComment());
+    }
+
+    @Test
+    public void testParseWithLongAction() throws IOException, ParseException {
+
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070827.085901\"   \"aname\"    \"create a version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\n"));
+
+        Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        Assert.assertEquals("Action is incorrect", "create a version", entry.getAction());
+    }
+
+    @Test
+    public void testCreateBranchAction() throws IOException, ParseException {
+
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"    \"create branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"));
+        Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());
+    }
+
+    @Test
+    public void testFirstVersion() throws IOException, ParseException {
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\0\"\n"));
+        Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());
+    }
+
+    @Test
+    public void testSorted() throws IOException, ParseException {
+
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070827.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"
+                                + "\"20070825.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"
+                                + "\"20070830.084801\"   \"inttest1\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
+
+        Assert.assertEquals("Number of history entries are incorrect", 3, entries.size());
+
+        Assert.assertEquals("First entry is incorrect", "inttest1", entries.get(0).getUser());
+        Assert.assertEquals("First entry is incorrect", "inttest2", entries.get(1).getUser());
+        Assert.assertEquals("First entry is incorrect", "inttest3", entries.get(2).getUser());
+    }
+
+    @Test
+    public void testMultiline() throws IOException, ParseException {
+
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070830.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n"
+                                + "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
+
+        Assert.assertEquals("Number of history entries are incorrect", 2, entries.size());
+    }
+
+    @Test
+    public void testErrorOutput() throws IOException, ParseException {
+
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"
+                                + "cleartool: Error: Branch type not found: \"sit_r6a\".\n"
+                                + "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
+
+        Assert.assertEquals("Number of history entries are incorrect", 2, entries.size());
+        Assert.assertEquals("First entry is incorrect", "", entries.get(0).getComment());
+        Assert.assertEquals("Scond entry is incorrect", "", entries.get(1).getComment());
+    }
+
+    @Test
+    public void testUserOutput() throws IOException, ParseException {
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> list = parser.parse(new InputStreamReader(getClass().getResourceAsStream(
+                "ct-lshistory-1.log")));
+        Assert.assertEquals("Number of history entries are incorrect", 2, list.size());
+    }
+
+    private Date getDate(int year, int month, int day, int hour, int min, int sec) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(0);
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.DATE, day);
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, min);
+        calendar.set(Calendar.SECOND, sec);
+        return calendar.getTime();
+    }
 }

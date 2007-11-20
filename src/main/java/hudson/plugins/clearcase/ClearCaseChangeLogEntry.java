@@ -18,128 +18,129 @@ import hudson.scm.ChangeLogSet;
  */
 public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 
-	private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
-	
-	private String user = null;
-	private String action = null;
-	private String dateStr = null;
-	private Date date = null;
-	private String comment = null;
-	private List<String> files = null;
-	private String version = null;
+    private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
-	public ClearCaseChangeLogEntry() {
-	}
-	
-	public ClearCaseChangeLogEntry(Date date, String user, String action, String comment, String file, String version) {
-		this.date = date;
-		this.user = user;
-		this.action = action;
-		this.comment = comment;
-		this.version = version;
-		addFile(file);
-	}
+    private String user = null;
+    private String action = null;
+    private String dateStr = null;
+    private Date date = null;
+    private String comment = null;
+    private List<String> files = null;
+    private String version = null;
 
-	public void addFile(String file) {
-		if (files == null) {
-			files = new ArrayList<String>();
-		}
-		files.add(file);
-	}
-	public void addFiles(Collection<String> files) {
-		if (files == null) {
-			files = new ArrayList<String>();
-		}
-		this.files.addAll(files);
-	}
+    public ClearCaseChangeLogEntry() {
+    }
 
-	public String getAction() {
-		return action;
-	}
+    public ClearCaseChangeLogEntry(Date date, String user, String action, String comment, String file, String version) {
+        this.date = date;
+        this.user = user;
+        this.action = action;
+        this.comment = comment;
+        this.version = version;
+        addFile(file);
+    }
 
-	public void setAction(String action) {
-		this.action = action;
-	}
+    public void addFile(String file) {
+        if (files == null) {
+            files = new ArrayList<String>();
+        }
+        files.add(file);
+    }
 
-	public String getComment() {
-		return comment;
-	}
+    public void addFiles(Collection<String> files) {
+        if (files == null) {
+            files = new ArrayList<String>();
+        }
+        this.files.addAll(files);
+    }
 
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+    public String getAction() {
+        return action;
+    }
 
-	public String getDateStr() {
-		if (date == null) {
-			return dateStr;
-		} else {
-			return DATE_FORMATTER.format(date);
-		}
-	}
+    public void setAction(String action) {
+        this.action = action;
+    }
 
-	public void setDateStr(String date) {
-		try {
-			this.date = DATE_FORMATTER.parse(date);
-		} catch (ParseException e) {
-			this.dateStr = date;
-		}
-	}
+    public String getComment() {
+        return comment;
+    }
 
-	public Date getDate() {
-		return date;
-	}
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
-	public void setDate(Date date) {
-		this.date = date;
-	}
+    public String getDateStr() {
+        if (date == null) {
+            return dateStr;
+        } else {
+            return DATE_FORMATTER.format(date);
+        }
+    }
 
-	public String getFile() {
-		if ((files == null) || (files.size() == 0))
-			return "";
-		else
-			return files.get(0);
-	}
+    public void setDateStr(String date) {
+        try {
+            this.date = DATE_FORMATTER.parse(date);
+        } catch (ParseException e) {
+            this.dateStr = date;
+        }
+    }
 
-	public void setFile(String file) {
-		addFile(file);
-	}
+    public Date getDate() {
+        return date;
+    }
 
-	public String getUser() {
-		return user;
-	}
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
-	public void setUser(String user) {
-		this.user = user;
-	}
+    public String getFile() {
+        if ((files == null) || (files.size() == 0))
+            return "";
+        else
+            return files.get(0);
+    }
 
-	public String getVersion() {
-		return version;
-	}
-	
-	public void setVersion(String version) {
-		this.version = version;
-	}
+    public void setFile(String file) {
+        addFile(file);
+    }
 
-	@Override
-	public User getAuthor() {
-		return User.get(user);
-	}
+    public String getUser() {
+        return user;
+    }
 
-	@Override
-	public Collection<String> getAffectedPaths() {
-		return files;
-	}
+    public void setUser(String user) {
+        this.user = user;
+    }
 
-	@Override
-	public String getMsg() {
-		return comment;
-	}
+    public String getVersion() {
+        return version;
+    }
 
-	/**
-	 * Overrides the setParent() method so the ClearCaseChangeLogSet can access it.
-	 */
-	@Override
-	public void setParent(ChangeLogSet parent) {
-		super.setParent(parent);
-	}
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    @Override
+    public User getAuthor() {
+        return User.get(user);
+    }
+
+    @Override
+    public Collection<String> getAffectedPaths() {
+        return files;
+    }
+
+    @Override
+    public String getMsg() {
+        return comment;
+    }
+
+    /**
+     * Overrides the setParent() method so the ClearCaseChangeLogSet can access it.
+     */
+    @Override
+    public void setParent(ChangeLogSet parent) {
+        super.setParent(parent);
+    }
 }
