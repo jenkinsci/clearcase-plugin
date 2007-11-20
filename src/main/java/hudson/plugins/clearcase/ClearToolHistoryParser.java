@@ -20,80 +20,80 @@ import java.util.regex.Pattern;
  */
 public class ClearToolHistoryParser {
 
-	public static final int FILE_INDEX = 0;
-	public static final int USER_INDEX = 1;
-	public static final int COMMENT_INDEX = 2;
-	public static final int ACTION_INDEX = 3;
-	public static final int DATE_INDEX = 4;
-	public static final int VERSION_INDEX = 5;
+    public static final int FILE_INDEX = 0;
+    public static final int USER_INDEX = 1;
+    public static final int COMMENT_INDEX = 2;
+    public static final int ACTION_INDEX = 3;
+    public static final int DATE_INDEX = 4;
+    public static final int VERSION_INDEX = 5;
 
-	private final transient Pattern pattern;
-	private final transient SimpleDateFormat dateFormatter;
+    private final transient Pattern pattern;
+    private final transient SimpleDateFormat dateFormatter;
 
-	public ClearToolHistoryParser() {
-		//pattern = Pattern.compile("^(\\S+)\\s+(\\w+)\\s+(.+)\\s+\"(.+)@@(.+)\"");
-		pattern = Pattern.compile("\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"");
-		dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
-	}
-	
-	/**
-	 * Returns the log format that the parser supports
-	 * @return the format for the 'cleartool lshistory' command 
-	 */
-	public static String getLogFormat() {
-		return "\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\"\\n%c\\n";
-	}
+    public ClearToolHistoryParser() {
+        // pattern = Pattern.compile("^(\\S+)\\s+(\\w+)\\s+(.+)\\s+\"(.+)@@(.+)\"");
+        pattern = Pattern.compile("\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"");
+        dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
+    }
 
-	public List<ClearCaseChangeLogEntry> parse(Reader inReader) throws IOException, ParseException {
-		
-		List<ClearCaseChangeLogEntry> entries = new ArrayList<ClearCaseChangeLogEntry>();
-		BufferedReader reader = new BufferedReader(inReader);
+    /**
+     * Returns the log format that the parser supports
+     * 
+     * @return the format for the 'cleartool lshistory' command
+     */
+    public static String getLogFormat() {
+        return "\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\"\\n%c\\n";
+    }
 
-		ClearCaseChangeLogEntry content = null;
-		StringBuilder commentBuilder = new StringBuilder();
-		String line = reader.readLine();
-		while (line != null) {
-			
-			if (!line.startsWith("cleartool: Error:")) {
-				Matcher matcher = pattern.matcher(line);		
-				if (matcher.find() && matcher.groupCount() == 5) {					
-					if (content != null) {
-						content.setComment(commentBuilder.toString());
-						if (! (		(content.getAction()).equalsIgnoreCase("create branch")
-								||  (content.getVersion()).endsWith("\\0") ) ) {
-							entries.add(content);
-						}	
-					}
-					commentBuilder = new StringBuilder();
-					content = new ClearCaseChangeLogEntry();
-					Date date = dateFormatter.parse(matcher.group(1));
-					content.setDate(date);
-					content.setUser(matcher.group(2));
-					content.setAction(matcher.group(3));
-					content.setVersion(matcher.group(5));
-					content.setFile(matcher.group(4));
-				} else {
-					if (commentBuilder.length() > 0) {
-						commentBuilder.append("\n");
-					}
-					commentBuilder.append(line);	
-				}				
-			}
-			line = reader.readLine();			
-		}
-		if (content != null) {
-			content.setComment(commentBuilder.toString());
-			if (! (		(content.getAction().equalsIgnoreCase("create branch"))
-					||  (content.getVersion().endsWith("\\0")) ) ) {
-				entries.add(content);
-			}	
-		}
+    public List<ClearCaseChangeLogEntry> parse(Reader inReader) throws IOException, ParseException {
 
-		Collections.sort(entries, new Comparator<ClearCaseChangeLogEntry>() {
-			public int compare(ClearCaseChangeLogEntry arg0, ClearCaseChangeLogEntry arg1) {
-				return (arg1.getDateStr().compareTo(arg0.getDateStr()));
-			}
-		});
-		return entries;
-	}
+        List<ClearCaseChangeLogEntry> entries = new ArrayList<ClearCaseChangeLogEntry>();
+        BufferedReader reader = new BufferedReader(inReader);
+
+        ClearCaseChangeLogEntry content = null;
+        StringBuilder commentBuilder = new StringBuilder();
+        String line = reader.readLine();
+        while (line != null) {
+
+            if (!line.startsWith("cleartool: Error:")) {
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find() && matcher.groupCount() == 5) {
+                    if (content != null) {
+                        content.setComment(commentBuilder.toString());
+                        if (!((content.getAction()).equalsIgnoreCase("create branch") || (content.getVersion())
+                                .endsWith("\\0"))) {
+                            entries.add(content);
+                        }
+                    }
+                    commentBuilder = new StringBuilder();
+                    content = new ClearCaseChangeLogEntry();
+                    Date date = dateFormatter.parse(matcher.group(1));
+                    content.setDate(date);
+                    content.setUser(matcher.group(2));
+                    content.setAction(matcher.group(3));
+                    content.setVersion(matcher.group(5));
+                    content.setFile(matcher.group(4));
+                } else {
+                    if (commentBuilder.length() > 0) {
+                        commentBuilder.append("\n");
+                    }
+                    commentBuilder.append(line);
+                }
+            }
+            line = reader.readLine();
+        }
+        if (content != null) {
+            content.setComment(commentBuilder.toString());
+            if (!((content.getAction().equalsIgnoreCase("create branch")) || (content.getVersion().endsWith("\\0")))) {
+                entries.add(content);
+            }
+        }
+
+        Collections.sort(entries, new Comparator<ClearCaseChangeLogEntry>() {
+            public int compare(ClearCaseChangeLogEntry arg0, ClearCaseChangeLogEntry arg1) {
+                return (arg1.getDateStr().compareTo(arg0.getDateStr()));
+            }
+        });
+        return entries;
+    }
 }
