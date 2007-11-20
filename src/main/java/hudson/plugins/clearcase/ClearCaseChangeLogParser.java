@@ -9,16 +9,16 @@ import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
 
-/*******************************************************************************
+/***********************************************************************************************************************
  * Clear case change log parser.
  * 
  * @author Erik Ramfelt
  */
 public class ClearCaseChangeLogParser extends ChangeLogParser {
 
-	@Override
-	public ChangeLogSet<ClearCaseChangeLogEntry> parse(AbstractBuild build, File changelogFile) throws IOException,
-			SAXException {
-		return ClearCaseChangeLogSet.parse(build, changelogFile);
-	}
+    @Override
+    public ChangeLogSet<ClearCaseChangeLogEntry> parse(AbstractBuild build, File changelogFile) throws IOException,
+            SAXException {
+        return ClearCaseChangeLogSet.parse(build, changelogFile);
+    }
 }

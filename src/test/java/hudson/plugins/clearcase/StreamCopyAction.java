@@ -13,24 +13,24 @@ import org.jmock.api.Invocation;
  * @author Erik Ramfelt
  */
 public class StreamCopyAction implements Action {
-	private InputStream inputStream;
-	private int parameterIndex;
+    private InputStream inputStream;
+    private int parameterIndex;
 
-	public StreamCopyAction(int parameterIndex, InputStream inputStream) {
-		this.inputStream = inputStream;
-		this.parameterIndex = parameterIndex;
-	}
+    public StreamCopyAction(int parameterIndex, InputStream inputStream) {
+        this.inputStream = inputStream;
+        this.parameterIndex = parameterIndex;
+    }
 
-	public void describeTo(Description description) {
-	}
-	
-	public Object invoke(Invocation invocation) throws Throwable {
-		int read = inputStream.read();
-		while (read != -1) {
-			((OutputStream)invocation.getParameter(parameterIndex)).write(read);
-			read = inputStream.read();
-		}
-		inputStream.close();
-		return null;
-	}
+    public void describeTo(Description description) {
+    }
+
+    public Object invoke(Invocation invocation) throws Throwable {
+        int read = inputStream.read();
+        while (read != -1) {
+            ((OutputStream) invocation.getParameter(parameterIndex)).write(read);
+            read = inputStream.read();
+        }
+        inputStream.close();
+        return null;
+    }
 }
