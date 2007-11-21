@@ -21,7 +21,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.util.ForkOutputStream;
-
+import hudson.matrix.MatrixBuild;
 import static org.junit.Assert.*;
 
 import org.junit.After;
@@ -418,6 +418,38 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branch", "configspec", "viewname", true, "", false, "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
+
+        classContext.assertIsSatisfied();
+        context.assertIsSatisfied();
+    }
+
+
+    @Test
+    public void testPollChangesWithMatrixProject() throws Exception {
+        final ArrayList<Object[]> list = new ArrayList<Object[]>();
+        list.add(new String[] { "A" });
+        final Calendar mockedCalendar = Calendar.getInstance();
+        mockedCalendar.setTimeInMillis(400000);
+        context.checking(new Expectations() {
+            {
+                one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(any(Date.class)),
+                        with(any(String.class)), with(any(String.class)));
+                will(returnValue(list));
+                one(clearTool).setVobPaths(with(equal("")));
+            }
+        });
+        final MatrixBuild matrixBuild = classContext.mock(MatrixBuild.class);
+        classContext.checking(new Expectations() {
+            {
+                one(project).getLastBuild();
+                will(returnValue(matrixBuild));
+                one(matrixBuild).getTimestamp();
+                will(returnValue(mockedCalendar));
+            }
+        });
+
+        ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branch", "configspec", "viewname", true, "", false, "");
+        boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
 
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();

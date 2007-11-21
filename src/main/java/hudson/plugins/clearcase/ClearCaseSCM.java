@@ -11,6 +11,7 @@ import hudson.model.BuildListener;
 import hudson.model.Hudson;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
+import hudson.model.Run;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
@@ -165,7 +166,7 @@ public class ClearCaseSCM extends SCM {
     public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener)
             throws IOException, InterruptedException {
 
-        Build lastBuild = (Build) project.getLastBuild();
+        Run lastBuild = project.getLastBuild();
         if (lastBuild == null) {
             return true;
         } else {
