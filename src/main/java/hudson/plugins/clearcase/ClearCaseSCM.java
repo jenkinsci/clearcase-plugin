@@ -148,8 +148,11 @@ public class ClearCaseSCM extends SCM {
 
         List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
         if (build.getPreviousBuild() != null) {
-            history.addAll(getClearTool(listener).lshistory(ctLauncher,
-                    build.getPreviousBuild().getTimestamp().getTime(), viewName, branch));
+            Date time = build.getPreviousBuild().getTimestamp().getTime();
+            for (String branchName : getBranchNames(branch)) {
+                history.addAll(getClearTool(listener).lshistory(ctLauncher,
+                        time, viewName, branchName));
+            }
         }
 
         if (history.isEmpty()) {
@@ -160,6 +163,15 @@ public class ClearCaseSCM extends SCM {
             ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, history);
             return true;
         }
+    }
+    
+    private String[] getBranchNames(String branchString) {
+        // split by whitespace, except "\ "
+        String[] branchArray = branchString.split("(?<!\\\\)[ \\r\\n]+");
+        // now replace "\ " to " ".
+        for (int i = 0; i < branchArray.length; i++)
+            branchArray[i] = branchArray[i].replaceAll("\\\\ ", " ");
+        return branchArray;
     }
 
     @Override
@@ -173,9 +185,14 @@ public class ClearCaseSCM extends SCM {
             getClearTool(listener).setVobPaths(vobPaths);
             ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
             Date buildTime = lastBuild.getTimestamp().getTime();
-            List<ClearCaseChangeLogEntry> data = getClearTool(listener).lshistory(ctLauncher, buildTime, viewName,
-                    branch);
-            return !data.isEmpty();
+            for (String branchName : getBranchNames(branch)) {
+                List<ClearCaseChangeLogEntry> data = getClearTool(listener).lshistory(ctLauncher, buildTime, viewName,
+                        branchName);
+                if (!data.isEmpty()) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

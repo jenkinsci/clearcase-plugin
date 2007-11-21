@@ -121,14 +121,6 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         assertEquals("The view drive isnt correct", "/tmp/c", scm.getViewDrive());
     }
 
-    /*
-     * @Test public void testGetClearToolSnapshot() { ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec",
-     * "viewname", true, "", false, ""); assertTrue("The clear tool instance is not a snapshot",
-     * scm.getClearTool().getClass().equals(ClearToolSnapshot.class)); } @Test public void testGetClearToolDynamic() {
-     * ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, ""); assertTrue("The
-     * clear tool instance is not a dynamic", scm.getClearTool().getClass().equals(ClearToolDynamic.class)); }
-     */
-
     @Test
     public void testCheckoutDynamic() throws Exception {
         context.checking(new Expectations() {
@@ -247,8 +239,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getPreviousBuild();
-                will(returnValue(null));
+                one(build).getPreviousBuild(); will(returnValue(null));
             }
         });
 
@@ -278,21 +269,59 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
                         with(equal("configspec")));
                 one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
-                        with(equal("viewname")), with(equal("branch")));
-                will(returnValue(list));
+                        with(equal("viewname")), with(equal("branch"))); will(returnValue(list));
                 one(clearTool).setVobPaths(with(equal("vob")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                exactly(2).of(build).getPreviousBuild();
-                will(returnValue(build));
-                one(build).getTimestamp();
-                will(returnValue(mockedCalendar));
+                exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
+                one(build).getTimestamp(); will(returnValue(mockedCalendar));
             }
         });
 
         ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branch", "configspec", "viewname", false, "vob", false, "");
+        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
+        assertTrue("The first time should always return true", hasChanges);
+
+        FilePath changeLogFilePath = new FilePath(changelogFile);
+        assertTrue("The change log file is empty", changeLogFilePath.length() > 20);
+        context.assertIsSatisfied();
+        classContext.assertIsSatisfied();
+    }
+
+    @Test
+    public void testSnapshotCheckoutWithMultipleBranches() throws Exception {
+        workspace.child("viewname").mkdirs();
+        final ArrayList<ClearCaseChangeLogEntry> list = new ArrayList<ClearCaseChangeLogEntry>();
+        list.add(new ClearCaseChangeLogEntry());
+        list.add(new ClearCaseChangeLogEntry());
+
+        final Calendar mockedCalendar = Calendar.getInstance();
+        mockedCalendar.setTimeInMillis(100000);
+
+        context.checking(new Expectations() {
+            {
+                one(clearTool).rmview(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                one(clearTool).mkview(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
+                        with(equal("configspec")));
+                one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
+                        with(equal("viewname")), with(equal("branchone"))); will(returnValue(new ArrayList<ClearCaseChangeLogEntry>()));
+                one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
+                        with(equal("viewname")), with(equal("branchtwo"))); will(returnValue(list));
+                one(clearTool).setVobPaths(with(equal("vob")));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
+                one(build).getTimestamp(); will(returnValue(mockedCalendar));
+            }
+        });
+
+        ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branchone branchtwo", "configspec", "viewname", false, "vob", false, "");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -407,6 +436,37 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testPollChangesWithMultipleBranches() throws Exception {
+        final ArrayList<Object[]> list = new ArrayList<Object[]>();
+        list.add(new String[] { "A" });
+        final Calendar mockedCalendar = Calendar.getInstance();
+        mockedCalendar.setTimeInMillis(400000);
+
+        context.checking(new Expectations() {
+            {
+                one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
+                        with(equal("viewname")), with(equal("branchone")));will(returnValue(new ArrayList<Object[]>()));
+                one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
+                        with(equal("viewname")), with(equal("branchtwo")));will(returnValue(list));
+                one(clearTool).setVobPaths(with(equal("vob")));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                one(build).getTimestamp(); will(returnValue(mockedCalendar));
+                one(project).getLastBuild(); will(returnValue(build));
+            }
+        });
+
+        ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branchone branchtwo", "configspec", "viewname", true, "vob", false, "");
+        boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
+        assertTrue("The first time should always return true", hasChanges);
+
+        classContext.assertIsSatisfied();
+        context.assertIsSatisfied();
+    }
+
+    @Test
     public void testPollChangesFirstTime() throws Exception {
         classContext.checking(new Expectations() {
             {
@@ -449,7 +509,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         });
 
         ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branch", "configspec", "viewname", true, "", false, "");
-        boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
+        scm.pollChanges(project, launcher, workspace, taskListener);
 
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();

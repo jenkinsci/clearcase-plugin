@@ -16,22 +16,24 @@
       		But this causes the artifacts from the previous build to remain when a new build starts.
 	</f:entry>
 
-	<f:entry title="Branch" help="/plugin/clearcase/branch.html">
-	  <f:textbox name="clearcase.branch" value="${scm.branch}"/>
+	<f:entry title="Branch(es)" help="/plugin/clearcase/branch.html">
+	  <f:expandableTextbox name="clearcase.branch" value="${scm.branch}"/>
 	</f:entry>
 	
-	<f:block>
-    <table>
+	<f:advanced>
       <f:entry title="VOB path(s)" help="/plugin/clearcase/vobpaths.html">
         <f:expandableTextbox name="clearcase.vobpaths" value="${scm.vobPaths}"/>
       </f:entry>
+      <f:block>
+        <table>
 
-      <f:optionalBlock name="clearcase.usedynamicview" title="Use existing dynamic view"
-          checked="${scm.useDynamicView}" help="/plugin/clearcase/dynamicview.html">
-        <f:entry title="View drive" help="/plugin/clearcase/viewdrive.html">
-          <f:textbox name="clearcase.viewdrive" value="${scm.viewDrive}"/>
-        </f:entry>
-      </f:optionalBlock>
-    </table>
+        <f:optionalBlock name="clearcase.usedynamicview" title="Use existing dynamic view"
+            checked="${scm.useDynamicView}" help="/plugin/clearcase/dynamicview.html">
+          <f:entry title="View drive" help="/plugin/clearcase/viewdrive.html">
+            <f:textbox name="clearcase.viewdrive" value="${scm.viewDrive}"/>
+          </f:entry>
+        </f:optionalBlock>
+      </table>
 	</f:block>
+	</f:advanced>
 </j:jelly>
