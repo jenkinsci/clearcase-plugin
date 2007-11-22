@@ -263,6 +263,24 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
 
+    @Test
+    public void testCatConfigSpec() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(launcher).run(with(equal(new String[] { "commandname", "catcs", "-tag", "viewname" })), (InputStream) with(anything()),
+                        (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
+                will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-catcs-1.log")),
+                        returnValue(Boolean.TRUE)));
+            }
+        });
+
+        String configSpec = clearToolExec.catcs(launcher, "viewname");
+
+        assertEquals("The config spec was not correct", "element * CHECKEDOUT\nelement * ...\\rel2_bugfix\\LATEST\nelement * \\main\\LATEST -mkbranch rel2_bugfix", configSpec);
+        
+        context.assertIsSatisfied();
+    }
+
     /**
      * Simple impl of ClearToolExec to help testing the methods in the class
      */
