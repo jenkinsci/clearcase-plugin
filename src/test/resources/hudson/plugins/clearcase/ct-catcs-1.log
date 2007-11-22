@@ -1,0 +1,3 @@
+element * CHECKEDOUT
+element * ...\rel2_bugfix\LATEST
+element * \main\LATEST -mkbranch rel2_bugfix
