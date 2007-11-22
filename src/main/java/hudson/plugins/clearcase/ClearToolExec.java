@@ -135,6 +135,30 @@ public abstract class ClearToolExec implements ClearTool {
         return new ArrayList<String>();
     }
 
+    public String catcs(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add(clearToolExec);
+        cmd.add("catcs");
+        cmd.add("-tag", viewName);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
+            BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+            String line = reader.readLine();
+            StringBuilder builder = new StringBuilder();
+            while (line != null) {
+                if (builder.length() > 0) {
+                    builder.append("\n");
+                }
+                builder.append(line);
+                line = reader.readLine();
+            }
+            reader.close();
+            return builder.toString();
+        }
+        return "";
+    }
+
     private List<String> parseListOutput(Reader consoleReader, boolean onlyStarMarked) throws IOException {
         List<String> views = new ArrayList<String>();
         BufferedReader reader = new BufferedReader(consoleReader);
