@@ -1,4 +1,3 @@
-[workspace] $ cleartool update -force -log NUL hudson_sit_eads_ns_1_ci_view
 Processing dir "ccl\Bin".
 Processing dir "ccl\Bin\MsgWizard".
 .

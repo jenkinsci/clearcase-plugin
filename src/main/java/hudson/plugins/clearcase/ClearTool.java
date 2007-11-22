@@ -80,5 +80,13 @@ public interface ClearTool {
      */
     List<String> lsvob(ClearToolLauncher launcher, boolean onlyMOunted) throws IOException, InterruptedException;
 
+    /**
+     * Retrives the config spec for the specified viewname
+     * @param launcher launcher for launching the command
+     * @param viewName the name of the view
+     * @return a string containing the config spec
+     */
+    String catcs(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException;
+    
     void setVobPaths(String vobPaths);
 }
