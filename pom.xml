@@ -11,18 +11,12 @@
   <packaging>hpi</packaging>
   <name>Hudson Clear Case Plug-in</name>
   <version>0.3-SNAPSHOT</version>
+  <url>http://hudson.gotdns.com/wiki/display/HUDSON/ClearCase+Plugin</url>
   <licenses>
     <license><name>MIT license</name><comments>All source code is under the MIT license.</comments></license>
   </licenses>
 
   <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.3.1</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.jmock</groupId>
       <artifactId>jmock-junit4</artifactId>
