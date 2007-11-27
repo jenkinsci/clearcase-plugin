@@ -243,7 +243,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
 
-    @Test
+    @Test(expected=hudson.AbortException.class)
     public void testLshistoryNoViewPath() throws Exception {
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.set(2007, 10, 18, 15, 05, 25);
