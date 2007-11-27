@@ -122,18 +122,17 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testCheckoutDynamic() throws Exception {
+    public void testCheckoutDynamicWithNewConfigSpec() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
-                        with(equal("configspec")));
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("other configspec"));
+                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")), with(equal("configspec")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getPreviousBuild();
-                will(returnValue(null));
+                one(build).getPreviousBuild(); will(returnValue(null));
             }
         });
 
@@ -146,6 +145,29 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         classContext.assertIsSatisfied();
     }
 
+    @Test
+    public void testCheckoutDynamic() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("config\nspec"));
+                one(clearTool).setVobPaths(with(equal("")));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                one(build).getPreviousBuild(); will(returnValue(null));
+            }
+        });
+
+        ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branch", "config\r\nspec", "viewname", false, "", true, "drive");
+        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
+        assertTrue("The first time should always return true", hasChanges);
+
+        context.assertIsSatisfied();
+        classContext.assertIsSatisfied();
+    }
+    
     @Test
     public void testCheckoutFirstTimeNotUsingUpdate() throws Exception {
         context.checking(new Expectations() {
@@ -177,8 +199,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(clearTool).mkview(with(any(ClearToolLauncher.class)), with(equal("viewname")));
-                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
-                        with(equal("configspec")));
+                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")), with(equal("configspec")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
         });
@@ -204,6 +225,35 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("configspec"));
+                one(clearTool).update(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                one(clearTool).setVobPaths(with(equal("")));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                one(build).getPreviousBuild();
+                will(returnValue(null));
+            }
+        });
+
+        ClearCaseSCM scm = new ClearCaseSCM(clearTool, "branch", "configspec", "viewname", true, "", false, "");
+        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
+        assertTrue("The first time should always return true", hasChanges);
+
+        context.assertIsSatisfied();
+        classContext.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCheckoutSecondTimeUsingUpdateWithNewConfigSpec() throws Exception {
+        workspace.child("viewname").mkdirs();
+
+        context.checking(new Expectations() {
+            {                
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("other configspec"));
+                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")), with(equal("configspec")));
                 one(clearTool).update(with(any(ClearToolLauncher.class)), with(equal("viewname")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
@@ -344,11 +394,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
-                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
-                        with(equal("configspec")));
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("configspec"));
                 one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
-                        with(equal("viewname")), with(equal("branch")));
-                will(returnValue(list));
+                        with(equal("viewname")), with(equal("branch"))); will(returnValue(list));
                 one(clearTool).setVobPaths(with(equal("vob")));
             }
         });
@@ -482,7 +530,6 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();
     }
-
 
     @Test
     public void testPollChangesWithMatrixProject() throws Exception {
