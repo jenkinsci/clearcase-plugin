@@ -140,10 +140,18 @@ public class ClearCaseSCM extends SCM {
             }
 
             if (updateView) {
+                String currentConfigSpec = getClearTool(listener).catcs(ctLauncher, viewName).trim();
+                if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
+                    getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
+                }
+                
                 getClearTool(listener).update(ctLauncher, viewName);
             }
         } else {
-            getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
+            String currentConfigSpec = getClearTool(listener).catcs(ctLauncher, viewName).trim();
+            if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
+                getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
+            }
         }
 
         List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
