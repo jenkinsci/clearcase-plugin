@@ -143,9 +143,11 @@ public class ClearCaseSCM extends SCM {
                 String currentConfigSpec = getClearTool(listener).catcs(ctLauncher, viewName).trim();
                 if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
                     getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
+                    updateView = false;
                 }
-                
-                getClearTool(listener).update(ctLauncher, viewName);
+                if (updateView) {
+                    getClearTool(listener).update(ctLauncher, viewName);
+                }
             }
         } else {
             String currentConfigSpec = getClearTool(listener).catcs(ctLauncher, viewName).trim();

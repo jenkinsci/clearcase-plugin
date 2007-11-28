@@ -254,7 +254,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
             {                
                 one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("other configspec"));
                 one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")), with(equal("configspec")));
-                one(clearTool).update(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                //one(clearTool).update(with(any(ClearToolLauncher.class)), with(equal("viewname")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
         });
