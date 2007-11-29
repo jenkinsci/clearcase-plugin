@@ -81,7 +81,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     private String[] getVobNames(FilePath viewPath) throws IOException, InterruptedException {
         String[] vobNameArray;
-        if ((vobPaths == null) || (vobPaths.trim().isEmpty())) {
+        if ((vobPaths == null) || (vobPaths.trim().length() == 0)) {
             List<String> vobList = new ArrayList<String>();
             List<FilePath> subFilePaths = viewPath.list((FileFilter) null);
             if ((subFilePaths != null) && (subFilePaths.size() > 0)) {
