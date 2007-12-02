@@ -49,7 +49,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
-                one(launcher).run(with(Matchers.hasItemInArray("commandname")), with(aNull(InputStream.class)),
+                one(launcher).run(with(Matchers.hasItemInArray("commandname")), with(aNonNull(InputStream.class)),
                         with(aNull(OutputStream.class)), with(aNonNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
@@ -59,26 +59,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
 
-    /*
-     * @Test public void testLshistory() throws Exception { final Calendar mockedCalendar = Calendar.getInstance();
-     * mockedCalendar.set(2007, 10, 18, 15, 05, 25); context.checking(new Expectations() {{
-     * one(launcher).getWorkspace(); will(returnValue(workspace)); one(launcher).run(with(equal(new
-     * String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt",
-     * ClearToolHistoryParser.getLogFormat(), "-branch", "brtype:branch", "-nco", "vob1"})), (InputStream)
-     * with(anything()), (OutputStream) with(an(OutputStream.class)), with(aNonNull(FilePath.class))); will(doAll(new
-     * StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lshistory-1.log")),
-     * returnValue(Boolean.TRUE))); }}); clearToolExec.setVobPaths("vob1"); List<ClearCaseChangeLogEntry> lshistory =
-     * clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch"); assertEquals("The history
-     * should contain 2 items", 2, lshistory.size()); context.assertIsSatisfied(); } @Test public void
-     * testLshistoryWithVobNames() throws Exception { final Calendar mockedCalendar = Calendar.getInstance();
-     * mockedCalendar.set(2007, 10, 18, 15, 05, 25); context.checking(new Expectations() {{
-     * one(launcher).getWorkspace(); will(returnValue(workspace)); one(launcher).run(with(equal(new
-     * String[]{"commandname", "lshistory", "-r", "-since", "18-nov.15:05:25", "-fmt",
-     * ClearToolHistoryParser.getLogFormat(), "-branch", "brtype:branch", "-nco", "vob2/vob2-1", "vob4"})),
-     * (InputStream) with(anything()), (OutputStream) with(an(OutputStream.class)), with(aNonNull(FilePath.class)));
-     * will(returnValue(Boolean.TRUE)); }}); clearToolExec.setVobPaths("vob2/vob2-1 vob4");
-     * clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch"); context.assertIsSatisfied(); }
-     */
     @Test
     public void testRemoveView() throws Exception {
         context.checking(new Expectations() {
