@@ -1,5 +1,7 @@
 package hudson.plugins.clearcase;
 
+import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -60,7 +62,8 @@ public class ClearToolHistoryParser {
                 if (matcher.find() && matcher.groupCount() == 5) {
                     if (content != null) {
                         content.setComment(commentBuilder.toString());
-                        if (!((content.getAction()).equalsIgnoreCase("create branch") || (content.getVersion())
+                        if (!((content.getElements().get(0).getAction()).equalsIgnoreCase("create branch") 
+                                || (content.getElements().get(0).getVersion())
                                 .endsWith("\\0"))) {
                             entries.add(content);
                         }
@@ -70,9 +73,8 @@ public class ClearToolHistoryParser {
                     Date date = dateFormatter.parse(matcher.group(1));
                     content.setDate(date);
                     content.setUser(matcher.group(2));
-                    content.setAction(matcher.group(3));
-                    content.setVersion(matcher.group(5));
-                    content.setFile(matcher.group(4));
+                    ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(matcher.group(4), matcher.group(5), matcher.group(3));
+                    content.addElement(element);
                 } else {
                     if (commentBuilder.length() > 0) {
                         commentBuilder.append("\n");
@@ -84,16 +86,20 @@ public class ClearToolHistoryParser {
         }
         if (content != null) {
             content.setComment(commentBuilder.toString());
-            if (!((content.getAction().equalsIgnoreCase("create branch")) || (content.getVersion().endsWith("\\0")))) {
+            if (!((content.getElements().get(0).getAction().equalsIgnoreCase("create branch")) 
+                    || (content.getElements().get(0).getVersion().endsWith("\\0")))) {
                 entries.add(content);
             }
         }
 
+        ChangeLogEntryMerger merger = new ChangeLogEntryMerger();
+        entries = merger.getMergedList(entries);
         Collections.sort(entries, new Comparator<ClearCaseChangeLogEntry>() {
             public int compare(ClearCaseChangeLogEntry arg0, ClearCaseChangeLogEntry arg1) {
                 return (arg1.getDateStr().compareTo(arg0.getDateStr()));
             }
         });
+        
         return entries;
     }
 }
