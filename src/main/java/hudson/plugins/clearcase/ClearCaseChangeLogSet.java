@@ -24,7 +24,7 @@ import hudson.scm.ChangeLogSet;
  */
 public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry> {
 
-    static final String[] TAGS = new String[] { "file", "user", "comment", "action", "date", "version" };
+    static final String[] TAGS = new String[] { "user", "comment", "date" };
 
     private List<ClearCaseChangeLogEntry> history = null;
 
@@ -84,7 +84,13 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
         digester.addBeanPropertySetter("*/entry/file");
         digester.addBeanPropertySetter("*/entry/action");
         digester.addBeanPropertySetter("*/entry/version");
-
+        
+        digester.addObjectCreate("*/entry/element", ClearCaseChangeLogEntry.FileElement.class);
+        digester.addBeanPropertySetter("*/entry/element/file");
+        digester.addBeanPropertySetter("*/entry/element/version");
+        digester.addBeanPropertySetter("*/entry/element/action");
+        digester.addSetNext("*/entry/element","addElement");
+        
         digester.addSetNext("*/entry", "add");
         digester.parse(changeLogStream);
 
@@ -117,6 +123,19 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
                 stream.print(ClearCaseChangeLogSet.TAGS[tag]);
                 stream.println('>');
             }
+            for (ClearCaseChangeLogEntry.FileElement file : entry.getElements()) {
+                stream.println("\t\t<element>");
+                stream.println("\t\t\t<file>");
+                stream.println(escapeForXml(file.getFile()));
+                stream.println("\t\t\t</file>");
+                stream.println("\t\t\t<action>");
+                stream.println(escapeForXml(file.getAction()));
+                stream.println("\t\t\t</action>");
+                stream.println("\t\t\t<version>");
+                stream.println(escapeForXml(file.getVersion()));
+                stream.println("\t\t\t</version>");
+                stream.println("\t\t</element>");
+            }
             stream.println("\t</entry>");
         }
         stream.println("</history>");
@@ -125,12 +144,9 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 
     private static String[] getEntryAsStrings(ClearCaseChangeLogEntry entry) {
         String[] array = new String[TAGS.length];
-        array[0] = entry.getFile();
-        array[1] = entry.getUser();
-        array[2] = entry.getComment();
-        array[3] = entry.getAction();
-        array[4] = entry.getDateStr();
-        array[5] = entry.getVersion();
+        array[0] = entry.getUser();
+        array[1] = entry.getComment();
+        array[2] = entry.getDateStr();
         return array;
     }
 

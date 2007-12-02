@@ -24,11 +24,11 @@ public class ClearToolHistoryParserTest {
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
 
         ClearCaseChangeLogEntry entry = entries.get(0);
-        Assert.assertEquals("File is incorrect", "Source\\Definitions\\Definitions.csproj", entry.getFile());
+        Assert.assertEquals("File is incorrect", "Source\\Definitions\\Definitions.csproj", entry.getElements().get(0).getFile());
         Assert.assertEquals("User is incorrect", "inttest14", entry.getUser());
         Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 48, 1), entry.getDate());
-        Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
-        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\1", entry.getVersion());
+        Assert.assertEquals("Action is incorrect", "create version", entry.getElements().get(0).getAction());
+        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\1", entry.getElements().get(0).getVersion());
         Assert.assertEquals("Comment is incorrect", "", entry.getComment());
     }
 
@@ -69,11 +69,11 @@ public class ClearToolHistoryParserTest {
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
 
         ClearCaseChangeLogEntry entry = entries.get(0);
-        Assert.assertEquals("File is incorrect", "Source\\Operator\\FormMain.cs", entry.getFile());
+        Assert.assertEquals("File is incorrect", "Source\\Operator\\FormMain.cs", entry.getElements().get(0).getFile());
         Assert.assertEquals("User is incorrect", "aname", entry.getUser());
         Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 59, 01), entry.getDate());
-        Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
-        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\2", entry.getVersion());
+        Assert.assertEquals("Action is incorrect", "create version", entry.getElements().get(0).getAction());
+        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\2", entry.getElements().get(0).getVersion());
         Assert.assertEquals("Comment is incorrect", "BUG8949", entry.getComment());
     }
 
@@ -88,11 +88,11 @@ public class ClearToolHistoryParserTest {
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
 
         ClearCaseChangeLogEntry entry = entries.get(0);
-        Assert.assertEquals("File is incorrect", "Source\\Operator\\FormMain.cs", entry.getFile());
+        Assert.assertEquals("File is incorrect", "Source\\Operator\\FormMain.cs", entry.getElements().get(0).getFile());
         Assert.assertEquals("User is incorrect", "aname", entry.getUser());
         Assert.assertEquals("Date is incorrect", getDate(2007, 7, 27, 8, 59, 01), entry.getDate());
-        Assert.assertEquals("Action is incorrect", "create version", entry.getAction());
-        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\2", entry.getVersion());
+        Assert.assertEquals("Action is incorrect", "create version", entry.getElements().get(0).getAction());
+        Assert.assertEquals("Version is incorrect", "\\main\\sit_r5_maint\\2", entry.getElements().get(0).getVersion());
         Assert.assertEquals("Comment is incorrect", "BUG8949\nThis fixed the problem", entry.getComment());
     }
 
@@ -106,7 +106,7 @@ public class ClearToolHistoryParserTest {
 
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
-        Assert.assertEquals("Action is incorrect", "create a version", entry.getAction());
+        Assert.assertEquals("Action is incorrect", "create a version", entry.getElements().get(0).getAction());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class ClearToolHistoryParserTest {
                 .parse(new StringReader(
                         "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"
                                 + "cleartool: Error: Branch type not found: \"sit_r6a\".\n"
-                                + "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
+                                + "\"20070829.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
 
         Assert.assertEquals("Number of history entries are incorrect", 2, entries.size());
         Assert.assertEquals("First entry is incorrect", "", entries.get(0).getComment());
