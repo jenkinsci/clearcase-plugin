@@ -26,4 +26,22 @@ public class ClearCaseChangeLogEntryTest {
         assertEquals("Tue Aug 28 15:27:00 CEST 2007", entry.getDateStr());
     }
 
+    @Test
+    public void testSetFileAndThenVersion() {
+        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
+        entry.setFile("Filename");
+        entry.setVersion("version1");
+        assertEquals("Filename", entry.getElements().get(0).getFile());
+        assertEquals("version1", entry.getElements().get(0).getVersion());
+    }
+
+    @Test
+    public void testSetVersionAndThenFile() {
+        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
+        entry.setVersion("version1");
+        entry.setFile("Filename");
+        assertEquals("Filename", entry.getElements().get(0).getFile());
+        assertEquals("version1", entry.getElements().get(0).getVersion());
+    }
+
 }

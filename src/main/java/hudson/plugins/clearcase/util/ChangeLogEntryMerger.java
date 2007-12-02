@@ -17,7 +17,7 @@ public class ChangeLogEntryMerger {
 
     private Map<String, List<ClearCaseChangeLogEntry>> userEntries = new HashMap<String, List<ClearCaseChangeLogEntry>>();
 
-    private int maxTimeDifference;
+    private transient int maxTimeDifference;
 
     public ChangeLogEntryMerger() {
         this(0);
@@ -33,7 +33,7 @@ public class ChangeLogEntryMerger {
             List<ClearCaseChangeLogEntry> entries = getUserEntries(entry.getUser());
             for (ClearCaseChangeLogEntry storedEntry : entries) {
                 if (canBeMerged(entry, storedEntry)) {
-                    storedEntry.addFiles(entry.getAffectedPaths());
+                    storedEntry.addElements(entry.getElements());
                     wasMerged = true;
                     break;
                 }
