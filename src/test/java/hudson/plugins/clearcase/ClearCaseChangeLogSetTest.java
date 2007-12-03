@@ -54,6 +54,7 @@ public class ClearCaseChangeLogSetTest {
         Assert.assertNotNull("The parent of the first entry is null", logs.get(0).getParent());
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testUnicodeXml() throws IOException, SAXException {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
