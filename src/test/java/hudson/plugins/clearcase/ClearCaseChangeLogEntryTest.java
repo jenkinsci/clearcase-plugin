@@ -26,6 +26,7 @@ public class ClearCaseChangeLogEntryTest {
         assertEquals("Tue Aug 28 15:27:00 CEST 2007", entry.getDateStr());
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testSetFileAndThenVersion() {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
@@ -35,6 +36,7 @@ public class ClearCaseChangeLogEntryTest {
         assertEquals("version1", entry.getElements().get(0).getVersion());
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testSetVersionAndThenFile() {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
