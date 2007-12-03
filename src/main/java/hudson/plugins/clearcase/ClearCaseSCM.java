@@ -6,7 +6,6 @@ import hudson.Proc;
 import static hudson.Util.fixEmpty;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.model.Hudson;
 import hudson.model.ModelObject;
@@ -128,9 +127,18 @@ public class ClearCaseSCM extends SCM {
         boolean updateView = useUpdate;
         if (!useDynamicView) {
             boolean localViewPathExists = new FilePath(workspace, viewName).exists();
-            if ((!updateView) && localViewPathExists) {
-                getClearTool(listener).rmview(ctLauncher, viewName);
-                localViewPathExists = false;
+            
+            if (localViewPathExists) {
+                if (updateView) {
+                    String currentConfigSpec = getClearTool(listener).catcs(ctLauncher, viewName).trim();
+                    if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
+                        updateView = false;
+                    }
+                }
+                if (!updateView) {
+                    getClearTool(listener).rmview(ctLauncher, viewName);
+                    localViewPathExists = false;
+                }                
             }
 
             if (!localViewPathExists) {
@@ -140,11 +148,6 @@ public class ClearCaseSCM extends SCM {
             }
 
             if (updateView) {
-                String currentConfigSpec = getClearTool(listener).catcs(ctLauncher, viewName).trim();
-                if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
-                    getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
-                    updateView = false;
-                }
                 if (updateView) {
                     getClearTool(listener).update(ctLauncher, viewName);
                 }
@@ -344,6 +347,7 @@ public class ClearCaseSCM extends SCM {
             new FormFieldValidator(req, rsp, false) {
                 @Override
                 protected void check() throws IOException, ServletException {
+                    
                     String v = fixEmpty(request.getParameter("value"));
                     if ((v == null) || (v.length() == 0)) {
                         error("Config spec is mandatory");

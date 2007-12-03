@@ -55,7 +55,6 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         clearTool = context.mock(ClearTool.class);
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
-        proc = classContext.mock(Proc.class);
     }
 
     @After
@@ -253,8 +252,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {                
                 one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("other configspec"));
+                one(clearTool).rmview(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                one(clearTool).mkview(with(any(ClearToolLauncher.class)), with(equal("viewname")));
                 one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")), with(equal("configspec")));
-                //one(clearTool).update(with(any(ClearToolLauncher.class)), with(equal("viewname")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
         });

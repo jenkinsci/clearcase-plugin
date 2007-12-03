@@ -22,7 +22,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         cmd.add(clearToolExec);
         cmd.add("setcs");
         cmd.add(".." + File.separatorChar + configSpecFile.getName());
-        launcher.run(cmd.toCommandArray(), new ByteArrayInputStream("yes\n".getBytes()), null, workspace.child(viewName));
+        launcher.run(cmd.toCommandArray(), null, null, workspace.child(viewName));
 
         configSpecFile.delete();
     }
