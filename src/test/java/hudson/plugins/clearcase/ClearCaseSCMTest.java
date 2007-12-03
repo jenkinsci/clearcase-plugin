@@ -38,7 +38,6 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     private Launcher launcher;
     private AbstractProject project;
     private Build build;
-    private Proc proc;
 
     @Before
     public void setUp() throws Exception {

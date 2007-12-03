@@ -284,7 +284,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     /**
      * Simple impl of ClearToolExec to help testing the methods in the class
      */
-    private class ClearToolImpl extends ClearToolExec {
+    private static class ClearToolImpl extends ClearToolExec {
 
         public ClearToolImpl(String clearToolExec) {
             super(clearToolExec);

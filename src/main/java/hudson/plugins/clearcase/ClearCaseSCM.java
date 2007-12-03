@@ -247,8 +247,10 @@ public class ClearCaseSCM extends SCM {
             return workspace;
         }
 
-        public boolean run(String[] cmd, InputStream in, OutputStream out, FilePath path) throws IOException,
+        public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, FilePath filePath) throws IOException,
                 InterruptedException {
+            OutputStream out = outputStream;
+            FilePath path = filePath;
             String[] env = new String[0];
 
             if (path == null) {
@@ -261,7 +263,7 @@ public class ClearCaseSCM extends SCM {
                 out = new ForkOutputStream(out, listener.getLogger());
             }
 
-            int r = launcher.launch(cmd, env, in, out, path).join();
+            int r = launcher.launch(cmd, env, inputStream, out, path).join();
             if (r != 0) {
                 StringBuilder builder = new StringBuilder();
                 for (String cmdParam : cmd) {
@@ -343,7 +345,6 @@ public class ClearCaseSCM extends SCM {
         }
 
         public void doConfigSpecCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-            System.out.println("doConfigSpecCheck");
             new FormFieldValidator(req, rsp, false) {
                 @Override
                 protected void check() throws IOException, ServletException {
