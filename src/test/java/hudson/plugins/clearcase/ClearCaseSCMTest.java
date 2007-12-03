@@ -16,7 +16,6 @@ import java.util.Map;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Proc;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
 import hudson.model.BuildListener;
