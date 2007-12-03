@@ -28,7 +28,7 @@ public class ClearCaseChangeLogSetTest {
 
     @Test
     public void testParseMultipleEntries() throws IOException, SAXException {
-        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSet.class
+        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
                 .getResourceAsStream("changelog-multi.xml"));
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
         Assert.assertEquals("Number of logs is incorrect", 1, logs.size());
@@ -47,7 +47,7 @@ public class ClearCaseChangeLogSetTest {
     
     @Test
     public void testGetParent() throws IOException, SAXException {
-        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, getClass()
+        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
                 .getResourceAsStream("changelog.xml"));
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
 
