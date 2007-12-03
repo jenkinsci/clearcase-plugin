@@ -175,7 +175,7 @@ public class ClearToolHistoryParserTest {
     @Test
     public void testUserOutput() throws IOException, ParseException {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
-        List<ClearCaseChangeLogEntry> list = parser.parse(new InputStreamReader(getClass().getResourceAsStream(
+        List<ClearCaseChangeLogEntry> list = parser.parse(new InputStreamReader(ClearToolHistoryParser.class.getResourceAsStream(
                 "ct-lshistory-1.log")));
         Assert.assertEquals("Number of history entries are incorrect", 2, list.size());
     }
