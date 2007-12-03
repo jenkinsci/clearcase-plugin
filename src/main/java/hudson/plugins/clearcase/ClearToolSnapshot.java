@@ -3,7 +3,6 @@ package hudson.plugins.clearcase;
 import hudson.FilePath;
 import hudson.util.ArgumentListBuilder;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
