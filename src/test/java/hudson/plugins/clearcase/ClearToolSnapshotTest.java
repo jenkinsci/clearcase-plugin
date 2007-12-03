@@ -49,7 +49,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
-                one(launcher).run(with(Matchers.hasItemInArray("commandname")), with(aNonNull(InputStream.class)),
+                one(launcher).run(with(Matchers.hasItemInArray("commandname")), with(aNull(InputStream.class)),
                         with(aNull(OutputStream.class)), with(aNonNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
