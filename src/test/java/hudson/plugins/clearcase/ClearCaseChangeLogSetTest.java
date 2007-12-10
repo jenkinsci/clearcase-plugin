@@ -27,6 +27,20 @@ public class ClearCaseChangeLogSetTest {
     }
 
     @Test
+    public void testParseBadLog() throws IOException, SAXException {
+        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
+                .getResourceAsStream("changelog-test.xml"));
+        List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
+        /*
+        Assert.assertEquals("Number of logs is incorrect", 3, logs.size());
+        Assert.assertEquals("The user is incorrect", "qhensam", logs.get(0).getUser());
+        Assert.assertEquals("The date is incorrect", "Tue Aug 28 15:27:00 CEST 2007", logs.get(0).getDateStr());*/
+        for ( ClearCaseChangeLogEntry entry : logs) {
+            Assert.assertNotNull("Parent is null", entry.getParent());
+        }
+    }
+    
+    @Test
     public void testParseMultipleEntries() throws IOException, SAXException {
         ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
                 .getResourceAsStream("changelog-multi.xml"));
@@ -51,7 +65,9 @@ public class ClearCaseChangeLogSetTest {
                 .getResourceAsStream("changelog.xml"));
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
 
-        Assert.assertNotNull("The parent of the first entry is null", logs.get(0).getParent());
+        for ( ClearCaseChangeLogEntry entry : logs) {
+            Assert.assertNotNull("Parent is null", entry.getParent());
+        }
     }
 
     @SuppressWarnings("deprecation")

@@ -21,10 +21,10 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 
     private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
-    private String user = null;
-    private String dateStr = null;
+    private String user = "";
+    private String dateStr = "";
     private Date date = null;
-    private String comment = null;
+    private String comment = "";
     private List<FileElement> files = new ArrayList<FileElement>();
 
     public ClearCaseChangeLogEntry() {
@@ -141,9 +141,9 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
     
     public static class FileElement {
-        private String name;
-        private String version;
-        private String action;
+        private String name = "";
+        private String version = "";
+        private String action = "";
         
         public FileElement() {
         }
