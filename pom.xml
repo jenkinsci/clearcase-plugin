@@ -10,7 +10,7 @@
   <artifactId>clearcase</artifactId>
   <packaging>hpi</packaging>
   <name>Hudson Clear Case Plug-in</name>
-  <version>0.3-SNAPSHOT</version>
+  <version>0.3</version>
   <url>http://hudson.gotdns.com/wiki/display/HUDSON/ClearCase+Plugin</url>
   <licenses>
     <license><name>MIT license</name><comments>All source code is under the MIT license.</comments></license>
@@ -31,4 +31,8 @@
     </dependency>
   </dependencies>
   
+
+  <scm>
+    <tag>clearcase-0_3</tag>
+  </scm>
 </project>
