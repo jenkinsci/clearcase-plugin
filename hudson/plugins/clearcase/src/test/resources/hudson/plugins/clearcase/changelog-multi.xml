@@ -1,0 +1,21 @@
+<history>
+	<entry>
+		<element>
+			<file>Source\OperatorControls\UserControlResourceView.cs</file>
+			<version>\main\sit_r5_maint\3</version>
+		    <action>create version</action>
+		</element>
+		<element>
+			<file>Source\Operator\FormStationOverview.cs</file>
+			<version>\main\sit_r5_maint\4</version>
+		    <action>create version</action>
+		</element>
+		<element>
+			<file>Source\OperatorControls\ResourcesOperatorControlsTexts.sv.resx</file>
+			<version>\main\sit_r5_maint\1</version>
+		    <action>create version</action>
+		</element>
+		<user>qhensam</user>
+		<comment>a comment</comment>
+	</entry>
+</history>
