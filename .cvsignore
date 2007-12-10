@@ -1,2 +1,7 @@
 target
 *.iml
+target-eclipse
+work
+.classpath
+.agitator
+.project

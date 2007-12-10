@@ -152,7 +152,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
 
     private static String escapeForXml(String string) {
         if (string == null) {
-            return null;
+            return "";
         }
 
         // Loop through and replace the special chars.
@@ -183,6 +183,6 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
             }
         }
 
-        return escapedString.toString();
+        return escapedString.toString().trim();
     }
 }

@@ -61,7 +61,7 @@ public class ClearToolHistoryParser {
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find() && matcher.groupCount() == 5) {
                     if (content != null) {
-                        content.setComment(commentBuilder.toString());
+                        content.setComment(commentBuilder.toString().trim());
                         if (!((content.getElements().get(0).getAction()).equalsIgnoreCase("create branch") 
                                 || (content.getElements().get(0).getVersion())
                                 .endsWith("\\0"))) {
@@ -73,7 +73,7 @@ public class ClearToolHistoryParser {
                     Date date = dateFormatter.parse(matcher.group(1));
                     content.setDate(date);
                     content.setUser(matcher.group(2));
-                    ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(matcher.group(4), matcher.group(5), matcher.group(3));
+                    ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(matcher.group(4).trim(), matcher.group(5).trim(), matcher.group(3).trim());
                     content.addElement(element);
                 } else {
                     if (commentBuilder.length() > 0) {
@@ -85,7 +85,7 @@ public class ClearToolHistoryParser {
             line = reader.readLine();
         }
         if (content != null) {
-            content.setComment(commentBuilder.toString());
+            content.setComment(commentBuilder.toString().trim());
             if (!((content.getElements().get(0).getAction().equalsIgnoreCase("create branch")) 
                     || (content.getElements().get(0).getVersion().endsWith("\\0")))) {
                 entries.add(content);
