@@ -49,11 +49,11 @@ public class ClearCaseSCM extends SCM {
     private boolean useDynamicView;
     private String viewDrive;
 
-    private transient ClearTool clearTool;
-
-    public ClearCaseSCM(ClearTool clearTool, String branch, String configSpec, String viewName, boolean useUpdate,
+    private transient ClearToolFactory clearToolFactory;
+    
+    public ClearCaseSCM(ClearToolFactory clearToolFactory, String branch, String configSpec, String viewName, boolean useUpdate,
             String vobPaths, boolean useDynamicView, String viewDrive) {
-        this.clearTool = clearTool;
+        this.clearToolFactory = clearToolFactory;
         this.branch = branch;
         this.configSpec = configSpec;
         this.viewName = viewName;
@@ -69,7 +69,7 @@ public class ClearCaseSCM extends SCM {
 
     public ClearCaseSCM(String branch, String configSpec, String viewName, boolean useUpdate, String vobPaths,
             boolean useDynamicView, String viewDrive) {
-        this(null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
+        this(PluginImpl.getDescriptor(), branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
     }
 
     // Get methods
@@ -121,11 +121,12 @@ public class ClearCaseSCM extends SCM {
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
             File changelogFile) throws IOException, InterruptedException {
 
-        if (getClearTool(listener) == null) {
+        ClearTool cleartool = clearToolFactory.create(this, listener);
+        if (cleartool == null) {
             return false;
         }
         
-        getClearTool(listener).setVobPaths(vobPaths);
+        cleartool.setVobPaths(vobPaths);
 
         ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
 
@@ -135,32 +136,32 @@ public class ClearCaseSCM extends SCM {
             
             if (localViewPathExists) {
                 if (updateView) {
-                    String currentConfigSpec = getClearTool(listener).catcs(ctLauncher, viewName).trim();
+                    String currentConfigSpec = cleartool.catcs(ctLauncher, viewName).trim();
                     if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
                         updateView = false;
                     }
                 }
                 if (!updateView) {
-                    getClearTool(listener).rmview(ctLauncher, viewName);
+                    cleartool.rmview(ctLauncher, viewName);
                     localViewPathExists = false;
                 }                
             }
 
             if (!localViewPathExists) {
-                getClearTool(listener).mkview(ctLauncher, viewName);
-                getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
+                cleartool.mkview(ctLauncher, viewName);
+                cleartool.setcs(ctLauncher, viewName, configSpec);
                 updateView = false;
             }
 
             if (updateView) {
                 if (updateView) {
-                    getClearTool(listener).update(ctLauncher, viewName);
+                    cleartool.update(ctLauncher, viewName);
                 }
             }
         } else {
-            String currentConfigSpec = getClearTool(listener).catcs(ctLauncher, viewName).trim();
+            String currentConfigSpec = cleartool.catcs(ctLauncher, viewName).trim();
             if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
-                getClearTool(listener).setcs(ctLauncher, viewName, configSpec);
+                cleartool.setcs(ctLauncher, viewName, configSpec);
             }
         }
 
@@ -168,7 +169,7 @@ public class ClearCaseSCM extends SCM {
         if (build.getPreviousBuild() != null) {
             Date time = build.getPreviousBuild().getTimestamp().getTime();
             for (String branchName : getBranchNames(branch)) {
-                history.addAll(getClearTool(listener).lshistory(ctLauncher,
+                history.addAll(cleartool.lshistory(ctLauncher,
                         time, viewName, branchName));
             }
         }
@@ -196,7 +197,8 @@ public class ClearCaseSCM extends SCM {
     public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener)
             throws IOException, InterruptedException {
 
-        if (getClearTool(listener) == null) {
+        ClearTool cleartool = clearToolFactory.create(this, listener);
+        if (cleartool == null) {
             return false;
         }
 
@@ -204,11 +206,11 @@ public class ClearCaseSCM extends SCM {
         if (lastBuild == null) {
             return true;
         } else {
-            getClearTool(listener).setVobPaths(vobPaths);
+            cleartool.setVobPaths(vobPaths);
             ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
             Date buildTime = lastBuild.getTimestamp().getTime();
             for (String branchName : getBranchNames(branch)) {
-                List<ClearCaseChangeLogEntry> data = getClearTool(listener).lshistory(ctLauncher, buildTime, viewName,
+                List<ClearCaseChangeLogEntry> data = cleartool.lshistory(ctLauncher, buildTime, viewName,
                         branchName);
                 if (!data.isEmpty()) {
                     return true;
@@ -222,7 +224,7 @@ public class ClearCaseSCM extends SCM {
     public ChangeLogParser createChangeLogParser() {
         return new ClearCaseChangeLogParser();
     }
-
+/*
     public ClearTool getClearTool(TaskListener listener) {
         if (clearTool == null) {
             String clearToolStr = getDescriptor().getCleartoolExe();
@@ -240,7 +242,7 @@ public class ClearCaseSCM extends SCM {
         }
         return clearTool;
     }
-
+*/
     final static class ClearToolLauncherImpl implements ClearToolLauncher {
 
         private final TaskListener listener;
@@ -299,7 +301,8 @@ public class ClearCaseSCM extends SCM {
      * 
      * @author Erik Ramfelt
      */
-    public static final class ClearCaseScmDescriptor extends SCMDescriptor<ClearCaseSCM> implements ModelObject {
+    public static final class ClearCaseScmDescriptor extends SCMDescriptor<ClearCaseSCM> 
+            implements ModelObject, ClearToolFactory {
         private String cleartoolExe;
 
         protected ClearCaseScmDescriptor() {
@@ -390,6 +393,23 @@ public class ClearCaseSCM extends SCM {
                 req.setAttribute("error", e);
                 rsp.forward(this, "versionCheckError", req);
             }
+        }
+
+        public ClearTool create(ClearCaseSCM scm, TaskListener listener) {
+            ClearTool clearTool = null;
+            String clearToolStr = scm.getDescriptor().getCleartoolExe();
+            if ((clearToolStr == null) || (clearToolStr.length() == 0)) {
+                listener.fatalError("No clear tool executable is configured.");
+            } else {
+                if (scm.useDynamicView) {
+                    clearTool = new ClearToolDynamic(clearToolStr, scm.viewDrive);
+                    listener.getLogger().println("Creating a dynamic clear tool");
+                } else {
+                    clearTool = new ClearToolSnapshot(clearToolStr);
+                    listener.getLogger().println("Creating a snapshot clear tool");
+                }
+            }
+            return clearTool;
         }
     }
 }
