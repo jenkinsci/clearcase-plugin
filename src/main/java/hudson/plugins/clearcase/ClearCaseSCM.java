@@ -104,10 +104,11 @@ public class ClearCaseSCM extends SCM {
     public String getViewDrive() {
         return viewDrive;
     }
-
+//    public static final ClearCaseSCM.ClearCaseScmDescriptor DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
     @Override
     public ClearCaseScmDescriptor getDescriptor() {
         return PluginImpl.DESCRIPTOR;
+//        return DESCRIPTOR;
     }
 
     @Override
@@ -120,6 +121,10 @@ public class ClearCaseSCM extends SCM {
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
             File changelogFile) throws IOException, InterruptedException {
 
+        if (getClearTool(listener) == null) {
+            return false;
+        }
+        
         getClearTool(listener).setVobPaths(vobPaths);
 
         ClearToolLauncher ctLauncher = new ClearToolLauncherImpl(listener, workspace, launcher);
@@ -191,6 +196,10 @@ public class ClearCaseSCM extends SCM {
     public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener)
             throws IOException, InterruptedException {
 
+        if (getClearTool(listener) == null) {
+            return false;
+        }
+
         Run lastBuild = project.getLastBuild();
         if (lastBuild == null) {
             return true;
@@ -216,12 +225,17 @@ public class ClearCaseSCM extends SCM {
 
     public ClearTool getClearTool(TaskListener listener) {
         if (clearTool == null) {
-            if (useDynamicView) {
-                clearTool = new ClearToolDynamic(getDescriptor().cleartoolExe, viewDrive);
-                listener.getLogger().println("Creating a dynamic clear tool");
+            String clearToolStr = getDescriptor().getCleartoolExe();
+            if ((clearToolStr == null) || (clearToolStr.length() == 0)) {
+                listener.fatalError("No clear tool executable is configured.");
             } else {
-                clearTool = new ClearToolSnapshot(getDescriptor().cleartoolExe);
-                listener.getLogger().println("Creating a snapshot clear tool");
+                if (useDynamicView) {
+                    clearTool = new ClearToolDynamic(getDescriptor().cleartoolExe, viewDrive);
+                    listener.getLogger().println("Creating a dynamic clear tool");
+                } else {
+                    clearTool = new ClearToolSnapshot(getDescriptor().cleartoolExe);
+                    listener.getLogger().println("Creating a snapshot clear tool");
+                }
             }
         }
         return clearTool;
