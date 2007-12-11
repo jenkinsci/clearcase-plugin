@@ -230,10 +230,10 @@ public class ClearCaseSCM extends SCM {
                 listener.fatalError("No clear tool executable is configured.");
             } else {
                 if (useDynamicView) {
-                    clearTool = new ClearToolDynamic(getDescriptor().cleartoolExe, viewDrive);
+                    clearTool = new ClearToolDynamic(clearToolStr, viewDrive);
                     listener.getLogger().println("Creating a dynamic clear tool");
                 } else {
-                    clearTool = new ClearToolSnapshot(getDescriptor().cleartoolExe);
+                    clearTool = new ClearToolSnapshot(clearToolStr);
                     listener.getLogger().println("Creating a snapshot clear tool");
                 }
             }
