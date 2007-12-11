@@ -69,7 +69,7 @@ public class ClearCaseSCM extends SCM {
 
     public ClearCaseSCM(String branch, String configSpec, String viewName, boolean useUpdate, String vobPaths,
             boolean useDynamicView, String viewDrive) {
-        this(PluginImpl.getDescriptor(), branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
+        this(null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
     }
 
     // Get methods
@@ -120,7 +120,9 @@ public class ClearCaseSCM extends SCM {
     @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
             File changelogFile) throws IOException, InterruptedException {
-
+        if (clearToolFactory == null) {
+            clearToolFactory = new ClearToolFactoryImpl();
+        }
         ClearTool cleartool = clearToolFactory.create(this, listener);
         if (cleartool == null) {
             return false;
@@ -197,6 +199,9 @@ public class ClearCaseSCM extends SCM {
     public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener)
             throws IOException, InterruptedException {
 
+        if (clearToolFactory == null) {
+            clearToolFactory = new ClearToolFactoryImpl();
+        }
         ClearTool cleartool = clearToolFactory.create(this, listener);
         if (cleartool == null) {
             return false;
@@ -302,7 +307,7 @@ public class ClearCaseSCM extends SCM {
      * @author Erik Ramfelt
      */
     public static final class ClearCaseScmDescriptor extends SCMDescriptor<ClearCaseSCM> 
-            implements ModelObject, ClearToolFactory {
+            implements ModelObject {
         private String cleartoolExe;
 
         protected ClearCaseScmDescriptor() {
@@ -394,6 +399,8 @@ public class ClearCaseSCM extends SCM {
                 rsp.forward(this, "versionCheckError", req);
             }
         }
+    }
+    private static class ClearToolFactoryImpl implements ClearToolFactory {
 
         public ClearTool create(ClearCaseSCM scm, TaskListener listener) {
             ClearTool clearTool = null;
@@ -411,5 +418,6 @@ public class ClearCaseSCM extends SCM {
             }
             return clearTool;
         }
+        
     }
 }
