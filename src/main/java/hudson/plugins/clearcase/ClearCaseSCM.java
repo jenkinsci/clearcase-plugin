@@ -151,7 +151,11 @@ public class ClearCaseSCM extends SCM {
 
             if (!localViewPathExists) {
                 cleartool.mkview(ctLauncher, viewName);
-                cleartool.setcs(ctLauncher, viewName, configSpec);
+                String tempConfigSpec = configSpec;
+                if (launcher.isUnix()) {
+                    tempConfigSpec = configSpec.replaceAll("\r\n", "\n");
+                }
+                cleartool.setcs(ctLauncher, viewName, tempConfigSpec);
                 updateView = false;
             }
 
@@ -163,7 +167,11 @@ public class ClearCaseSCM extends SCM {
         } else {
             String currentConfigSpec = cleartool.catcs(ctLauncher, viewName).trim();
             if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
-                cleartool.setcs(ctLauncher, viewName, configSpec);
+                String tempConfigSpec = configSpec;
+                if (launcher.isUnix()) {
+                    tempConfigSpec = configSpec.replaceAll("\r\n", "\n");
+                }
+                cleartool.setcs(ctLauncher, viewName, tempConfigSpec);
             }
         }
 
@@ -229,25 +237,7 @@ public class ClearCaseSCM extends SCM {
     public ChangeLogParser createChangeLogParser() {
         return new ClearCaseChangeLogParser();
     }
-/*
-    public ClearTool getClearTool(TaskListener listener) {
-        if (clearTool == null) {
-            String clearToolStr = getDescriptor().getCleartoolExe();
-            if ((clearToolStr == null) || (clearToolStr.length() == 0)) {
-                listener.fatalError("No clear tool executable is configured.");
-            } else {
-                if (useDynamicView) {
-                    clearTool = new ClearToolDynamic(clearToolStr, viewDrive);
-                    listener.getLogger().println("Creating a dynamic clear tool");
-                } else {
-                    clearTool = new ClearToolSnapshot(clearToolStr);
-                    listener.getLogger().println("Creating a snapshot clear tool");
-                }
-            }
-        }
-        return clearTool;
-    }
-*/
+
     final static class ClearToolLauncherImpl implements ClearToolLauncher {
 
         private final TaskListener listener;
