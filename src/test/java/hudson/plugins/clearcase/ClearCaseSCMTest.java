@@ -130,6 +130,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
         classContext.checking(new Expectations() {
             {
+                one(launcher).isUnix(); will(returnValue(true));
                 one(build).getPreviousBuild(); will(returnValue(null));
             }
         });
@@ -178,8 +179,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getPreviousBuild();
-                will(returnValue(null));
+                one(launcher).isUnix(); will(returnValue(true));
+                one(build).getPreviousBuild(); will(returnValue(null));
             }
         });
 
@@ -203,8 +204,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getPreviousBuild();
-                will(returnValue(null));
+                one(launcher).isUnix(); will(returnValue(true));
+                one(build).getPreviousBuild(); will(returnValue(null));
             }
         });
 
@@ -259,8 +260,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getPreviousBuild();
-                will(returnValue(null));
+                one(build).getPreviousBuild(); will(returnValue(null));
+                one(launcher).isUnix(); will(returnValue(true));
             }
         });
 
@@ -289,6 +290,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         classContext.checking(new Expectations() {
             {
                 one(build).getPreviousBuild(); will(returnValue(null));
+                one(launcher).isUnix(); will(returnValue(true));
             }
         });
 
@@ -326,6 +328,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             {
                 exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
+                one(launcher).isUnix(); will(returnValue(true));
             }
         });
 
@@ -367,6 +370,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             {
                 exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
+                one(launcher).isUnix(); will(returnValue(true));
             }
         });
 
