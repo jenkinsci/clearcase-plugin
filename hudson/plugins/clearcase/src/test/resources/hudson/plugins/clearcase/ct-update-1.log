@@ -1,0 +1,16 @@
+Processing dir "ccl\Bin".
+Processing dir "ccl\Bin\MsgWizard".
+.
+End dir "ccl\Bin\MsgWizard".
+Processing dir "ccl\Bin\TranslateMissingTexts".
+..
+End dir "ccl\Bin\TranslateMissingTexts".
+Done loading "\ccl\Bin" (81 objects, copied 0 KB).
+Processing dir "omnicom_code\Source".
+Processing dir "omnicom_code\Source\RES".
+Loading "omnicom_code\Source\RES\A.cs" (1312 bytes).
+Loading "omnicom_code\Source\RES\B.cs" (1491 bytes).
+Loading "omnicom_code\Source\RES\C.cs" (2091 bytes).
+.
+End dir "omnicom_code\Source\ResourceManager(RES)\ResDbUnitTest".
+Done loading "omnicom_code\Source\" (121 objects, copied 4,7 KB).
