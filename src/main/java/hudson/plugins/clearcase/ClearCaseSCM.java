@@ -104,11 +104,10 @@ public class ClearCaseSCM extends SCM {
     public String getViewDrive() {
         return viewDrive;
     }
-//    public static final ClearCaseSCM.ClearCaseScmDescriptor DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
+
     @Override
     public ClearCaseScmDescriptor getDescriptor() {
         return PluginImpl.DESCRIPTOR;
-//        return DESCRIPTOR;
     }
 
     @Override
@@ -391,7 +390,6 @@ public class ClearCaseSCM extends SCM {
         }
     }
     private static class ClearToolFactoryImpl implements ClearToolFactory {
-
         public ClearTool create(ClearCaseSCM scm, TaskListener listener) {
             ClearTool clearTool = null;
             String clearToolStr = scm.getDescriptor().getCleartoolExe();
@@ -407,7 +405,6 @@ public class ClearCaseSCM extends SCM {
                 }
             }
             return clearTool;
-        }
-        
+        }        
     }
 }
