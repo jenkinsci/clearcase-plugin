@@ -6,7 +6,7 @@
   	</f:entry>
 
   	<f:entry title="View name" help="/plugin/clearcase/localdir.html">
-  		<f:textbox name="clearcase.viewname" value="${scm.ViewName}" 
+  		<f:textbox name="clearcase.viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}" 
   			checkUrl="'${rootURL}/scm/ClearCaseSCM/viewNameCheck?value='+escape(this.value)"/>     
     </f:entry>
 	
@@ -29,9 +29,18 @@
 
         <f:optionalBlock name="clearcase.usedynamicview" title="Use existing dynamic view"
             checked="${scm.useDynamicView}" help="/plugin/clearcase/dynamicview.html">
-          <f:entry title="View drive" help="/plugin/clearcase/viewdrive.html">
-            <f:textbox name="clearcase.viewdrive" value="${scm.viewDrive}"/>
+            
+          <f:entry title="View root" help="/plugin/clearcase/viewdrive.html">
+          	<j:choose>
+          		<j:when test="${h.isWindows()}">
+            		<f:textbox name="clearcase.viewdrive" value="${h.defaulted(scm.viewDrive, 'M:\')}"/>
+            	</j:when>
+            	<j:otherwise>
+            		<f:textbox name="clearcase.viewdrive" value="${h.defaulted(scm.viewDrive, '/view')}"/>
+            	</j:otherwise>
+            </j:choose>
           </f:entry>
+          
         </f:optionalBlock>
       </table>
 	</f:block>
