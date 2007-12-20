@@ -213,7 +213,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         clearToolExec.setVobPaths("vob1");
         List<ClearCaseChangeLogEntry> lshistory = clearToolExec.lshistory(launcher, mockedCalendar.getTime(),
                 "viewName", "branch");
-        assertEquals("The history should contain 2 items", 2, lshistory.size());
+        assertEquals("The history should contain 3 items", 3, lshistory.size());
 
         context.assertIsSatisfied();
     }

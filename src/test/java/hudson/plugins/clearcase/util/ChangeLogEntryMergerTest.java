@@ -67,6 +67,31 @@ public class ChangeLogEntryMergerTest {
         assertEquals("The number of files are incorrect", 1, mergedList.get(1).getAffectedPaths().size());
     }
 
+    @Test
+    public void testLongTimeWindow() {
+        changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 52), "user1", "action", "comment", "file2", "version"));
+        List<ClearCaseChangeLogEntry> mergedList = changeLogEntryMerger.getMergedList(list);
+        assertEquals("The entries was not merged", 1, mergedList.size());
+        assertEquals("The number of files are incorrect", 2, mergedList.get(0).getAffectedPaths().size());
+    }
+
+    @Test
+    public void testReusedInstance() {
+        changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 52), "user1", "action", "comment", "file2", "version"));
+        List<ClearCaseChangeLogEntry> mergedList = changeLogEntryMerger.getMergedList(list);
+        assertEquals("The entries was not merged", 1, mergedList.size());
+        assertEquals("The number of files are incorrect", 2, mergedList.get(0).getAffectedPaths().size());
+        list.clear();
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
+        mergedList = changeLogEntryMerger.getMergedList(list);
+        assertEquals("The entries was not merged", 1, mergedList.size());
+        assertEquals("The number of files are incorrect", 1, mergedList.get(0).getAffectedPaths().size());
+    }
+
     private Date createDate(int hour, int min, int sec) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, hour);

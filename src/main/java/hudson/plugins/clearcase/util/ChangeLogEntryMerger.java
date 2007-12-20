@@ -28,6 +28,7 @@ public class ChangeLogEntryMerger {
     }
 
     public List<ClearCaseChangeLogEntry> getMergedList(List<ClearCaseChangeLogEntry> orgList) {
+        userEntries.clear();
         for (ClearCaseChangeLogEntry entry : orgList) {
             boolean wasMerged = false;
             List<ClearCaseChangeLogEntry> entries = getUserEntries(entry.getUser());
