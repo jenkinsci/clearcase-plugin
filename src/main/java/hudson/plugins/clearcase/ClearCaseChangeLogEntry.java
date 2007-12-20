@@ -31,10 +31,14 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     public ClearCaseChangeLogEntry(Date date, String user, String action, String comment, String file, String version) {
+        this(date, user, comment);
+        files.add(new FileElement(file, version, action));
+    }
+
+    public ClearCaseChangeLogEntry(Date date, String user, String comment) {
         this.date = (Date) date.clone();
         this.user = user;
         this.comment = comment;
-        files.add(new FileElement(file, version, action));
     }
 
     public void addElement(FileElement element) {

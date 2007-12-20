@@ -177,7 +177,7 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> list = parser.parse(new InputStreamReader(ClearToolHistoryParser.class.getResourceAsStream(
                 "ct-lshistory-1.log")));
-        Assert.assertEquals("Number of history entries are incorrect", 2, list.size());
+        Assert.assertEquals("Number of history entries are incorrect", 3, list.size());
     }
 
     private Date getDate(int year, int month, int day, int hour, int min, int sec) {
