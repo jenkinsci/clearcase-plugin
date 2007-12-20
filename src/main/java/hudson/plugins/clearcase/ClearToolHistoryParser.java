@@ -91,9 +91,7 @@ public class ClearToolHistoryParser {
                 entries.add(content);
             }
         }
-
-        ChangeLogEntryMerger merger = new ChangeLogEntryMerger();
-        entries = merger.getMergedList(entries);
+        
         Collections.sort(entries, new Comparator<ClearCaseChangeLogEntry>() {
             public int compare(ClearCaseChangeLogEntry arg0, ClearCaseChangeLogEntry arg1) {
                 return (arg1.getDateStr().compareTo(arg0.getDateStr()));

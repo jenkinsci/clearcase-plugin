@@ -11,4 +11,11 @@
 	    		checkUrl="'${rootURL}/scm/ClearCaseSCM/cleartoolExeCheck?value='+escape(this.value)"/>
 	  	</f:entry>
  	 </f:section>
+
+	<f:advanced>
+      <f:entry title="Merge time window for event records" help="/plugin/clearcase/eventrecordtimewindow.html">
+        <f:textbox name="clearcase.logmergetimewindow" value="${descriptor.logMergeTimeWindow}"
+        	checkUrl="'${rootURL}/scm/ClearCaseSCM/logMergeTimeWindowCheck?value='+escape(this.value)"/>
+      </f:entry>
+	</f:advanced>
 </j:jelly>

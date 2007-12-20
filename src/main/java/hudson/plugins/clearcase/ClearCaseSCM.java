@@ -11,6 +11,7 @@ import hudson.model.Hudson;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
 import hudson.model.Run;
+import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
@@ -25,6 +26,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,10 +53,11 @@ public class ClearCaseSCM extends SCM {
     private String viewDrive;
 
     private transient ClearToolFactory clearToolFactory;
-    
-    public ClearCaseSCM(ClearToolFactory clearToolFactory, String branch, String configSpec, String viewName, boolean useUpdate,
+    private transient ChangeLogEntryMerger changeLogEntryMerger;
+    public ClearCaseSCM(ClearToolFactory clearToolFactory, ChangeLogEntryMerger merger, String branch, String configSpec, String viewName, boolean useUpdate,
             String vobPaths, boolean useDynamicView, String viewDrive) {
         this.clearToolFactory = clearToolFactory;
+        this.changeLogEntryMerger = merger;
         this.branch = branch;
         this.configSpec = configSpec;
         this.viewName = viewName;
@@ -69,7 +73,7 @@ public class ClearCaseSCM extends SCM {
 
     public ClearCaseSCM(String branch, String configSpec, String viewName, boolean useUpdate, String vobPaths,
             boolean useDynamicView, String viewDrive) {
-        this(null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
+        this(null, null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
     }
 
     // Get methods
@@ -121,6 +125,10 @@ public class ClearCaseSCM extends SCM {
             File changelogFile) throws IOException, InterruptedException {
         if (clearToolFactory == null) {
             clearToolFactory = new ClearToolFactoryImpl();
+        }
+        ChangeLogEntryMerger merger = changeLogEntryMerger;
+        if (changeLogEntryMerger == null) {
+            merger = new ChangeLogEntryMerger(getDescriptor().getLogMergeTimeWindow() * 1000);
         }
         ClearTool cleartool = clearToolFactory.create(this, listener);
         if (cleartool == null) {
@@ -188,7 +196,7 @@ public class ClearCaseSCM extends SCM {
             return createEmptyChangeLog(changelogFile, listener, "changelog");
         } else {
             FileOutputStream fileOutputStream = new FileOutputStream(changelogFile);
-            ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, history);
+            ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, merger.getMergedList(history));
             return true;
         }
     }
@@ -298,10 +306,15 @@ public class ClearCaseSCM extends SCM {
     public static final class ClearCaseScmDescriptor extends SCMDescriptor<ClearCaseSCM> 
             implements ModelObject {
         private String cleartoolExe;
+        private int changeLogMergeTimeWindow = 30;
 
         protected ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
             load();
+        }
+
+        public int getLogMergeTimeWindow() {
+            return changeLogMergeTimeWindow;
         }
 
         public String getCleartoolExe() {
@@ -320,6 +333,16 @@ public class ClearCaseSCM extends SCM {
         @Override
         public boolean configure(StaplerRequest req) {
             cleartoolExe = fixEmpty(req.getParameter("clearcase.cleartoolExe").trim());
+            String mergeTimeWindow = fixEmpty(req.getParameter("clearcase.logmergetimewindow"));
+            if (mergeTimeWindow != null) {
+                try {
+                    changeLogMergeTimeWindow = DecimalFormat.getIntegerInstance().parse(mergeTimeWindow).intValue();
+                } catch (ParseException e) {
+                    changeLogMergeTimeWindow = 30;
+                }
+            } else {
+                changeLogMergeTimeWindow = 30;
+            }
             save();
             return true;
         }
@@ -340,6 +363,21 @@ public class ClearCaseSCM extends SCM {
             new FormFieldValidator.Executable(req, rsp).process();
         }
 
+        public void dologMergeTimeWindowCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+            new FormFieldValidator(req, rsp, false) {
+                @Override
+                protected void check() throws IOException, ServletException {
+                    String v = fixEmpty(request.getParameter("value"));
+                    if (v == null) {
+                        error("Merge time window is mandatory");
+                        return;
+                    }
+                    // all tests passed so far
+                    ok();
+                }
+            }.process();
+        }
+        
         public void doViewNameCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
             new FormFieldValidator(req, rsp, false) {
                 @Override
