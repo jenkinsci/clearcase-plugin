@@ -53,11 +53,9 @@ public class ClearCaseSCM extends SCM {
     private String viewDrive;
 
     private transient ClearToolFactory clearToolFactory;
-    private transient ChangeLogEntryMerger changeLogEntryMerger;
-    public ClearCaseSCM(ClearToolFactory clearToolFactory, ChangeLogEntryMerger merger, String branch, String configSpec, String viewName, boolean useUpdate,
+    public ClearCaseSCM(ClearToolFactory clearToolFactory, String branch, String configSpec, String viewName, boolean useUpdate,
             String vobPaths, boolean useDynamicView, String viewDrive) {
         this.clearToolFactory = clearToolFactory;
-        this.changeLogEntryMerger = merger;
         this.branch = branch;
         this.configSpec = configSpec;
         this.viewName = viewName;
@@ -73,7 +71,7 @@ public class ClearCaseSCM extends SCM {
 
     public ClearCaseSCM(String branch, String configSpec, String viewName, boolean useUpdate, String vobPaths,
             boolean useDynamicView, String viewDrive) {
-        this(null, null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
+        this(null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
     }
 
     // Get methods
@@ -126,10 +124,7 @@ public class ClearCaseSCM extends SCM {
         if (clearToolFactory == null) {
             clearToolFactory = new ClearToolFactoryImpl();
         }
-        ChangeLogEntryMerger merger = changeLogEntryMerger;
-        if (changeLogEntryMerger == null) {
-            merger = new ChangeLogEntryMerger(getDescriptor().getLogMergeTimeWindow() * 1000);
-        }
+        ChangeLogEntryMerger merger = clearToolFactory.createChangeLogEntryMerger(this);
         ClearTool cleartool = clearToolFactory.create(this, listener);
         if (cleartool == null) {
             return false;
@@ -443,6 +438,11 @@ public class ClearCaseSCM extends SCM {
                 }
             }
             return clearTool;
+        }
+
+        @Override
+        public ChangeLogEntryMerger createChangeLogEntryMerger(ClearCaseSCM scm) {
+            return new ChangeLogEntryMerger(scm.getDescriptor().getLogMergeTimeWindow() * 1000);
         }        
     }
 }

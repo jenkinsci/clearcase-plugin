@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase;
 
 import hudson.model.TaskListener;
+import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 
 /**
  * Interface so the Clear Case SCM can create clear tools on the go.
@@ -9,4 +10,5 @@ import hudson.model.TaskListener;
  */
 public interface ClearToolFactory {
     ClearTool create(ClearCaseSCM scm, TaskListener listener);
+    ChangeLogEntryMerger createChangeLogEntryMerger(ClearCaseSCM scm);
 }

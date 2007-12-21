@@ -1,7 +1,5 @@
 package hudson.plugins.clearcase;
 
-import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
