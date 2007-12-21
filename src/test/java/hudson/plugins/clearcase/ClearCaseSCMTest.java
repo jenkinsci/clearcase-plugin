@@ -84,7 +84,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
 
     @Test
     public void testGetViewNameNonNull() {
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", null, true, "", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", null, true, "", false, "");
         assertNotNull("The view name can not be null", scm.getViewName());
     }
 
@@ -102,21 +102,21 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
 
     @Test
     public void testGetVobPaths() {
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", true, "vobs/ avob", false,
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "vobs/ avob", false,
                 "");
         assertEquals("The vob paths isnt correct", "vobs/ avob", scm.getVobPaths());
     }
 
     @Test
     public void testIsDynamicView() {
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", true, "", true, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "", true, "");
         assertTrue("The dynamic isnt correct", scm.isUseDynamicView());
         assertFalse("The use update isnt correct", scm.isUseUpdate());
     }
 
     @Test
     public void testGetViewDrive() {
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", true, "", true, "/tmp/c");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "", true, "/tmp/c");
         assertEquals("The view drive isnt correct", "/tmp/c", scm.getViewDrive());
     }
 
@@ -136,7 +136,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", false, "", true, "drive");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "", true, "drive");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -159,7 +159,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "config\r\nspec", "viewname", false, "", true, "drive");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "config\r\nspec", "viewname", false, "", true, "drive");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -185,7 +185,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", false, "", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "", false, "");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -295,7 +295,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", false, "", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "", false, "");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -333,7 +333,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", false, "vob", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "vob", false, "");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -375,7 +375,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branchone branchtwo", "configspec", "viewname", false, "vob", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branchone branchtwo", "configspec", "viewname", false, "vob", false, "");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -413,7 +413,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", false, "vob", true, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "vob", true, "");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -448,7 +448,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", true, "vob", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "vob", false, "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -479,7 +479,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", true, "vob", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "vob", false, "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertFalse("pollChanges() should return false", hasChanges);
 
@@ -510,7 +510,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branchone branchtwo", "configspec", "viewname", true, "vob", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branchone branchtwo", "configspec", "viewname", true, "vob", false, "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -592,7 +592,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", true,
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true,
                 "vob1 vob2/vob2-1 vob\\ 3", false, "");
         scm.pollChanges(project, launcher, workspace, taskListener);
 
@@ -620,7 +620,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewName", true, "", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewName", true, "", false, "");
         scm.pollChanges(project, launcher, workspace, taskListener);
 
         classContext.assertIsSatisfied();
@@ -675,11 +675,17 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         context.assertIsSatisfied();
     }
 
+    private ClearCaseSCM createSimpleScm() {
+        return new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "", false, "");
+    }
+    
+    @Override
     public ClearTool create(ClearCaseSCM scm, TaskListener listener) {
         return clearTool;
     }
 
-    private ClearCaseSCM createSimpleScm() {
-        return new ClearCaseSCM(this, new ChangeLogEntryMerger(), "branch", "configspec", "viewname", true, "", false, "");
+    @Override
+    public ChangeLogEntryMerger createChangeLogEntryMerger(ClearCaseSCM scm) {
+        return new ChangeLogEntryMerger();
     }
 }
