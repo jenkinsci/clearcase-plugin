@@ -7,7 +7,9 @@ import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Before;
@@ -78,6 +80,31 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
+    public void testGrowingTimeWindow() {
+        changeLogEntryMerger = new ChangeLogEntryMerger(5*1000);
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 25), "user1", "action", "comment", "file2", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 25), "user1", "action", "comment 2", "file2", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 25), "user2", "action", "comment", "file2", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 29), "user1", "action", "comment", "file3", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 19), "user1", "action", "comment", "file4", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user1", "action", "comment", "file5", "version"));
+        List<ClearCaseChangeLogEntry> mergedList = changeLogEntryMerger.getMergedList(list);
+        assertEquals("The entries was not merged", 4, mergedList.size());
+        assertEquals("The number of files are incorrect", 1, mergedList.get(0).getAffectedPaths().size());
+        assertEquals("The file in the files list is incorrect", "file5", getIndexOf(mergedList.get(0).getAffectedPaths(), 0));
+        assertEquals("The number of files are incorrect", 4, mergedList.get(1).getAffectedPaths().size());
+        assertEquals("The file in the files list is incorrect", "file1", getIndexOf(mergedList.get(1).getAffectedPaths(), 0));
+        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(1).getAffectedPaths(), 1));
+        assertEquals("The file in the files list is incorrect", "file3", getIndexOf(mergedList.get(1).getAffectedPaths(), 2));
+        assertEquals("The file in the files list is incorrect", "file4", getIndexOf(mergedList.get(1).getAffectedPaths(), 3));
+        assertEquals("The number of files are incorrect", 1, mergedList.get(2).getAffectedPaths().size());
+        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(2).getAffectedPaths(), 0));
+        assertEquals("The number of files are incorrect", 1, mergedList.get(3).getAffectedPaths().size());
+        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(3).getAffectedPaths(), 0));
+    }
+
+    @Test
     public void testReusedInstance() {
         changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
@@ -98,5 +125,19 @@ public class ChangeLogEntryMergerTest {
         calendar.set(Calendar.MINUTE, min);
         calendar.set(Calendar.SECOND, sec);
         return calendar.getTime();
+    }
+    
+    private <T> T getIndexOf(Collection<T> collection, int index) {
+        Iterator<T> iterator = collection.iterator();     
+        int i = 0;
+        while (iterator.hasNext()) {
+            T t = iterator.next();
+            if (index == i) {
+                return t;
+            }
+            i++;
+        }
+        // Wont happen
+        return null;
     }
 }
