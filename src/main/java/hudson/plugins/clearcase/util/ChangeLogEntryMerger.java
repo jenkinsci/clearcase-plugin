@@ -5,6 +5,7 @@ import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +16,7 @@ import java.util.Set;
  */
 public class ChangeLogEntryMerger {
 
-    private Map<String, List<ClearCaseChangeLogEntry>> userEntries = new HashMap<String, List<ClearCaseChangeLogEntry>>();
+    private Map<String, List<MergedLogEntry>> userEntries = new HashMap<String, List<MergedLogEntry>>();
 
     private transient int maxTimeDifference;
 
@@ -31,16 +32,16 @@ public class ChangeLogEntryMerger {
         userEntries.clear();
         for (ClearCaseChangeLogEntry entry : orgList) {
             boolean wasMerged = false;
-            List<ClearCaseChangeLogEntry> entries = getUserEntries(entry.getUser());
-            for (ClearCaseChangeLogEntry storedEntry : entries) {
-                if (canBeMerged(entry, storedEntry)) {
-                    storedEntry.addElements(entry.getElements());
+            List<MergedLogEntry> entries = getUserEntries(entry.getUser());
+            for (MergedLogEntry storedEntry : entries) {
+                if (canBeMerged(storedEntry, entry)) {
+                    storedEntry.merge(entry);
                     wasMerged = true;
                     break;
                 }
             }
             if (!wasMerged) {
-                entries.add(entry);
+                entries.add(new MergedLogEntry(entry));
             }
         }
         List<ClearCaseChangeLogEntry> list = getList();
@@ -56,26 +57,52 @@ public class ChangeLogEntryMerger {
         List<ClearCaseChangeLogEntry> list = new ArrayList<ClearCaseChangeLogEntry>();
         Set<String> users = userEntries.keySet();
         for (String user : users) {
-            List<ClearCaseChangeLogEntry> userList = userEntries.get(user);
-            for (ClearCaseChangeLogEntry entry : userList) {
-                list.add(entry);
+            List<MergedLogEntry> userList = userEntries.get(user);
+            for (MergedLogEntry entry : userList) {
+                list.add(entry.entry);
             }
         }
         return list;
     }
 
-    private List<ClearCaseChangeLogEntry> getUserEntries(String user) {
+    private List<MergedLogEntry> getUserEntries(String user) {
         if (!userEntries.containsKey(user)) {
-            userEntries.put(user, new ArrayList<ClearCaseChangeLogEntry>());
+            userEntries.put(user, new ArrayList<MergedLogEntry>());
         }
         return userEntries.get(user);
     }
 
-    private boolean canBeMerged(ClearCaseChangeLogEntry entryOne, ClearCaseChangeLogEntry entryTwo) {
-        if (entryOne.getComment().equals(entryTwo.getComment())) {
-            long difference = Math.abs(entryOne.getDate().getTime() - entryTwo.getDate().getTime());
-            return (difference < maxTimeDifference);
+    private boolean canBeMerged(MergedLogEntry entryOne, ClearCaseChangeLogEntry entryTwo) {
+        if (entryOne.entry.getComment().equals(entryTwo.getComment())) {
+
+            long oldestDiff = Math.abs(entryOne.oldest.getTime() - entryTwo.getDate().getTime());
+            long newestDiff = Math.abs(entryOne.newest.getTime() - entryTwo.getDate().getTime());
+            return (oldestDiff < maxTimeDifference) || (newestDiff < maxTimeDifference);
         }
         return false;
+    }
+    
+    private class MergedLogEntry {
+        private ClearCaseChangeLogEntry entry;
+        private Date oldest;
+        private Date newest;
+        
+        public MergedLogEntry(ClearCaseChangeLogEntry entry) {
+            this.entry = entry;
+            oldest = entry.getDate();
+            newest = entry.getDate();
+        }
+        
+        public void merge(ClearCaseChangeLogEntry newEntry) {
+            Date date = newEntry.getDate();
+            if (date.after(newest)) {
+                newest = date;
+            } else {
+                if (date.before(oldest)) {
+                    oldest = date;
+                }
+            }
+            entry.addElements(newEntry.getElements());
+        }
     }
 }

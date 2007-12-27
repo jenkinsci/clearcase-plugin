@@ -124,7 +124,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 
     @Override
     public Collection<String> getAffectedPaths() {
-        Collection<String> paths = new HashSet<String>(files.size());
+        Collection<String> paths = new ArrayList<String>(files.size());
         for (FileElement file : files) {
             paths.add(file.getFile());
         }
