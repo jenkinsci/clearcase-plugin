@@ -301,7 +301,7 @@ public class ClearCaseSCM extends SCM {
     public static final class ClearCaseScmDescriptor extends SCMDescriptor<ClearCaseSCM> 
             implements ModelObject {
         private String cleartoolExe;
-        private int changeLogMergeTimeWindow = 30;
+        private int changeLogMergeTimeWindow = 5;
 
         protected ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
@@ -333,10 +333,10 @@ public class ClearCaseSCM extends SCM {
                 try {
                     changeLogMergeTimeWindow = DecimalFormat.getIntegerInstance().parse(mergeTimeWindow).intValue();
                 } catch (ParseException e) {
-                    changeLogMergeTimeWindow = 30;
+                    changeLogMergeTimeWindow = 5;
                 }
             } else {
-                changeLogMergeTimeWindow = 30;
+                changeLogMergeTimeWindow = 5;
             }
             save();
             return true;
