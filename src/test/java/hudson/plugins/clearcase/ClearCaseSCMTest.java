@@ -102,8 +102,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
 
     @Test
     public void testGetVobPaths() {
-        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "vobs/ avob", false,
-                "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "vobs/ avob", false, "");
         assertEquals("The vob paths isnt correct", "vobs/ avob", scm.getVobPaths());
     }
 
@@ -124,15 +123,19 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
     public void testCheckoutDynamicWithNewConfigSpec() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("other configspec"));
-                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")), with(equal("configspec")));
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                will(returnValue("other configspec"));
+                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
+                        with(equal("configspec")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(true));
-                one(build).getPreviousBuild(); will(returnValue(null));
+                one(launcher).isUnix();
+                will(returnValue(true));
+                one(build).getPreviousBuild();
+                will(returnValue(null));
             }
         });
 
@@ -149,13 +152,15 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
     public void testCheckoutDynamic() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("config\nspec"));
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                will(returnValue("config\nspec"));
                 one(clearTool).setVobPaths(with(equal("")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getPreviousBuild(); will(returnValue(null));
+                one(build).getPreviousBuild();
+                will(returnValue(null));
             }
         });
 
@@ -167,7 +172,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         context.assertIsSatisfied();
         classContext.assertIsSatisfied();
     }
-    
+
     @Test
     public void testCheckoutFirstTimeNotUsingUpdate() throws Exception {
         context.checking(new Expectations() {
@@ -180,8 +185,10 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(true));
-                one(build).getPreviousBuild(); will(returnValue(null));
+                one(launcher).isUnix();
+                will(returnValue(true));
+                one(build).getPreviousBuild();
+                will(returnValue(null));
             }
         });
 
@@ -199,14 +206,17 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         context.checking(new Expectations() {
             {
                 one(clearTool).mkview(with(any(ClearToolLauncher.class)), with(equal("viewname")));
-                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")), with(equal("configspec")));
+                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
+                        with(equal("configspec")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(true));
-                one(build).getPreviousBuild(); will(returnValue(null));
+                one(launcher).isUnix();
+                will(returnValue(true));
+                one(build).getPreviousBuild();
+                will(returnValue(null));
             }
         });
 
@@ -225,7 +235,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
 
         context.checking(new Expectations() {
             {
-                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("configspec"));
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                will(returnValue("configspec"));
                 one(clearTool).update(with(any(ClearToolLauncher.class)), with(equal("viewname")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
@@ -251,18 +262,22 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
-            {                
-                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("other configspec"));
+            {
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                will(returnValue("other configspec"));
                 one(clearTool).rmview(with(any(ClearToolLauncher.class)), with(equal("viewname")));
                 one(clearTool).mkview(with(any(ClearToolLauncher.class)), with(equal("viewname")));
-                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")), with(equal("configspec")));
+                one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
+                        with(equal("configspec")));
                 one(clearTool).setVobPaths(with(equal("")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getPreviousBuild(); will(returnValue(null));
-                one(launcher).isUnix(); will(returnValue(true));
+                one(build).getPreviousBuild();
+                will(returnValue(null));
+                one(launcher).isUnix();
+                will(returnValue(true));
             }
         });
 
@@ -290,8 +305,10 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getPreviousBuild(); will(returnValue(null));
-                one(launcher).isUnix(); will(returnValue(true));
+                one(build).getPreviousBuild();
+                will(returnValue(null));
+                one(launcher).isUnix();
+                will(returnValue(true));
             }
         });
 
@@ -321,15 +338,19 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
                 one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
                         with(equal("configspec")));
                 one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
-                        with(equal("viewname")), with(equal("branch"))); will(returnValue(list));
+                        with(equal("viewname")), with(equal("branch")));
+                will(returnValue(list));
                 one(clearTool).setVobPaths(with(equal("vob")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
-                one(build).getTimestamp(); will(returnValue(mockedCalendar));
-                one(launcher).isUnix(); will(returnValue(true));
+                exactly(2).of(build).getPreviousBuild();
+                will(returnValue(build));
+                one(build).getTimestamp();
+                will(returnValue(mockedCalendar));
+                one(launcher).isUnix();
+                will(returnValue(true));
             }
         });
 
@@ -361,21 +382,27 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
                 one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
                         with(equal("configspec")));
                 one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
-                        with(equal("viewname")), with(equal("branchone"))); will(returnValue(new ArrayList<ClearCaseChangeLogEntry>()));
+                        with(equal("viewname")), with(equal("branchone")));
+                will(returnValue(new ArrayList<ClearCaseChangeLogEntry>()));
                 one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
-                        with(equal("viewname")), with(equal("branchtwo"))); will(returnValue(list));
+                        with(equal("viewname")), with(equal("branchtwo")));
+                will(returnValue(list));
                 one(clearTool).setVobPaths(with(equal("vob")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
-                one(build).getTimestamp(); will(returnValue(mockedCalendar));
-                one(launcher).isUnix(); will(returnValue(true));
+                exactly(2).of(build).getPreviousBuild();
+                will(returnValue(build));
+                one(build).getTimestamp();
+                will(returnValue(mockedCalendar));
+                one(launcher).isUnix();
+                will(returnValue(true));
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, "branchone branchtwo", "configspec", "viewname", false, "vob", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branchone branchtwo", "configspec", "viewname", false, "vob", false,
+                "");
         File changelogFile = new File(PARENT_FILE, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
@@ -398,9 +425,11 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
 
         context.checking(new Expectations() {
             {
-                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("configspec"));
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname")));
+                will(returnValue("configspec"));
                 one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
-                        with(equal("viewname")), with(equal("branch"))); will(returnValue(list));
+                        with(equal("viewname")), with(equal("branch")));
+                will(returnValue(list));
                 one(clearTool).setVobPaths(with(equal("vob")));
             }
         });
@@ -497,20 +526,25 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         context.checking(new Expectations() {
             {
                 one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
-                        with(equal("viewname")), with(equal("branchone")));will(returnValue(new ArrayList<Object[]>()));
+                        with(equal("viewname")), with(equal("branchone")));
+                will(returnValue(new ArrayList<Object[]>()));
                 one(clearTool).lshistory(with(any(ClearToolLauncher.class)), with(equal(mockedCalendar.getTime())),
-                        with(equal("viewname")), with(equal("branchtwo")));will(returnValue(list));
+                        with(equal("viewname")), with(equal("branchtwo")));
+                will(returnValue(list));
                 one(clearTool).setVobPaths(with(equal("vob")));
             }
         });
         classContext.checking(new Expectations() {
             {
-                one(build).getTimestamp(); will(returnValue(mockedCalendar));
-                one(project).getLastBuild(); will(returnValue(build));
+                one(build).getTimestamp();
+                will(returnValue(mockedCalendar));
+                one(project).getLastBuild();
+                will(returnValue(build));
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, "branchone branchtwo", "configspec", "viewname", true, "vob", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branchone branchtwo", "configspec", "viewname", true, "vob", false,
+                "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -569,7 +603,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
     @Test
     public void testSupportsPolling() {
         ClearCaseSCM scm = createSimpleScm();
-        assertTrue("The Clear Case SCM supports polling but is reported not to", scm.supportsPolling());
+        assertTrue("The ClearCase SCM supports polling but is reported not to", scm.supportsPolling());
     }
 
     @Test
@@ -592,8 +626,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
             }
         });
 
-        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true,
-                "vob1 vob2/vob2-1 vob\\ 3", false, "");
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "vob1 vob2/vob2-1 vob\\ 3",
+                false, "");
         scm.pollChanges(project, launcher, workspace, taskListener);
 
         classContext.assertIsSatisfied();
@@ -678,13 +712,11 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
     private ClearCaseSCM createSimpleScm() {
         return new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "", false, "");
     }
-    
-    @Override
+
     public ClearTool create(ClearCaseSCM scm, TaskListener listener) {
         return clearTool;
     }
 
-    @Override
     public ChangeLogEntryMerger createChangeLogEntryMerger(ClearCaseSCM scm) {
         return new ChangeLogEntryMerger();
     }
