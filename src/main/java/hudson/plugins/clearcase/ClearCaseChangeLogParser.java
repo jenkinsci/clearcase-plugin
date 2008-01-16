@@ -10,7 +10,7 @@ import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
 
 /***********************************************************************************************************************
- * Clear case change log parser.
+ * ClearCase change log parser.
  * 
  * @author Erik Ramfelt
  */

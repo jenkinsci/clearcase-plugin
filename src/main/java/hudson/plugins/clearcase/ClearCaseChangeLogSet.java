@@ -18,7 +18,7 @@ import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogSet;
 
 /**
- * Clear case change log set.
+ * ClearCase change log set.
  * 
  * @author Erik Ramfelt
  */
@@ -50,7 +50,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
     }
 
     /**
-     * Parses the change log file and returns a clear case change log set.
+     * Parses the change log file and returns a ClearCase change log set.
      * 
      * @param build the build for the change log
      * @param changeLogFile the change log file
@@ -61,7 +61,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
     }
 
     /**
-     * Parses the change log stream and returns a clear case change log set.
+     * Parses the change log stream and returns a ClearCase change log set.
      * 
      * @param build the build for the change log
      * @param changeLogStream input stream containing the change log

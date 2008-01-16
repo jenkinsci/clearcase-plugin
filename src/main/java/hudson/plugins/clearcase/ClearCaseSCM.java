@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Clear case SCM.
+ * ClearCase SCM.
  * 
  * This SCM uses the cleartool to update and get the change log.
  * 
@@ -286,7 +286,7 @@ public class ClearCaseSCM extends SCM {
                     builder.append(cmdParam);
                 }
                 listener.fatalError(PluginImpl.getDescriptor().getDisplayName() + " failed. exit code=" + r);
-                throw new IOException("Clear tool did not return the expected exit code. Command line=\""
+                throw new IOException("cleartool did not return the expected exit code. Command line=\""
                         + builder.toString() + "\", actual exit code=" + r);
             }
             return r == 0;
@@ -294,7 +294,7 @@ public class ClearCaseSCM extends SCM {
     }
 
     /**
-     * Clear case SCM descriptor
+     * ClearCase SCM descriptor
      * 
      * @author Erik Ramfelt
      */
@@ -322,7 +322,7 @@ public class ClearCaseSCM extends SCM {
 
         @Override
         public String getDisplayName() {
-            return "Clear Case";
+            return "ClearCase";
         }
 
         @Override
@@ -352,7 +352,7 @@ public class ClearCaseSCM extends SCM {
         }
 
         /**
-         * Checks if clear tool executable exists.
+         * Checks if cleartool executable exists.
          */
         public void doCleartoolExeCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
             new FormFieldValidator.Executable(req, rsp).process();
@@ -427,20 +427,19 @@ public class ClearCaseSCM extends SCM {
             ClearTool clearTool = null;
             String clearToolStr = scm.getDescriptor().getCleartoolExe();
             if ((clearToolStr == null) || (clearToolStr.length() == 0)) {
-                listener.fatalError("No clear tool executable is configured.");
+                listener.fatalError("No cleartool executable is configured.");
             } else {
                 if (scm.useDynamicView) {
                     clearTool = new ClearToolDynamic(clearToolStr, scm.viewDrive);
-                    listener.getLogger().println("Creating a dynamic clear tool");
+                    listener.getLogger().println("Creating a dynamic cleartool");
                 } else {
                     clearTool = new ClearToolSnapshot(clearToolStr);
-                    listener.getLogger().println("Creating a snapshot clear tool");
+                    listener.getLogger().println("Creating a snapshot cleartool");
                 }
             }
             return clearTool;
         }
 
-        @Override
         public ChangeLogEntryMerger createChangeLogEntryMerger(ClearCaseSCM scm) {
             return new ChangeLogEntryMerger(scm.getDescriptor().getLogMergeTimeWindow() * 1000);
         }        
