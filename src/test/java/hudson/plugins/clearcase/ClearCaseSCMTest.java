@@ -140,7 +140,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "", true, "drive");
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -165,7 +165,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "config\r\nspec", "viewname", false, "", true, "drive");
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -193,7 +193,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "", false, "");
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -221,7 +221,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = createSimpleScm();
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -249,7 +249,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = createSimpleScm();
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -282,7 +282,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = createSimpleScm();
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -313,7 +313,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "", false, "");
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -355,7 +355,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "vob", false, "");
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -403,7 +403,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
 
         ClearCaseSCM scm = new ClearCaseSCM(this, "branchone branchtwo", "configspec", "viewname", false, "vob", false,
                 "");
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -443,7 +443,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
         });
 
         ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", false, "vob", true, "");
-        File changelogFile = new File(PARENT_FILE, "changelog.xml");
+        File changelogFile = new File(parentFile, "changelog.xml");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
 
