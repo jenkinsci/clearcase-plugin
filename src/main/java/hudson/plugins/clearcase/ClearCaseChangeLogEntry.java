@@ -13,7 +13,7 @@ import hudson.model.User;
 import hudson.scm.ChangeLogSet;
 
 /**
- * Clear case change log entry.
+ * ClearCase change log entry.
  * 
  * @author Erik Ramfelt
  */

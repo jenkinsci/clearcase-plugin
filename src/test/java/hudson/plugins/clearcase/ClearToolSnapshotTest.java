@@ -17,7 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests for the clear tool snapshot view
+ * Tests for the cleartool snapshot view
  */
 public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 

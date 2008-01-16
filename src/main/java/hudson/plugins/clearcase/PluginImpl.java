@@ -4,7 +4,7 @@ import hudson.Plugin;
 import hudson.scm.SCMS;
 
 /**
- * Clear case plugin.
+ * ClearCase plugin.
  * 
  * @author Erik Ramfelt
  */
@@ -17,7 +17,7 @@ public class PluginImpl extends Plugin {
     }
 
     /**
-     * Registers Clear Case SCM.
+     * Registers ClearCase SCM.
      */
     @Override
     public void start() throws Exception {

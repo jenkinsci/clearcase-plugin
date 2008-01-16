@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Parser for the clear tool history output.
+ * Parser for the cleartool history output.
  * 
  * @author Erik Ramfelt
  */
