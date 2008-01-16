@@ -1,16 +1,18 @@
 package hudson.plugins.clearcase;
 
 import hudson.FilePath;
+import hudson.Util;
 
 import java.io.File;
 
 public abstract class AbstractWorkspaceTest {
 
-    protected static final File PARENT_FILE = new File(System.getProperty("java.io.tmpdir"), "cc-files");
+    protected File parentFile;
     protected FilePath workspace;
 
     public void createWorkspace() throws Exception {
-        workspace = new FilePath(PARENT_FILE);
+        parentFile = Util.createTempDir();
+        workspace = new FilePath(parentFile);
         if (workspace.exists()) {
             workspace.deleteRecursive();
         }

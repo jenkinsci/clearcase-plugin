@@ -84,6 +84,7 @@ public class ClearCaseChangeLogSetTest {
         history.add(entry);
 
         File tempLogFile = File.createTempFile("clearcase", "xml");
+        tempLogFile.deleteOnExit();
         FileOutputStream fileOutputStream = new FileOutputStream(tempLogFile);
 
         ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, history);
@@ -91,6 +92,7 @@ public class ClearCaseChangeLogSetTest {
 
         FileInputStream fileInputStream = new FileInputStream(tempLogFile);
         ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, fileInputStream);
+        fileInputStream.close();
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
 
         Assert.assertEquals("The comment wasnt correct", "Bülow", logs.get(0).getUser());
@@ -109,6 +111,7 @@ public class ClearCaseChangeLogSetTest {
         history.add(entry);
 
         File tempLogFile = File.createTempFile("clearcase", "xml");
+        tempLogFile.deleteOnExit();
         FileOutputStream fileOutputStream = new FileOutputStream(tempLogFile);
 
         ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, history);
@@ -116,6 +119,7 @@ public class ClearCaseChangeLogSetTest {
 
         FileInputStream fileInputStream = new FileInputStream(tempLogFile);
         ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, fileInputStream);
+        fileInputStream.close();
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
 
         Assert.assertEquals("The number of change log entries is incorrect", 1, logs.size());
