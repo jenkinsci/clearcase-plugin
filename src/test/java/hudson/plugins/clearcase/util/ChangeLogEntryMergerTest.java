@@ -49,9 +49,9 @@ public class ChangeLogEntryMergerTest {
     @Test
     public void testOneUserTwoCommits() {
         changeLogEntryMerger = new ChangeLogEntryMerger();
-        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 02), "user", "action", "comment2", "file2", "version"));
-        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user", "action", "comment1", "file1", "version"));
-        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user", "action", "comment1", "file3", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user", "action", "comment2", "file2", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 02), "user", "action", "comment1", "file1", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 02), "user", "action", "comment1", "file3", "version"));
         List<ClearCaseChangeLogEntry> mergedList = changeLogEntryMerger.getMergedList(list);
         assertEquals("The entries was not merged", 2, mergedList.size());
         assertEquals("The number of files are incorrect", 2, mergedList.get(0).getAffectedPaths().size());
@@ -91,17 +91,17 @@ public class ChangeLogEntryMergerTest {
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user1", "action", "comment", "file5", "version"));
         List<ClearCaseChangeLogEntry> mergedList = changeLogEntryMerger.getMergedList(list);
         assertEquals("The entries was not merged", 4, mergedList.size());
-        assertEquals("The number of files are incorrect", 1, mergedList.get(0).getAffectedPaths().size());
-        assertEquals("The file in the files list is incorrect", "file5", getIndexOf(mergedList.get(0).getAffectedPaths(), 0));
-        assertEquals("The number of files are incorrect", 4, mergedList.get(1).getAffectedPaths().size());
-        assertEquals("The file in the files list is incorrect", "file1", getIndexOf(mergedList.get(1).getAffectedPaths(), 0));
-        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(1).getAffectedPaths(), 1));
-        assertEquals("The file in the files list is incorrect", "file3", getIndexOf(mergedList.get(1).getAffectedPaths(), 2));
-        assertEquals("The file in the files list is incorrect", "file4", getIndexOf(mergedList.get(1).getAffectedPaths(), 3));
-        assertEquals("The number of files are incorrect", 1, mergedList.get(2).getAffectedPaths().size());
-        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(2).getAffectedPaths(), 0));
         assertEquals("The number of files are incorrect", 1, mergedList.get(3).getAffectedPaths().size());
-        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(3).getAffectedPaths(), 0));
+        assertEquals("The file in the files list is incorrect", "file5", getIndexOf(mergedList.get(3).getAffectedPaths(), 0));
+        assertEquals("The number of files are incorrect", 4, mergedList.get(2).getAffectedPaths().size());
+        assertEquals("The file in the files list is incorrect", "file1", getIndexOf(mergedList.get(2).getAffectedPaths(), 0));
+        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(2).getAffectedPaths(), 1));
+        assertEquals("The file in the files list is incorrect", "file3", getIndexOf(mergedList.get(2).getAffectedPaths(), 2));
+        assertEquals("The file in the files list is incorrect", "file4", getIndexOf(mergedList.get(2).getAffectedPaths(), 3));
+        assertEquals("The number of files are incorrect", 1, mergedList.get(1).getAffectedPaths().size());
+        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(1).getAffectedPaths(), 0));
+        assertEquals("The number of files are incorrect", 1, mergedList.get(0).getAffectedPaths().size());
+        assertEquals("The file in the files list is incorrect", "file2", getIndexOf(mergedList.get(0).getAffectedPaths(), 0));
     }
 
     @Test
@@ -119,8 +119,34 @@ public class ChangeLogEntryMergerTest {
         assertEquals("The number of files are incorrect", 1, mergedList.get(0).getAffectedPaths().size());
     }
 
+    @Test
+    public void testReturnDateForFirstEntry() {
+        changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 32), "user1", "action", "comment", "file3", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 52), "user1", "action", "comment", "file2", "version"));
+        List<ClearCaseChangeLogEntry> mergedList = changeLogEntryMerger.getMergedList(list);
+        assertEquals("The entries was not merged", 1, mergedList.size());
+        assertEquals("The number of files are incorrect", 3, mergedList.get(0).getAffectedPaths().size());
+        assertEquals("The date is incorrect", createDate(10, 01, 22), mergedList.get(0).getDate());
+    }
+
+    @Test
+    public void testSortWithOldestEntryFirst() {
+        changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 32), "user1", "action", "comment", "file3", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user2", "action", "comment", "file1", "version"));
+        list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 52), "user3", "action", "comment", "file2", "version"));
+        List<ClearCaseChangeLogEntry> mergedList = changeLogEntryMerger.getMergedList(list);
+        assertEquals("The entries was not merged", 3, mergedList.size());
+        assertEquals("The date is incorrect in entry 1", createDate(10, 01, 52), mergedList.get(0).getDate());
+        assertEquals("The date is incorrect in entry 2", createDate(10, 01, 32), mergedList.get(1).getDate());
+        assertEquals("The date is incorrect in entry 3", createDate(10, 01, 22), mergedList.get(2).getDate());
+    }
+
     private Date createDate(int hour, int min, int sec) {
         Calendar calendar = Calendar.getInstance();
+        calendar.clear();
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, min);
         calendar.set(Calendar.SECOND, sec);

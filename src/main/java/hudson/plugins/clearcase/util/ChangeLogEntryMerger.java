@@ -47,7 +47,7 @@ public class ChangeLogEntryMerger {
         List<ClearCaseChangeLogEntry> list = getList();
         Collections.sort(list, new Comparator<ClearCaseChangeLogEntry>() {
             public int compare(ClearCaseChangeLogEntry o1, ClearCaseChangeLogEntry o2) {
-                return o1.getDate().compareTo(o2.getDate());
+                return o2.getDate().compareTo(o1.getDate());
             }
         });
         return list;
@@ -59,6 +59,7 @@ public class ChangeLogEntryMerger {
         for (String user : users) {
             List<MergedLogEntry> userList = userEntries.get(user);
             for (MergedLogEntry entry : userList) {
+                entry.entry.setDate(entry.oldest);
                 list.add(entry.entry);
             }
         }
