@@ -51,10 +51,12 @@ public class ClearCaseSCM extends SCM {
     private String vobPaths;
     private boolean useDynamicView;
     private String viewDrive;
+    private String mkviewOptionalParam;
 
     private transient ClearToolFactory clearToolFactory;
+
     public ClearCaseSCM(ClearToolFactory clearToolFactory, String branch, String configSpec, String viewName, boolean useUpdate,
-            String vobPaths, boolean useDynamicView, String viewDrive) {
+            String vobPaths, boolean useDynamicView, String viewDrive, String mkviewOptionalParam) {
         this.clearToolFactory = clearToolFactory;
         this.branch = branch;
         this.configSpec = configSpec;
@@ -63,6 +65,7 @@ public class ClearCaseSCM extends SCM {
         this.useDynamicView = useDynamicView;
         this.viewDrive = viewDrive;
         this.vobPaths = vobPaths;
+        this.mkviewOptionalParam = mkviewOptionalParam;
 
         if (this.useDynamicView) {
             this.useUpdate = false;
@@ -70,8 +73,8 @@ public class ClearCaseSCM extends SCM {
     }
 
     public ClearCaseSCM(String branch, String configSpec, String viewName, boolean useUpdate, String vobPaths,
-            boolean useDynamicView, String viewDrive) {
-        this(null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive);
+            boolean useDynamicView, String viewDrive, String mkviewOptionalParam) {
+        this(null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive, mkviewOptionalParam);
     }
 
     // Get methods
@@ -105,6 +108,10 @@ public class ClearCaseSCM extends SCM {
 
     public String getViewDrive() {
         return viewDrive;
+    }
+    
+    public String getMkviewOptionalParam() {
+        return mkviewOptionalParam;
     }
 
     @Override
@@ -347,7 +354,8 @@ public class ClearCaseSCM extends SCM {
             ClearCaseSCM scm = new ClearCaseSCM(req.getParameter("clearcase.branch"), req
                     .getParameter("clearcase.configspec"), req.getParameter("clearcase.viewname"), req
                     .getParameter("clearcase.useupdate") != null, req.getParameter("clearcase.vobpaths"), req
-                    .getParameter("clearcase.usedynamicview") != null, req.getParameter("clearcase.viewdrive"));
+                    .getParameter("clearcase.usedynamicview") != null, req.getParameter("clearcase.viewdrive"),
+                    req.getParameter("clearcase.mkviewoptionalparam"));
             return scm;
         }
 
@@ -433,7 +441,7 @@ public class ClearCaseSCM extends SCM {
                     clearTool = new ClearToolDynamic(clearToolStr, scm.viewDrive);
                     listener.getLogger().println("Creating a dynamic cleartool");
                 } else {
-                    clearTool = new ClearToolSnapshot(clearToolStr);
+                    clearTool = new ClearToolSnapshot(clearToolStr, scm.mkviewOptionalParam);
                     listener.getLogger().println("Creating a snapshot cleartool");
                 }
             }

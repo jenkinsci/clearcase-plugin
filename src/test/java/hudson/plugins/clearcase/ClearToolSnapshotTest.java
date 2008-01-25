@@ -129,4 +129,22 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         clearToolExec.mkview(launcher, "viewName");
         context.assertIsSatisfied();
     }
+
+    @Test
+    public void testCreateViewExtraParams() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(launcher)
+                        .run(
+                                with(equal(new String[] { "commandname", "mkview", "-snapshot", "-tag", "viewName",
+                                        "-anextraparam", "-anotherparam", "viewName" })), with(aNull(InputStream.class)),
+                                with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
+                will(returnValue(Boolean.TRUE));
+            }
+        });
+
+        clearToolExec = new ClearToolSnapshot("commandname", "-anextraparam -anotherparam");
+        clearToolExec.mkview(launcher, "viewName");
+        context.assertIsSatisfied();
+    }
 }

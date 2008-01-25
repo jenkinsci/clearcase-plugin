@@ -1,15 +1,25 @@
 package hudson.plugins.clearcase;
 
 import hudson.FilePath;
+import hudson.Util;
 import hudson.util.ArgumentListBuilder;
 
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.lang.StringUtils;
+
 public class ClearToolSnapshot extends ClearToolExec {
 
+    private String optionalParameters;
+    
     public ClearToolSnapshot(String clearToolExec) {
         super(clearToolExec);
+    }
+
+    public ClearToolSnapshot(String clearToolExec, String optionalParameters) {
+        this(clearToolExec);
+        this.optionalParameters = optionalParameters;
     }
 
     public void setcs(ClearToolLauncher launcher, String viewName, String configSpec) throws IOException,
@@ -34,6 +44,9 @@ public class ClearToolSnapshot extends ClearToolExec {
         cmd.add("-snapshot");
         cmd.add("-tag");
         cmd.add(viewName);
+        if ((optionalParameters != null) && (optionalParameters.length() > 0)) {
+            cmd.addTokenized(optionalParameters);
+        }
         cmd.add(viewName);
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
