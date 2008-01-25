@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# This shell script will cat files named ct-[command]-1.log to the stdout.
+# 
+#
+if [ $# = 0 ]; then
+	echo 1>&2 Usage: cleartool [command] [ignored arguments]
+	exit 1
+fi
+
+commandfile=`dirname $0`/ct-$1-1.log
+
+case $1 in
+	mkview)
+		eval last_arg=\$$#
+		mkdir $last_arg
+		;;
+	setcs)
+		exit 0
+		;;
+esac
+
+if [ -r  $commandfile ] 
+then
+	cat $commandfile
+	exit 0
+else
+	echo Unknown command $1, $commandfile
+	exit 1
+fi
