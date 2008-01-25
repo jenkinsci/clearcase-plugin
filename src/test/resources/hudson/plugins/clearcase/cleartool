@@ -12,7 +12,8 @@ commandfile=`dirname $0`/ct-$1-1.log
 
 case $1 in
 	mkview)
-		mkdir $5
+		eval last_arg=\$$#
+		mkdir $last_arg
 		;;
 	setcs)
 		exit 0
