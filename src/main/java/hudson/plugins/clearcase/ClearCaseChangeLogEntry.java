@@ -11,6 +11,9 @@ import java.util.List;
 
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
+import org.kohsuke.stapler.export.ExportedBean;
+import org.kohsuke.stapler.export.Exported;
+
 
 /**
  * ClearCase change log entry.
@@ -49,10 +52,11 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
         this.files.addAll(files);
     }
     
+    @Exported
     public List<FileElement> getElements() {
         return files;
     }
-
+    
     public String getComment() {
         return comment;
     }
@@ -61,6 +65,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
         this.comment = comment;
     }
 
+    @Exported
     public String getDateStr() {
         if (date == null) {
             return dateStr;
@@ -76,7 +81,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
             this.dateStr = date;
         }
     }
-
+    @Exported
     public Date getDate() {
         return (Date) date.clone();
     }
@@ -84,7 +89,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     public void setDate(Date date) {
         this.date = (Date) date.clone();
     }
-
+    @Exported
     public String getUser() {
         return user;
     }
@@ -118,6 +123,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Override
+    @Exported
     public User getAuthor() {
         return User.get(user);
     }
@@ -132,6 +138,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Override
+    @Exported
     public String getMsg() {
         return comment;
     }
@@ -143,7 +150,8 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     public void setParent(ChangeLogSet parent) {
         super.setParent(parent);
     }
-    
+
+    @ExportedBean(defaultVisibility=999)
     public static class FileElement {
         private String name = "";
         private String version = "";
@@ -158,6 +166,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
             this.action = action;
         }
         
+        @Exported
         public String getFile() {
             return name;
         }
@@ -166,6 +175,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
             this.name = fileName;
         }
 
+        @Exported
         public String getVersion() {
             return version;
         }
@@ -174,6 +184,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
             this.version = version;
         }
 
+        @Exported
         public String getAction() {
             return action;
         }
