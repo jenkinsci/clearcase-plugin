@@ -1,5 +1,7 @@
 package hudson.plugins.clearcase;
 
+import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -50,7 +52,7 @@ public class ClearToolHistoryParser {
         List<ClearCaseChangeLogEntry> entries = new ArrayList<ClearCaseChangeLogEntry>();
         BufferedReader reader = new BufferedReader(inReader);
 
-        ClearCaseChangeLogEntry content = null;
+        ClearCaseChangeLogEntry newLogEntry = null;
         StringBuilder commentBuilder = new StringBuilder();
         String line = reader.readLine();
         while (line != null) {
@@ -58,21 +60,19 @@ public class ClearToolHistoryParser {
             if (!line.startsWith("cleartool: Error:")) {
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find() && matcher.groupCount() == 5) {
-                    if (content != null) {
-                        content.setComment(commentBuilder.toString().trim());
-                        if (!((content.getElements().get(0).getAction()).equalsIgnoreCase("create branch") 
-                                || (content.getElements().get(0).getVersion())
-                                .endsWith("\\0"))) {
-                            entries.add(content);
+                    if (newLogEntry != null) {
+                        newLogEntry.setComment(commentBuilder.toString().trim());
+                        if (isFileElementModification(newLogEntry.getElements().get(0))) {
+                            entries.add(newLogEntry);
                         }
                     }
                     commentBuilder = new StringBuilder();
-                    content = new ClearCaseChangeLogEntry();
+                    newLogEntry = new ClearCaseChangeLogEntry();
                     Date date = dateFormatter.parse(matcher.group(1));
-                    content.setDate(date);
-                    content.setUser(matcher.group(2));
+                    newLogEntry.setDate(date);
+                    newLogEntry.setUser(matcher.group(2));
                     ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(matcher.group(4).trim(), matcher.group(5).trim(), matcher.group(3).trim());
-                    content.addElement(element);
+                    newLogEntry.addElement(element);
                 } else {
                     if (commentBuilder.length() > 0) {
                         commentBuilder.append("\n");
@@ -82,11 +82,10 @@ public class ClearToolHistoryParser {
             }
             line = reader.readLine();
         }
-        if (content != null) {
-            content.setComment(commentBuilder.toString().trim());
-            if (!((content.getElements().get(0).getAction().equalsIgnoreCase("create branch")) 
-                    || (content.getElements().get(0).getVersion().endsWith("\\0")))) {
-                entries.add(content);
+        if (newLogEntry != null) {
+            newLogEntry.setComment(commentBuilder.toString().trim());
+            if (isFileElementModification(newLogEntry.getElements().get(0))) {
+                entries.add(newLogEntry);
             }
         }
         
@@ -97,5 +96,24 @@ public class ClearToolHistoryParser {
         });
         
         return entries;
+    }
+    
+    /**
+     * Returns true if the file element is a real modification that could trigger a build.
+     * Mainly it will check the action string if it is "create branch" and if the version
+     * for an element is 0.
+     * @param element the file element to check
+     * @return true, if it is a modification that should trigger a build; false otherwise.
+     */
+    private boolean isFileElementModification(FileElement element) {
+        if (element.getAction().equalsIgnoreCase("create branch")) {
+            return false;
+        }
+        String version = element.getVersion();
+        if (version.endsWith("\\0")
+                || version.endsWith("/0")) {
+            return false;
+        }
+        return true;
     }
 }

@@ -115,6 +115,8 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"    \"create branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"
+                        +
                         "\"20070906.091701\"   \"egsperi\"    \"create branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"));
         Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());
     }
@@ -124,7 +126,20 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\0\"\n"
+                        +
                         "\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\0\"\n"));
+        Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());
+    }
+
+    @Test
+    public void testFirstVersionOnLinux() throws IOException, ParseException {
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"/ApplicationConfiguration\" \"/main/sit_r6a/0\"\n"
+                        + 
+                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"/ApplicationConfiguration\" \"/main/sit_r6a/0\"\n"));
         Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());
     }
 
