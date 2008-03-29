@@ -63,11 +63,22 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
     }
 
     @Test
-    public void testBuildEnvVars() {
-        ClearCaseSCM scm = createSimpleScm();
+    public void testSnapshotBuildEnvVars() {
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "", false, "", null);
+        Map<String, String> env = new HashMap<String, String>();
+        env.put("WORKSPACE", "/hudson/jobs/job/workspace");
+        scm.buildEnvVars(null, env);
+        assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
+        assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
+    }
+
+    @Test
+    public void testDynamicBuildEnvVars() {
+        ClearCaseSCM scm = new ClearCaseSCM(this, "branch", "configspec", "viewname", true, "", true, "/views", null);
         Map<String, String> env = new HashMap<String, String>();
         scm.buildEnvVars(null, env);
-        assertEquals("The env var wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
+        assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
+        assertEquals("The env var VIEWPATH wasnt set", "/views" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
     @Test
