@@ -43,6 +43,7 @@ import java.util.Map;
 public class ClearCaseSCM extends SCM {
 
     public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
+    public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
 
     private String branch;
     private boolean useUpdate;
@@ -123,6 +124,16 @@ public class ClearCaseSCM extends SCM {
     public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
         if (viewName != null)
             env.put(CLEARCASE_VIEWNAME_ENVSTR, viewName);
+        
+        if (useDynamicView) {
+            if (viewDrive != null)
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + viewName);
+        } else {
+            String workspace = env.get("WORKSPACE");
+            if (workspace != null) {
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + File.separator + viewName);
+            }
+        }
     }
 
     @Override
