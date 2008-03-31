@@ -117,11 +117,10 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     public void testCreateView() throws Exception {
         context.checking(new Expectations() {
             {
-                one(launcher)
-                        .run(
-                                with(equal(new String[] { "commandname", "mkview", "-snapshot", "-tag", "viewName",
+                one(launcher).run(
+                        with(equal(new String[] { "commandname", "mkview", "-snapshot", "-tag", "viewName",
                                         "viewName" })), with(aNull(InputStream.class)),
-                                with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
+                        with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
         });
@@ -134,11 +133,10 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     public void testCreateViewExtraParams() throws Exception {
         context.checking(new Expectations() {
             {
-                one(launcher)
-                        .run(
-                                with(equal(new String[] { "commandname", "mkview", "-snapshot", "-tag", "viewName",
+                one(launcher).run(
+                        with(equal(new String[] { "commandname", "mkview", "-snapshot", "-tag", "viewName",
                                         "-anextraparam", "-anotherparam", "viewName" })), with(aNull(InputStream.class)),
-                                with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
+                        with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
         });

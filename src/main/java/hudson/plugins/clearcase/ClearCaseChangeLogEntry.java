@@ -14,7 +14,6 @@ import hudson.scm.ChangeLogSet;
 import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.export.Exported;
 
-
 /**
  * ClearCase change log entry.
  * 
@@ -81,6 +80,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
             this.dateStr = date;
         }
     }
+
     @Exported
     public Date getDate() {
         return (Date) date.clone();
@@ -89,6 +89,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     public void setDate(Date date) {
         this.date = (Date) date.clone();
     }
+
     @Exported
     public String getUser() {
         return user;
