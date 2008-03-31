@@ -37,7 +37,6 @@ public class ClearToolSnapshot extends ClearToolExec {
     }
 
     public void mkview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
-
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
         cmd.add("mkview");
