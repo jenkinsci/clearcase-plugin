@@ -44,4 +44,12 @@ public class ClearToolDynamic extends ClearToolExec {
     public void update(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic view does not support update");
     }
+
+	public void setView(ClearToolLauncher launcher, String viewTag)  throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add(clearToolExec);
+        cmd.add("setview");
+        cmd.add(viewTag);
+        launcher.run(cmd.toCommandArray(), null, null, null);
+	}
 }

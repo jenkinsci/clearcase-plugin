@@ -139,6 +139,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
                 one(clearTool).setcs(with(any(ClearToolLauncher.class)), with(equal("viewname")),
                         with(equal("configspec")));
                 one(clearTool).setVobPaths(with(equal("")));
+                one(clearTool).setView(with(any(ClearToolLauncher.class)), with(equal("viewname")));
             }
         });
         classContext.checking(new Expectations() {
@@ -163,9 +164,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
     public void testCheckoutDynamic() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname")));
-                will(returnValue("config\nspec"));
+                one(clearTool).catcs(with(any(ClearToolLauncher.class)), with(equal("viewname"))); will(returnValue("config\nspec"));
                 one(clearTool).setVobPaths(with(equal("")));
+                one(clearTool).setView(with(any(ClearToolLauncher.class)), with(equal("viewname")));
             }
         });
         classContext.checking(new Expectations() {
@@ -442,6 +443,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest implements ClearTool
                         with(equal("viewname")), with(equal("branch")));
                 will(returnValue(list));
                 one(clearTool).setVobPaths(with(equal("vob")));
+                one(clearTool).setView(with(any(ClearToolLauncher.class)), with(equal("viewname")));
             }
         });
         classContext.checking(new Expectations() {
