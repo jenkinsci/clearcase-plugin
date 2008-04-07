@@ -89,4 +89,11 @@ public interface ClearTool {
     String catcs(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException;
     
     void setVobPaths(String vobPaths);
+    
+    /**
+     * @param launcher launcher for launching the command
+     * Creates a process that is set to a dynamic view
+     * @param viewTag Any view tag specifying a dynamic view that is registered for the current network region.
+     */
+    void setView(ClearToolLauncher launcher, String viewTag)  throws IOException, InterruptedException;
 }
