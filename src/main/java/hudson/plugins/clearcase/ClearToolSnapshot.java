@@ -79,4 +79,8 @@ public class ClearToolSnapshot extends ClearToolExec {
     protected FilePath getRootViewPath(ClearToolLauncher launcher) {
         return launcher.getWorkspace();
     }
+
+	public void setView(ClearToolLauncher launcher, String viewTag) throws IOException, InterruptedException {
+		launcher.getListener().fatalError("Snapshot view does not support setview");
+	}
 }

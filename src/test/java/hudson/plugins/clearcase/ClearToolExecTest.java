@@ -254,6 +254,10 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         public void update(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
+		public void setView(ClearToolLauncher launcher, String viewTag)
+		throws IOException, InterruptedException {
+    throw new IllegalStateException("Not implemented");
+}
         @Override
         protected FilePath getRootViewPath(ClearToolLauncher launcher) {
             return launcher.getWorkspace();
