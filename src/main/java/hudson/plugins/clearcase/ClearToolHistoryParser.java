@@ -34,7 +34,7 @@ public class ClearToolHistoryParser {
 
     public ClearToolHistoryParser() {
         // pattern = Pattern.compile("^(\\S+)\\s+(\\w+)\\s+(.+)\\s+\"(.+)@@(.+)\"");
-        pattern = Pattern.compile("\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"");
+        pattern = Pattern.compile("\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"");
         dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
     }
 
@@ -44,7 +44,7 @@ public class ClearToolHistoryParser {
      * @return the format for the 'cleartool lshistory' command
      */
     public static String getLogFormat() {
-        return "\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\"\\n%c\\n";
+        return "\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%o\\\"\\n%c\\n";
     }
 
     public List<ClearCaseChangeLogEntry> parse(Reader inReader) throws IOException, ParseException {
@@ -59,7 +59,7 @@ public class ClearToolHistoryParser {
 
             if (!line.startsWith("cleartool: Error:")) {
                 Matcher matcher = pattern.matcher(line);
-                if (matcher.find() && matcher.groupCount() == 5) {
+                if (matcher.find() && matcher.groupCount() == 6) {
                     if (newLogEntry != null) {
                         newLogEntry.setComment(commentBuilder.toString().trim());
                         if (isFileElementModification(newLogEntry.getElements().get(0))) {
@@ -71,7 +71,8 @@ public class ClearToolHistoryParser {
                     Date date = dateFormatter.parse(matcher.group(1));
                     newLogEntry.setDate(date);
                     newLogEntry.setUser(matcher.group(2));
-                    ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(matcher.group(4).trim(), matcher.group(5).trim(), matcher.group(3).trim());
+                    ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(
+                            matcher.group(4).trim(), matcher.group(5).trim(), matcher.group(3).trim(), matcher.group(6).trim());
                     newLogEntry.addElement(element);
                 } else {
                     if (commentBuilder.length() > 0) {
