@@ -244,6 +244,9 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         public void mkview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
+        public void mkview(ClearToolLauncher launcher, String viewName, String streamSelector) throws IOException, InterruptedException {
+            throw new IllegalStateException("Not implemented");
+        }
         public void rmview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
@@ -254,10 +257,10 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         public void update(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
-		public void setView(ClearToolLauncher launcher, String viewTag)
-		throws IOException, InterruptedException {
-    throw new IllegalStateException("Not implemented");
-}
+        public void setView(ClearToolLauncher launcher, String viewTag) throws IOException, InterruptedException {
+            throw new IllegalStateException("Not implemented");
+        }
+        
         @Override
         protected FilePath getRootViewPath(ClearToolLauncher launcher) {
             return launcher.getWorkspace();

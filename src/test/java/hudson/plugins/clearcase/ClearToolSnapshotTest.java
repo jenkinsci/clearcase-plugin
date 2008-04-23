@@ -130,6 +130,22 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testCreateUcmView() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(launcher).run(
+                        with(equal(new String[] { "commandname", "mkview", "-snapshot", "-stream", "streamSelector", 
+                                "-tag", "viewName", "viewName" })), with(aNull(InputStream.class)),
+                        with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
+                will(returnValue(Boolean.TRUE));
+            }
+        });
+
+        clearToolExec.mkview(launcher, "viewName", "streamSelector");
+        context.assertIsSatisfied();
+    }
+
+    @Test
     public void testCreateViewExtraParams() throws Exception {
         context.checking(new Expectations() {
             {

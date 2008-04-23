@@ -31,6 +31,14 @@ public interface ClearTool {
     void mkview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException;
 
     /**
+     * Creates and registers a view
+     * 
+     * @param launcher launcher for launching the command
+     * @param viewName the name of the view
+     */
+    void mkview(ClearToolLauncher launcher, String viewName, String streamSelector) throws IOException, InterruptedException;
+
+    /**
      * Sets the config spec of the view
      * 
      * @param launcher launcher for launching the command

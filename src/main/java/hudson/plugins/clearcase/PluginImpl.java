@@ -10,10 +10,11 @@ import hudson.scm.SCMS;
  */
 public class PluginImpl extends Plugin {
 
-    public static final ClearCaseSCM.ClearCaseScmDescriptor DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
+    public static final ClearCaseSCM.ClearCaseScmDescriptor BASE_DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
+    public static final ClearCaseUcmSCM.ClearCaseUcmScmDescriptor  UCM_DESCRIPTOR = new ClearCaseUcmSCM.ClearCaseUcmScmDescriptor();
 
     public static ClearCaseSCM.ClearCaseScmDescriptor getDescriptor() {
-        return DESCRIPTOR;
+        return BASE_DESCRIPTOR;
     }
 
     /**
@@ -21,7 +22,8 @@ public class PluginImpl extends Plugin {
      */
     @Override
     public void start() throws Exception {
-        SCMS.SCMS.add(DESCRIPTOR);
+        SCMS.SCMS.add(BASE_DESCRIPTOR);
+        SCMS.SCMS.add(UCM_DESCRIPTOR);
         super.start();
     }
 }
