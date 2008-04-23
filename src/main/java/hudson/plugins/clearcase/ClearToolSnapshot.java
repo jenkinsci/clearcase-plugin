@@ -47,6 +47,22 @@ public class ClearToolSnapshot extends ClearToolExec {
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
 
+    public void mkview(ClearToolLauncher launcher, String viewName, String streamSelector) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add(clearToolExec);
+        cmd.add("mkview");
+        cmd.add("-snapshot");
+        cmd.add("-stream");
+        cmd.add(streamSelector);
+        cmd.add("-tag");
+        cmd.add(viewName);
+        if ((optionalParameters != null) && (optionalParameters.length() > 0)) {
+            cmd.addTokenized(optionalParameters);
+        }
+        cmd.add(viewName);
+        launcher.run(cmd.toCommandArray(), null, null, null);
+    }
+
     public void rmview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);

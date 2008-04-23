@@ -123,7 +123,7 @@ public class ClearCaseSCM extends SCM {
 
     @Override
     public ClearCaseScmDescriptor getDescriptor() {
-        return PluginImpl.DESCRIPTOR;
+        return PluginImpl.BASE_DESCRIPTOR;
     }
 
     @Override
