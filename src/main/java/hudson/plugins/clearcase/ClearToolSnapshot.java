@@ -1,13 +1,10 @@
 package hudson.plugins.clearcase;
 
 import hudson.FilePath;
-import hudson.Util;
 import hudson.util.ArgumentListBuilder;
 
 import java.io.File;
 import java.io.IOException;
-
-import org.apache.commons.lang.StringUtils;
 
 public class ClearToolSnapshot extends ClearToolExec {
 
