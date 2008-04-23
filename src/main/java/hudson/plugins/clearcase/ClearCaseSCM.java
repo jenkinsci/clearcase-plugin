@@ -11,12 +11,16 @@ import hudson.model.Hudson;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
 import hudson.model.Run;
+import hudson.model.Descriptor.FormException;
 import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.util.ByteBuffer;
 import hudson.util.FormFieldValidator;
+import net.sf.json.JSONObject;
+
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import hudson.util.ForkOutputStream;
@@ -30,6 +34,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -72,10 +77,11 @@ public class ClearCaseSCM extends SCM {
             this.useUpdate = false;
         }
     }
-
-    public ClearCaseSCM(String branch, String configSpec, String viewName, boolean useUpdate, String vobPaths,
-            boolean useDynamicView, String viewDrive, String mkviewOptionalParam) {
-        this(null, branch, configSpec, viewName, useUpdate, vobPaths, useDynamicView, viewDrive, mkviewOptionalParam);
+    
+    @DataBoundConstructor
+    public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String vobpaths,
+            boolean usedynamicview, String viewdrive, String mkviewoptionalparam) {
+        this(null, branch, configspec, viewname, useupdate, vobpaths, usedynamicview, viewdrive, mkviewoptionalparam);
     }
 
     // Get methods
@@ -363,11 +369,11 @@ public class ClearCaseSCM extends SCM {
 
         @Override
         public SCM newInstance(StaplerRequest req) throws FormException {
-            ClearCaseSCM scm = new ClearCaseSCM(req.getParameter("clearcase.branch"), req
-                    .getParameter("clearcase.configspec"), req.getParameter("clearcase.viewname"), req
-                    .getParameter("clearcase.useupdate") != null, req.getParameter("clearcase.vobpaths"), req
-                    .getParameter("clearcase.usedynamicview") != null, req.getParameter("clearcase.viewdrive"),
-                    req.getParameter("clearcase.mkviewoptionalparam"));
+            ClearCaseSCM scm = new ClearCaseSCM(req.getParameter("branch"), req
+                    .getParameter("configspec"), req.getParameter("viewname"), req
+                    .getParameter("useupdate") != null, req.getParameter("vobpaths"), req
+                    .getParameter("usedynamicview") != null, req.getParameter("viewdrive"),
+                    req.getParameter("mkviewoptionalparam"));
             return scm;
         }
 
