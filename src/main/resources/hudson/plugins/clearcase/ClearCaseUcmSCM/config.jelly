@@ -1,0 +1,33 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
+	xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+	xmlns:f="/lib/form">
+
+	<f:entry title="Stream" help="/plugin/clearcase/stream.html">
+		<f:textbox name="stream" value="${scm.stream}" checkUrl="'${rootURL}/scm/ClearCaseUcmSCM/streamCheck?value='+escape(this.value)" />
+	</f:entry>
+
+  	<f:entry title="View name" help="/plugin/clearcase/localdir.html">
+  		<f:textbox name="viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}" 
+  			checkUrl="'${rootURL}/scm/ClearCaseSCM/viewNameCheck?value='+escape(this.value)"/>     
+    </f:entry>
+
+	<f:entry title="Use update">
+		<f:checkbox name="useupdate" checked="${h.defaultToTrue(scm.useUpdate)}" />
+		If checked, Hudson will use 'cleartool update' whenever
+		possible, making the build faster. But this causes the artifacts
+		from the previous build to remain when a new build starts.
+	</f:entry>
+
+	<f:entry title="Branch(es)" help="/plugin/clearcase/branch.html">
+		<f:expandableTextbox name="branch" value="${scm.branch}" />
+	</f:entry>
+
+	<f:advanced>
+		<f:entry title="VOB path(s)" help="/plugin/clearcase/vobpaths.html">
+			<f:expandableTextbox name="vobpaths" value="${scm.vobPaths}" />
+		</f:entry>
+		<f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
+			<f:expandableTextbox name="mkviewoptionalparam" value="${scm.mkviewOptionalParam}" />
+		</f:entry>
+	</f:advanced>
+</j:jelly>
