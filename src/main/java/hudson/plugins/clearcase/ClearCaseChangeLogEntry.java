@@ -6,11 +6,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.EditType;
+
 import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.export.Exported;
 
@@ -34,7 +35,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 
     public ClearCaseChangeLogEntry(Date date, String user, String action, String comment, String file, String version) {
         this(date, user, comment);
-        files.add(new FileElement(file, version, action));
+        files.add(new FileElement(file, version, action, ""));
     }
 
     public ClearCaseChangeLogEntry(Date date, String user, String comment) {
@@ -102,7 +103,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     @Deprecated
     public void setFile(String file) {
         if ((files == null) || (files.size() == 0))
-            addElement(new FileElement(file, "", ""));
+            addElement(new FileElement(file, "", "", ""));
         else
             files.get(0).setFile(file);
     }
@@ -110,7 +111,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     @Deprecated
     public void setVersion(String version) {
         if ((files == null) || (files.size() == 0))
-            addElement(new FileElement("", version, ""));
+            addElement(new FileElement("", version, "", ""));
         else
             files.get(0).setVersion(version);
     }
@@ -118,7 +119,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     @Deprecated
     public void setAction(String action) {
         if ((files == null) || (files.size() == 0))
-            addElement(new FileElement("", "", action));
+            addElement(new FileElement("", "", action, ""));
         else
             files.get(0).setAction(action);
     }
@@ -157,14 +158,16 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
         private String name = "";
         private String version = "";
         private String action = "";
+        private String operation = "";
         
         public FileElement() {
         }
         
-        public FileElement(String fileName, String version, String action) {
+        public FileElement(String fileName, String version, String action, String operation) {
             this.name = fileName;
             this.version = version;
             this.action = action;
+            this.operation = operation;
         }
         
         @Exported
@@ -192,6 +195,27 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 
         public void setAction(String action) {
             this.action = action;
+        }
+
+        @Exported        
+        public String getOperation() {
+            return operation;
+        }
+
+        public void setOperation(String status) {
+            this.operation = status;
+        }
+
+        @Exported
+        public EditType getEditType() {
+            if (operation.equalsIgnoreCase("mkelem")) {
+                return EditType.ADD;
+            } else if (operation.equalsIgnoreCase("rmelem")) {
+                return EditType.DELETE;
+            } else if (operation.equalsIgnoreCase("checkin")) {
+                return EditType.EDIT;
+            }
+            return null;
         }
     }
 }

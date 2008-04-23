@@ -2,6 +2,9 @@ package hudson.plugins.clearcase;
 
 import static org.junit.Assert.*;
 
+import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
+import hudson.scm.EditType;
+
 import java.util.Calendar;
 import org.junit.Test;
 
@@ -46,4 +49,30 @@ public class ClearCaseChangeLogEntryTest {
         assertEquals("version1", entry.getElements().get(0).getVersion());
     }
 
+    @Test
+    public void testFileElementAddEditType() {
+        FileElement element = new FileElement();
+        element.setOperation("mkelem");
+        assertSame("Edit type was incorrect", EditType.ADD, element.getEditType());
+    }
+
+    @Test
+    public void testFileElementEditEditType() {
+        FileElement element = new FileElement();
+        element.setOperation("checkin");
+        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
+    }
+
+    @Test
+    public void testFileElementDeleteEditType() {
+        FileElement element = new FileElement();
+        element.setOperation("rmelem");
+        assertSame("Edit type was incorrect", EditType.DELETE, element.getEditType());
+    }
+
+    @Test
+    public void testFileElementUnknownEditType() {
+        FileElement element = new FileElement();
+        assertNull("Edit type was not null", element.getEditType());
+    }
 }

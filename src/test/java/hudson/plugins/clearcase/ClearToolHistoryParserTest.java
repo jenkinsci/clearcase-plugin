@@ -1,5 +1,7 @@
 package hudson.plugins.clearcase;
 
+import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -19,7 +21,7 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070827.084801\" \"inttest14\" \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
+                        "\"20070827.084801\" \"inttest14\" \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"));
 
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
 
@@ -38,7 +40,7 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"));
+                        "\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"mkelem\"\n"));
 
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -51,7 +53,7 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\ntext\n\nend of comment"));
+                        "\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"mkelem\"\ntext\n\nend of comment"));
 
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -64,7 +66,7 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\nBUG8949"));
+                        "\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"  \"mkelem\"\nBUG8949"));
 
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
 
@@ -83,7 +85,7 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\nBUG8949\nThis fixed the problem"));
+                        "\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"  \"mkelem\"\nBUG8949\nThis fixed the problem"));
 
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
 
@@ -102,7 +104,7 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070827.085901\"   \"aname\"    \"create a version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"\n"));
+                        "\"20070827.085901\"   \"aname\"    \"create a version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"  \"mkelem\"\n"));
 
         Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -115,9 +117,8 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070906.091701\"   \"egsperi\"    \"create branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"
-                        +
-                        "\"20070906.091701\"   \"egsperi\"    \"create branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"\n"));
+                        "\"20070906.091701\"   \"egsperi\"    \"create branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"mkelem\"\n"
+                      + "\"20070906.091701\"   \"egsperi\"    \"create branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"mkelem\"\n"));
         Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());
     }
 
@@ -126,9 +127,8 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\0\"\n"
-                        +
-                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\0\"\n"));
+                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\0\"  \"mkelem\"\n"
+                      + "\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\0\"  \"mkelem\"\n"));
         Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());
     }
 
@@ -137,9 +137,8 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"/ApplicationConfiguration\" \"/main/sit_r6a/0\"\n"
-                        + 
-                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"/ApplicationConfiguration\" \"/main/sit_r6a/0\"\n"));
+                        "\"20070906.091701\"   \"egsperi\"    \"create version\" \"/ApplicationConfiguration\" \"/main/sit_r6a/0\"  \"mkelem\"\n"
+                      + "\"20070906.091701\"   \"egsperi\"    \"create version\" \"/ApplicationConfiguration\" \"/main/sit_r6a/0\"  \"mkelem\"\n"));
         Assert.assertEquals("Number of history entries are incorrect", 0, entries.size());
     }
 
@@ -149,9 +148,9 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070827.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"
-                                + "\"20070825.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"
-                                + "\"20070830.084801\"   \"inttest1\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
+                        "\"20070827.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
+                      + "\"20070825.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
+                      + "\"20070830.084801\"   \"inttest1\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"));
 
         Assert.assertEquals("Number of history entries are incorrect", 3, entries.size());
 
@@ -166,8 +165,8 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070830.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n"
-                                + "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
+                        "\"20070830.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n"
+                      + "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"));
 
         Assert.assertEquals("Number of history entries are incorrect", 2, entries.size());
     }
@@ -178,9 +177,9 @@ public class ClearToolHistoryParserTest {
         ClearToolHistoryParser parser = new ClearToolHistoryParser();
         List<ClearCaseChangeLogEntry> entries = parser
                 .parse(new StringReader(
-                        "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"
-                                + "cleartool: Error: Branch type not found: \"sit_r6a\".\n"
-                                + "\"20070829.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"\n\n"));
+                        "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
+                      + "cleartool: Error: Branch type not found: \"sit_r6a\".\n"
+                      + "\"20070829.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"));
 
         Assert.assertEquals("Number of history entries are incorrect", 2, entries.size());
         Assert.assertEquals("First entry is incorrect", "", entries.get(0).getComment());
@@ -195,6 +194,19 @@ public class ClearToolHistoryParserTest {
         Assert.assertEquals("Number of history entries are incorrect", 3, list.size());
     }
 
+    @Test
+    public void testOperation() throws IOException, ParseException {
+
+        ClearToolHistoryParser parser = new ClearToolHistoryParser();
+        List<ClearCaseChangeLogEntry> entries = parser
+                .parse(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"  \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"mkelem\"\n"));
+
+        Assert.assertEquals("Number of history entries are incorrect", 1, entries.size());
+        FileElement element = entries.get(0).getElements().get(0);
+        Assert.assertEquals("Status is incorrect", "mkelem", element.getOperation());
+    }
+    
     private Date getDate(int year, int month, int day, int hour, int min, int sec) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(0);
