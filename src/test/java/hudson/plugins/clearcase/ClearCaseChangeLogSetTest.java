@@ -104,8 +104,8 @@ public class ClearCaseChangeLogSetTest {
         entry.setUser("Anka");
         entry.setComment("comment");
         entry.setDate(Calendar.getInstance().getTime());
-        entry.addElement(new FileElement("file1", "version1", "action1"));
-        entry.addElement(new FileElement("file2", "version2", "action2"));
+        entry.addElement(new FileElement("file1", "version1", "action1", "mkelem"));
+        entry.addElement(new FileElement("file2", "version2", "action2", "mkelem"));
 
         List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
         history.add(entry);
@@ -127,8 +127,10 @@ public class ClearCaseChangeLogSetTest {
         Assert.assertEquals("The first file name is incorrect", "file1", logs.get(0).getElements().get(0).getFile());
         Assert.assertEquals("The first version is incorrect", "version1", logs.get(0).getElements().get(0).getVersion());
         Assert.assertEquals("The first action is incorrect", "action1", logs.get(0).getElements().get(0).getAction());
+        Assert.assertEquals("The first operation is incorrect", "mkelem", logs.get(0).getElements().get(0).getOperation());
         Assert.assertEquals("The second file name is incorrect", "file2", logs.get(0).getElements().get(1).getFile());
         Assert.assertEquals("The second version is incorrect", "version2", logs.get(0).getElements().get(1).getVersion());
         Assert.assertEquals("The second action is incorrect", "action2", logs.get(0).getElements().get(1).getAction());
+        Assert.assertEquals("The second operation is incorrect", "mkelem", logs.get(0).getElements().get(1).getOperation());
     }
 }

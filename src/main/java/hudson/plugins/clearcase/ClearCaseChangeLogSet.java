@@ -89,6 +89,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
         digester.addBeanPropertySetter("*/entry/element/file");
         digester.addBeanPropertySetter("*/entry/element/version");
         digester.addBeanPropertySetter("*/entry/element/action");
+        digester.addBeanPropertySetter("*/entry/element/operation");
         digester.addSetNext("*/entry/element","addElement");
         
         digester.addSetNext("*/entry", "add");
@@ -134,6 +135,9 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
                 stream.println("\t\t\t<version>");
                 stream.println(escapeForXml(file.getVersion()));
                 stream.println("\t\t\t</version>");
+                stream.println("\t\t\t<operation>");
+                stream.println(escapeForXml(file.getOperation()));
+                stream.println("\t\t\t</operation>");
                 stream.println("\t\t</element>");
             }
             stream.println("\t</entry>");

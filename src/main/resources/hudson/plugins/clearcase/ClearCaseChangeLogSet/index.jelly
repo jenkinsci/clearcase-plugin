@@ -10,7 +10,7 @@
     <table class="pane" style="border:none">
     <j:forEach var="cs" items="${it.logs}" varStatus="loop">
       <tr class="pane">
-        <td class="changeset">
+        <td class="changeset" colspan="2">
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
             <b>${loop.index + 1}. <a href="${rootURL}/${cs.author.url}/">${cs.author}</a> on ${cs.dateStr}</b><br/>
@@ -21,6 +21,11 @@
 
       <j:forEach var="element" items="${cs.elements}">
         <tr>
+        	<td align="right">
+        		<j:if test="${element.editType!=null}">
+        			<t:editTypeIcon type="${element.editType}" />
+        		</j:if>
+        	</td>
         	<td>${element.file}@${element.version} - ${element.action}</td>
         </tr>
       </j:forEach>
