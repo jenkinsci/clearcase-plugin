@@ -33,9 +33,9 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         createWorkspace();
         context = new Mockery();
 
-        clearToolExec = new ClearToolSnapshot("commandname");
         launcher = context.mock(ClearToolLauncher.class);
         listener = context.mock(TaskListener.class);
+        clearToolExec = new ClearToolSnapshot(launcher, "commandname");
     }
 
     @After
@@ -55,7 +55,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec.setcs(launcher, "viewName", "configspec");
+        clearToolExec.setcs("viewName", "configspec");
         context.assertIsSatisfied();
     }
 
@@ -71,7 +71,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec.rmview(launcher, "viewName");
+        clearToolExec.rmview("viewName");
         context.assertIsSatisfied();
     }
 
@@ -93,7 +93,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec.rmview(launcher, "viewName");
+        clearToolExec.rmview("viewName");
         assertFalse("View folder still exists", workspace.child("viewName").exists());
         context.assertIsSatisfied();
     }
@@ -109,7 +109,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec.update(launcher, "viewName");
+        clearToolExec.update("viewName");
         context.assertIsSatisfied();
     }
 
@@ -125,7 +125,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec.mkview(launcher, "viewName");
+        clearToolExec.mkview("viewName");
         context.assertIsSatisfied();
     }
 
@@ -141,7 +141,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec.mkview(launcher, "viewName", "streamSelector");
+        clearToolExec.mkview("viewName", "streamSelector");
         context.assertIsSatisfied();
     }
 
@@ -157,8 +157,8 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec = new ClearToolSnapshot("commandname", "-anextraparam -anotherparam");
-        clearToolExec.mkview(launcher, "viewName");
+        clearToolExec = new ClearToolSnapshot(launcher, "commandname", "-anextraparam -anotherparam");
+        clearToolExec.mkview("viewName");
         context.assertIsSatisfied();
     }
 }
