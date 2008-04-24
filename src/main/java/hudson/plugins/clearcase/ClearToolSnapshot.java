@@ -10,16 +10,16 @@ public class ClearToolSnapshot extends ClearToolExec {
 
     private String optionalParameters;
     
-    public ClearToolSnapshot(String clearToolExec) {
-        super(clearToolExec);
+    public ClearToolSnapshot(ClearToolLauncher launcher, String clearToolExec) {
+        super(launcher, clearToolExec);
     }
 
-    public ClearToolSnapshot(String clearToolExec, String optionalParameters) {
-        this(clearToolExec);
+    public ClearToolSnapshot(ClearToolLauncher launcher, String clearToolExec, String optionalParameters) {
+        this(launcher, clearToolExec);
         this.optionalParameters = optionalParameters;
     }
 
-    public void setcs(ClearToolLauncher launcher, String viewName, String configSpec) throws IOException,
+    public void setcs(String viewName, String configSpec) throws IOException,
             InterruptedException {
         FilePath workspace = launcher.getWorkspace();
         FilePath configSpecFile = workspace.createTextTempFile("configspec", ".txt", configSpec);
@@ -33,7 +33,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         configSpecFile.delete();
     }
 
-    public void mkview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+    public void mkview(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
         cmd.add("mkview");
@@ -47,7 +47,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
 
-    public void mkview(ClearToolLauncher launcher, String viewName, String streamSelector) throws IOException, InterruptedException {
+    public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
         cmd.add("mkview");
@@ -63,7 +63,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
 
-    public void rmview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+    public void rmview(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
         cmd.add("rmview");
@@ -78,7 +78,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         }
     }
 
-    public void update(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+    public void update(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
         cmd.add("update");
@@ -93,7 +93,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         return launcher.getWorkspace();
     }
 
-	public void setView(ClearToolLauncher launcher, String viewTag) throws IOException, InterruptedException {
-		launcher.getListener().fatalError("Snapshot view does not support setview");
-	}
+    public void setView(String viewTag) throws IOException, InterruptedException {
+        launcher.getListener().fatalError("Snapshot view does not support setview");
+    }
 }

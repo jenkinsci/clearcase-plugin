@@ -1,7 +1,7 @@
 package hudson.plugins.clearcase;
+
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import java.io.IOException;
@@ -14,6 +14,7 @@ import org.jmock.Mockery;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 public class ClearToolExecTest extends AbstractWorkspaceTest {
     private Mockery context;
     private ClearToolExec clearToolExec;
@@ -23,20 +24,15 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
-        clearToolExec = new ClearToolImpl("commandname");
         launcher = context.mock(ClearToolLauncher.class);
         taskListener = context.mock(BuildListener.class);
+        clearToolExec = new ClearToolImpl(launcher, "commandname");
     }
     @After
     public void tearDown() throws Exception {
         deleteWorkspace();
     }
-    @Test
-    public void testVobPathProperty() {
-        assertNull("The vob path is set", clearToolExec.getVobPaths());
-        clearToolExec.setVobPaths("VOBS");
-        assertEquals("The vob path is incorrect", "VOBS", clearToolExec.getVobPaths());
-    }
+    
     @Test
     public void testListViews() throws Exception {
         context.checking(new Expectations() {
@@ -48,7 +44,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         returnValue(Boolean.TRUE)));
             }
         });
-        List<String> views = clearToolExec.lsview(launcher, false);
+        List<String> views = clearToolExec.lsview(false);
         assertEquals("The view list should contain 4 items", 4, views.size());
         assertEquals("The first view name is incorrect", "qaaaabbb_R3A_view", views.get(0));
         assertEquals("The second view name is incorrect", "qccccddd_view", views.get(1));
@@ -67,7 +63,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         returnValue(Boolean.TRUE)));
             }
         });
-        List<String> views = clearToolExec.lsview(launcher, true);
+        List<String> views = clearToolExec.lsview(true);
         assertEquals("The view list should contain 1 item", 1, views.size());
         assertEquals("The third view name is incorrect", "qeeefff_view", views.get(0));
         context.assertIsSatisfied();
@@ -82,7 +78,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         returnValue(Boolean.TRUE)));
             }
         });
-        List<String> vobs = clearToolExec.lsvob(launcher, false);
+        List<String> vobs = clearToolExec.lsvob(false);
         assertEquals("The vob list should contain 6 items", 6, vobs.size());
         assertEquals("The first vob name is incorrect", "demo", vobs.get(0));
         assertEquals("The second vob name is incorrect", "pvoba", vobs.get(1));
@@ -102,7 +98,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         returnValue(Boolean.TRUE)));
             }
         });
-        List<String> vobs = clearToolExec.lsvob(launcher, true);
+        List<String> vobs = clearToolExec.lsvob(true);
         assertEquals("The vob list should contain 3 items", 3, vobs.size());
         assertEquals("The first vob name is incorrect", "demo", vobs.get(0));
         assertEquals("The second vob name is incorrect", "demoa", vobs.get(1));
@@ -126,8 +122,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 will(returnValue(Boolean.TRUE));
             }
         });
-        clearToolExec.setVobPaths(" ");
-        clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+        clearToolExec.lshistory(mockedCalendar.getTime(), "viewName", "branch", " ");
         context.assertIsSatisfied();
     }
     @Test
@@ -151,7 +146,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 will(returnValue(Boolean.TRUE));
             }
         });
-        clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+        clearToolExec.lshistory(mockedCalendar.getTime(), "viewName", "branch", "");
         context.assertIsSatisfied();
     }
     @Test
@@ -172,9 +167,8 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         returnValue(Boolean.TRUE)));
             }
         });
-        clearToolExec.setVobPaths("vob1");
-        List<ClearCaseChangeLogEntry> lshistory = clearToolExec.lshistory(launcher, mockedCalendar.getTime(),
-                "viewName", "branch");
+        List<ClearCaseChangeLogEntry> lshistory = clearToolExec.lshistory(mockedCalendar.getTime(),
+                "viewName", "branch","vob1");
         assertEquals("The history should contain 3 items", 3, lshistory.size());
         context.assertIsSatisfied();
     }
@@ -195,8 +189,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 will(returnValue(Boolean.TRUE));
             }
         });
-        clearToolExec.setVobPaths("vob2/vob2-1 vob4");
-        clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+        clearToolExec.lshistory(mockedCalendar.getTime(), "viewName", "branch", "vob2/vob2-1 vob4");
         context.assertIsSatisfied();
     }
     @Test(expected=hudson.AbortException.class)
@@ -212,7 +205,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 one(taskListener).fatalError(with(any(String.class)));
             }
         });
-        clearToolExec.lshistory(launcher, mockedCalendar.getTime(), "viewName", "branch");
+        clearToolExec.lshistory(mockedCalendar.getTime(), "viewName", "branch", "");
         context.assertIsSatisfied();
     }
     @Test
@@ -225,7 +218,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         returnValue(Boolean.TRUE)));
             }
         });
-        String configSpec = clearToolExec.catcs(launcher, "viewname");
+        String configSpec = clearToolExec.catcs("viewname");
         assertEquals("The config spec was not correct", "element * CHECKEDOUT\nelement * ...\\rel2_bugfix\\LATEST\nelement * \\main\\LATEST -mkbranch rel2_bugfix", configSpec);
         
         context.assertIsSatisfied();
@@ -234,30 +227,30 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
      * Simple impl of ClearToolExec to help testing the methods in the class
      */
     private static class ClearToolImpl extends ClearToolExec {
-        public ClearToolImpl(String clearToolExec) {
-            super(clearToolExec);
+        public ClearToolImpl(ClearToolLauncher launcher, String clearToolExec) {
+            super(launcher, clearToolExec);
         }
-        public void checkout(ClearToolLauncher launcher, String configSpec, String viewName) throws IOException,
+        public void checkout(String configSpec, String viewName) throws IOException,
                 InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
-        public void mkview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+        public void mkview(String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
-        public void mkview(ClearToolLauncher launcher, String viewName, String streamSelector) throws IOException, InterruptedException {
+        public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
-        public void rmview(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+        public void rmview(String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
-        public void setcs(ClearToolLauncher launcher, String viewName, String configSpec) throws IOException,
+        public void setcs(String viewName, String configSpec) throws IOException,
                 InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
-        public void update(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+        public void update(String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
-        public void setView(ClearToolLauncher launcher, String viewTag) throws IOException, InterruptedException {
+        public void setView(String viewTag) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
         
