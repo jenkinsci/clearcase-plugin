@@ -24,24 +24,17 @@ public abstract class ClearToolExec implements ClearTool {
 
     private transient Pattern viewListPattern;
     protected transient String clearToolExec;
-    protected transient String vobPaths;
+    protected ClearToolLauncher launcher;
 
-    public ClearToolExec(String clearToolExec) {
+    public ClearToolExec(ClearToolLauncher launcher, String clearToolExec) {
+        this.launcher = launcher;
         this.clearToolExec = clearToolExec;
-    }
-
-    public String getVobPaths() {
-        return vobPaths;
-    }
-
-    public void setVobPaths(String vobPaths) {
-        this.vobPaths = vobPaths;
     }
 
     protected abstract FilePath getRootViewPath(ClearToolLauncher launcher);
 
-    public List<ClearCaseChangeLogEntry> lshistory(ClearToolLauncher launcher, Date lastBuildDate, String viewName,
-            String branch) throws IOException, InterruptedException {
+    public List<ClearCaseChangeLogEntry> lshistory(Date lastBuildDate, String viewName,
+            String branch, String vobPaths) throws IOException, InterruptedException {
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm:ss");
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
@@ -57,7 +50,7 @@ public abstract class ClearToolExec implements ClearTool {
         FilePath viewPath = getRootViewPath(launcher).child(viewName);
 
         if (viewPath.exists()) {
-            String[] vobNameArray = getVobNames(viewPath);
+            String[] vobNameArray = getVobNames(viewPath, vobPaths);
             for (String vob : vobNameArray) {
                 cmd.add(vob);
             }
@@ -79,7 +72,7 @@ public abstract class ClearToolExec implements ClearTool {
         return new ArrayList<ClearCaseChangeLogEntry>();
     }
 
-    private String[] getVobNames(FilePath viewPath) throws IOException, InterruptedException {
+    private String[] getVobNames(FilePath viewPath, String vobPaths) throws IOException, InterruptedException {
         String[] vobNameArray;
         if ((vobPaths == null) || (vobPaths.trim().length() == 0)) {
             List<String> vobList = new ArrayList<String>();
@@ -103,12 +96,12 @@ public abstract class ClearToolExec implements ClearTool {
         return vobNameArray;
     }
 
-    public void mklabel(ClearToolLauncher launcher, String viewName, String label) throws IOException,
+    public void mklabel(String viewName, String label) throws IOException,
             InterruptedException {
         throw new AbortException();
     }
 
-    public List<String> lsview(ClearToolLauncher launcher, boolean onlyActiveDynamicViews) throws IOException,
+    public List<String> lsview(boolean onlyActiveDynamicViews) throws IOException,
             InterruptedException {
         viewListPattern = getListPattern();
         ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -123,7 +116,7 @@ public abstract class ClearToolExec implements ClearTool {
         return new ArrayList<String>();
     }
 
-    public List<String> lsvob(ClearToolLauncher launcher, boolean onlyMOunted) throws IOException, InterruptedException {
+    public List<String> lsvob(boolean onlyMOunted) throws IOException, InterruptedException {
         viewListPattern = getListPattern();
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
@@ -136,7 +129,7 @@ public abstract class ClearToolExec implements ClearTool {
         return new ArrayList<String>();
     }
 
-    public String catcs(ClearToolLauncher launcher, String viewName) throws IOException, InterruptedException {
+    public String catcs(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
         cmd.add("catcs");

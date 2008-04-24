@@ -23,8 +23,8 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
         createWorkspace();
         context = new Mockery();
 
-        clearToolExec = new ClearToolDynamic("commandname", "/cc/drives");
         launcher = context.mock(ClearToolLauncher.class);
+        clearToolExec = new ClearToolDynamic(launcher, "commandname", "/cc/drives");
     }
 
     @After
@@ -46,7 +46,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec.setcs(launcher, "viewName", "configspec");
+        clearToolExec.setcs("viewName", "configspec");
         context.assertIsSatisfied();
     }
 
@@ -60,7 +60,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
             }
         });
 
-        clearToolExec.setView(launcher, "viewName");
+        clearToolExec.setView("viewName");
         context.assertIsSatisfied();
     }
 }
