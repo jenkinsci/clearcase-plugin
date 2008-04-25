@@ -18,9 +18,6 @@
 	</f:entry>
 
 	<f:advanced>
-		<f:entry title="VOB path(s)" help="/plugin/clearcase/vobpaths.html">
-			<f:expandableTextbox name="vobpaths" value="${scm.vobPaths}" />
-		</f:entry>
 		<f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
 			<f:expandableTextbox name="mkviewoptionalparam" value="${scm.mkviewOptionalParam}" />
 		</f:entry>
