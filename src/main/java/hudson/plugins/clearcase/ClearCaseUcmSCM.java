@@ -5,6 +5,7 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import hudson.Util;
 import hudson.model.ModelObject;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.DefaultPollAction;
@@ -23,9 +24,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     private final String loadRules;
 
     @DataBoundConstructor
-    public ClearCaseUcmSCM(String stream, String loadrules, String viewname, String vobpaths,
-            String mkviewoptionalparam) {
-        super(viewname, vobpaths, mkviewoptionalparam);
+    public ClearCaseUcmSCM(String stream, String loadrules, String viewname, String mkviewoptionalparam) {
+        super(viewname, mkviewoptionalparam);
         this.stream = stream;
         this.loadRules = loadrules;
     }
@@ -54,6 +54,23 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     @Override
     public String[] getBranchNames() {
         return new String[]{ stream };
+    }
+
+    @Override
+    public String getVobPaths() {
+        StringBuilder builder = new StringBuilder();
+        String[] rules = Util.tokenize(loadRules, "\n");
+        for (int i = 0; i < rules.length; i++) {
+            if (i > 0)
+                builder.append(' ');
+
+            String str = rules[i];
+            if(str.indexOf(' ')>=0 || str.length()==0)
+                builder.append('"').append(str).append('"');
+            else
+                builder.append(str);
+        }
+        return builder.toString();
     }
 
     @Override
