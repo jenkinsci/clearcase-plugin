@@ -40,14 +40,16 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private boolean useDynamicView;
     private String viewDrive;
     private final String branch;
+    private final String vobPaths;
 
     @DataBoundConstructor
     public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String vobpaths,
             boolean usedynamicview, String viewdrive, String mkviewoptionalparam) {
-        super(viewname, vobpaths, mkviewoptionalparam);
+        super(viewname, mkviewoptionalparam);
         this.branch = branch;
         this.configSpec = configspec;
         this.useUpdate = useupdate;
+        this.vobPaths = vobpaths;
         this.useDynamicView = usedynamicview;
         this.viewDrive = viewdrive;
 
@@ -74,6 +76,16 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     public String getViewDrive() {
         return viewDrive;
+    }
+
+    /**
+     * Return the user configured vob paths that will be used when getting changes for a view.
+     * If the vob paths is empty, then the folder within the view will be used
+     * as vob paths.
+     * @return the vob paths that will be used when getting changes for a view.
+     */
+    public String getVobPaths() {
+        return vobPaths;
     }
 
     @Override

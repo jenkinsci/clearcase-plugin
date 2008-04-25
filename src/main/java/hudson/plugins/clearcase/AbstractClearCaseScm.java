@@ -32,12 +32,10 @@ public abstract class AbstractClearCaseScm extends SCM {
     public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
 
     private final String viewName;
-    private final String vobPaths;
     private final String mkviewOptionalParam;
     
-    public AbstractClearCaseScm(String viewName, String vobPaths, String mkviewOptionalParam) {
+    public AbstractClearCaseScm(String viewName, String mkviewOptionalParam) {
         this.viewName = viewName;
-        this.vobPaths = vobPaths;
         this.mkviewOptionalParam = mkviewOptionalParam;
     }
     
@@ -60,6 +58,12 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return a string array, can not be empty
      */
     public abstract String[] getBranchNames();
+    
+    /**
+     * Return string containing the vob paths that should be used when polling for changes.
+     * @return string that will be appended at the end of the lshistory command
+     */
+    public abstract String getVobPaths();
 
     @Override
     public ChangeLogParser createChangeLogParser() {
@@ -77,16 +81,6 @@ public abstract class AbstractClearCaseScm extends SCM {
         } else {
             return viewName;
         }
-    }
-
-    /**
-     * Return the user configured vob paths that will be used when getting changes for a view.
-     * If the vob paths is empty, then the folder within the view will be used
-     * as vob paths.
-     * @return the vob paths that will be used when getting changes for a view.
-     */
-    public String getVobPaths() {
-        return vobPaths;
     }
 
     /**
@@ -142,7 +136,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (build.getPreviousBuild() != null) {
             Date time = build.getPreviousBuild().getTimestamp().getTime();
             for (String branchName : getBranchNames()) {
-                history.addAll(pollAction.getChanges(time, viewName, branchName, vobPaths));
+                history.addAll(pollAction.getChanges(time, viewName, branchName, getVobPaths()));
             }
         }
 
@@ -166,7 +160,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             Date buildTime = lastBuild.getTimestamp().getTime();
             PollAction pollAction = createPollAction(createClearToolLauncher(listener, workspace, launcher));
             for (String branchName : getBranchNames()) {
-                List<ClearCaseChangeLogEntry> data = pollAction.getChanges(buildTime, viewName, branchName, vobPaths);
+                List<ClearCaseChangeLogEntry> data = pollAction.getChanges(buildTime, viewName, branchName, getVobPaths());
                 if (!data.isEmpty()) {
                     return true;
                 }
