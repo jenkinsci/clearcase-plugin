@@ -11,9 +11,10 @@ public interface ClearTool {
      * 
      * @param launcher launcher for launching the command
      * @param viewName the name of the view
+     * @param loadRules optional load rules, null if not used.
      */
-    void update(String viewName) throws IOException, InterruptedException;
-
+    void update(String viewName, String loadRules) throws IOException, InterruptedException;
+    
     /**
      * Removes the view from a VOB
      * 
@@ -27,14 +28,7 @@ public interface ClearTool {
      * 
      * @param launcher launcher for launching the command
      * @param viewName the name of the view
-     */
-    void mkview(String viewName) throws IOException, InterruptedException;
-
-    /**
-     * Creates and registers a view
-     * 
-     * @param launcher launcher for launching the command
-     * @param viewName the name of the view
+     * @param streamSelector optional stream selector, null if not used.
      */
     void mkview(String viewName, String streamSelector) throws IOException, InterruptedException;
 

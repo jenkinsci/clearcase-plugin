@@ -2,24 +2,19 @@
 	xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
 	xmlns:f="/lib/form">
 
-	<f:entry title="Stream" help="/plugin/clearcase/stream.html">
-		<f:textbox name="stream" value="${scm.stream}" checkUrl="'${rootURL}/scm/ClearCaseUcmSCM/streamCheck?value='+escape(this.value)" />
-	</f:entry>
-
   	<f:entry title="View name" help="/plugin/clearcase/localdir.html">
   		<f:textbox name="viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}" 
-  			checkUrl="'${rootURL}/scm/ClearCaseSCM/viewNameCheck?value='+escape(this.value)"/>     
+  			checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('View name is mandatory')+'&amp;value='+escape(this.value)" />
     </f:entry>
-
-	<f:entry title="Use update">
-		<f:checkbox name="useupdate" checked="${h.defaultToTrue(scm.useUpdate)}" />
-		If checked, Hudson will use 'cleartool update' whenever
-		possible, making the build faster. But this causes the artifacts
-		from the previous build to remain when a new build starts.
+    
+	<f:entry title="Stream selector" help="/plugin/clearcase/stream.html">
+		<f:textbox name="stream" value="${scm.stream}" 
+			checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Stream selector is mandatory')+'&amp;value='+escape(this.value)" />
 	</f:entry>
-
-	<f:entry title="Branch(es)" help="/plugin/clearcase/branch.html">
-		<f:expandableTextbox name="branch" value="${scm.branch}" />
+    
+	<f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
+		<f:textarea name="loadrules" value="${scm.loadRules}" 
+			checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules are mandatory')+'&amp;value='+escape(this.value)" />
 	</f:entry>
 
 	<f:advanced>

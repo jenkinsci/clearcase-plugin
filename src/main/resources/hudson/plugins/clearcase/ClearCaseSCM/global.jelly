@@ -15,7 +15,7 @@
 	<f:advanced>
       <f:entry title="Time window for merging event records" help="/plugin/clearcase/eventrecordtimewindow.html">
         <f:textbox name="clearcase.logmergetimewindow" value="${descriptor.logMergeTimeWindow}"
-        	checkUrl="'${rootURL}/scm/ClearCaseSCM/logMergeTimeWindowCheck?value='+escape(this.value)"/>
+			checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Entering a merge time window is mandatory')+'&amp;value='+escape(this.value)" />
       </f:entry>
 	</f:advanced>
 </j:jelly>
