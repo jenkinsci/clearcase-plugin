@@ -2,7 +2,6 @@ package hudson.plugins.clearcase.action;
 
 import static org.junit.Assert.*;
 import hudson.Launcher;
-import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
 
@@ -20,7 +19,6 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     private Mockery context;
 
     private ClearTool clearTool;
-    private BuildListener taskListener;
     private Launcher launcher;
 
     @Before
@@ -34,7 +32,6 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         };
 
         launcher = classContext.mock(Launcher.class);
-        taskListener = context.mock(BuildListener.class);
         clearTool = context.mock(ClearTool.class);
     }
 
@@ -44,12 +41,12 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-    public void testChangeInConfigSpec() throws Exception {
+    public void testChangeInConfigSpecOnUnix() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).setView(with(equal("viewname")));
-                one(clearTool).catcs(with(equal("viewname"))); will(returnValue("other configspec"));
-                one(clearTool).setcs(with(equal("viewname")), with(equal("configspec")));
+                one(clearTool).setView("viewname");
+                one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
+                one(clearTool).setcs("viewname", "config\nspec");
             }
         });
         classContext.checking(new Expectations() {
@@ -58,8 +55,31 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "viewname", "configspec");
-        boolean success = action.checkout(launcher, workspace, taskListener);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "viewname", "config\nspec");
+        boolean success = action.checkout(launcher, workspace);
+        assertTrue("Checkout method did not return true.", success);
+
+        context.assertIsSatisfied();
+        classContext.assertIsSatisfied();
+    }
+    
+    @Test
+    public void testChangeInConfigSpecNotOnUnix() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(clearTool).setView("viewname");
+                one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
+                one(clearTool).setcs("viewname", "config\r\nspec");
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                one(launcher).isUnix(); will(returnValue(false));
+            }
+        });
+
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "viewname", "config\r\nspec");
+        boolean success = action.checkout(launcher, workspace);
         assertTrue("Checkout method did not return true.", success);
 
         context.assertIsSatisfied();
@@ -70,13 +90,13 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     public void testNoChangeInConfigSpec() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).setView(with(equal("viewname")));
-                one(clearTool).catcs(with(equal("viewname"))); will(returnValue("config\nspec"));
+                one(clearTool).setView("viewname");
+                one(clearTool).catcs("viewname"); will(returnValue("config\nspec"));
             }
         });
 
         DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "viewname", "config\nspec");
-        boolean success = action.checkout(launcher, workspace, taskListener);
+        boolean success = action.checkout(launcher, workspace);
         assertTrue("Checkout method did not return true.", success);
 
         context.assertIsSatisfied();

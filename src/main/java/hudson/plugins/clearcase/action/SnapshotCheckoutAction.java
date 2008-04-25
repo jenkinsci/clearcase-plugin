@@ -4,9 +4,11 @@ import java.io.IOException;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
 import hudson.plugins.clearcase.ClearTool;
 
+/**
+ * Check out action that will check out files into a snapshot view.
+ */
 public class SnapshotCheckoutAction implements CheckOutAction {
 
     private final String viewName;
@@ -21,7 +23,7 @@ public class SnapshotCheckoutAction implements CheckOutAction {
         this.useUpdate = useUpdate;        
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace, BuildListener listener) throws IOException, InterruptedException {
+    public boolean checkout(Launcher launcher, FilePath workspace) throws IOException, InterruptedException {
 
         boolean updateView = useUpdate;        
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();
@@ -40,7 +42,7 @@ public class SnapshotCheckoutAction implements CheckOutAction {
         }
 
         if (!localViewPathExists) {
-            cleartool.mkview(viewName);
+            cleartool.mkview(viewName, null);
             String tempConfigSpec = configSpec;
             if (launcher.isUnix()) {
                 tempConfigSpec = configSpec.replaceAll("\r\n", "\n");
@@ -50,7 +52,7 @@ public class SnapshotCheckoutAction implements CheckOutAction {
         }
 
         if (updateView) {
-            cleartool.update(viewName);
+            cleartool.update(viewName, null);
         }
         return true;
     }

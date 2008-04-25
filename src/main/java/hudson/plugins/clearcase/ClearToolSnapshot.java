@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class ClearToolSnapshot extends ClearToolExec {
 
-    private String optionalParameters;
+    private String optionalMkviewParameters;
     
     public ClearToolSnapshot(ClearToolLauncher launcher, String clearToolExec) {
         super(launcher, clearToolExec);
@@ -16,7 +16,7 @@ public class ClearToolSnapshot extends ClearToolExec {
 
     public ClearToolSnapshot(ClearToolLauncher launcher, String clearToolExec, String optionalParameters) {
         this(launcher, clearToolExec);
-        this.optionalParameters = optionalParameters;
+        this.optionalMkviewParameters = optionalParameters;
     }
 
     public void setcs(String viewName, String configSpec) throws IOException,
@@ -33,31 +33,19 @@ public class ClearToolSnapshot extends ClearToolExec {
         configSpecFile.delete();
     }
 
-    public void mkview(String viewName) throws IOException, InterruptedException {
-        ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add(clearToolExec);
-        cmd.add("mkview");
-        cmd.add("-snapshot");
-        cmd.add("-tag");
-        cmd.add(viewName);
-        if ((optionalParameters != null) && (optionalParameters.length() > 0)) {
-            cmd.addTokenized(optionalParameters);
-        }
-        cmd.add(viewName);
-        launcher.run(cmd.toCommandArray(), null, null, null);
-    }
-
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
         cmd.add("mkview");
         cmd.add("-snapshot");
-        cmd.add("-stream");
-        cmd.add(streamSelector);
+        if (streamSelector != null) {
+            cmd.add("-stream");
+            cmd.add(streamSelector);
+        }
         cmd.add("-tag");
         cmd.add(viewName);
-        if ((optionalParameters != null) && (optionalParameters.length() > 0)) {
-            cmd.addTokenized(optionalParameters);
+        if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
+            cmd.addTokenized(optionalMkviewParameters);
         }
         cmd.add(viewName);
         launcher.run(cmd.toCommandArray(), null, null, null);
@@ -78,13 +66,18 @@ public class ClearToolSnapshot extends ClearToolExec {
         }
     }
 
-    public void update(String viewName) throws IOException, InterruptedException {
+    public void update(String viewName, String loadRules) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add(clearToolExec);
         cmd.add("update");
         cmd.add("-force");
         cmd.add("-log", "NUL");
-        cmd.add(viewName);
+        if (loadRules == null) {
+            cmd.add(viewName);
+        } else {
+            cmd.add("-add_loadrules");
+            cmd.add(viewName + File.separator + loadRules);
+        }
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
 
