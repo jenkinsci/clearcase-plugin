@@ -1,70 +1,47 @@
 package hudson.plugins.clearcase;
 
-import static hudson.Util.fixEmpty;
-
-import java.io.File;
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
 
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
 import hudson.model.ModelObject;
-import hudson.model.TaskListener;
-import hudson.scm.ChangeLogParser;
+import hudson.plugins.clearcase.action.CheckOutAction;
+import hudson.plugins.clearcase.action.DefaultPollAction;
+import hudson.plugins.clearcase.action.PollAction;
+import hudson.plugins.clearcase.action.UcmSnapshotCheckoutAction;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
-import hudson.util.FormFieldValidator;
 
-public class ClearCaseUcmSCM extends SCM {
+/**
+ * SCM for ClearCaseUCM.
+ * This SCM will create a UCM view from a stream and apply a list of load rules to it.
+ */
+public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
-    private String stream;
-    private String branch;
-    private boolean useUpdate;
-    private String viewName;
-    private String vobPaths;
-    private String mkviewOptionalParam;
+    private final String stream;
+    private final String loadRules;
 
     @DataBoundConstructor
-    public ClearCaseUcmSCM(String stream, String branch, String viewname, boolean useupdate, String vobpaths,
+    public ClearCaseUcmSCM(String stream, String loadrules, String viewname, String vobpaths,
             String mkviewoptionalparam) {
+        super(viewname, vobpaths, mkviewoptionalparam);
         this.stream = stream;
-        this.branch = branch;
-        this.viewName = viewname;
-        this.useUpdate = useupdate;
-        this.vobPaths = vobpaths;
-        this.mkviewOptionalParam = mkviewoptionalparam;
-    }
-    
-    public String getBranch() {
-        return branch;
+        this.loadRules = loadrules;
     }
 
-    public boolean isUseUpdate() {
-        return useUpdate;
+    /**
+     * Return the load rules for the UCM view.
+     * @return string containing the load rules.
+     */
+    public String getLoadRules() {
+        return loadRules;
     }
 
-    public String getViewName() {
-        return viewName;
-    }
-
-    public String getVobPaths() {
-        return vobPaths;
-    }
-
-    public String getMkviewOptionalParam() {
-        return mkviewOptionalParam;
-    }
-
+    /**
+     * Return the stream that is used to create the UCM view.
+     * @return string containing the stream selector.
+     */
     public String getStream() {
         return stream;
     }
@@ -75,24 +52,24 @@ public class ClearCaseUcmSCM extends SCM {
     }
 
     @Override
-    public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener,
-            File changelogFile) throws IOException, InterruptedException {
-        // TODO Auto-generated method stub
-        return false;
+    public String[] getBranchNames() {
+        return new String[]{ stream };
     }
 
     @Override
-    public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener)
-            throws IOException, InterruptedException {
-        // TODO Auto-generated method stub
-        return false;
+    protected CheckOutAction createCheckOutAction(ClearToolLauncher launcher) {
+        return new UcmSnapshotCheckoutAction(createClearTool(launcher), getViewName(), getStream(), getLoadRules());
     }
 
     @Override
-    public ChangeLogParser createChangeLogParser() {
-        return new ClearCaseChangeLogParser();
+    protected PollAction createPollAction(ClearToolLauncher launcher) {
+        return new DefaultPollAction(createClearTool(launcher));
     }
-
+    
+    private ClearTool createClearTool(ClearToolLauncher launcher) {
+        return new ClearToolSnapshot(launcher, PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(), getMkviewOptionalParam());
+    }
+    
     /**
      * ClearCase UCM SCM descriptor
      * 
@@ -108,7 +85,7 @@ public class ClearCaseUcmSCM extends SCM {
 
         @Override
         public String getDisplayName() {
-            return "ClearCase UCM";
+            return "UCM ClearCase";
         }
 
         @Override
@@ -116,26 +93,9 @@ public class ClearCaseUcmSCM extends SCM {
             return true;
         }
 
-
         @Override
-        public SCM newInstance(StaplerRequest req, JSONObject formData)
-                throws FormException {
+        public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             return req.bindJSON(ClearCaseUcmSCM.class, formData);
-        }
-
-        public void doStreamCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-            new FormFieldValidator(req, rsp, false) {
-                @Override
-                protected void check() throws IOException, ServletException {
-                    String v = fixEmpty(request.getParameter("value"));
-                    if (v == null) {
-                        error("Stream selector is mandatory");
-                        return;
-                    }
-                    // all tests passed so far
-                    ok();
-                }
-            }.process();
         }
     }
 }

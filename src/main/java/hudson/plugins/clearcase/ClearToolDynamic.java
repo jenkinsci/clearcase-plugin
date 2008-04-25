@@ -33,10 +33,6 @@ public class ClearToolDynamic extends ClearToolExec {
         configSpecFile.delete();
     }
 
-    public void mkview(String viewName) throws IOException, InterruptedException {
-        launcher.getListener().fatalError("Dynamic view does not support mkview");
-    }
-
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic view does not support mkview");        
     }
@@ -45,7 +41,7 @@ public class ClearToolDynamic extends ClearToolExec {
         launcher.getListener().fatalError("Dynamic view does not support rmview");
     }
 
-    public void update(String viewName) throws IOException, InterruptedException {
+    public void update(String viewName, String loadRules) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic view does not support update");
     }
 
@@ -56,4 +52,5 @@ public class ClearToolDynamic extends ClearToolExec {
         cmd.add(viewTag);
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
+
 }
