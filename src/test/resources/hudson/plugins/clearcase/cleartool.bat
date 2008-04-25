@@ -1,30 +1,50 @@
-@echo off
+@ECHO OFF
 
-set output-file="%~dp0ct-%1-1.log"
+IF "%1" == "" GOTO HELP
 
-if "%1" == "" goto HELP
-if "%1" == "mkview" goto MKVIEW
-if "%1" == "setcs" goto END
+REM
+REM Determine what command to fake
+set command-output="%~dp0ct-%1-1.log"
+set command=%1
+
+REM
+REM Find the last argument
+SETLOCAL
+SHIFT
+:LOOP
+IF {%1}=={} GOTO FOUND
+SET LAST=%1
+SHIFT
+GOTO :LOOP
+:FOUND
+ENDLOCAL&SET LAST=%LAST%
+
+IF "%command%" == "mkview" GOTO MKVIEW
+IF "%command%" == "setcs" GOTO END
 GOTO PRINT-OUTPUT
 
 :MKVIEW
-mkdir "%5"
+mkdir %LAST%
+
 
 :PRINT-OUTPUT
-IF NOT EXIST %output-file% goto UNKNOWN-COMMAND
-type %output-file%
+IF NOT EXIST %command-output% goto UNKNOWN-COMMAND
+type %command-output%
 set errorlevel = 0
 GOTO END
 
+
 :UNKNOWN-COMMAND
-ECHO Unknown command %1, %output-file%
+ECHO Unknown command %1, %command-output%
 set errorlevel = 2
 GOTO END
+
 
 :HELP
 echo Usage: cleartool [command] [ignored arguments]
 set errorlevel = 1
 GOTO END
+
 
 :END
 exit /b %errorlevel%
