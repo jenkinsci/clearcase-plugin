@@ -88,12 +88,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testGetVobPaths() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vobs/ avob", "");
-        assertEquals("The vob paths isnt correct", "vobs/ avob", scm.getVobPaths());
-    }
-
-    @Test
     public void testCreateChangeLogParser() {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vobs/ avob", "");
         assertNotNull("The change log parser is null", scm.createChangeLogParser());
@@ -342,28 +336,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testPollChangesNoVobPaths() throws Exception {
-        final Calendar mockedCalendar = Calendar.getInstance();
-        context.checking(new Expectations() {
-            {
-                one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", "branch", ""); will(returnValue(new ArrayList<Object[]>()));
-            }
-        });
-        classContext.checking(new Expectations() {
-            {
-                one(build).getTimestamp(); will(returnValue(mockedCalendar));
-                one(project).getLastBuild(); will(returnValue(build));
-            }
-        });
-
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", "");
-        scm.pollChanges(project, launcher, workspace, taskListener);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
-    }
-
-    @Test
     public void testPollChangesNoBranch() throws Exception {
         branchArray = new String[] {""};  
         final Calendar mockedCalendar = Calendar.getInstance();
@@ -412,8 +384,11 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
     private class AbstractClearCaseScmDummy extends AbstractClearCaseScm {
 
+        private final String vobPaths;
+
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam) {
-            super(viewName, vobPaths, mkviewOptionalParam);
+            super(viewName, mkviewOptionalParam);
+            this.vobPaths = vobPaths;
         }
 
         @Override
@@ -439,6 +414,11 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         @Override
         public String[] getBranchNames() {
             return branchArray;
+        }
+
+        @Override
+        public String getVobPaths() {
+            return vobPaths;
         }
     }    
 }

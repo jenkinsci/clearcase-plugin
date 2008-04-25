@@ -77,4 +77,10 @@ public class ClearCaseSCMTest {
         ClearCaseSCM scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "", true, "/tmp/c", null);
         assertArrayEquals("The branch name array is incorrect", new String[]{"branchone", "branchtwo"}, scm.getBranchNames());
     }
+
+    @Test
+    public void testGetVobPaths() {
+        ClearCaseSCM scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "tmp/c aa", true, "", null);
+        assertEquals("The vob paths string is incorrect", "tmp/c aa", scm.getVobPaths());
+    }
 }
