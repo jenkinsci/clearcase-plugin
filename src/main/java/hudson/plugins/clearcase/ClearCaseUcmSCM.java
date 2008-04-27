@@ -53,7 +53,11 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
     @Override
     public String[] getBranchNames() {
-        return new String[]{ stream };
+        String branch = stream;
+        if (stream.contains("@")) {
+            branch = stream.substring(0, stream.indexOf("@"));
+        }
+        return new String[]{ branch };
     }
 
     @Override

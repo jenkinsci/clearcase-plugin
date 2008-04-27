@@ -24,6 +24,17 @@ public class ClearCaseUcmSCMTest {
         assertArrayEquals("The branch name array is incorrect", new String[]{"stream"}, scm.getBranchNames());
     }
 
+    /**
+     * The stream cant be used as a branch name directly if it contains a vob selector.
+     * cleartool lshistory -r <snip/> -branch brtype:shared_development_2_1@/vobs/UCM_project 
+     * cleartool: Error: Object is in unexpected VOB: "brtype:shared_development_2_1@/vobs/UCM_project".
+     */
+    @Test
+    public void testGetBranchNamesWithVobSelector() {
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream@/vob/paths", "loadrules", "viewname", "option");
+        assertArrayEquals("The branch name array is incorrect", new String[]{"stream"}, scm.getBranchNames());
+    }
+
     @Test
     public void testGetVobPaths() {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", "option");
