@@ -250,7 +250,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         public void update(String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
-        public void setView(String viewTag) throws IOException, InterruptedException {
+        public void startView(String viewTag) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
         

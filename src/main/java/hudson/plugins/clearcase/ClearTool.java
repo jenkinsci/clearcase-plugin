@@ -9,7 +9,6 @@ public interface ClearTool {
     /**
      * Updates the elements in the view
      * 
-     * @param launcher launcher for launching the command
      * @param viewName the name of the view
      * @param loadRules optional load rules, null if not used.
      */
@@ -18,7 +17,6 @@ public interface ClearTool {
     /**
      * Removes the view from a VOB
      * 
-     * @param launcher launcher for launching the command
      * @param viewName the name of the view
      */
     void rmview(String viewName) throws IOException, InterruptedException;
@@ -35,7 +33,6 @@ public interface ClearTool {
     /**
      * Sets the config spec of the view
      * 
-     * @param launcher launcher for launching the command
      * @param viewName the name of the view
      * @param configSpec the name of the file containing a config spec
      */
@@ -44,7 +41,6 @@ public interface ClearTool {
     /**
      * Attaches version labels to versions of elements
      * 
-     * @param launcher launcher for launching the command
      * @param viewName the name of the view
      * @param label the label name
      */
@@ -53,7 +49,6 @@ public interface ClearTool {
     /**
      * Lists event records for VOB-database objects
      * 
-     * @param launcher launcher for launching the command
      * @param lastBuildDate lists events recorded since (that is, at or after) the specified date-time
      * @param viewName the name of the view
      * @param branch the name of the branch to get history events for; if null then history events for all branches are
@@ -66,7 +61,6 @@ public interface ClearTool {
     /**
      * Lists view registry entries
      * 
-     * @param launcher launcher for launching the command
      * @param onlyActiveDynamicViews true for only return active dynamic views; false all views are returned
      * @return list of view names
      */
@@ -76,7 +70,6 @@ public interface ClearTool {
     /**
      * Lists VOB registry entries
      * 
-     * @param launcher launcher for launching the command
      * @param onlyMOunted true for only return mounted vobs; false all vobs are returned
      * @return list of vob names
      */
@@ -84,16 +77,15 @@ public interface ClearTool {
 
     /**
      * Retrives the config spec for the specified viewname
-     * @param launcher launcher for launching the command
      * @param viewName the name of the view
      * @return a string containing the config spec
      */
     String catcs(String viewName) throws IOException, InterruptedException;
     
     /**
-     * @param launcher launcher for launching the command
-     * Creates a process that is set to a dynamic view
-     * @param viewTag Any view tag specifying a dynamic view that is registered for the current network region.
+     * Starts or connects to a dynamic view's view_server process
+     * 
+     * @param viewTags One or more currently registered view tags (that is, view tags visible to lsview).
      */
-    void setView(String viewTag)  throws IOException, InterruptedException;
+    void startView(String viewTags) throws IOException, InterruptedException;
 }
