@@ -44,14 +44,14 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     public void testChangeInConfigSpecOnUnix() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).setView("viewname");
+                one(clearTool).startView("viewname");
                 one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
                 one(clearTool).setcs("viewname", "config\nspec");
             }
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(true));
+                ignoring(launcher).isUnix(); will(returnValue(true));
             }
         });
 
@@ -64,17 +64,17 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-    public void testChangeInConfigSpecNotOnUnix() throws Exception {
+    public void testChangeInConfigSpec() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).setView("viewname");
+                one(clearTool).startView("viewname");
                 one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
                 one(clearTool).setcs("viewname", "config\r\nspec");
             }
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(false));
+                ignoring(launcher).isUnix(); will(returnValue(false));
             }
         });
 
@@ -90,8 +90,13 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     public void testNoChangeInConfigSpec() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).setView("viewname");
+                one(clearTool).startView("viewname");
                 one(clearTool).catcs("viewname"); will(returnValue("config\nspec"));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                ignoring(launcher).isUnix(); will(returnValue(false));
             }
         });
 

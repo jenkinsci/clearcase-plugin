@@ -86,7 +86,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         return launcher.getWorkspace();
     }
 
-    public void setView(String viewTag) throws IOException, InterruptedException {
-        launcher.getListener().fatalError("Snapshot view does not support setview");
+    public void startView(String viewTag) throws IOException, InterruptedException {
+        launcher.getListener().fatalError("Snapshot view does not support startview");
     }
 }

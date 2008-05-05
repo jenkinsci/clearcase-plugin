@@ -24,8 +24,8 @@ public class DynamicCheckoutAction implements CheckOutAction {
         this.configSpec = configSpec;
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace) throws IOException, InterruptedException {
-        cleartool.setView(viewName);
+    public boolean checkout(Launcher launcher, FilePath workspace) throws IOException, InterruptedException { 
+        cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
         if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
             String tempConfigSpec = configSpec;
