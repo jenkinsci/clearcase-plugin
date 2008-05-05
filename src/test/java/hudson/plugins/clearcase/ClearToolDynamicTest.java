@@ -51,16 +51,16 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testSetview() throws Exception {
+    public void testStartview() throws Exception {
         context.checking(new Expectations() {
             {
                 one(launcher).run(
-                        with(allOf(hasItemInArray("commandname"), hasItemInArray("setview"), hasItemInArray("viewName"))), 
+                        with(allOf(hasItemInArray("commandname"), hasItemInArray("startview"), hasItemInArray("viewName"))), 
                         with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
             }
         });
 
-        clearToolExec.setView("viewName");
+        clearToolExec.startView("viewName");
         context.assertIsSatisfied();
     }
 }
