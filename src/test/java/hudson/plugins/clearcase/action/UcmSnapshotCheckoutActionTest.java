@@ -77,4 +77,21 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.assertIsSatisfied();
     }
+    
+    @Test
+    public void testMultipleWindowsLoadRules() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(clearTool).mkview("viewname", "stream");
+                one(clearTool).update("viewname", "\\ \\Windows");
+                one(clearTool).update("viewname", "\\\\C:\\System32");
+            }
+        });
+
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "viewname", "stream", "\\ \\Windows\n\\\\C:\\System32");
+        action.checkout(launcher, workspace);
+
+        context.assertIsSatisfied();
+    }    
+    
 }
