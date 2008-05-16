@@ -36,7 +36,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
 
         cleartool.mkview(viewName, stream);
 
-        for (String loadRule : Util.tokenize(loadRules, "\n")) {
+        for (String loadRule : loadRules.split("\n")) {
             cleartool.update(viewName, loadRule.trim());
         }
         return true;
