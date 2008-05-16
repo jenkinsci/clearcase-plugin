@@ -50,7 +50,6 @@ public class ClearCaseUcmSCMTest {
     @Test
     public void testGetWindowsVobPaths() {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "\\ \\ Windows\n\\\\C\\System32", "viewname", "option");
-        System.err.println(scm.getVobPaths());
-        assertEquals("The vob path is not the same as the load rules", "\\Windows \\\\C\\System32", scm.getVobPaths());
+        assertEquals("The vob path is not the same as the load rules", "\"\\ \\ Windows\" \\\\C\\System32", scm.getVobPaths());
     }    
 }
