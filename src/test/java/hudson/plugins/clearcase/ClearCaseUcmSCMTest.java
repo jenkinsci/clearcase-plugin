@@ -46,4 +46,11 @@ public class ClearCaseUcmSCMTest {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "file with space\nanotherfile", "viewname", "option");
         assertEquals("The vob path is not the same as the load rules", "\"file with space\" anotherfile", scm.getVobPaths());
     }
+    
+    @Test
+    public void testGetWindowsVobPaths() {
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "\\ \\ Windows\n\\\\C\\System32", "viewname", "option");
+        System.err.println(scm.getVobPaths());
+        assertEquals("The vob path is not the same as the load rules", "\\Windows \\\\C\\System32", scm.getVobPaths());
+    }    
 }
