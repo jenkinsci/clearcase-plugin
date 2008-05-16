@@ -61,9 +61,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public String getVobPaths() {
+    public String getVobPaths() {        
         StringBuilder builder = new StringBuilder();
-        String[] rules = Util.tokenize(loadRules, "\n");
+        String[] rules = loadRules.split("\n");
         for (int i = 0; i < rules.length; i++) {
             if (i > 0)
                 builder.append(' ');
