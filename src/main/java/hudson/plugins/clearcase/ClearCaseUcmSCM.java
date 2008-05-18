@@ -5,7 +5,6 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import hudson.Util;
 import hudson.model.ModelObject;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.DefaultPollAction;
@@ -69,6 +68,11 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                 builder.append(' ');
 
             String str = rules[i];
+            // Remove "\\", "\" or "/" from the load rule. (bug#1706)
+            // the user normally enters a load rule beginning with those chars
+            while (str.startsWith("\\") || str.startsWith("/")) {
+                str = str.substring(1);
+            }
             if(str.indexOf(' ')>=0 || str.length()==0)
                 builder.append('"').append(str).append('"');
             else

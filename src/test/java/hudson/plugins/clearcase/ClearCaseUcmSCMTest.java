@@ -41,6 +41,18 @@ public class ClearCaseUcmSCMTest {
         assertEquals("The vob path is not the same as the load rules", "loadrules", scm.getVobPaths());
     }
 
+    /**
+     * Test for (issue 1706).
+     * VOBPaths are used by the lshistory command, and should not start with a 
+     * "\\" or "/" as that would make the cleartool command think the view is
+     * located by an absolute path and not an relative path.
+     */
+    @Test
+    public void assertVobPathDoesNotStartWithFileSeparator() {
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "\\\\load\\ruleone\n/load/ruletwo", "viewname", "option");
+        assertEquals("The vob path is not the same as the load rules", "load\\ruleone load/ruletwo", scm.getVobPaths());
+    }
+
     @Test
     public void testGetVobPathsWithSpaces() {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "file with space\nanotherfile", "viewname", "option");
@@ -50,6 +62,6 @@ public class ClearCaseUcmSCMTest {
     @Test
     public void testGetWindowsVobPaths() {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "\\ \\ Windows\n\\\\C\\System32", "viewname", "option");
-        assertEquals("The vob path is not the same as the load rules", "\"\\ \\ Windows\" \\\\C\\System32", scm.getVobPaths());
+        assertEquals("The vob path is not the same as the load rules", "\" \\ Windows\" C\\System32", scm.getVobPaths());
     }    
 }
