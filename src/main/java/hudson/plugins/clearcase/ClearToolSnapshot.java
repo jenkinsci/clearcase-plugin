@@ -19,6 +19,10 @@ public class ClearToolSnapshot extends ClearToolExec {
         this.optionalMkviewParameters = optionalParameters;
     }
 
+    /**
+     * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
+     * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
+     */
     public void setcs(String viewName, String configSpec) throws IOException,
             InterruptedException {
         FilePath workspace = launcher.getWorkspace();
