@@ -18,6 +18,12 @@ public class ClearToolDynamic extends ClearToolExec {
         return new FilePath(launcher.getWorkspace().getChannel(), viewDrive);
     }
 
+    /**
+     * The view tag does need not be active.
+     * However, it is possible to set the config spec of a dynamic view from within a snapshot view
+     * using "-tag view-tag" 
+     * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
+     */
     public void setcs(String viewName, String configSpec) throws IOException,
             InterruptedException {
         FilePath configSpecFile = launcher.getWorkspace().createTextTempFile("configspec", ".txt", configSpec);
