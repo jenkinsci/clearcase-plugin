@@ -36,7 +36,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 
         launcher = context.mock(ClearToolLauncher.class);
         listener = context.mock(TaskListener.class);
-        clearToolExec = new ClearToolSnapshot(launcher, "commandname");
+        clearToolExec = new ClearToolSnapshot(launcher);
     }
 
     @After
@@ -50,7 +50,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
-                one(launcher).run(with(Matchers.hasItemInArray("commandname")), with(aNull(InputStream.class)),
+                one(launcher).run(with(Matchers.hasItemInArray("setcs")), with(aNull(InputStream.class)),
                         with(aNull(OutputStream.class)), with(aNonNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
@@ -66,7 +66,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
-                one(launcher).run(with(equal(new String[] { "commandname", "rmview", "-force", "viewName" })),
+                one(launcher).run(with(equal(new String[] { "rmview", "-force", "viewName" })),
                         with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
@@ -84,7 +84,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
-                one(launcher).run(with(equal(new String[] { "commandname", "rmview", "-force", "viewName" })),
+                one(launcher).run(with(equal(new String[] { "rmview", "-force", "viewName" })),
                         with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
                 one(launcher).getListener();
@@ -104,7 +104,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(launcher).run(
-                        with(equal(new String[] { "commandname", "update", "-force", "-log", "NUL", "viewName" })),
+                        with(equal(new String[] { "update", "-force", "-log", "NUL", "viewName" })),
                         with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
@@ -120,7 +120,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(launcher).run(
-                        with(equal(new String[] { "commandname", "update", "-force", "-log", "NUL", "-add_loadrules", "viewName" + File.separator + "more_load_rules" })),
+                        with(equal(new String[] { "update", "-force", "-log", "NUL", "-add_loadrules", "viewName" + File.separator + "more_load_rules" })),
                         with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
@@ -135,7 +135,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(launcher).run(
-                        with(equal(new String[] { "commandname", "mkview", "-snapshot", "-tag", "viewName",
+                        with(equal(new String[] { "mkview", "-snapshot", "-tag", "viewName",
                                         "viewName" })), with(aNull(InputStream.class)),
                         with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
@@ -151,7 +151,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(launcher).run(
-                        with(equal(new String[] { "commandname", "mkview", "-snapshot", "-stream", "streamSelector", 
+                        with(equal(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", 
                                 "-tag", "viewName", "viewName" })), with(aNull(InputStream.class)),
                         with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
@@ -167,14 +167,14 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(launcher).run(
-                        with(equal(new String[] { "commandname", "mkview", "-snapshot", "-tag", "viewName",
+                        with(equal(new String[] { "mkview", "-snapshot", "-tag", "viewName",
                                         "-anextraparam", "-anotherparam", "viewName" })), with(aNull(InputStream.class)),
                         with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
         });
 
-        clearToolExec = new ClearToolSnapshot(launcher, "commandname", "-anextraparam -anotherparam");
+        clearToolExec = new ClearToolSnapshot(launcher, "-anextraparam -anotherparam");
         clearToolExec.mkview("viewName", null);
         context.assertIsSatisfied();
     }
@@ -184,14 +184,14 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(launcher).run(
-                        with(equal(new String[] { "commandname", "mkview", "-snapshot", "-stream", "streamSelector", 
+                        with(equal(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", 
                                 "-tag", "viewName", "-anextraparam", "-anotherparam", "viewName" })), with(aNull(InputStream.class)),
                         with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
         });
 
-        clearToolExec = new ClearToolSnapshot(launcher, "commandname", "-anextraparam -anotherparam");
+        clearToolExec = new ClearToolSnapshot(launcher, "-anextraparam -anotherparam");
         clearToolExec.mkview("viewName", "streamSelector");
         context.assertIsSatisfied();
     }

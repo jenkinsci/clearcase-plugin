@@ -1,15 +1,39 @@
 package hudson.plugins.clearcase;
 
+import hudson.Util;
+import hudson.model.BuildListener;
+
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
 
+import org.jmock.Mockery;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-public class ClearCaseSCMTest {
+public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
+    @Before
+    public void setUp() throws Exception {
+        createWorkspace();
+    }
+    @After
+    public void tearDown() throws Exception {
+        deleteWorkspace();
+    }
+    
+    @Test
+    public void testCreateChangeLogParser() {
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null);
+        assertNotNull("The change log parser is null", scm.createChangeLogParser());
+        assertNotSame("The change log parser is re-used", scm.createChangeLogParser(), scm.createChangeLogParser());
+    }
+    
     @Test
     public void testSnapshotBuildEnvVars() {
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null);
@@ -79,8 +103,57 @@ public class ClearCaseSCMTest {
     }
 
     @Test
-    public void testGetVobPaths() {
-        ClearCaseSCM scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "tmp/c aa", true, "", null);
-        assertEquals("The vob paths string is incorrect", "tmp/c aa", scm.getVobPaths());
+    public void assertEmptyBranchIsReturnedAsABranch() {
+        ClearCaseSCM scm = new ClearCaseSCM("", "configspec", "viewname", true, "", true, "/tmp/c", null);
+        assertArrayEquals("The branch name array is incorrect", new String[]{""}, scm.getBranchNames());
+    }
+
+    @Test
+    public void assertBranchWithSpaceWorks() {
+        ClearCaseSCM scm = new ClearCaseSCM("branch\\ one", "configspec", "viewname", true, "", true, "/tmp/c", null);
+        assertArrayEquals("The branch name array is incorrect", new String[]{"branch one"}, scm.getBranchNames());
+    }
+
+    @Test
+    public void testGetViewPaths() throws Exception {
+        ClearCaseSCM scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "tmp", true, "", null);
+        assertEquals("The vob paths string is incorrect", "tmp", scm.getViewPaths(workspace)[0]);
+    }
+    
+    @Test
+    public void assertViewPathIsCopiedFromVobPaths() throws Exception {
+        ClearCaseSCM scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "vob1 vob2 vob\\ 3", true, "", null);
+        String[] viewPaths = scm.getViewPaths(workspace.child("viewName"));
+        assertEquals("The size of view paths array is incorrect", 3, viewPaths.length);
+        assertObjectInArray(viewPaths, "vob1");
+        assertObjectInArray(viewPaths, "vob2");
+        assertObjectInArray(viewPaths, "vob 3");
+    }
+    
+    @Test
+    public void assertViewPathsAreReadFromViewFolder() throws Exception {
+        workspace.child("viewName").mkdirs();
+        workspace.child("viewName").child("vob1").mkdirs();
+        workspace.child("viewName").child("vob2").child("vob2-1").mkdirs();
+        workspace.child("viewName").child("vob 4").mkdirs();
+        workspace.child("viewName").createTextTempFile("view", ".dat", "text");
+        ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, " ", true, "", null);
+        String[] viewPaths = scm.getViewPaths(workspace.child("viewName"));
+        assertEquals("The size of view paths array is incorrect", 3, viewPaths.length);
+        assertObjectInArray(viewPaths, "vob1");
+        assertObjectInArray(viewPaths, "vob2");
+        assertObjectInArray(viewPaths, "vob 4");
+    }
+
+    private void assertObjectInArray(Object[] array, Object obj) {
+        boolean found = false;
+        for (Object objInArray : array) {
+            if (obj.equals(objInArray)) {
+                found = true;
+            }
+        }
+        if (!found) {
+            fail(obj + " was not found in array " + Arrays.toString(array));
+        }
     }
 }

@@ -19,8 +19,10 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     private final Launcher launcher;
     
     private final String scmName;
+    private final String executable;
 
-    public HudsonClearToolLauncher(String scmName, TaskListener listener, FilePath workspace, Launcher launcher) {
+    public HudsonClearToolLauncher(String executable, String scmName, TaskListener listener, FilePath workspace, Launcher launcher) {
+        this.executable = executable;
         this.scmName = scmName;
         this.listener = listener;
         this.workspace = workspace;
@@ -50,8 +52,14 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
         } else {
             out = new ForkOutputStream(out, listener.getLogger());
         }
+        
+        String[] cmdWithExec = new String[cmd.length + 1];
+        cmdWithExec[0] = executable;
+        for (int i = 0; i < cmd.length; i++) {
+            cmdWithExec[i + 1] = cmd[i];
+        }
 
-        int r = launcher.launch(cmd, env, inputStream, out, path).join();
+        int r = launcher.launch(cmdWithExec, env, inputStream, out, path).join();
         if (r != 0) {
             StringBuilder builder = new StringBuilder();
             for (String cmdParam : cmd) {

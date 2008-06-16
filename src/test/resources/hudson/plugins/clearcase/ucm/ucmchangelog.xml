@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<history>
+	<entry>
+		<name>name</name>
+		<headline>headline</headline>
+		<stream>stream</stream>
+		<user>user</user>
+                <subactivity>
+                    <name>sub_name1</name>
+                    <headline>sub_headline1</headline>
+                    <stream>sub_stream1</stream>
+                    <user>sub_user1</user>
+                    <subactivity>
+                        <name>sub_sub_name1</name>
+                        <headline>sub_sub_headline1</headline>
+                        <stream>sub_sub_stream1</stream>
+                        <user>sub_sub_user1</user>                    
+                    </subactivity>                    
+                </subactivity>
+                
+                <subactivity>
+                    <name>sub_name2</name>
+                    <headline>sub_headline2</headline>
+                    <stream>sub_stream2</stream>
+                    <user>sub_user2</user>                    
+                </subactivity>                
+		<file>
+			<name>file-name</name>
+			<comment>file-comment</comment>
+			<version>file-version</version>
+			<event>file-event</event>
+			<operation>file-operation</operation>
+			<date>08/05/2008 12:20:00</date>
+		</file>
+	</entry>
+</history>
+

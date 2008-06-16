@@ -24,7 +24,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
         context = new Mockery();
 
         launcher = context.mock(ClearToolLauncher.class);
-        clearToolExec = new ClearToolDynamic(launcher, "commandname", "/cc/drives");
+        clearToolExec = new ClearToolDynamic(launcher, "/cc/drives");
     }
 
     @After
@@ -39,7 +39,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
                 one(launcher).run(
-                        with(allOf(hasItemInArray("commandname"), hasItemInArray("setcs"), hasItemInArray("-tag"),
+                        with(allOf(hasItemInArray("setcs"), hasItemInArray("-tag"),
                                 hasItemInArray("viewName"))), with(aNull(InputStream.class)),
                         with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
@@ -55,7 +55,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(launcher).run(
-                        with(allOf(hasItemInArray("commandname"), hasItemInArray("startview"), hasItemInArray("viewName"))), 
+                        with(allOf(hasItemInArray("startview"), hasItemInArray("viewName"))),
                         with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
             }
         });

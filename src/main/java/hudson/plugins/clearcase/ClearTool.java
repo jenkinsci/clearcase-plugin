@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Date;
 import java.util.List;
 
@@ -47,19 +48,30 @@ public interface ClearTool {
     void mklabel(String viewName, String label) throws IOException, InterruptedException;
 
     /**
-     * Lists event records for VOB-database objects
-     * 
+     * Returns Reader containing output from lshistory.
+     * @param format format that should be used by the lshistory command
      * @param lastBuildDate lists events recorded since (that is, at or after) the specified date-time
      * @param viewName the name of the view
      * @param branch the name of the branch to get history events for; if null then history events for all branches are
      *                listed
-     * @return the event records
+     * @param pathsInView view paths that should be added to the lshistory command. The view paths
+     *                  must be relative. 
+     * 
+     * @return Reader containing output from command
      */
-    List<ClearCaseChangeLogEntry> lshistory(Date lastBuildDate, String viewName,
-            String branch, String vobPaths) throws IOException, InterruptedException;
+    Reader lshistory(String format, Date lastBuildDate, String viewName, String branch, String[] pathsInView) throws IOException, InterruptedException;
 
     /**
-     * Lists view registry entries
+     * Lists activities .......(?)
+     * @throws InterruptedException 
+     * @throws IOException
+     * @return reader containing command output 
+     */
+    Reader lsactivity(String activity, String commandFormat,String viewname) throws IOException, InterruptedException;
+    
+    /**
+     * Lists view registry entries.
+     * This command needs to be run inside a view.
      * 
      * @param onlyActiveDynamicViews true for only return active dynamic views; false all views are returned
      * @return list of view names

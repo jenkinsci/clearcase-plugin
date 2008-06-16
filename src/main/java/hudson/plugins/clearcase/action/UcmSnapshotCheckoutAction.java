@@ -31,7 +31,6 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
         
         if (localViewPathExists) {
             cleartool.rmview(viewName);
-            localViewPathExists = false;
         }
 
         cleartool.mkview(viewName, stream);
