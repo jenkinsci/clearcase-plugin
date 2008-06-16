@@ -1,0 +1,58 @@
+<!--
+  Displays the ClearCase change log.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+  <j:choose>
+    <j:when test="${it.emptySet}">
+      No changes from last build.
+    </j:when>
+    <j:otherwise>
+    <table class="pane" style="border:none">
+    <j:forEach var="activity" items="${it.logs}" varStatus="loop">
+      <tr class="pane">
+        <td class="changeset" colspan="2">
+          <a name="detail${loop.index}"></a>
+          <div class="changeset-message">
+            <b>${loop.index + 1}. ${activity.headline} by <a href="${rootURL}/${activity.author.url}/">${activity.author}</a></b>
+          </div>
+        </td>
+      </tr>
+      <!-- Print out any subactivities -->
+      <j:choose>
+        <j:when test="${activity.hasSubActivities()}">
+            <tr>
+                <td colspan="2"><b>Contributing activities:</b></td>
+            </tr>
+            <j:forEach var="subactivity" items="${activity.subActivities}">
+                <tr>
+                    <td align="right"> </td>
+                    <td>${subactivity.headline} <i>from stream </i> ${subactivity.stream} <i> by </i> <a href="${rootURL}/${activity.author.url}/"> ${subactivity.author}</a></td>
+                </tr>
+            </j:forEach>
+        </j:when>
+      </j:choose>
+
+      <j:choose>
+        <j:when test="${activity.hasFiles()}">
+            <tr>
+                <td colspan="2"><b>Files:</b></td>
+            </tr>
+        
+            <j:forEach var="file" items="${activity.files}">
+                <tr>
+                    <td align="right">
+        		<j:if test="${file.editType != null}">
+        			<t:editTypeIcon type="${file.editType}" />
+        		</j:if>
+                    </td>
+                    <td>${file.dateStr}: ${file.name} <i>version</i> ${file.shortVersion} <j:if test="${file.comment.length()>0}">-</j:if> ${file.comment}</td>
+                </tr>
+            </j:forEach>
+        </j:when>
+     </j:choose>
+    </j:forEach>
+    </table>
+    
+	</j:otherwise>
+  </j:choose>
+</j:jelly>

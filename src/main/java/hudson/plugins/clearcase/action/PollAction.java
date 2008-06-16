@@ -1,22 +1,20 @@
 package hudson.plugins.clearcase.action;
 
-import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Action for polling a ClearCase repository.
  */
 public interface PollAction {
     /**
-     * Returns a list of change log entries for the repository since the specified time
-     * @param time get all logs since this time
+     * Returns if the repository has any changes since the specified time
+     * @param time check for changes since this time
      * @param viewName the name of the view
-     * @param branchName the branch/stream name
-     * @param vobPaths optional vob paths
-     * @return a list of change log entries
+     * @param branchNames the branch names
+     * @param viewPaths optional vob paths
+     * @return true, if the ClearCase repository has changes; false, otherwise.
      */
-    List<ClearCaseChangeLogEntry> getChanges(Date time, String viewName, String branchName, String vobPaths) throws IOException, InterruptedException;
+    boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException;
 }

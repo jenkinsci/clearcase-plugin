@@ -8,8 +8,8 @@ public class ClearToolDynamic extends ClearToolExec {
 
     private transient String viewDrive;
 
-    public ClearToolDynamic(ClearToolLauncher launcher, String clearToolExec, String viewDrive) {
-        super(launcher, clearToolExec);
+    public ClearToolDynamic(ClearToolLauncher launcher, String viewDrive) {
+        super(launcher);
         this.viewDrive = viewDrive;
     }
 
@@ -29,7 +29,6 @@ public class ClearToolDynamic extends ClearToolExec {
         FilePath configSpecFile = launcher.getWorkspace().createTextTempFile("configspec", ".txt", configSpec);
 
         ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add(clearToolExec);
         cmd.add("setcs");
         cmd.add("-tag");
         cmd.add(viewName);
@@ -53,7 +52,6 @@ public class ClearToolDynamic extends ClearToolExec {
 
     public void startView(String viewTags)  throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add(clearToolExec);
         cmd.add("startview");
         cmd.addTokenized(viewTags);
         launcher.run(cmd.toCommandArray(), null, null, null);

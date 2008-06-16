@@ -1,15 +1,26 @@
 package hudson.plugins.clearcase;
 
+import java.io.IOException;
+
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import hudson.FilePath;
+import hudson.Util;
 import hudson.model.ModelObject;
+import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.DefaultPollAction;
 import hudson.plugins.clearcase.action.PollAction;
+import hudson.plugins.clearcase.action.SaveChangeLogAction;
+import hudson.plugins.clearcase.action.TaggingAction;
 import hudson.plugins.clearcase.action.UcmSnapshotCheckoutAction;
+import hudson.plugins.clearcase.ucm.UcmChangeLogAction;
+import hudson.plugins.clearcase.ucm.UcmChangeLogParser;
+import hudson.plugins.clearcase.ucm.UcmSaveChangeLogAction;
+import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 
@@ -25,7 +36,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     @DataBoundConstructor
     public ClearCaseUcmSCM(String stream, String loadrules, String viewname, String mkviewoptionalparam) {
         super(viewname, mkviewoptionalparam);
-        this.stream = stream;
+        this.stream = shortenStreamName(stream);
         this.loadRules = loadrules;
     }
 
@@ -51,6 +62,11 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
+    public ChangeLogParser createChangeLogParser() {
+        return new UcmChangeLogParser();
+    }
+
+    @Override
     public String[] getBranchNames() {
         String branch = stream;
         if (stream.contains("@")) {
@@ -60,25 +76,18 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public String getVobPaths() {        
-        StringBuilder builder = new StringBuilder();
+    public String[] getViewPaths(FilePath viewPath) throws IOException, InterruptedException {
         String[] rules = loadRules.split("\n");
         for (int i = 0; i < rules.length; i++) {
-            if (i > 0)
-                builder.append(' ');
-
-            String str = rules[i];
+            String rule = rules[i];
             // Remove "\\", "\" or "/" from the load rule. (bug#1706)
             // the user normally enters a load rule beginning with those chars
-            while (str.startsWith("\\") || str.startsWith("/")) {
-                str = str.substring(1);
+            while (rule.startsWith("\\") || rule.startsWith("/")) {
+                rule = rule.substring(1);               
             }
-            if(str.indexOf(' ')>=0 || str.length()==0)
-                builder.append('"').append(str).append('"');
-            else
-                builder.append(str);
+            rules[i] = rule;
         }
-        return builder.toString();
+        return rules;
     }
 
     @Override
@@ -90,9 +99,27 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     protected PollAction createPollAction(ClearToolLauncher launcher) {
         return new DefaultPollAction(createClearTool(launcher));
     }
+
+    @Override
+    protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher) {
+        return new UcmChangeLogAction(createClearTool(launcher));
+    }
+
+    @Override
+    protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
+        return new UcmSaveChangeLogAction();
+    }
     
-    private ClearTool createClearTool(ClearToolLauncher launcher) {
-        return new ClearToolSnapshot(launcher, PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(), getMkviewOptionalParam());
+    @Override
+    protected TaggingAction createTaggingAction(ClearToolLauncher clearToolLauncher) {
+        return null;
+    }
+    
+    private String shortenStreamName(String longStream) {
+        if (longStream.startsWith("stream:")) {
+            return longStream.substring("stream:".length());
+        }
+        return longStream;
     }
     
     /**

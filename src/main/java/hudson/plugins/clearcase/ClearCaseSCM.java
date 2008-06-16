@@ -1,16 +1,24 @@
 package hudson.plugins.clearcase;
 
+import hudson.FilePath;
 import hudson.Proc;
+import hudson.Util;
 import static hudson.Util.fixEmpty;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
+import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.DefaultPollAction;
 import hudson.plugins.clearcase.action.DynamicCheckoutAction;
 import hudson.plugins.clearcase.action.PollAction;
+import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
+import hudson.plugins.clearcase.action.TaggingAction;
+import hudson.plugins.clearcase.base.BaseChangeLogAction;
+import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
+import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.util.ByteBuffer;
@@ -21,15 +29,18 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import javax.servlet.ServletException;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Base ClearCase SCM.
  * 
- * This SCM is for normal Clearcase repositories.
+ * This SCM is for base ClearCase repositories.
  * 
  * @author Erik Ramfelt
  */
@@ -79,18 +90,44 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     /**
-     * Return the user configured vob paths that will be used when getting changes for a view.
-     * If the vob paths is empty, then the folder within the view will be used
-     * as vob paths.
-     * @return the vob paths that will be used when getting changes for a view.
+     * Return the view paths that will be used when getting changes for a view.
+     * If the user configured vob paths field is empty, then the folder within the view will be used
+     * as view paths.
+     * @return the view paths that will be used when getting changes for a view.
      */
-    public String getVobPaths() {
-        return vobPaths;
+    public String[] getViewPaths(FilePath viewPath) throws IOException, InterruptedException {
+        String[] vobNameArray;
+        if (Util.fixEmpty(vobPaths.trim()) == null) {
+            List<String> vobList = new ArrayList<String>();
+            List<FilePath> subFilePaths = viewPath.list((FileFilter) null);
+            if ((subFilePaths != null) && (subFilePaths.size() > 0)) {
+
+                for (int i = 0; i < subFilePaths.size(); i++) {
+                    if (subFilePaths.get(i).isDirectory()) {
+                        vobList.add(subFilePaths.get(i).getName());
+                    }
+                }
+            }
+            vobNameArray = vobList.toArray(new String[0]);
+        } else {
+            // split by whitespace, except "\ "
+            vobNameArray = vobPaths.split("(?<!\\\\)[ \\r\\n]+");
+            // now replace "\ " to " ".
+            for (int i = 0; i < vobNameArray.length; i++)
+                vobNameArray[i] = vobNameArray[i].replaceAll("\\\\ ", " ");
+        }
+        return vobNameArray;
     }
+   
 
     @Override
     public ClearCaseScmDescriptor getDescriptor() {
         return PluginImpl.BASE_DESCRIPTOR;
+    }
+
+    @Override
+    public ChangeLogParser createChangeLogParser() {
+        return new ClearCaseChangeLogParser();
     }
 
     @Override
@@ -122,6 +159,21 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return new DefaultPollAction(createClearTool(launcher));
     }
 
+    @Override
+    protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher) {
+        return new BaseChangeLogAction(createClearTool(launcher), getDescriptor().getLogMergeTimeWindow());
+    }
+
+    @Override
+    protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
+        return new BaseSaveChangeLogAction();
+    }
+
+    @Override
+    protected TaggingAction createTaggingAction(ClearToolLauncher clearToolLauncher) {
+        return null;
+    }
+
     /**
      * Split the branch names into a string array.
      * @param branchString string containing none or several branches
@@ -137,11 +189,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return branchArray;
     }
 
-    private ClearTool createClearTool(ClearToolLauncher launcher) {
+    protected ClearTool createClearTool(ClearToolLauncher launcher) {
         if (useDynamicView) {
-            return new ClearToolDynamic(launcher, PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(), viewDrive);
+            return new ClearToolDynamic(launcher, viewDrive);
         } else {
-            return new ClearToolSnapshot(launcher, PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(), getMkviewOptionalParam());
+            return super.createClearTool(launcher);
         }
     }
 

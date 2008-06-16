@@ -13,15 +13,15 @@ import java.io.OutputStream;
  */
 public interface ClearToolLauncher {
     /**
-     * Launches a command
+     * Launches a cleartool command with arguments. 
      * 
-     * @param cmds the command to launch
+     * @param cmd the command to launch using the clear tool executable
      * @param in optional, if the command should be able to receive input
      * @param out optional, can be used to gather the output stream
      * @param execPath optional, the path where the command should be launched
      * @return true if the command was successful, false otherwise
      */
-    boolean run(String[] cmds, InputStream in, OutputStream out, FilePath execPath) throws IOException,
+    boolean run(String[] cmd, InputStream in, OutputStream out, FilePath execPath) throws IOException,
             InterruptedException;
 
     /**
