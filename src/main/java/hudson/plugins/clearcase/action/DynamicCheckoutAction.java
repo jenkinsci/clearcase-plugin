@@ -8,7 +8,7 @@ import java.io.IOException;
 
 /**
  * Check out action for dynamic views.
- * This will not check out any files from the repository as it is a dynamic view.
+ * This will not update any files from the repository as it is a dynamic view.
  * The class will make sure that the configured config spec is the same as the one
  * for the dynamic view.
  */

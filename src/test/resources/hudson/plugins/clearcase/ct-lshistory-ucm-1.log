@@ -1,0 +1,6 @@
+"20080509.140451" "vobs/projects/Server//config-admin-client" "/main/Product/Release_3_3_int/Release_3_3_jdk5/2" "rebase.Release_3_3_jdk5.20080509.155359" "create directory version" "checkin" 
+"20080509.140450" "vobs/projects/Server//security-admin-ejb" "/main/Product/Release_3_3_int/Release_3_3_jdk5/2" "rebase.Release_3_3_jdk5.20080509.155359" "create directory version" "checkin" 
+"20080509.134621" "vobs/projects/Server//tools-build/.settings/org.eclipse.jdt.core.prefs" "/main/Release_3_3_int/Release_3_3_jdk5/1" "Convert_to_Java_6" "create version" "checkin" 
+"20080509.134620" "vobs/projects/Server//security-admin-ear/.settings/org.eclipse.jdt.core.prefs" "/main/Release_3_3_int/Release_3_3_jdk5/1" "Convert_to_Java_6" "create version" "checkin" 
+"20080509.134423" "vobs/projects/Server//example-ejb/.settings/org.eclipse.jdt.core.prefs" "/main/Release_3_3_int/Release_3_3_jdk5/0" "" "create version" "mkbranch" 
+"20080509.134423" "vobs/projects/Server//example-ejb/.settings/org.eclipse.jdt.core.prefs" "/main/Release_3_3_int/Release_3_3_jdk5" "" "create branch" "mkbranch" 

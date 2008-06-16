@@ -62,7 +62,7 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             }
         });
 
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("ccscm", taskListener, workspace, launcher);
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, null, null);
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();
@@ -85,7 +85,7 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             }
         });
 
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("ccscm", taskListener, workspace, launcher);
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null);
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();
@@ -110,7 +110,33 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             }
         });
 
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("ccscm", taskListener, workspace, launcher);
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a", "b" }, null, new ByteArrayOutputStream(), null);
+    }
+
+    /**
+     * Assert that the Hudson cleartool launcher adds the clear tool exectuable
+     * to the command array.
+     */
+    @Test
+    public void assertClearToolExecutableIsSet() throws Exception {
+        final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
+
+        context.checking(new Expectations() {
+            {
+                ignoring(taskListener).getLogger(); will(returnValue(mockedStream));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                one(launcher).launch(with(equal(new String[]{"exec", "command"})), with(any(String[].class)),
+                        with(aNull(InputStream.class)), with(same(mockedStream)), with(any(FilePath.class)));
+            }
+        });
+
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("exec", "ccscm", taskListener, workspace, launcher);
+        launcherImpl.run(new String[] { "command" }, null, null, null);
+        classContext.assertIsSatisfied();
+        context.assertIsSatisfied();
     }
 }

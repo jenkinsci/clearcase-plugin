@@ -154,7 +154,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
         return array;
     }
 
-    private static String escapeForXml(String string) {
+    public static String escapeForXml(String string) {
         if (string == null) {
             return "";
         }
