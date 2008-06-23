@@ -11,6 +11,8 @@ import hudson.scm.ChangeLogSet.Entry;
 public class UcmSaveChangeLogAction implements SaveChangeLogAction {
 
     public void saveChangeLog(File changeLogFile, List<? extends Entry> entries) throws IOException, InterruptedException {
-        UcmChangeLogSet.saveToChangeLog(new FileOutputStream(changeLogFile), (List<UcmActivity>) entries);
+        FileOutputStream fileOutputStream = new FileOutputStream(changeLogFile);
+        UcmChangeLogSet.saveToChangeLog(fileOutputStream, (List<UcmActivity>) entries);
+        fileOutputStream.close();
     }
 }
