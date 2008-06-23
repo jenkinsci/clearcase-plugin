@@ -3,6 +3,7 @@ package hudson.plugins.clearcase.action;
 import static org.junit.Assert.*;
 import hudson.plugins.clearcase.ClearTool;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.Date;
 
@@ -35,7 +36,23 @@ public class DefaultPollActionTest {
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
         boolean hasChange = action.getChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
-        assertTrue("The getChanges() method did not report a change", hasChange);
+        assertTrue("The getChanges() method did not report a change", hasChange);        
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    public void assertFirstFoundChangeStopsPolling() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})));                
+                will(returnValue(new StringReader("\"20071015.151822\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\" \"mkelem\" ")));
+            }
+        });
+        
+        DefaultPollAction action = new DefaultPollAction(cleartool);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
+        assertTrue("The getChanges() method did not report a change", hasChange);        
+        context.assertIsSatisfied();
     }
 
     @Test
@@ -51,7 +68,8 @@ public class DefaultPollActionTest {
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
         boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
-        assertTrue("The getChanges() method did not report a change", hasChange);
+        assertTrue("The getChanges() method did not report a change", hasChange);        
+        context.assertIsSatisfied();
     }
 
     @Test
@@ -65,7 +83,8 @@ public class DefaultPollActionTest {
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
         boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
-        assertFalse("The getChanges() method reported a change", hasChange);
+        assertFalse("The getChanges() method reported a change", hasChange);        
+        context.assertIsSatisfied();
     }
 
     @Test
@@ -79,6 +98,22 @@ public class DefaultPollActionTest {
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
         boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
-        assertFalse("The getChanges() method reported a change", hasChange);
+        assertFalse("The getChanges() method reported a change", hasChange);        
+        context.assertIsSatisfied();
+    }
+
+    @Test(expected=IOException.class)
+    public void assertReaderIsClosed() throws Exception {                
+        final StringReader reader = new StringReader("\"20071015.151822\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" ");
+        context.checking(new Expectations() {
+            {
+                ignoring(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
+                will(returnValue(reader));
+            }
+        });
+        
+        DefaultPollAction action = new DefaultPollAction(cleartool);
+        action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        reader.ready();
     }
 }

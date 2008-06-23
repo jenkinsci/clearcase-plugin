@@ -147,8 +147,9 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         
         context.assertIsSatisfied();
     }
+    
     @Test
-    public void testLsactivity() throws Exception {
+    public void assertLsactivityReturnsReader() throws Exception {
         workspace.child("viewName").mkdirs();
         context.checking(new Expectations() {
             {
@@ -166,6 +167,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         assertNotNull("Returned console reader can not be null", reader);
         context.assertIsSatisfied();
     }
+    
     /**
      * Simple impl of ClearToolExec to help testing the methods in the class
      */

@@ -2,11 +2,13 @@ package hudson.plugins.clearcase.ucm;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.Date;
 import java.util.List;
 
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.base.BaseChangeLogAction;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -122,5 +124,63 @@ public class UcmChangeLogActionTest {
         assertEquals("There should be 2 sub activities", 2, subActivities.size());
         assertEquals("Name of first sub activity is incorrect", "maven2_Release_3_3.20080421.154619", subActivities.get(0).getName());
         assertEquals("Name of second sub activity is incorrect", "maven2_Release_3_3.20080421.163355", subActivities.get(1).getName());
+    }
+
+    @Test(expected=IOException.class)
+    public void assertLshistoryReaderIsClosed() throws Exception {
+        final StringReader lshistoryReader = new StringReader(
+                "\"20080509.140451\" " +
+                "\"vobs/projects/Server//config-admin-client\" " +
+                "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
+                "\"Release_3_3_jdk5.20080509.155359\" " +
+                "\"create directory version\" " +
+                "\"checkin\" ");
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));
+                will(returnValue(lshistoryReader));
+                ignoring(cleartool).lsactivity(
+                        with(equal("Release_3_3_jdk5.20080509.155359")), 
+                        with(aNonNull(String.class)),with(aNonNull(String.class)));
+                will(returnValue(new StringReader("\"Convert to Java 6\" " +
+                        "\"Release_3_3_jdk5\" " +
+                        "\"bob\" ")));
+            }
+        });
+        
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);
+        action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        context.assertIsSatisfied();
+        lshistoryReader.ready();
+    }
+
+    @Test(expected=IOException.class)
+    public void assertLsactivityReaderIsClosed() throws Exception {
+        final StringReader lsactivityReader = new StringReader("\"Convert to Java 6\" " +
+                "\"Release_3_3_jdk5\" " +
+                "\"bob\" ");
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));
+                will(returnValue(new StringReader(
+                        "\"20080509.140451\" " +
+                        "\"vobs/projects/Server//config-admin-client\" " +
+                        "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
+                        "\"Release_3_3_jdk5.20080509.155359\" " +
+                        "\"create directory version\" " +
+                        "\"checkin\" ")));
+                ignoring(cleartool).lsactivity(
+                        with(equal("Release_3_3_jdk5.20080509.155359")), 
+                        with(aNonNull(String.class)),with(aNonNull(String.class)));
+                will(returnValue(lsactivityReader));
+            }
+        });
+        
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);
+        action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        context.assertIsSatisfied();
+        lsactivityReader.ready();
     }
 }

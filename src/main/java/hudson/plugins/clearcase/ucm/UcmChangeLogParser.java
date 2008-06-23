@@ -29,7 +29,10 @@ public class UcmChangeLogParser extends ChangeLogParser {
      */
     @Override
     public UcmChangeLogSet parse(AbstractBuild build, File changeLogFile) throws IOException, SAXException {
-        return parse(build, new FileInputStream(changeLogFile));
+        FileInputStream fileInputStream = new FileInputStream(changeLogFile);
+        UcmChangeLogSet logSet = parse(build, fileInputStream);
+        fileInputStream.close();
+        return logSet;
     }
 
     /**
@@ -39,7 +42,7 @@ public class UcmChangeLogParser extends ChangeLogParser {
      * @param changeLogStream input stream containing the change log
      * @return the change log set
      */
-    public UcmChangeLogSet parse(AbstractBuild build, InputStream changeLogStream) throws IOException, SAXException {
+    UcmChangeLogSet parse(AbstractBuild build, InputStream changeLogStream) throws IOException, SAXException {
 
         ArrayList<UcmActivity> history = new ArrayList<UcmActivity>();
 

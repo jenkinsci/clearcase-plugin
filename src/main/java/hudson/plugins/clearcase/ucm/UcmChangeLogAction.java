@@ -51,7 +51,9 @@ public class UcmChangeLogAction implements ChangeLogAction {
 
     public List<UcmActivity> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchNames[0], viewPaths)); 
-        return parseHistory(reader,viewName);
+        List<UcmActivity> history = parseHistory(reader,viewName);
+        reader.close();
+        return history;
     }
 
     private List<UcmActivity> parseHistory(BufferedReader reader,String viewname) throws InterruptedException,IOException {
@@ -155,5 +157,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                 }
             }
         }
+        
+        reader.close();
     }    
 }
