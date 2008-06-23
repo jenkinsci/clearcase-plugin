@@ -2,12 +2,14 @@ package hudson.plugins.clearcase.base;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.Date;
 import java.util.List;
 
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.action.DefaultPollAction;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -58,5 +60,23 @@ public class BaseChangeLogActionTest {
         List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Two entries should be merged into one", 1, changes.size());        
         context.assertIsSatisfied();        
+    }
+
+    @Test(expected=IOException.class)
+    public void assertReaderIsClosed() throws Exception {
+        final StringReader reader = new StringReader("\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n");                
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%o\\\" \\n%c\\n")), 
+                        with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
+                        with(any(String[].class)));
+                will(returnValue(reader));
+            }
+        });
+        
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
+        action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        context.assertIsSatisfied();
+        reader.ready();
     }
 }

@@ -47,12 +47,14 @@ public abstract class ClearToolExec implements ClearTool {
             cmd.add(path);
         }
 
+        Reader returnReader = null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
-            return new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
+            returnReader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
         }
+        baos.close();
         
-        return null;
+        return returnReader;
     }
     
     public Reader lsactivity(String activity, String commandFormat,String viewname) throws IOException, InterruptedException {
@@ -63,7 +65,9 @@ public abstract class ClearToolExec implements ClearTool {
         FilePath workspace = launcher.getWorkspace();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewname));
-        return new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
+        InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
+        baos.close();
+        return reader;
     }
 
     public void mklabel(String viewName, String label) throws IOException,
@@ -103,6 +107,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-tag", viewName);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        String retString = "";
         if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
             BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
             String line = reader.readLine();
@@ -115,9 +120,10 @@ public abstract class ClearToolExec implements ClearTool {
                 line = reader.readLine();
             }
             reader.close();
-            return builder.toString();
+            retString = builder.toString();
         }
-        return "";
+        baos.close();
+        return retString;
     }
 
     private List<String> parseListOutput(Reader consoleReader, boolean onlyStarMarked) throws IOException {

@@ -57,7 +57,10 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
      * @return the change log set
      */
     public static ClearCaseChangeLogSet parse(AbstractBuild build, File changeLogFile) throws IOException, SAXException {
-        return parse(build, new FileInputStream(changeLogFile));
+        FileInputStream fileInputStream = new FileInputStream(changeLogFile);
+        ClearCaseChangeLogSet logSet = parse(build, fileInputStream);
+        fileInputStream.close();
+        return logSet;
     }
 
     /**
@@ -67,7 +70,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
      * @param changeLogStream input stream containing the change log
      * @return the change log set
      */
-    public static ClearCaseChangeLogSet parse(AbstractBuild build, InputStream changeLogStream) throws IOException,
+    static ClearCaseChangeLogSet parse(AbstractBuild build, InputStream changeLogStream) throws IOException,
             SAXException {
 
         ArrayList<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();

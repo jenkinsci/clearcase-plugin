@@ -30,13 +30,16 @@ public class DefaultPollAction implements PollAction {
     }
 
     public boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-        for (String branchName : branchNames) {            
-            Reader lshistoryOutput = cleartool.lshistory(historyHandler.getFormat(), time, viewName, branchName, viewPaths);            
+        boolean hasChanges = false;
+        for (int i = 0; (i < branchNames.length) && (!hasChanges); i++) {
+            String branchName = branchNames[i];
+            Reader lshistoryOutput = cleartool.lshistory(historyHandler.getFormat(), time, viewName, branchName, viewPaths);
             if (parseHistoryOutputForChanges(new BufferedReader(lshistoryOutput))) {
-                return true;
+                hasChanges = true;
             }
+            lshistoryOutput.close();
         } 
-        return false;
+        return hasChanges;
     }
     
     private boolean parseHistoryOutputForChanges(BufferedReader reader) throws IOException, InterruptedException {

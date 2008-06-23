@@ -16,6 +16,8 @@ import hudson.scm.ChangeLogSet.Entry;
 public class BaseSaveChangeLogAction implements SaveChangeLogAction {
 
     public void saveChangeLog(File changeLogFile, List<? extends Entry> entries) throws IOException, InterruptedException {
-        ClearCaseChangeLogSet.saveToChangeLog(new FileOutputStream(changeLogFile), (List<ClearCaseChangeLogEntry>) entries);
+        FileOutputStream fileOutputStream = new FileOutputStream(changeLogFile);
+        ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, (List<ClearCaseChangeLogEntry>) entries);
+        fileOutputStream.close();
     }
 }

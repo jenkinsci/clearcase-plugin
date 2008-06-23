@@ -49,7 +49,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
                 ClearToolHistoryParser parser = new ClearToolHistoryParser();
                 List<ClearCaseChangeLogEntry> data = parser.parse(reader);
                 fullList.addAll(data);
-
+                reader.close();
             }
         } catch (ParseException ex) {
             ;
