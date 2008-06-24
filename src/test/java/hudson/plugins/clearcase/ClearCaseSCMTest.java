@@ -2,6 +2,8 @@ package hudson.plugins.clearcase;
 
 import hudson.Util;
 import hudson.model.BuildListener;
+import hudson.plugins.clearcase.action.ChangeLogAction;
+import hudson.plugins.clearcase.base.BaseChangeLogAction;
 
 import java.io.File;
 import java.io.IOException;
@@ -145,6 +147,13 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         assertObjectInArray(viewPaths, "vob 4");
     }
 
+    @Test
+    public void assertExtendedViewPathIsSetForDynamicViews() throws Exception {
+        ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, "vob", true, "/view", null, false);
+        BaseChangeLogAction action = scm.createChangeLogAction(null, 0);
+        assertEquals("The extended view path is incorrect", "/view/viewname", action.getExtendedViewPath());
+    }
+    
     private void assertObjectInArray(Object[] array, Object obj) {
         boolean found = false;
         for (Object objInArray : array) {
