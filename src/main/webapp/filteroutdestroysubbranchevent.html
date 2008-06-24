@@ -1,12 +1,12 @@
 <div>
   <p>
-	Many ClearCase installations have a trigger that fires on an uncheckout 
+	Many ClearCase installations have a trigger that fires on a canceled checkout (uncheckout)
 	event, that destroys empty branches. If this option is enabled, Hudson will filter out 
 	such events <i>(example 'Destroy sub-branch "BRANCH_NAME" of branch')</i> from the
 	poll and change logs. This means that a new build will not be triggered if a developer
-	does a uncheckout on a file that has not been changed in the current branch.
+	cancels a checkout on a file that has not been versioned in the current branch.
 	<br/>
-	If not enable, Hudson will trigger a new build anytime a developer does a undo checkout.
+	If not enable, Hudson will trigger a new build anytime a developer cancels a checkout.
   </p>
   <p>
 	There are disadvantages by enabling this option as it will not trigger a build when
