@@ -27,23 +27,16 @@ public class DefaultPollAction implements PollAction {
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);    
     private ClearTool cleartool;
 
-    private EventRecordFilter eventRecordFilter;
-
     public DefaultPollAction(ClearTool cleartool) {
         this.cleartool = cleartool;
-        this.eventRecordFilter = new EventRecordFilter();
-    }
-
-    public void setEventRecordFilter(EventRecordFilter filter) {
-        this.eventRecordFilter = filter;
     }
     
-    public boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public boolean getChanges(EventRecordFilter eventFilter, Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         boolean hasChanges = false;
         for (int i = 0; (i < branchNames.length) && (!hasChanges); i++) {
             String branchName = branchNames[i];
             Reader lshistoryOutput = cleartool.lshistory(historyHandler.getFormat(), time, viewName, branchName, viewPaths);
-            if (parseHistoryOutputForChanges(new BufferedReader(lshistoryOutput))) {
+            if (parseHistoryOutputForChanges(new BufferedReader(lshistoryOutput), eventFilter)) {
                 hasChanges = true;
             }
             lshistoryOutput.close();
@@ -51,7 +44,7 @@ public class DefaultPollAction implements PollAction {
         return hasChanges;
     }
     
-    private boolean parseHistoryOutputForChanges(BufferedReader reader) throws IOException, InterruptedException {
+    private boolean parseHistoryOutputForChanges(BufferedReader reader, EventRecordFilter eventRecordFilter) throws IOException, InterruptedException {
         String line = reader.readLine();
         while (line != null) {
 

@@ -21,11 +21,13 @@ public class BaseChangeLogActionTest {
 
     private Mockery context;
     private ClearTool cleartool;
+    private EventRecordFilter filter;
 
     @Before
     public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
+        filter = new EventRecordFilter();
     }
 
     @Test
@@ -40,7 +42,7 @@ public class BaseChangeLogActionTest {
         });
         
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 0);
-        action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         context.assertIsSatisfied();
     }
 
@@ -56,12 +58,10 @@ public class BaseChangeLogActionTest {
             }
         });
         
-        EventRecordFilter filter = new EventRecordFilter();
         filter.setFilterOutDestroySubBranchEvent(true);
         
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        action.setEventRecordFilter(filter);
-        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("The event record should be ignored", 0, changes.size());        
         context.assertIsSatisfied();        
     }
@@ -80,7 +80,7 @@ public class BaseChangeLogActionTest {
         });
         
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Two entries should be merged into one", 1, changes.size());        
         context.assertIsSatisfied();        
     }
@@ -98,7 +98,7 @@ public class BaseChangeLogActionTest {
         });
         
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
         context.assertIsSatisfied();
         reader.ready();
     }

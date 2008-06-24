@@ -13,11 +13,5 @@ import java.util.List;
  */
 public interface ChangeLogAction {
     
-    List<? extends ChangeLogSet.Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException,InterruptedException;
-
-    /**
-     * Sets the event record filter that should be used when determining if an event is real or not.
-     * @param filter the filter to use.
-     */
-    void setEventRecordFilter(EventRecordFilter filter);
+    List<? extends ChangeLogSet.Entry> getChanges(EventRecordFilter eventFilter, Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException,InterruptedException;
 }

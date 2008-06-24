@@ -46,25 +46,19 @@ public class UcmChangeLogAction implements ChangeLogAction {
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
     private Map<String, UcmActivity> activityNameToEntry = new HashMap<String, UcmActivity>();
-    private EventRecordFilter eventRecordFilter;
 
     public UcmChangeLogAction(ClearTool cleartool) {
         this.cleartool = cleartool;
-        eventRecordFilter = new EventRecordFilter();
     }
 
-    public void setEventRecordFilter(EventRecordFilter filter) {
-        this.eventRecordFilter = filter;
-    }
-
-    public List<UcmActivity> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public List<UcmActivity> getChanges(EventRecordFilter eventFilter, Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchNames[0], viewPaths)); 
-        List<UcmActivity> history = parseHistory(reader,viewName);
+        List<UcmActivity> history = parseHistory(reader,eventFilter,viewName);
         reader.close();
         return history;
     }
 
-    private List<UcmActivity> parseHistory(BufferedReader reader,String viewname) throws InterruptedException,IOException {
+    private List<UcmActivity> parseHistory(BufferedReader reader, EventRecordFilter eventRecordFilter,String viewname) throws InterruptedException,IOException {
         List<UcmActivity> result = new ArrayList<UcmActivity>();
         try {
             StringBuilder commentBuilder = new StringBuilder();
