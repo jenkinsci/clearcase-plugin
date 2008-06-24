@@ -22,6 +22,7 @@ import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.TaggingAction;
+import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCMDescriptor;
 
@@ -136,6 +137,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(checkOutAction).checkout(launcher, workspace); will(returnValue(true));
+                one(changeLogAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
             }
         });
         classContext.checking(new Expectations() {
@@ -170,8 +172,10 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
+                one(changeLogAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
+                
                 one(checkOutAction).checkout(launcher, workspace); 
-                    will(returnValue(true));
+                will(returnValue(true));
                     
                 // normal changelog
                 one(changeLogAction).getChanges(mockedCalendar.getTime(), "viewname", new String[] {"branch"}, new String[]{"vob"});
@@ -207,6 +211,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
+                one(changeLogAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
+                
                 one(checkOutAction).checkout(launcher, workspace); 
                     will(returnValue(true));
                 one(changeLogAction).getChanges(mockedCalendar.getTime(), "viewname", new String[] {"branch"}, new String[]{"vob"});
@@ -240,6 +246,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
+                one(changeLogAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
+                
                 one(checkOutAction).checkout(launcher, workspace);
                 one(changeLogAction).getChanges(mockedCalendar.getTime(), "viewname", new String[] {"branchone", "branchtwo"}, new String[]{"vob"});
                     will(returnValue(null));
@@ -272,7 +280,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[] {"branch"}, new String[]{"vob"}); 
                 will(returnValue(true));
-                one(pollAction).setFilterOutDestroySubBranchEvent(false);
+                one(pollAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
             }
         });
         classContext.checking(new Expectations() {
@@ -314,7 +322,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{"branch"}, new String[]{"vob"}); 
                 will(returnValue(false));
-                one(pollAction).setFilterOutDestroySubBranchEvent(false);
+                one(pollAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
             }
         });
         classContext.checking(new Expectations() {
@@ -344,7 +352,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{"branchone", "branchtwo"}, new String[]{"vob"}); 
                 will(returnValue(true));
-                one(pollAction).setFilterOutDestroySubBranchEvent(false);
+                one(pollAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
             }
         });
         classContext.checking(new Expectations() {
@@ -368,7 +376,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{"branch"}, new String[]{"vob1", "vob2/vob2-1", "vob\\ 3"}); 
                 will(returnValue(true));
-                one(pollAction).setFilterOutDestroySubBranchEvent(false);
+                one(pollAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
             }
         });
         classContext.checking(new Expectations() {
@@ -393,7 +401,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{""}, new String[]{""}); 
                 will(returnValue(false));
-                one(pollAction).setFilterOutDestroySubBranchEvent(false);
+                one(pollAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
             }
         });
         classContext.checking(new Expectations() {
@@ -418,7 +426,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{"branch"}, new String[]{""}); 
                 will(returnValue(true));
-                one(pollAction).setFilterOutDestroySubBranchEvent(false);
+                one(pollAction).setEventRecordFilter(with(any(EventRecordFilter.class)));
             }
         });
         final MatrixBuild matrixBuild = classContext.mock(MatrixBuild.class);

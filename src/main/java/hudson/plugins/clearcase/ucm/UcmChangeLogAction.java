@@ -5,6 +5,8 @@ import static hudson.plugins.clearcase.util.OutputFormat.*;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
+import hudson.plugins.clearcase.util.EventRecordFilter;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.ParseException;
@@ -44,9 +46,15 @@ public class UcmChangeLogAction implements ChangeLogAction {
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
     private Map<String, UcmActivity> activityNameToEntry = new HashMap<String, UcmActivity>();
+    private EventRecordFilter eventRecordFilter;
 
     public UcmChangeLogAction(ClearTool cleartool) {
         this.cleartool = cleartool;
+        eventRecordFilter = new EventRecordFilter();
+    }
+
+    public void setEventRecordFilter(EventRecordFilter filter) {
+        this.eventRecordFilter = filter;
     }
 
     public List<UcmActivity> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
@@ -88,7 +96,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                     currentFile.setEvent(matcher.group(5));
                     currentFile.setOperation(matcher.group(6));
 
-                    if (currentFile.getVersion().endsWith("/0") || currentFile.getVersion().endsWith("\\0") || currentFile.getEvent().equalsIgnoreCase("create branch")) {
+                    if (! eventRecordFilter.accept(currentFile.getEvent(), currentFile.getVersion())) {
                         line = reader.readLine();
                         continue;
                     }

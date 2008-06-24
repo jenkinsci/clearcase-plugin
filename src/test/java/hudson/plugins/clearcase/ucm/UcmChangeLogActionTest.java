@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 import hudson.plugins.clearcase.ClearTool;
-import hudson.plugins.clearcase.base.BaseChangeLogAction;
+import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -43,6 +43,33 @@ public class UcmChangeLogActionTest {
     }
     
     @Test
+    public void assertDestroySubBranchEventIsIgnored() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));                
+                will(returnValue(new StringReader(
+                        "\"20080509.140451\" " +
+                        "\"vobs/projects/Server//config-admin-client\" " +
+                        "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
+                        "\"\" " +
+                        "\"destroy sub-branch \"esmalling_branch\" of branch\" " +
+                        "\"checkin\" ")));
+            }
+        });
+        
+        EventRecordFilter filter = new EventRecordFilter();
+        filter.setFilterOutDestroySubBranchEvent(true);
+        
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);
+        action.setEventRecordFilter(filter);
+        
+        List<UcmActivity> activities = action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        assertEquals("There should be 0 activity", 0, activities.size());
+    }
+
+    
+    @Test
     public void assertParsingOfNonIntegrationActivity() throws Exception {
         context.checking(new Expectations() {
             {
@@ -59,8 +86,8 @@ public class UcmChangeLogActionTest {
                         with(equal("Release_3_3_jdk5.20080509.155359")), 
                         with(aNonNull(String.class)),with(aNonNull(String.class)));
                 will(returnValue(new StringReader("\"Convert to Java 6\" " +
-                		"\"Release_3_3_jdk5\" " +
-                		"\"bob\" ")));
+                                "\"Release_3_3_jdk5\" " +
+                                "\"bob\" ")));
             }
         });
         

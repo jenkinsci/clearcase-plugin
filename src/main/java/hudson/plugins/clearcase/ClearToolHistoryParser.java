@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase;
 
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
+import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,8 +32,14 @@ public class ClearToolHistoryParser {
 
     private final transient Pattern pattern;
     private final transient SimpleDateFormat dateFormatter;
-
+    private EventRecordFilter filter;
+    
     public ClearToolHistoryParser() {
+        this(new EventRecordFilter());
+    }
+    
+    public ClearToolHistoryParser(EventRecordFilter filter) {
+        this.filter = filter;
         // pattern = Pattern.compile("^(\\S+)\\s+(\\w+)\\s+(.+)\\s+\"(.+)@@(.+)\"");
         pattern = Pattern.compile("\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"\\s+\"(.+)\"");
         dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
@@ -107,14 +114,6 @@ public class ClearToolHistoryParser {
      * @return true, if it is a modification that should trigger a build; false otherwise.
      */
     private boolean isFileElementModification(FileElement element) {
-        if (element.getAction().equalsIgnoreCase("create branch")) {
-            return false;
-        }
-        String version = element.getVersion();
-        if (version.endsWith("\\0")
-                || version.endsWith("/0")) {
-            return false;
-        }
-        return true;
+        return filter.accept(element.getAction(), element.getVersion()); 
     }
 }
