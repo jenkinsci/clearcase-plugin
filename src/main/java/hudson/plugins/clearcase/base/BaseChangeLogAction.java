@@ -15,6 +15,7 @@ import hudson.plugins.clearcase.ClearToolHistoryParser;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
+import hudson.plugins.clearcase.util.EventRecordFilter;
 
 /**
  * Change log action for Base ClearCase
@@ -35,9 +36,16 @@ public class BaseChangeLogAction implements ChangeLogAction {
 
     private final int maxTimeDifferenceMillis;
 
+    private EventRecordFilter eventRecordFilter;
+
     public BaseChangeLogAction(ClearTool cleartool, int maxTimeDifferenceMillis) {
         this.cleartool = cleartool;
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
+        this.eventRecordFilter = new EventRecordFilter();
+    }
+
+    public void setEventRecordFilter(EventRecordFilter filter) {
+        this.eventRecordFilter = filter;
     }
     
     public List<ClearCaseChangeLogEntry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
@@ -46,7 +54,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
             for (String branchName : branchNames) {
 
                 Reader reader = cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths);
-                ClearToolHistoryParser parser = new ClearToolHistoryParser();
+                ClearToolHistoryParser parser = new ClearToolHistoryParser(eventRecordFilter);
                 List<ClearCaseChangeLogEntry> data = parser.parse(reader);
                 fullList.addAll(data);
                 reader.close();
