@@ -154,7 +154,6 @@ public abstract class AbstractClearCaseScm extends SCM {
 
         EventRecordFilter filter = new EventRecordFilter();
         filter.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
-        changeLogAction.setEventRecordFilter(filter);
         
         // Checkout code
         checkoutAction.checkout(launcher, workspace);
@@ -163,7 +162,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         List<? extends ChangeLogSet.Entry> changelogEntries = null;        
         if (build.getPreviousBuild() != null) {
             Date lastBuildTime = build.getPreviousBuild().getTimestamp().getTime();
-            changelogEntries = changeLogAction.getChanges(lastBuildTime, viewName, getBranchNames(), getViewPaths(workspace.child(viewName)));
+            changelogEntries = changeLogAction.getChanges(filter, lastBuildTime, viewName, getBranchNames(), getViewPaths(workspace.child(viewName)));
         }        
 
         // Save change log
@@ -194,8 +193,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             filter.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
             
             PollAction pollAction = createPollAction(createClearToolLauncher(listener, workspace, launcher));
-            pollAction.setEventRecordFilter(filter);
-            return pollAction.getChanges(buildTime, viewName, getBranchNames(), getViewPaths(workspace.child(viewName)));
+            return pollAction.getChanges(filter, buildTime, viewName, getBranchNames(), getViewPaths(workspace.child(viewName)));
         }
     }
     
