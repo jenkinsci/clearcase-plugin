@@ -79,6 +79,12 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void assertFilteringOutDestroySubBranchEventProperty() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "", true);
+        assertTrue("The ClearCase SCM is not filtering out destroy sub branch events", scm.isFilteringOutDestroySubBranchEvent());
+    }
+
+    @Test
     public void testGetViewName() {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         assertEquals("The view name isnt correct", "viewname", scm.getViewName());
@@ -266,6 +272,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[] {"branch"}, new String[]{"vob"}); 
                 will(returnValue(true));
+                one(pollAction).setFilterOutDestroySubBranchEvent(false);
             }
         });
         classContext.checking(new Expectations() {
@@ -307,6 +314,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{"branch"}, new String[]{"vob"}); 
                 will(returnValue(false));
+                one(pollAction).setFilterOutDestroySubBranchEvent(false);
             }
         });
         classContext.checking(new Expectations() {
@@ -336,6 +344,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{"branchone", "branchtwo"}, new String[]{"vob"}); 
                 will(returnValue(true));
+                one(pollAction).setFilterOutDestroySubBranchEvent(false);
             }
         });
         classContext.checking(new Expectations() {
@@ -359,6 +368,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{"branch"}, new String[]{"vob1", "vob2/vob2-1", "vob\\ 3"}); 
                 will(returnValue(true));
+                one(pollAction).setFilterOutDestroySubBranchEvent(false);
             }
         });
         classContext.checking(new Expectations() {
@@ -383,6 +393,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{""}, new String[]{""}); 
                 will(returnValue(false));
+                one(pollAction).setFilterOutDestroySubBranchEvent(false);
             }
         });
         classContext.checking(new Expectations() {
@@ -407,6 +418,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(pollAction).getChanges(mockedCalendar.getTime(), "viewname", new String[]{"branch"}, new String[]{""}); 
                 will(returnValue(true));
+                one(pollAction).setFilterOutDestroySubBranchEvent(false);
             }
         });
         final MatrixBuild matrixBuild = classContext.mock(MatrixBuild.class);
@@ -428,12 +440,22 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         private final String[] vobPaths;
 
+        public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam,
+                boolean filterOutDestroySubBranchEvent) {
+            this (viewName, new String[]{vobPaths}, mkviewOptionalParam, filterOutDestroySubBranchEvent);
+        }
+
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam) {
             this (viewName, new String[]{vobPaths}, mkviewOptionalParam);
         }
 
         public AbstractClearCaseScmDummy(String viewName, String[] vobPaths, String mkviewOptionalParam) {
-            super( viewName, mkviewOptionalParam);
+            this( viewName, vobPaths, mkviewOptionalParam, false);
+        }
+
+        public AbstractClearCaseScmDummy(String viewName, String[] vobPaths, String mkviewOptionalParam,
+                boolean filterOutDestroySubBranchEvent) {
+            super( viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent);
             this.vobPaths = vobPaths;
         }
 

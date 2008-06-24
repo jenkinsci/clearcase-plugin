@@ -34,10 +34,13 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     private final String viewName;
     private final String mkviewOptionalParam;
+    private final boolean filteringOutDestroySubBranchEvent;
     
-    public AbstractClearCaseScm(String viewName, String mkviewOptionalParam) {
+    public AbstractClearCaseScm(String viewName, String mkviewOptionalParam, 
+            boolean filterOutDestroySubBranchEvent) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
+        this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
     }
     
     /**
@@ -110,6 +113,18 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
     
     /**
+     * Returns if the "Destroyed branch" event should be filtered out or not.
+     * For more information about the boolean, see the full discussion at 
+     * http://www.nabble.com/ClearCase-build-triggering-td17507838i20.html
+     * "Usually, CC admins have a CC trigger, fires on an uncheckout event, 
+     * that destroys empty branches."
+     * @return true if the "Destroyed branch" event should be filtered out or not; false otherwise 
+     */
+    public boolean isFilteringOutDestroySubBranchEvent() {
+        return filteringOutDestroySubBranchEvent;
+    }
+
+    /**
      * Adds the env variable for the ClearCase SCMs.
      * CLEARCASE_VIEWNAME - The name of the clearcase view.
      * CLEARCASE_VIEWPATH - The absolute path to the clearcase view.
@@ -170,6 +185,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         } else {
             Date buildTime = lastBuild.getTimestamp().getTime();
             PollAction pollAction = createPollAction(createClearToolLauncher(listener, workspace, launcher));
+            pollAction.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
             return pollAction.getChanges(buildTime, viewName, getBranchNames(), getViewPaths(workspace.child(viewName)));
         }
     }
