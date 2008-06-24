@@ -102,6 +102,40 @@ public class DefaultPollActionTest {
         context.assertIsSatisfied();
     }
 
+    @Test
+    public void assertIgnoringDestroySubBranchEvent() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));                
+                will(returnValue(new StringReader(
+                        "\"20080326.110739\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
+            }
+        });
+        
+        DefaultPollAction action = new DefaultPollAction(cleartool);
+        action.setFilterOutDestroySubBranchEvent(true);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        assertFalse("The getChanges() method reported a change", hasChange);        
+        context.assertIsSatisfied();
+    }
+    
+    @Test
+    public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));                
+                will(returnValue(new StringReader(
+                        "\"20080326.110739\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
+            }
+        });
+        
+        DefaultPollAction action = new DefaultPollAction(cleartool);
+        action.setFilterOutDestroySubBranchEvent(false);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        assertTrue("The getChanges() method reported a change", hasChange);        
+        context.assertIsSatisfied();
+    }
+
     @Test(expected=IOException.class)
     public void assertReaderIsClosed() throws Exception {                
         final StringReader reader = new StringReader("\"20071015.151822\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" ");

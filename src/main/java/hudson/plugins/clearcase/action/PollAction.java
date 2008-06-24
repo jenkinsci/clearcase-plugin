@@ -17,4 +17,10 @@ public interface PollAction {
      * @return true, if the ClearCase repository has changes; false, otherwise.
      */
     boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException;
+    
+    /**
+     * Set whetever the poll action should filter out "Destroy sub-branch [BRANCH] of branch" events. 
+     * @param filterOutEvent true, then it should ignore the event; false (default) should not ignore it.
+     */
+    void setFilterOutDestroySubBranchEvent(boolean filterOutEvent);
 }

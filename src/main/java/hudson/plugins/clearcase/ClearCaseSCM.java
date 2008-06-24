@@ -55,8 +55,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @DataBoundConstructor
     public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String vobpaths,
-            boolean usedynamicview, String viewdrive, String mkviewoptionalparam) {
-        super(viewname, mkviewoptionalparam);
+            boolean usedynamicview, String viewdrive, String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent) {
+        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent);
         this.branch = branch;
         this.configSpec = configspec;
         this.useUpdate = useupdate;
@@ -248,11 +248,16 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         @Override
         public SCM newInstance(StaplerRequest req) throws FormException {
-            ClearCaseSCM scm = new ClearCaseSCM(req.getParameter("cc.branch"), req
-                    .getParameter("cc.configspec"), req.getParameter("cc.viewname"), req
-                    .getParameter("cc.useupdate") != null, req.getParameter("cc.vobpaths"), req
-                    .getParameter("cc.usedynamicview") != null, req.getParameter("cc.viewdrive"),
-                    req.getParameter("cc.mkviewoptionalparam"));
+            ClearCaseSCM scm = new ClearCaseSCM(
+                    req.getParameter("cc.branch"), 
+                    req.getParameter("cc.configspec"), 
+                    req.getParameter("cc.viewname"), 
+                    req.getParameter("cc.useupdate") != null, 
+                    req.getParameter("cc.vobpaths"), 
+                    req.getParameter("cc.usedynamicview") != null, 
+                    req.getParameter("cc.viewdrive"),
+                    req.getParameter("cc.mkviewoptionalparam"),
+                    req.getParameter("cc.filterOutDestroySubBranchEvent") != null);
             return scm;
         }
 
