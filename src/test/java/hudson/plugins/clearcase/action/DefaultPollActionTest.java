@@ -17,11 +17,13 @@ public class DefaultPollActionTest {
 
     private Mockery context;
     private ClearTool cleartool;
+    private EventRecordFilter filter;
 
     @Before
     public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
+        filter = new EventRecordFilter();
     }
 
     @Test
@@ -36,7 +38,7 @@ public class DefaultPollActionTest {
         });
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
+        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -51,7 +53,7 @@ public class DefaultPollActionTest {
         });
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
+        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -68,7 +70,7 @@ public class DefaultPollActionTest {
         });
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -83,7 +85,7 @@ public class DefaultPollActionTest {
         });
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -98,7 +100,7 @@ public class DefaultPollActionTest {
         });
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -113,13 +115,10 @@ public class DefaultPollActionTest {
             }
         });
 
-        EventRecordFilter filter = new EventRecordFilter();
         filter.setFilterOutDestroySubBranchEvent(true);
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        action.setEventRecordFilter(filter);
-        
-        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -134,11 +133,10 @@ public class DefaultPollActionTest {
             }
         });
 
-        EventRecordFilter filter = new EventRecordFilter();
         filter.setFilterOutDestroySubBranchEvent(false);
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -154,7 +152,7 @@ public class DefaultPollActionTest {
         });
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         reader.ready();
     }
 }

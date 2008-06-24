@@ -36,25 +36,18 @@ public class BaseChangeLogAction implements ChangeLogAction {
 
     private final int maxTimeDifferenceMillis;
 
-    private EventRecordFilter eventRecordFilter;
-
     public BaseChangeLogAction(ClearTool cleartool, int maxTimeDifferenceMillis) {
         this.cleartool = cleartool;
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
-        this.eventRecordFilter = new EventRecordFilter();
-    }
-
-    public void setEventRecordFilter(EventRecordFilter filter) {
-        this.eventRecordFilter = filter;
     }
     
-    public List<ClearCaseChangeLogEntry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public List<ClearCaseChangeLogEntry> getChanges(EventRecordFilter eventFilter, Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();
         try {
             for (String branchName : branchNames) {
 
                 Reader reader = cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths);
-                ClearToolHistoryParser parser = new ClearToolHistoryParser(eventRecordFilter);
+                ClearToolHistoryParser parser = new ClearToolHistoryParser(eventFilter);
                 List<ClearCaseChangeLogEntry> data = parser.parse(reader);
                 fullList.addAll(data);
                 reader.close();
