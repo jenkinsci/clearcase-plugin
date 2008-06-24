@@ -2,6 +2,7 @@ package hudson.plugins.clearcase.action;
 
 import static org.junit.Assert.*;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -111,9 +112,13 @@ public class DefaultPollActionTest {
                         "\"20080326.110739\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
             }
         });
+
+        EventRecordFilter filter = new EventRecordFilter();
+        filter.setFilterOutDestroySubBranchEvent(true);
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        action.setFilterOutDestroySubBranchEvent(true);
+        action.setEventRecordFilter(filter);
+        
         boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
@@ -128,9 +133,11 @@ public class DefaultPollActionTest {
                         "\"20080326.110739\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
             }
         });
+
+        EventRecordFilter filter = new EventRecordFilter();
+        filter.setFilterOutDestroySubBranchEvent(false);
         
         DefaultPollAction action = new DefaultPollAction(cleartool);
-        action.setFilterOutDestroySubBranchEvent(false);
         boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();

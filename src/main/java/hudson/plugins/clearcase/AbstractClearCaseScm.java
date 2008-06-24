@@ -18,6 +18,7 @@ import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.TaggingAction;
+import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
@@ -150,6 +151,10 @@ public abstract class AbstractClearCaseScm extends SCM {
         ChangeLogAction changeLogAction = createChangeLogAction(clearToolLauncher);
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
         TaggingAction taggingAction = createTaggingAction(clearToolLauncher);
+
+        EventRecordFilter filter = new EventRecordFilter();
+        filter.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
+        changeLogAction.setEventRecordFilter(filter);
         
         // Checkout code
         checkoutAction.checkout(launcher, workspace);
@@ -184,8 +189,12 @@ public abstract class AbstractClearCaseScm extends SCM {
             return true;
         } else {
             Date buildTime = lastBuild.getTimestamp().getTime();
+            
+            EventRecordFilter filter = new EventRecordFilter();
+            filter.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
+            
             PollAction pollAction = createPollAction(createClearToolLauncher(listener, workspace, launcher));
-            pollAction.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
+            pollAction.setEventRecordFilter(filter);
             return pollAction.getChanges(buildTime, viewName, getBranchNames(), getViewPaths(workspace.child(viewName)));
         }
     }

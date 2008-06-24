@@ -1,6 +1,8 @@
 package hudson.plugins.clearcase.action;
 
 
+import hudson.plugins.clearcase.util.EventRecordFilter;
+
 import java.io.IOException;
 import java.util.Date;
 
@@ -19,8 +21,8 @@ public interface PollAction {
     boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException;
     
     /**
-     * Set whetever the poll action should filter out "Destroy sub-branch [BRANCH] of branch" events. 
-     * @param filterOutEvent true, then it should ignore the event; false (default) should not ignore it.
+     * Sets the event record filter that should be used when determining if an event is real or not.
+     * @param filter the filter to use.
      */
-    void setFilterOutDestroySubBranchEvent(boolean filterOutEvent);
+    void setEventRecordFilter(EventRecordFilter filter);
 }

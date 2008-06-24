@@ -4,21 +4,19 @@ import static hudson.plugins.clearcase.util.OutputFormat.*;
 
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
+import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Date;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Default action for polling for changes in a repository.
  */
 public class DefaultPollAction implements PollAction {
     
-    private static final Pattern DESTROYED_SUB_BRANCH_PATTERN = Pattern.compile("destroy sub-branch \".+\" of branch");
-
     private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
         NAME_ELEMENTNAME,
         NAME_VERSIONID,
@@ -26,22 +24,20 @@ public class DefaultPollAction implements PollAction {
         OPERATION
     };
     
-    private boolean filterOutDestroySubBranchEvent = false;
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);    
     private ClearTool cleartool;
 
+    private EventRecordFilter eventRecordFilter;
+
     public DefaultPollAction(ClearTool cleartool) {
         this.cleartool = cleartool;
+        this.eventRecordFilter = new EventRecordFilter();
     }
 
-    public void setFilterOutDestroySubBranchEvent(boolean filterOutEvent) {
-        filterOutDestroySubBranchEvent = filterOutEvent;
+    public void setEventRecordFilter(EventRecordFilter filter) {
+        this.eventRecordFilter = filter;
     }
     
-    public boolean isFilteringOutDestroySubBranchEvent() {
-        return filterOutDestroySubBranchEvent;
-    }
-
     public boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         boolean hasChanges = false;
         for (int i = 0; (i < branchNames.length) && (!hasChanges); i++) {
@@ -69,16 +65,13 @@ public class DefaultPollAction implements PollAction {
             // finder find start of lshistory entry
             if (matcher != null) {
                 // read values;
-                String dateStr = matcher.group(1);
-                String name = matcher.group(2);
+//                String dateStr = matcher.group(1);
+//                String name = matcher.group(2);
                 String version = matcher.group(3);
                 String event = matcher.group(4);
-                String operation = matcher.group(5);
+//                String operation = matcher.group(5);
 
-                if (version.endsWith("/0") 
-                        || version.endsWith("\\0") 
-                        || event.equalsIgnoreCase("create branch")
-                        || (filterOutDestroySubBranchEvent && DESTROYED_SUB_BRANCH_PATTERN.matcher(event).matches())) {
+                if (!eventRecordFilter.accept(event, version)) {
                     line = reader.readLine();
                     continue;
                 }
@@ -87,5 +80,5 @@ public class DefaultPollAction implements PollAction {
             line = reader.readLine();
         }
         return false;
-    }    
+    }
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.DefaultPollAction;
+import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -41,6 +42,28 @@ public class BaseChangeLogActionTest {
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 0);
         action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         context.assertIsSatisfied();
+    }
+
+    @Test
+    public void assertDestroySubBranchEventIsIgnored() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%o\\\" \\n%c\\n")), 
+                        with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
+                        with(any(String[].class)));
+                will(returnValue(new StringReader(
+                        "\"20070906.091701\"   \"egsperi\"    \"destroy sub-branch \"esmalling_branch\" of branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n")));
+            }
+        });
+        
+        EventRecordFilter filter = new EventRecordFilter();
+        filter.setFilterOutDestroySubBranchEvent(true);
+        
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
+        action.setEventRecordFilter(filter);
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        assertEquals("The event record should be ignored", 0, changes.size());        
+        context.assertIsSatisfied();        
     }
 
     @Test
