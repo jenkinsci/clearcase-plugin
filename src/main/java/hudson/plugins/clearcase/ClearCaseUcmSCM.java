@@ -34,8 +34,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     private final String loadRules;
 
     @DataBoundConstructor
-    public ClearCaseUcmSCM(String stream, String loadrules, String viewname, String mkviewoptionalparam) {
-        super(viewname, mkviewoptionalparam);
+    public ClearCaseUcmSCM(String stream, String loadrules, String viewname, String mkviewoptionalparam,
+            boolean filterOutDestroySubBranchEvent) {
+        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent);
         this.stream = shortenStreamName(stream);
         this.loadRules = loadrules;
     }

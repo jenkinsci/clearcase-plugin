@@ -10,23 +10,36 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Date;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Default action for polling for changes in a repository.
  */
 public class DefaultPollAction implements PollAction {
     
+    private static final Pattern DESTROYED_SUB_BRANCH_PATTERN = Pattern.compile("destroy sub-branch \".+\" of branch");
+
     private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
         NAME_ELEMENTNAME,
         NAME_VERSIONID,
         EVENT, 
         OPERATION
     };
+    
+    private boolean filterOutDestroySubBranchEvent = false;
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);    
     private ClearTool cleartool;
 
     public DefaultPollAction(ClearTool cleartool) {
         this.cleartool = cleartool;
+    }
+
+    public void setFilterOutDestroySubBranchEvent(boolean filterOutEvent) {
+        filterOutDestroySubBranchEvent = filterOutEvent;
+    }
+    
+    public boolean isFilteringOutDestroySubBranchEvent() {
+        return filterOutDestroySubBranchEvent;
     }
 
     public boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
@@ -62,7 +75,10 @@ public class DefaultPollAction implements PollAction {
                 String event = matcher.group(4);
                 String operation = matcher.group(5);
 
-                if (version.endsWith("/0") || version.endsWith("\\0") || event.equalsIgnoreCase("create branch")) {
+                if (version.endsWith("/0") 
+                        || version.endsWith("\\0") 
+                        || event.equalsIgnoreCase("create branch")
+                        || (filterOutDestroySubBranchEvent && DESTROYED_SUB_BRANCH_PATTERN.matcher(event).matches())) {
                     line = reader.readLine();
                     continue;
                 }
@@ -71,6 +87,5 @@ public class DefaultPollAction implements PollAction {
             line = reader.readLine();
         }
         return false;
-    }
-    
+    }    
 }

@@ -27,6 +27,11 @@
       <f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
         <f:expandableTextbox name="cc.mkviewoptionalparam" value="${scm.mkviewOptionalParam}"/>
       </f:entry>
+      <f:entry title="Filter 'Destroy sub branch' event" help="/plugin/clearcase/filteroutdestroysubbranchevent.html">
+		<f:checkbox name="cc.filterOutDestroySubBranchEvent" checked="${scm.filteringOutDestroySubBranchEvent}"/>
+      			If checked, Hudson will filter out <i>'Destroy sub-branch "BRANCHNAME" of branch'</i> when it is polling
+      			the ClearCase repository and retrieving the change log.
+	  </f:entry>
       <f:block>
         <table>
 
