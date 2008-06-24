@@ -23,8 +23,8 @@
 		</f:entry>
         <f:entry title="Filter 'Destroy sub branch' event" help="/plugin/clearcase/filteroutdestroysubbranchevent.html">
 		    <f:checkbox name="cc.filterOutDestroySubBranchEvent" checked="${scm.filteringOutDestroySubBranchEvent}"/>
-      			If checked, Hudson will filter out <i>'Destroy sub-branch "BRANCHNAME" of branch'</i> when it is polling
-      			the ClearCase repository and retrieving the change log.
+      			If checked, Hudson will filter out <i>'Destroy sub-branch "BRANCHNAME" of branch'</i> events when polling
+      			and retrieving change logs from a ClearCase repository.
 	    </f:entry>
 	</f:advanced>
 </j:jelly>
