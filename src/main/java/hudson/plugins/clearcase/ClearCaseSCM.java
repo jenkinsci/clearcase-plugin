@@ -160,8 +160,26 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher) {
-        return new BaseChangeLogAction(createClearTool(launcher), getDescriptor().getLogMergeTimeWindow());
+    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher) {
+        return createChangeLogAction(launcher, getDescriptor().getLogMergeTimeWindow());
+    }
+    
+    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher, int logMergeTimeWindow) {
+        BaseChangeLogAction action = new BaseChangeLogAction(createClearTool(launcher), logMergeTimeWindow);
+        if (useDynamicView) {
+            String extendedViewPath = viewDrive;
+            if (! (viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
+                // Need to deteremine what kind of char to add in between
+                if (viewDrive.contains("/")) {
+                    extendedViewPath += "/";
+                } else {
+                    extendedViewPath += "\\";
+                }                
+            }
+            extendedViewPath += getViewName();
+            action.setExtendedViewPath(extendedViewPath);
+        }
+        return action;
     }
 
     @Override
