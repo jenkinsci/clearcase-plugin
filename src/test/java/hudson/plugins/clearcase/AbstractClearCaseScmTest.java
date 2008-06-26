@@ -83,6 +83,12 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void assertWorkspaceisRequiredForPolling() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
+        assertTrue("The ClearCase SCM needs a workspace to poll but is reported no to require one", scm.requiresWorkspaceForPolling());
+    }
+
+    @Test
     public void assertFilteringOutDestroySubBranchEventProperty() {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "", true);
         assertTrue("The ClearCase SCM is not filtering out destroy sub branch events", scm.isFilteringOutDestroySubBranchEvent());
@@ -577,6 +583,35 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();
+    }
+    
+    @Test
+    public void assertGetModuleRootReturnsViewFolder() throws Exception {
+        // Must initiate a pollChanges() or checkout() to update the normalizedViewName
+        createWorkspace();
+        context.checking(new Expectations() {
+            {
+                ignoring(pollAction).getChanges(with(any(EventRecordFilter.class)), 
+                        with(any(Date.class)), with(any(String.class)), with(any(String[].class)),with(any(String[].class))); 
+                will(returnValue(true));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                ignoring(build).getTimestamp(); will(returnValue(Calendar.getInstance()));
+                ignoring(project).getLastBuild(); will(returnValue(build));
+                ignoring(project).getName(); will(returnValue("CCHudson"));
+            }
+        });
+        
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view name", "", "");
+        scm.pollChanges(project, launcher, workspace, taskListener);
+        FilePath moduleRoot = scm.getModuleRoot(workspace);
+        assertEquals("The module root path is incorrect", "view_name", moduleRoot.getName());
+        
+        FilePath[] moduleRoots = scm.getModuleRoots(workspace);
+        assertEquals("The number of module roots are incorrect", 1, moduleRoots.length);
+        assertEquals("The module root path is incorrect", "view_name", moduleRoots[0].getName());
     }
 
     private class AbstractClearCaseScmDummy extends AbstractClearCaseScm {

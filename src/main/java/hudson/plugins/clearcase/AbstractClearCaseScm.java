@@ -24,6 +24,7 @@ import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
+import hudson.scm.SCMDescriptor;
 
 /**
  * Abstract class for ClearCase SCM.
@@ -32,6 +33,18 @@ import hudson.scm.SCM;
  */
 public abstract class AbstractClearCaseScm extends SCM {
     
+    @Override
+    public ChangeLogParser createChangeLogParser() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public SCMDescriptor<?> getDescriptor() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
     public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
 
@@ -99,6 +112,20 @@ public abstract class AbstractClearCaseScm extends SCM {
     @Override
     public boolean supportsPolling() {
         return true;
+    }
+    
+    @Override
+    public boolean requiresWorkspaceForPolling() {
+        return true;
+    }
+
+    @Override
+    public FilePath getModuleRoot(FilePath workspace) {
+        if (normalizedViewName == null) {
+            return super.getModuleRoot(workspace);
+        } else {
+            return workspace.child(normalizedViewName);
+        }
     }
 
     public String getViewName() {
