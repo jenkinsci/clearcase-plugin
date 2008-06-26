@@ -1,6 +1,8 @@
 package hudson.plugins.clearcase;
 
 import hudson.Util;
+import hudson.model.AbstractProject;
+import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.base.BaseChangeLogAction;
@@ -13,16 +15,29 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
+    private Mockery classContext;
+    private AbstractProject project;
+    private Build build;
+
     @Before
     public void setUp() throws Exception {
         createWorkspace();
+        classContext = new Mockery() {
+            {
+                setImposteriser(ClassImposteriser.INSTANCE);
+            }
+        };
+        project = classContext.mock(AbstractProject.class);
+        build = classContext.mock(Build.class);
     }
     @After
     public void tearDown() throws Exception {
@@ -38,28 +53,43 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     
     @Test
     public void testSnapshotBuildEnvVars() {
+        classContext.checking(new Expectations() {
+            {
+                ignoring(build).getParent(); will(returnValue(project));
+            }
+        });
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
-        scm.buildEnvVars(null, env);
+        scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
     @Test
     public void testDynamicBuildEnvVars() {
+        classContext.checking(new Expectations() {
+            {
+                ignoring(build).getParent(); will(returnValue(project));
+            }
+        });
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/views", null, false);
         Map<String, String> env = new HashMap<String, String>();
-        scm.buildEnvVars(null, env);
+        scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasnt set", "/views" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
     @Test
     public void testDynamicBuildEnvVarsNoViewDrive() {
+        classContext.checking(new Expectations() {
+            {
+                ignoring(build).getParent(); will(returnValue(project));
+            }
+        });
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, null, null, false);
         Map<String, String> env = new HashMap<String, String>();
-        scm.buildEnvVars(null, env);
+        scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertFalse("The env var VIEWPATH was set", env.containsKey(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
     }
@@ -149,9 +179,28 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
     @Test
     public void assertExtendedViewPathIsSetForDynamicViews() throws Exception {
+        classContext.checking(new Expectations() {
+            {
+                ignoring(build).getParent(); will(returnValue(project));
+            }
+        });
         ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, "vob", true, "/view", null, false);
-        BaseChangeLogAction action = scm.createChangeLogAction(null, 0);
+        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0);
         assertEquals("The extended view path is incorrect", "/view/viewname", action.getExtendedViewPath());
+    }
+
+    @Test
+    public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
+        classContext.checking(new Expectations() {
+            {
+                one(build).getParent(); will(returnValue(project));
+                one(project).getName(); will(returnValue("ClearCase"));
+            }
+        });
+        ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false);
+        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0);
+        assertEquals("The extended view path is incorrect", "/view/viewname-clearcase", action.getExtendedViewPath());
+        classContext.assertIsSatisfied();
     }
     
     private void assertObjectInArray(Object[] array, Object obj) {

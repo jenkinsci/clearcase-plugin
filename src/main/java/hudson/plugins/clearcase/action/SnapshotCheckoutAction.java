@@ -11,19 +11,17 @@ import hudson.plugins.clearcase.ClearTool;
  */
 public class SnapshotCheckoutAction implements CheckOutAction {
 
-    private final String viewName;
     private final String configSpec;
     private final boolean useUpdate;
     private final ClearTool cleartool;
 
-    public SnapshotCheckoutAction(ClearTool clearTool, String viewName, String configSpec, boolean useUpdate) {
+    public SnapshotCheckoutAction(ClearTool clearTool, String configSpec, boolean useUpdate) {
         this.cleartool = clearTool;
-        this.viewName = viewName;
         this.configSpec = configSpec;
         this.useUpdate = useUpdate;        
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace) throws IOException, InterruptedException {
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
 
         boolean updateView = useUpdate;        
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();

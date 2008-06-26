@@ -38,8 +38,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "viewname", "stream", "loadrule");
-        action.checkout(launcher, workspace);
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "stream", "loadrule");
+        action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }
@@ -56,8 +56,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "viewname", "stream", "loadrule");
-        action.checkout(launcher, workspace);
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "stream", "loadrule");
+        action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }
@@ -72,8 +72,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "viewname", "stream", "loadrule\r\nanother\t loadrule");
-        action.checkout(launcher, workspace);
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "stream", "loadrule\r\nanother\t loadrule");
+        action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }
@@ -88,8 +88,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "viewname", "stream", "\\ \\Windows\n\\\\C:\\System32");
-        action.checkout(launcher, workspace);
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool, "stream", "\\ \\Windows\n\\\\C:\\System32");
+        action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }    
