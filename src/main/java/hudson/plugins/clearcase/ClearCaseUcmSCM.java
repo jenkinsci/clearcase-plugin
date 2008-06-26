@@ -9,6 +9,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import hudson.FilePath;
 import hudson.Util;
+import hudson.model.AbstractBuild;
 import hudson.model.ModelObject;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
@@ -93,7 +94,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
     @Override
     protected CheckOutAction createCheckOutAction(ClearToolLauncher launcher) {
-        return new UcmSnapshotCheckoutAction(createClearTool(launcher), getViewName(), getStream(), getLoadRules());
+        return new UcmSnapshotCheckoutAction(createClearTool(launcher), getStream(), getLoadRules());
     }
 
     @Override
@@ -102,7 +103,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher) {
+    protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
         return new UcmChangeLogAction(createClearTool(launcher));
     }
 
