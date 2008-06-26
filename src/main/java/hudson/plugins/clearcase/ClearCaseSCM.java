@@ -136,7 +136,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         if (useDynamicView) {
             if (viewDrive != null) {
-                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + getViewName());
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + getNormalizedViewName(build.getProject()));
             } else {
                 env.remove(CLEARCASE_VIEWPATH_ENVSTR);
             }
@@ -147,9 +147,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     protected CheckOutAction createCheckOutAction(ClearToolLauncher launcher) {
         CheckOutAction action;
         if (useDynamicView) {
-            action = new DynamicCheckoutAction(createClearTool(launcher), getViewName(), configSpec);
+            action = new DynamicCheckoutAction(createClearTool(launcher), configSpec);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(launcher), getViewName(), configSpec, useUpdate);
+            action = new SnapshotCheckoutAction(createClearTool(launcher), configSpec, useUpdate);
         }
         return action;
     }
@@ -160,11 +160,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher) {
-        return createChangeLogAction(launcher, getDescriptor().getLogMergeTimeWindow());
+    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
+        return createChangeLogAction(launcher, build, getDescriptor().getLogMergeTimeWindow());
     }
     
-    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher, int logMergeTimeWindow) {
+    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build, int logMergeTimeWindow) {
         BaseChangeLogAction action = new BaseChangeLogAction(createClearTool(launcher), logMergeTimeWindow);
         if (useDynamicView) {
             String extendedViewPath = viewDrive;
@@ -176,7 +176,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                     extendedViewPath += "\\";
                 }                
             }
-            extendedViewPath += getViewName();
+            extendedViewPath += getNormalizedViewName(build.getProject());
             action.setExtendedViewPath(extendedViewPath);
         }
         return action;

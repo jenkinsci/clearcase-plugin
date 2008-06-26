@@ -14,19 +14,17 @@ import java.io.IOException;
 public class UcmSnapshotCheckoutAction implements CheckOutAction {
 
     private ClearTool cleartool;
-    private String viewName;
     private String stream;
     private String loadRules;
         
-    public UcmSnapshotCheckoutAction(ClearTool cleartool, String viewName, String stream, String loadRules) {
+    public UcmSnapshotCheckoutAction(ClearTool cleartool, String stream, String loadRules) {
         super();
         this.cleartool = cleartool;
-        this.viewName = viewName;
         this.stream = stream;
         this.loadRules = loadRules;
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace) throws IOException, InterruptedException {        
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {        
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();
         
         if (localViewPathExists) {

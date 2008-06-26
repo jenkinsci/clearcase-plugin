@@ -15,16 +15,14 @@ import java.io.IOException;
 public class DynamicCheckoutAction implements CheckOutAction {
 
     private ClearTool cleartool;
-    private String viewName;
     private String configSpec;
 
-    public DynamicCheckoutAction(ClearTool cleartool, String viewName, String configSpec) {
+    public DynamicCheckoutAction(ClearTool cleartool, String configSpec) {
         this.cleartool = cleartool;
-        this.viewName = viewName;
         this.configSpec = configSpec;
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace) throws IOException, InterruptedException { 
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException { 
         cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
         if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
