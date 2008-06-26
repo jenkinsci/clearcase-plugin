@@ -89,6 +89,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return viewDrive;
     }
 
+    public Object getVobPaths() {
+        return vobPaths;
+    }
+
     /**
      * Return the view paths that will be used when getting changes for a view.
      * If the user configured vob paths field is empty, then the folder within the view will be used
