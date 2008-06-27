@@ -21,10 +21,8 @@ import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.TaggingAction;
 import hudson.plugins.clearcase.util.EventRecordFilter;
-import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
-import hudson.scm.SCMDescriptor;
 
 /**
  * Abstract class for ClearCase SCM.
@@ -32,18 +30,6 @@ import hudson.scm.SCMDescriptor;
  * classes only have to implement the specific checkout and polling logic.
  */
 public abstract class AbstractClearCaseScm extends SCM {
-    
-    @Override
-    public ChangeLogParser createChangeLogParser() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public SCMDescriptor<?> getDescriptor() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
     public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
