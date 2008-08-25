@@ -23,6 +23,8 @@ import hudson.plugins.clearcase.action.TaggingAction;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Abstract class for ClearCase SCM.
@@ -141,6 +143,18 @@ public abstract class AbstractClearCaseScm extends SCM {
             if (matcher.find()) {
                 normalizedViewName = matcher.replaceAll(System.getProperty("user.name"));
             }
+            
+            matcher = Pattern.compile("\\$\\{HOSTNAME\\}", Pattern.CASE_INSENSITIVE).matcher(normalizedViewName);
+            if (matcher.find()) {
+                String hostname ="unknown-host";
+                try {                        
+                     hostname = InetAddress.getLocalHost().getHostName();
+                } catch (UnknownHostException e) {
+                    // ignore to fall back to default.
+                }
+                normalizedViewName = matcher.replaceAll(hostname);
+            }
+            
             normalizedViewName = normalizedViewName.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
         }
         return normalizedViewName;
