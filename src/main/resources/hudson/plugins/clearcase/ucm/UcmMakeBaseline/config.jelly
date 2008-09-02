@@ -7,23 +7,11 @@
     <f:entry title="Baseline comment pattern" help="/plugin/clearcase/ucm/mkbl/comment.html">
         <f:textbox name="mkbl.commentpattern" value="${h.defaulted(instance.commentPattern, '${BUILD_TAG}')}" />       
     </f:entry>
-  
- <f:block>
-        <table>
-
-        <f:optionalBlock name="mkbl.lock" title="Lock stream"
-            checked="${instance.lockStream}" help="/plugin/clearcase/ucm/mkbl/lock.html">
-            
-          <f:entry title="CC Username" >
-            <f:textbox name="mkbl.user" value="${instance.user}" />       
-          </f:entry>
-            
-          <f:entry title="CC Password">
-            <f:textbox name="mkbl.password" value="${instance.password}" />       
-          </f:entry>
-          
-        </f:optionalBlock>
-      </table>
-</f:block>
-
+  	
+	<f:entry title="Lock stream" help="/plugin/clearcase/ucm/mkbl/lock.html">
+        <f:checkbox name="mkbl.lock" checked="${instance.lockStream}"  />
+    </f:entry>
+	<f:entry title="Recommend baseline" help="/plugin/clearcase/ucm/mkbl/recommend.html">
+		<f:checkbox name="mkbl.recommend" checked="${h.defaultToTrue(instance.recommend)}"  />
+	</f:entry>
 </j:jelly>
