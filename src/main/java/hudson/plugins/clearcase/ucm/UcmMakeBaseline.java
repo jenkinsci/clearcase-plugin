@@ -128,19 +128,19 @@ public class UcmMakeBaseline extends Publisher {
 					launcher);
 
 			if (build.getResult().equals(Result.SUCCESS)) {
-				makeBaseline(build, clearToolLauncher, filePath);
-				if (this.recommend) {
+				boolean createdBaseline = makeBaseline(build, clearToolLauncher, filePath);
+				if (this.recommend && createdBaseline) {
 					recommedBaseline(scm.getStream(), clearToolLauncher,
 							filePath);
 				}
-			} else {
-				listener.getLogger().println(
-						"Not a UCM clearcase SCM, cannot create baseline");
 			}
 
 			if (this.lockStream && this.streamSuccessfullyLocked) {
 				unlockStream(scm.getStream(), clearToolLauncher, filePath);
 			}
+		} else {
+			listener.getLogger().println(
+					"Not a UCM clearcase SCM, cannot create baseline");
 		}
 		return true;
 	}
@@ -193,7 +193,7 @@ public class UcmMakeBaseline extends Publisher {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void makeBaseline(AbstractBuild build,
+	private boolean makeBaseline(AbstractBuild build,
 			HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
 			throws InterruptedException, IOException {
 
@@ -213,10 +213,11 @@ public class UcmMakeBaseline extends Publisher {
 
 		clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
 		baos.close();
-
-		// TODO: Parse results, throw exception if not OK
-		// "No changes in component" -> no baseline will be created, this is OK
-		// "cleartool: Error" -> NOK
+		String cleartoolResult = baos.toString();
+		if (cleartoolResult.contains("cleartool: Error")) {
+			return false;
+		}
+		return true;
 	}
 
 	private void recommedBaseline(String stream,
