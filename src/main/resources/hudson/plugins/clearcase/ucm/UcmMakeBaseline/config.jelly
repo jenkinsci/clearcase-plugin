@@ -1,0 +1,29 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:entry title="Baseline name pattern" help="/plugin/clearcase/ucm/mkbl/name.html">
+        <f:textbox name="mkbl.namepattern" value="${h.defaulted(instance.namePattern, '${JOB_NAME}-${BUILD_NUMBER}')}" />    
+    </f:entry>  
+    
+    <f:entry title="Baseline comment pattern" help="/plugin/clearcase/ucm/mkbl/comment.html">
+        <f:textbox name="mkbl.commentpattern" value="${h.defaulted(instance.commentPattern, '${BUILD_TAG}')}" />       
+    </f:entry>
+  
+ <f:block>
+        <table>
+
+        <f:optionalBlock name="mkbl.lock" title="Lock stream"
+            checked="${instance.lockStream}" help="/plugin/clearcase/ucm/mkbl/lock.html">
+            
+          <f:entry title="CC Username" >
+            <f:textbox name="mkbl.user" value="${instance.user}" />       
+          </f:entry>
+            
+          <f:entry title="CC Password">
+            <f:textbox name="mkbl.password" value="${instance.password}" />       
+          </f:entry>
+          
+        </f:optionalBlock>
+      </table>
+</f:block>
+
+</j:jelly>

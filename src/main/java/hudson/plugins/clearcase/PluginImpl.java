@@ -1,7 +1,10 @@
 package hudson.plugins.clearcase;
 
 import hudson.Plugin;
+import hudson.model.Descriptor;
+import hudson.plugins.clearcase.ucm.UcmMakeBaseline;
 import hudson.scm.SCMS;
+import hudson.tasks.Publisher;
 
 /**
  * ClearCase plugin.
@@ -12,7 +15,7 @@ public class PluginImpl extends Plugin {
 
     public static final ClearCaseSCM.ClearCaseScmDescriptor BASE_DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
     public static final ClearCaseUcmSCM.ClearCaseUcmScmDescriptor  UCM_DESCRIPTOR = new ClearCaseUcmSCM.ClearCaseUcmScmDescriptor();
-
+  
     public static ClearCaseSCM.ClearCaseScmDescriptor getDescriptor() {
         return BASE_DESCRIPTOR;
     }
@@ -24,6 +27,8 @@ public class PluginImpl extends Plugin {
     public void start() throws Exception {
         SCMS.SCMS.add(BASE_DESCRIPTOR);
         SCMS.SCMS.add(UCM_DESCRIPTOR);
+        Publisher.PUBLISHERS.add(UcmMakeBaseline.DESCRIPTOR);
+        
         super.start();
     }
 }
