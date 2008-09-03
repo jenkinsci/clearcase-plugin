@@ -287,23 +287,24 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @param viewName	the name of the view
      */
 	private void createAndRegisterListener(final String viewName) {
-		Hudson.getInstance().getJobListeners().add(new ItemListener() {
-        	@Override
-        	public void onDeleted(Item item) {
-        		if (item instanceof AbstractProject) {
-        			AbstractProject project = (AbstractProject)item;
-        			if (project.getScm() instanceof AbstractClearCaseScm) {        				
-        				TaskListener listener = TaskListener.NULL;
-        				Launcher launcher = Hudson.getInstance().createLauncher(listener);
-        				ClearTool ct = createClearTool(createClearToolLauncher(listener, project.getWorkspace().getParent().getParent(), launcher));
-        				try {
-							ct.rmview(viewName);
-						} catch (Exception e) {
-							Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove ClearCase view", e);
-						}
-        			}
-        		}
-        	}
-        });
+//		Hudson hudson = Hudson.getInstance();
+//		hudson.getJobListeners().add(new ItemListener() {
+//        	@Override
+//        	public void onDeleted(Item item) {
+//        		if (item instanceof AbstractProject) {
+//        			AbstractProject project = (AbstractProject)item;
+//        			if (project.getScm() instanceof AbstractClearCaseScm) {        				
+//        				TaskListener listener = TaskListener.NULL;
+//        				Launcher launcher = Hudson.getInstance().createLauncher(listener);
+//        				ClearTool ct = createClearTool(createClearToolLauncher(listener, project.getWorkspace().getParent().getParent(), launcher));
+//        				try {
+//							ct.rmview(viewName);
+//						} catch (Exception e) {
+//							Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove ClearCase view", e);
+//						}
+//        			}
+//        		}
+//        	}
+//        });
 	}
 }
