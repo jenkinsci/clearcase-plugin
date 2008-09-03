@@ -1,20 +1,15 @@
 package hudson.plugins.clearcase;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.model.Hudson;
+import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.model.listeners.ItemListener;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.PollAction;
@@ -23,8 +18,19 @@ import hudson.plugins.clearcase.action.TaggingAction;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
+
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 /**
  * Abstract class for ClearCase SCM.
@@ -41,12 +47,16 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean filteringOutDestroySubBranchEvent;
     private transient String normalizedViewName;
     
-    public AbstractClearCaseScm(String viewName, String mkviewOptionalParam, 
+    public AbstractClearCaseScm(final String viewName, String mkviewOptionalParam, 
             boolean filterOutDestroySubBranchEvent) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
+        
+        createAndRegisterListener(viewName);
     }
+
+
     
     /**
      * Create a CheckOutAction that will be used by the checkout method.
@@ -270,4 +280,30 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected ClearTool createClearTool(ClearToolLauncher launcher) {
         return new ClearToolSnapshot(launcher, mkviewOptionalParam);
     }
+    
+    /**
+     * Register listeners for Hudson events. At the moment we listen to onDeleted and try to remove 
+     * the ClearCase view that was created for this job.
+     * @param viewName	the name of the view
+     */
+	private void createAndRegisterListener(final String viewName) {
+		Hudson.getInstance().getJobListeners().add(new ItemListener() {
+        	@Override
+        	public void onDeleted(Item item) {
+        		if (item instanceof AbstractProject) {
+        			AbstractProject project = (AbstractProject)item;
+        			if (project.getScm() instanceof AbstractClearCaseScm) {        				
+        				TaskListener listener = TaskListener.NULL;
+        				Launcher launcher = Hudson.getInstance().createLauncher(listener);
+        				ClearTool ct = createClearTool(createClearToolLauncher(listener, project.getWorkspace().getParent().getParent(), launcher));
+        				try {
+							ct.rmview(viewName);
+						} catch (Exception e) {
+							Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove ClearCase view", e);
+						}
+        			}
+        		}
+        	}
+        });
+	}
 }
