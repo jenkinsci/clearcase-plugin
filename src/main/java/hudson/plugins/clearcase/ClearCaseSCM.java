@@ -15,7 +15,6 @@ import hudson.plugins.clearcase.action.DynamicCheckoutAction;
 import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
-import hudson.plugins.clearcase.action.TaggingAction;
 import hudson.plugins.clearcase.base.BaseChangeLogAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
 import hudson.scm.ChangeLogParser;
