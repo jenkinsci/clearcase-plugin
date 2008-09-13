@@ -9,7 +9,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
-import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.DefaultPollAction;
 import hudson.plugins.clearcase.action.DynamicCheckoutAction;
@@ -192,10 +191,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return new BaseSaveChangeLogAction();
     }
 
-    @Override
-    protected TaggingAction createTaggingAction(ClearToolLauncher clearToolLauncher) {
-        return null;
-    }
 
     /**
      * Split the branch names into a string array.

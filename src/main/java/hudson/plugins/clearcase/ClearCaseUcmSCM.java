@@ -9,7 +9,6 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.ModelObject;
 import hudson.plugins.clearcase.action.ChangeLogAction;
@@ -113,10 +112,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return new UcmSaveChangeLogAction();
     }
     
-    @Override
-    protected TaggingAction createTaggingAction(ClearToolLauncher clearToolLauncher) {
-        return null;
-    }
     
     private String shortenStreamName(String longStream) {
         if (longStream.startsWith("stream:")) {

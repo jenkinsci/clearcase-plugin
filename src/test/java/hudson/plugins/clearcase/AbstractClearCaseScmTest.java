@@ -705,10 +705,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             return saveChangeLogAction;
         }
 
-        @Override
-        protected TaggingAction createTaggingAction(ClearToolLauncher clearToolLauncher) {
-            return null;
-        }
 
         @Override
         public ChangeLogParser createChangeLogParser() {
