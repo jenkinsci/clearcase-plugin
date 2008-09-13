@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase;
 
 import hudson.FilePath;
+import hudson.Launcher;
 import hudson.Proc;
 import hudson.Util;
 import static hudson.Util.fixEmpty;
@@ -140,7 +141,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         if (useDynamicView) {
             if (viewDrive != null) {
-                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + getNormalizedViewName(build.getProject()));
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + normalizedViewName);
             } else {
                 env.remove(CLEARCASE_VIEWPATH_ENVSTR);
             }
@@ -164,11 +165,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
-        return createChangeLogAction(launcher, build, getDescriptor().getLogMergeTimeWindow());
+    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher) {
+        return createChangeLogAction(launcher, build, getDescriptor().getLogMergeTimeWindow(),baseLauncher);
     }
     
-    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build, int logMergeTimeWindow) {
+    protected BaseChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build, int logMergeTimeWindow,Launcher baseLauncher) {
         BaseChangeLogAction action = new BaseChangeLogAction(createClearTool(launcher), logMergeTimeWindow);
         if (useDynamicView) {
             String extendedViewPath = viewDrive;
@@ -180,7 +181,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                     extendedViewPath += "\\";
                 }                
             }
-            extendedViewPath += getNormalizedViewName(build.getProject());
+            extendedViewPath += getNormalizedViewName(build, baseLauncher);
             action.setExtendedViewPath(extendedViewPath);
         }
         return action;

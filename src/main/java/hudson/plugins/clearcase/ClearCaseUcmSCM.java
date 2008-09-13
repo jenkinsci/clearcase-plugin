@@ -8,6 +8,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import hudson.FilePath;
+import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.ModelObject;
@@ -103,7 +104,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
+    protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher) {
         return new UcmChangeLogAction(createClearTool(launcher));
     }
 
