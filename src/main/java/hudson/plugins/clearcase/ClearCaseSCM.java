@@ -212,6 +212,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return branchArray;
     }
 
+    @Override
     protected ClearTool createClearTool(ClearToolLauncher launcher) {
         if (useDynamicView) {
             return new ClearToolDynamic(launcher, viewDrive);
