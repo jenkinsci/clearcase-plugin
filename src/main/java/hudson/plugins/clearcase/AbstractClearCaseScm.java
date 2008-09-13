@@ -15,7 +15,6 @@ import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
-import hudson.plugins.clearcase.action.TaggingAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogSet;
