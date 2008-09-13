@@ -1,14 +1,11 @@
 package hudson.plugins.clearcase;
 
-import hudson.Util;
+import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
-import hudson.model.BuildListener;
-import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.base.BaseChangeLogAction;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +24,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     private Mockery classContext;
     private AbstractProject project;
     private Build build;
+    private Launcher launcher;
 
     @Before
     public void setUp() throws Exception {
@@ -38,6 +36,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         };
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
+        launcher = classContext.mock(Launcher.class);
     }
     @After
     public void tearDown() throws Exception {
@@ -61,6 +60,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
+        scm.getNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
@@ -75,6 +75,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         });
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/views", null, false);
         Map<String, String> env = new HashMap<String, String>();
+        scm.getNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasnt set", "/views" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
@@ -89,6 +90,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         });
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, null, null, false);
         Map<String, String> env = new HashMap<String, String>();
+        scm.getNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertFalse("The env var VIEWPATH was set", env.containsKey(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
@@ -191,7 +193,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
             }
         });
         ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, "vob", true, "/view", null, false);
-        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0);
+        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0,null);
         assertEquals("The extended view path is incorrect", "/view/viewname", action.getExtendedViewPath());
     }
 
@@ -204,7 +206,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
             }
         });
         ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false);
-        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0);
+        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0,null);
         assertEquals("The extended view path is incorrect", "/view/viewname-clearcase", action.getExtendedViewPath());
         classContext.assertIsSatisfied();
     }

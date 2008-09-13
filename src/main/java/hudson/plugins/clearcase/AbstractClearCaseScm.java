@@ -2,6 +2,7 @@ package hudson.plugins.clearcase;
 
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
@@ -15,6 +16,7 @@ import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.TaggingAction;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
@@ -22,15 +24,11 @@ import hudson.util.StreamTaskListener;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -46,7 +44,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final String viewName;
     private final String mkviewOptionalParam;
     private final boolean filteringOutDestroySubBranchEvent;
-    private transient String normalizedViewName;
+    protected transient String normalizedViewName;
     
     public AbstractClearCaseScm(final String viewName, String mkviewOptionalParam, 
             boolean filterOutDestroySubBranchEvent) {
@@ -86,7 +84,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @param build the current build
      * @return an action that returns the change logs for a CC repository
      */
-    protected abstract ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build);
+    protected abstract ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher);
     
     /**
      * Create a TaggingAction that will be used at the end of the build to tag the CC repository
@@ -129,7 +127,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     public String getViewName() {
         if (viewName == null) {
-            return "hudson_view";
+            return "${USER_NAME}_${JOB_NAME}_${NODE_NAME}_view";
         } else {
             return viewName;
         }
@@ -143,29 +141,12 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @param project the project to get the name from
      * @return a string containing no invalid chars.
      */
-    public String getNormalizedViewName(AbstractProject<?, ?> project) {
+    public String getNormalizedViewName(AbstractBuild<?, ?> build,Launcher launcher) {
         if (normalizedViewName == null) {
             normalizedViewName = viewName;
-            Matcher matcher = Pattern.compile("\\$\\{JOB_NAME\\}", Pattern.CASE_INSENSITIVE).matcher(normalizedViewName);
-            if (matcher.find()) {
-                normalizedViewName = matcher.replaceAll(project.getName());
+            if (build != null) {
+                normalizedViewName = Util.replaceMacro(viewName, new BuildVariableResolver(build,launcher));
             }
-            matcher = Pattern.compile("\\$\\{USER_NAME\\}", Pattern.CASE_INSENSITIVE).matcher(normalizedViewName);
-            if (matcher.find()) {
-                normalizedViewName = matcher.replaceAll(System.getProperty("user.name"));
-            }
-            
-            matcher = Pattern.compile("\\$\\{HOSTNAME\\}", Pattern.CASE_INSENSITIVE).matcher(normalizedViewName);
-            if (matcher.find()) {
-                String hostname ="unknown-host";
-                try {                        
-                     hostname = InetAddress.getLocalHost().getHostName();
-                } catch (UnknownHostException e) {
-                    // ignore to fall back to default.
-                }
-                normalizedViewName = matcher.replaceAll(hostname);
-            }
-            
             normalizedViewName = normalizedViewName.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
         }
         return normalizedViewName;
@@ -198,10 +179,8 @@ public abstract class AbstractClearCaseScm extends SCM {
      */
     @Override
     public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
-        if (viewName != null) {
-            
-            String normalizedViewName = getNormalizedViewName(build.getProject());
-            
+        if (normalizedViewName != null) {
+                        
             env.put(CLEARCASE_VIEWNAME_ENVSTR, normalizedViewName);
         
             String workspace = env.get("WORKSPACE");
@@ -214,10 +193,11 @@ public abstract class AbstractClearCaseScm extends SCM {
     @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException, InterruptedException {
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
+
         
         // Create actions
         CheckOutAction checkoutAction = createCheckOutAction(clearToolLauncher);
-        ChangeLogAction changeLogAction = createChangeLogAction(clearToolLauncher, build);
+        ChangeLogAction changeLogAction = createChangeLogAction(clearToolLauncher, build,launcher);
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
         TaggingAction taggingAction = createTaggingAction(clearToolLauncher);
 
@@ -225,13 +205,13 @@ public abstract class AbstractClearCaseScm extends SCM {
         filter.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
         
         // Checkout code
-        checkoutAction.checkout(launcher, workspace, getNormalizedViewName(build.getProject()));
+        checkoutAction.checkout(launcher, workspace, getNormalizedViewName(build,launcher));
         
         // Gather change log
         List<? extends ChangeLogSet.Entry> changelogEntries = null;        
         if (build.getPreviousBuild() != null) {
             Date lastBuildTime = build.getPreviousBuild().getTimestamp().getTime();
-            changelogEntries = changeLogAction.getChanges(filter, lastBuildTime, getNormalizedViewName(build.getProject()), getBranchNames(), getViewPaths(workspace.child(getNormalizedViewName(build.getProject()))));
+            changelogEntries = changeLogAction.getChanges(filter, lastBuildTime, getNormalizedViewName(build,launcher), getBranchNames(), getViewPaths(workspace.child(getNormalizedViewName(build,launcher))));
         }        
 
         // Save change log
@@ -262,7 +242,8 @@ public abstract class AbstractClearCaseScm extends SCM {
             filter.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
             
             PollAction pollAction = createPollAction(createClearToolLauncher(listener, workspace, launcher));
-            return pollAction.getChanges(filter, buildTime, getNormalizedViewName(project), getBranchNames(), getViewPaths(workspace.child(getNormalizedViewName(project))));
+            String normalizedViewName = getNormalizedViewName((AbstractBuild) lastBuild,launcher);
+            return pollAction.getChanges(filter, buildTime, normalizedViewName, getBranchNames(), getViewPaths(workspace.child(normalizedViewName)));
         }
     }
     
