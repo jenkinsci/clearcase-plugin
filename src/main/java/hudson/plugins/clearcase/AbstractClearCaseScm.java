@@ -87,13 +87,6 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected abstract ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher);
     
     /**
-     * Create a TaggingAction that will be used at the end of the build to tag the CC repository
-     * @param launcher the command line launcher
-     * @return an action that can tag the CC repository; can be null.
-     */
-    protected abstract TaggingAction createTaggingAction(ClearToolLauncher clearToolLauncher);
-    
-    /**
      * Return string array containing the branch names that should be used when polling for changes.
      * @return a string array, can not be empty
      */
@@ -199,7 +192,6 @@ public abstract class AbstractClearCaseScm extends SCM {
         CheckOutAction checkoutAction = createCheckOutAction(clearToolLauncher);
         ChangeLogAction changeLogAction = createChangeLogAction(clearToolLauncher, build,launcher);
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
-        TaggingAction taggingAction = createTaggingAction(clearToolLauncher);
 
         EventRecordFilter filter = new EventRecordFilter();
         filter.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
@@ -221,12 +213,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         } else {
             saveChangeLogAction.saveChangeLog(changelogFile, changelogEntries);
         }        
-        
-        // Tag the build
-        if (taggingAction != null) {
-            // taggingAction.tag("lbl", "comment");
-        }
-        
+                
         return true;
     }
 
