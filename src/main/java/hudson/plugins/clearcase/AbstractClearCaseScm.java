@@ -18,6 +18,7 @@ import hudson.plugins.clearcase.action.TaggingAction;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
+import hudson.util.StreamTaskListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -300,7 +301,8 @@ public abstract class AbstractClearCaseScm extends SCM {
         		if (item instanceof AbstractProject) {
         			AbstractProject project = (AbstractProject)item;
         			if (project.getScm() instanceof AbstractClearCaseScm) {        				
-        				TaskListener listener = TaskListener.NULL;
+        				//TaskListener listener = TaskListener.NULL;
+        				StreamTaskListener listener = new StreamTaskListener(System.out);
         				Launcher launcher = Hudson.getInstance().createLauncher(listener);
         				ClearTool ct = createClearTool(createClearToolLauncher(listener, project.getWorkspace().getParent().getParent(), launcher));
         				try {
