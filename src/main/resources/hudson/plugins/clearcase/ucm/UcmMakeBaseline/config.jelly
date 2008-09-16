@@ -11,6 +11,11 @@
 	<f:entry title="Lock stream" help="/plugin/clearcase/ucm/mkbl/lock.html">
         <f:checkbox name="mkbl.lock" checked="${instance.lockStream}"  />
     </f:entry>
+    
+    <f:entry title="Full baseline" help="/plugin/clearcase/ucm/mkbl/type.html">
+		<f:checkbox name="mkbl.fullBaseline" checked="${h.defaultToTrue(instance.fullBaseline)}"  />
+	</f:entry>
+	
 	<f:entry title="Recommend baseline" help="/plugin/clearcase/ucm/mkbl/recommend.html">
 		<f:checkbox name="mkbl.recommend" checked="${h.defaultToTrue(instance.recommend)}"  />
 	</f:entry>
