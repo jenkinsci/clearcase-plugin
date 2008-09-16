@@ -2,6 +2,11 @@
 	xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
 	xmlns:f="/lib/form">
 
+	<f:description>
+			<div align="right">
+				<a href="${rootURL}/scm/ClearCaseSCM/listViews">List clearcase views</a>
+  			</div>
+    	</f:description>
   	<f:entry title="View name" help="/plugin/clearcase/localdir.html">
   		<f:textbox name="viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}" 
   			checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('View name is mandatory')+'&amp;value='+escape(this.value)" />
