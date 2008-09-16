@@ -23,6 +23,7 @@ import hudson.scm.SCMDescriptor;
 import hudson.util.ByteBuffer;
 import hudson.util.FormFieldValidator;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -295,6 +296,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                     if ((v == null) || (v.length() == 0)) {
                         error("Config spec is mandatory");
                         return;
+                    }
+                    if (!StringUtils.contains(v.toLowerCase(), "load")) {
+                    	  error("Config spec must contain LOAD directive");
                     }
                     // all tests passed so far
                     ok();
