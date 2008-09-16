@@ -1,13 +1,20 @@
 package hudson.plugins.clearcase.ucm;
 
+import groovy.lang.ParameterArray;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.model.Executor;
+import hudson.model.InvisibleAction;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
 import hudson.model.Result;
+import hudson.model.StringParameterValue;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.HudsonClearToolLauncher;
 import hudson.plugins.clearcase.PluginImpl;
@@ -16,6 +23,8 @@ import hudson.util.ArgumentListBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -28,27 +37,35 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class UcmMakeBaseline extends Publisher {
 
+	private static final String ENV_CC_BASELINE_NAME = "CC_BASELINE_NAME";
+	private transient String baselineName = null;
+
 	public final static Descriptor<Publisher> DESCRIPTOR = new UcmMakeBaselineDescriptor();
-	private String namePattern;
-	private String commentPattern;
-	private boolean lockStream;
-	private boolean recommend;
-	private boolean streamSuccessfullyLocked;
+	private final String namePattern;
+	private final String commentPattern;
+	private final boolean lockStream;
+	private final boolean recommend;
+	private transient boolean streamSuccessfullyLocked;
+	private final boolean fullBaseline;
 
 	public String getCommentPattern() {
-		return commentPattern;
+		return this.commentPattern;
 	}
 
 	public boolean isLockStream() {
-		return lockStream;
+		return this.lockStream;
 	}
 
 	public String getNamePattern() {
-		return namePattern;
+		return this.namePattern;
 	}
 
 	public boolean isRecommend() {
-		return recommend;
+		return this.recommend;
+	}
+
+	public boolean isFullBaseline() {
+		return this.fullBaseline;
 	}
 
 	public static final class UcmMakeBaselineDescriptor extends
@@ -69,17 +86,24 @@ public class UcmMakeBaseline extends Publisher {
 					.getParameter("mkbl.namepattern"), req
 					.getParameter("mkbl.commentpattern"), req
 					.getParameter("mkbl.lock") != null, req
-					.getParameter("mkbl.recommend") != null);
+					.getParameter("mkbl.recommend") != null, req
+					.getParameter("mkbl.fullBaseline") != null);
 			return p;
+		}
+
+		@Override
+		public String getHelpFile() {
+			return "/plugin/clearcase/ucm/mkbl/help.html";
 		}
 	}
 
 	private UcmMakeBaseline(String namePattern, String commentPattern,
-			boolean lock, boolean recommend) {
+			boolean lock, boolean recommend, boolean fullBaseline) {
 		this.namePattern = namePattern;
 		this.commentPattern = commentPattern;
 		this.lockStream = lock;
 		this.recommend = recommend;
+		this.fullBaseline = fullBaseline;
 	}
 
 	@Override
@@ -89,27 +113,43 @@ public class UcmMakeBaseline extends Publisher {
 
 	@Override
 	public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
-		if (this.lockStream) {
-			ClearCaseUcmSCM scm = (ClearCaseUcmSCM) build.getProject().getScm();
 
-			FilePath filePath = build.getProject().getWorkspace().child(
-					scm.getViewName());
-			Launcher launcher = Executor.currentExecutor().getOwner().getNode()
-					.createLauncher(listener);
-			HudsonClearToolLauncher clearToolLauncher = new HudsonClearToolLauncher(
-					PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(),
-					getDescriptor().getDisplayName(), listener, filePath,
-					launcher);
+		ClearCaseUcmSCM scm = (ClearCaseUcmSCM) build.getProject().getScm();
+
+		FilePath filePath = build.getProject().getWorkspace().child(
+				scm.getViewName());
+		Launcher launcher = Executor.currentExecutor().getOwner().getNode()
+				.createLauncher(listener);
+		HudsonClearToolLauncher clearToolLauncher = new HudsonClearToolLauncher(
+				PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(), getDescriptor()
+						.getDisplayName(), listener, filePath, launcher);
+		if (this.lockStream) {
 			try {
 				this.streamSuccessfullyLocked = lockStream(scm.getStream(),
 						clearToolLauncher, filePath);
 			} catch (Exception ex) {
 				listener.getLogger().println("Failed to lock stream: " + ex);
+				return false;
 			}
-			return this.streamSuccessfullyLocked;
 		}
+		try {
+			makeBaseline(build, clearToolLauncher, filePath);
+			this.baselineName = getLatestBaselineName(clearToolLauncher,
+					filePath);
+			addBuildParameter(build);
+		} catch (Exception ex) {
+			listener.getLogger().println("Failed to create baseline: " + ex);
+			return false;
+		}
+
 		return true;
 
+	}
+
+	private void addBuildParameter(AbstractBuild<?, ?> build) {
+		ArrayList<ParameterValue> parameters = new ArrayList<ParameterValue>();
+		parameters.add(new StringParameterValue("PETER", "TESTAR"));
+		build.addAction(new ParametersAction(parameters, build));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -128,8 +168,9 @@ public class UcmMakeBaseline extends Publisher {
 					launcher);
 
 			if (build.getResult().equals(Result.SUCCESS)) {
-				boolean createdBaseline = makeBaseline(build, clearToolLauncher, filePath);
-				if (this.recommend && createdBaseline) {
+				promoteBaselineToBuiltLevel(scm.getStream(), clearToolLauncher,
+						filePath, this.baselineName);
+				if (this.recommend) {
 					recommedBaseline(scm.getStream(), clearToolLauncher,
 							filePath);
 				}
@@ -193,9 +234,9 @@ public class UcmMakeBaseline extends Publisher {
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean makeBaseline(AbstractBuild build,
+	private void makeBaseline(AbstractBuild build,
 			HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
-			throws InterruptedException, IOException {
+			throws Exception {
 
 		ArgumentListBuilder cmd = new ArgumentListBuilder();
 
@@ -206,8 +247,13 @@ public class UcmMakeBaseline extends Publisher {
 		cmd.add("mkbl");
 		cmd.add("-comment");
 		cmd.add(baselineComment);
-		cmd.add("-incremental");
+		if (fullBaseline) {
+			cmd.add("-full");
+		} else {
+			cmd.add("-incremental");
+		}
 		cmd.add(baselineName);
+		cmd.add("-identical");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -215,9 +261,10 @@ public class UcmMakeBaseline extends Publisher {
 		baos.close();
 		String cleartoolResult = baos.toString();
 		if (cleartoolResult.contains("cleartool: Error")) {
-			return false;
+			throw new Exception("Failed to make baseline, reason: "
+					+ cleartoolResult);
 		}
-		return true;
+
 	}
 
 	private void recommedBaseline(String stream,
@@ -232,6 +279,46 @@ public class UcmMakeBaseline extends Publisher {
 		cmd.add(stream);
 
 		clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
+	}
+
+	private void promoteBaselineToBuiltLevel(String stream,
+			HudsonClearToolLauncher clearToolLauncher, FilePath filePath,
+			String blName) throws InterruptedException, IOException {
+
+		ArgumentListBuilder cmd = new ArgumentListBuilder();
+
+		cmd.add("chbl");
+		cmd.add("-c");
+		cmd.add("Hudson promoted baseline to BUILT");
+		cmd.add("-level");
+		cmd.add("BUILT");
+
+		cmd.add(blName);
+
+		clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
+	}
+
+	private String getLatestBaselineName(
+			HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
+			throws Exception {
+
+		ArgumentListBuilder cmd = new ArgumentListBuilder();
+
+		cmd.add("lsstream");
+		cmd.add("-fmt");
+		cmd.add("%[latest_bls]CXp");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+		clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
+		baos.close();
+		String cleartoolResult = baos.toString();
+		String prefix = "baseline:";
+		if (cleartoolResult != null && cleartoolResult.startsWith(prefix)) {
+			return cleartoolResult.substring(prefix.length());
+		}
+		throw new Exception("Failed to get baselinename, reason: "
+				+ cleartoolResult);
 
 	}
+
 }
