@@ -266,7 +266,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         	@Override
         	public void onDeleted(Item item) {
         		if (item instanceof AbstractProject) {
-        			AbstractProject project = (AbstractProject)item;
+        			AbstractProject<?, ?> project = (AbstractProject<?, ?>)item;
         			if (project.getScm() instanceof AbstractClearCaseScm) {        				
         				//TaskListener listener = TaskListener.NULL;
         				StreamTaskListener listener = new StreamTaskListener(System.out);
