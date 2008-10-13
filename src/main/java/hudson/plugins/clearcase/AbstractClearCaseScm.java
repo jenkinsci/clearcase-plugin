@@ -51,7 +51,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
         
-        createAndRegisterListener(viewName);
+        createAndRegisterListener();
     }
 
 
@@ -254,7 +254,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * the ClearCase view that was created for this job.
      * @param viewName	the name of the view
      */
-	protected void createAndRegisterListener(final String viewName) {
+	protected void createAndRegisterListener() {
 		Hudson hudson = Hudson.getInstance();
 		if (hudson == null) {
 			// Probably a JUnit test run?
@@ -273,7 +273,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         				Launcher launcher = Hudson.getInstance().createLauncher(listener);
         				ClearTool ct = createClearTool(createClearToolLauncher(listener, project.getWorkspace().getParent().getParent(), launcher));
         				try {
-							ct.rmview(viewName);
+							ct.rmview(getNormalizedViewName(null, launcher));
 						} catch (Exception e) {
 							Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove ClearCase view", e);
 						}
