@@ -17,27 +17,13 @@
           </div>
         </td>
       </tr>
-      <!-- Print out any subactivities -->
-      <j:choose>
-        <j:when test="${activity.hasSubActivities()}">
-            <tr>
-                <td colspan="2"><b>Contributing activities:</b></td>
-            </tr>
-            <j:forEach var="subactivity" items="${activity.subActivities}">
-                <tr>
-                    <td align="right"> </td>
-                    <td>${subactivity.headline} <i>from stream </i> ${subactivity.stream} <i> by </i> <a href="${rootURL}/${activity.author.url}/"> ${subactivity.author}</a></td>
-                </tr>
-            </j:forEach>
-        </j:when>
-      </j:choose>
 
       <j:choose>
         <j:when test="${activity.hasFiles()}">
             <tr>
                 <td colspan="2"><b>Files:</b></td>
             </tr>
-        
+
             <j:forEach var="file" items="${activity.files}">
                 <tr>
                     <td align="right">
@@ -50,9 +36,26 @@
             </j:forEach>
         </j:when>
      </j:choose>
+
+      <!-- Print out any subactivities -->
+      <j:choose>
+        <j:when test="${activity.hasSubActivities()}">
+            <tr>
+                <td colspan="2"><b>Activity chain:</b></td>
+            </tr>
+            <tr>
+                <td align="left"> </td>
+                <td>
+                    <st:include page="subactivities.jelly" />
+                </td>
+            </tr>
+        </j:when>
+      </j:choose>
+
     </j:forEach>
     </table>
-    
-	</j:otherwise>
+
+</j:otherwise>
   </j:choose>
+      
 </j:jelly>
