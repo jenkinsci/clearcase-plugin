@@ -109,8 +109,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                             activity.setStream("");
                         }
                         activityNameToEntry.put(activityName, activity);
-                        result.add(activity);
-                            
+                        result.add(activity);                            
                     }
 
                     activity.addFile(currentFile);
@@ -152,13 +151,18 @@ public class UcmChangeLogAction implements ChangeLogAction {
                 String contributingActivities = matcher.group(4);
 
                 for (String contributing : contributingActivities.split(" ")) {
-                                        
-                    UcmActivity subActivity = activityNameToEntry.get(contributing);
-                    if (subActivity ==null) {
+                    
+                    UcmActivity subActivity = null;
+                    UcmActivity cachedActivity = activityNameToEntry.get(contributing);
+                    
+                    if (cachedActivity ==null) {
                         subActivity = new UcmActivity();                        
                         subActivity.setName(contributing);
                         callLsActivity(subActivity,viewname);
                         activityNameToEntry.put(contributing, subActivity);
+                    } else {
+                        /* do deep copy */
+                        subActivity = new UcmActivity(cachedActivity);
                     }
                     activity.addSubActivity(subActivity);
                 }
