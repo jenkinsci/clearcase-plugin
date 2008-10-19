@@ -1,0 +1,15 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<j:set var="subacts" value="${activity.subActivities}" />
+<ul>
+    <j:forEach var="subactivity" items="${subacts}">
+        <li>${subactivity.headline} <i>from stream </i> ${subactivity.stream} <i> by </i> <a href="${rootURL}/${activity.author.url}/"> ${subactivity.author}</a></li>
+        <j:choose>
+            <j:when test="${subactivity.hasSubActivities()}">
+                <j:set var="activity" value="${subactivity}" />
+                <st:include page="subactivities.jelly" />
+            </j:when>
+        </j:choose>
+
+    </j:forEach>
+</ul>
+</j:jelly>
