@@ -33,6 +33,7 @@ public class ClearTool {
 
         //System.out.println("Command:" +args[1]);
         //System.out.println("linex:" +lines.size());
+        boolean hasPrinted=false;
         boolean started = false;
         for (String line : lines) {
 
@@ -55,8 +56,12 @@ public class ClearTool {
             }
 
             if (started) {
+                hasPrinted=true;
                 System.out.println(line);
             }
+        }
+        if (!hasPrinted) {
+            System.out.println("Cleartool Error: command not understood");
         }
 
 
