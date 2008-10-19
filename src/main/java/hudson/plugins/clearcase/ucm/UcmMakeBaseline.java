@@ -192,6 +192,10 @@ public class UcmMakeBaseline extends Publisher {
                             filePath);
                 }
             }
+            if (build.getResult().equals(Result.FAILURE) || build.getResult().equals(Result.ABORTED)) {
+                demoteBaselineToRejectedLevel(scm.getStream(), clearToolLauncher,
+                        filePath, this.baselineName);
+            }
 
             if (this.lockStream && this.streamSuccessfullyLocked) {
                 unlockStream(scm.getStream(), clearToolLauncher, filePath);
@@ -316,6 +320,23 @@ public class UcmMakeBaseline extends Publisher {
 
         clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
     }
+    
+    private void demoteBaselineToRejectedLevel(String stream,
+            HudsonClearToolLauncher clearToolLauncher, FilePath filePath,
+            String blName) throws InterruptedException, IOException {
+
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+
+        cmd.add("chbl");
+        cmd.add("-c");
+        cmd.add("Hudson demoted baseline to REJECTED");
+        cmd.add("-level");
+        cmd.add("REJECTED");
+
+        cmd.add(blName);
+
+        clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
+    }    
 
     private String getLatestBaselineName(
             HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
