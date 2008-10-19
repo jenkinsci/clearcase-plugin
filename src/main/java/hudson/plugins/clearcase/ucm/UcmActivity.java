@@ -33,6 +33,28 @@ public class UcmActivity extends ChangeLogSet.Entry {
         // empty by design
     }
 
+    /**
+     * Copy contructor
+     * @param other the activity to copy
+     */
+    public UcmActivity(UcmActivity other) {
+        this.name=other.name;
+        this.headline=other.headline;
+        this.stream=other.stream;
+        this.user=other.user;
+        this.setParent(other.getParent());
+
+        for (UcmActivity subAct : other.getSubActivities()) {
+            UcmActivity child = new UcmActivity(subAct);
+            addSubActivity(child);
+        }
+
+        for (UcmActivity.File otherFile : other.files) {
+            UcmActivity.File child = new UcmActivity.File(otherFile);
+            this.files.add(child);
+        }
+    }
+
     @Exported
     public String getHeadline() {
         return headline;
@@ -156,6 +178,18 @@ public class UcmActivity extends ChangeLogSet.Entry {
         private String event; // can maybe be dumbed       
 
         private String comment;
+
+        public File() {
+            /* empty by design */
+        }
+
+        public File(File other) {
+            this.date= other.date;
+            this.name = other.name;
+            this.version = other.version;
+            this.operation = other.operation;
+            this.event = other.event;
+        }
 
         @Exported
         public String getEvent() {
