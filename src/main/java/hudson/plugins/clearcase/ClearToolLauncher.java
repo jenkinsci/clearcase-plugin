@@ -12,6 +12,15 @@ import java.io.OutputStream;
  * @author Erik Ramfelt
  */
 public interface ClearToolLauncher {
+    
+    
+    /**
+     * Launches a cleartool command with arguments. 
+     * @param cmd the command to launch using the clear tool executable
+     * @param filePath
+     * @return execPath optional, the path where the command should be launched
+     */
+    boolean run(String[] cmd, FilePath execPath) throws IOException, InterruptedException;
     /**
      * Launches a cleartool command with arguments. 
      * 
@@ -36,5 +45,5 @@ public interface ClearToolLauncher {
      * 
      * @return the workspace file path
      */
-    FilePath getWorkspace();
+    FilePath getWorkspace();    
 }
