@@ -36,6 +36,10 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     public FilePath getWorkspace() {
         return workspace;
     }
+    
+    public boolean run(String[] cmd,FilePath filePath) throws IOException, InterruptedException {
+        return run(cmd,null,null,filePath);
+    }
 
     public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, FilePath filePath) throws IOException,
             InterruptedException {
