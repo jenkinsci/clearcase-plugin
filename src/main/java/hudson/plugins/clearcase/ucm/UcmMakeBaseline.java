@@ -1,16 +1,12 @@
 package hudson.plugins.clearcase.ucm;
 
-import groovy.lang.ParameterArray;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.model.Executor;
-import hudson.model.InvisibleAction;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.Result;
@@ -25,6 +21,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -39,7 +37,9 @@ public class UcmMakeBaseline extends Publisher {
 
     private static final String ENV_CC_BASELINE_NAME = "CC_BASELINE_NAME";
 
-    private transient String baselineName = null;
+    private transient List<String> latestBaselines = null;
+    
+    private transient List<String> createdBaselines = null;
 
     public final static Descriptor<Publisher> DESCRIPTOR = new UcmMakeBaselineDescriptor();
 
@@ -151,7 +151,7 @@ public class UcmMakeBaseline extends Publisher {
         }
         try {
             makeBaseline(build, clearToolLauncher, filePath);
-            this.baselineName = getLatestBaselineName(clearToolLauncher,
+            this.latestBaselines = getLatestBaselineNames(clearToolLauncher,
                     filePath);
             addBuildParameter(build);
         } catch (Exception ex) {
@@ -164,9 +164,13 @@ public class UcmMakeBaseline extends Publisher {
     }
 
     private void addBuildParameter(AbstractBuild<?, ?> build) {
-        ArrayList<ParameterValue> parameters = new ArrayList<ParameterValue>();
-        parameters.add(new StringParameterValue("PETER", "TESTAR"));
-        build.addAction(new ParametersAction(parameters, build));
+        if (this.latestBaselines != null && !this.latestBaselines.isEmpty()) {
+            ArrayList<ParameterValue> parameters = new ArrayList<ParameterValue>();
+            String baselineName = latestBaselines.get(0);
+            parameters.add(new StringParameterValue(ENV_CC_BASELINE_NAME,
+                    baselineName));
+            build.addAction(new ParametersAction(parameters, build));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -185,16 +189,32 @@ public class UcmMakeBaseline extends Publisher {
                     launcher);
 
             if (build.getResult().equals(Result.SUCCESS)) {
-                promoteBaselineToBuiltLevel(scm.getStream(), clearToolLauncher,
-                        filePath, this.baselineName);
+            	// On success, promote all current baselines in stream
+				for (String baselineName : this.latestBaselines) {
+					promoteBaselineToBuiltLevel(scm.getStream(), clearToolLauncher,
+							filePath, baselineName);
+				}
                 if (this.recommend) {
                     recommedBaseline(scm.getStream(), clearToolLauncher,
                             filePath);
                 }
-            }
-            if (build.getResult().equals(Result.FAILURE) || build.getResult().equals(Result.ABORTED)) {
-                demoteBaselineToRejectedLevel(scm.getStream(), clearToolLauncher,
-                        filePath, this.baselineName);
+            } else if (build.getResult().equals(Result.FAILURE)) {
+            	// On failure, demote only baselines created in this build
+            	for (String baselineName : this.createdBaselines) {
+            		// Find full baseline name from latest baselines
+            		String realBaselineName = null;
+            		for (String fullBaselineName : this.latestBaselines ) {
+            			if (fullBaselineName.startsWith(baselineName)) {
+            				realBaselineName = fullBaselineName;
+            			}
+            		}
+            		if (realBaselineName == null) {
+            			listener.getLogger().println("Couldn't find baseline name for "+baselineName);
+            		} else {
+            			demoteBaselineToRejectedLevel(scm.getStream(), clearToolLauncher,
+            					filePath, realBaselineName);
+            		}
+            	}
             }
 
             if (this.lockStream && this.streamSuccessfullyLocked) {
@@ -287,6 +307,16 @@ public class UcmMakeBaseline extends Publisher {
             throw new Exception("Failed to make baseline, reason: "
                     + cleartoolResult);
         }
+        
+        this.createdBaselines = new ArrayList<String>();
+        
+    	Pattern pattern = Pattern.compile("Created baseline \".+?\"");
+    	Matcher matcher = pattern.matcher(cleartoolResult);
+    	while (matcher.find()) {
+    		String match = matcher.group();
+    		String newBaseline = match.substring(match.indexOf("\"")+1, match.length()-1);
+    		this.createdBaselines.add(newBaseline);
+    	}        
 
     }
 
@@ -338,7 +368,7 @@ public class UcmMakeBaseline extends Publisher {
         clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
     }    
 
-    private String getLatestBaselineName(
+    private List<String> getLatestBaselineNames(
             HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
             throws Exception {
 
@@ -346,7 +376,7 @@ public class UcmMakeBaseline extends Publisher {
 
         cmd.add("lsstream");
         cmd.add("-fmt");
-        cmd.add("%[latest_bls]CXp");
+        cmd.add("%[latest_bls]Xp");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
@@ -354,7 +384,15 @@ public class UcmMakeBaseline extends Publisher {
         String cleartoolResult = baos.toString();
         String prefix = "baseline:";
         if (cleartoolResult != null && cleartoolResult.startsWith(prefix)) {
-            return cleartoolResult.substring(prefix.length());
+			List<String> baselineNames = new ArrayList<String>();
+			String[] baselineNamesSplit = cleartoolResult.split("baseline:");
+			for (String baselineName : baselineNamesSplit) {
+				String baselineNameTrimmed = baselineName.trim();
+				if (!baselineNameTrimmed.equals("")) {
+					baselineNames.add(baselineNameTrimmed);
+				}
+			}
+            return baselineNames;
         }
         throw new Exception("Failed to get baselinename, reason: "
                 + cleartoolResult);
