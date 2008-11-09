@@ -1,8 +1,8 @@
 package hudson.plugins.clearcase;
 
 import hudson.Plugin;
-import hudson.model.Descriptor;
 import hudson.plugins.clearcase.ucm.UcmMakeBaseline;
+import hudson.plugins.clearcase.ucm.UcmMakeBaselineComposite;
 import hudson.scm.SCMS;
 import hudson.tasks.Publisher;
 
@@ -28,6 +28,7 @@ public class PluginImpl extends Plugin {
         SCMS.SCMS.add(BASE_DESCRIPTOR);
         SCMS.SCMS.add(UCM_DESCRIPTOR);
         Publisher.PUBLISHERS.add(UcmMakeBaseline.DESCRIPTOR);
+        Publisher.PUBLISHERS.add(UcmMakeBaselineComposite.DESCRIPTOR);
         
         super.start();
     }
