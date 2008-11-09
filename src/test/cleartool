@@ -1,0 +1,19 @@
+#!/bin/bash
+
+cmd=$1
+if [ "$cmd" == "mkview" ]; then
+ mkdir $7
+fi
+
+
+if [ "$cmd" == "update" ]; then
+ #cp -r /Users/peter/develop/java/eclipseprojects/clearcase/src/ ./src/
+cp  /Users/peter/develop/java/eclipseprojects/clearcase/pom.xml .
+fi
+
+
+if [ "$cmd" == "lsstream" ]; then
+echo "baseline: BASELINE"
+fi
+
+
