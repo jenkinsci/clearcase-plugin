@@ -295,7 +295,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					req.getParameter("cc.usedynamicview") != null,
 					req.getParameter("cc.viewdrive"),
 					req.getParameter("cc.mkviewoptionalparam"),
-					req.getParameter("cc.filterOutDestroySubBranchEvent") != null);
+					req.getParameter("cc.filterOutDestroySubBranchEvent") != null);			
 			return scm;
 		}
 
@@ -318,10 +318,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 						error("Config spec is mandatory");
 						return;
 					}
-					
-					if (v.toLowerCase().indexOf("load") < 0) {
-						error("Config spec must contain LOAD directive");
-					}
+
 					// all tests passed so far
 					ok();
 				}
