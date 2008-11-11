@@ -57,6 +57,10 @@ public class UcmMakeBaseline extends Publisher {
 
     private final boolean identical;
 
+    private final String dynamicViewName;
+
+    private final boolean rebaseDynamicView;
+
     public String getCommentPattern() {
         return this.commentPattern;
     }
@@ -81,6 +85,14 @@ public class UcmMakeBaseline extends Publisher {
         return this.identical;
     }
 
+    public String getDynamicViewName() {
+        return this.dynamicViewName;
+    }
+
+    public boolean isRebaseDynamicView() {
+        return this.rebaseDynamicView;
+    }
+
     public static final class UcmMakeBaselineDescriptor extends
             Descriptor<Publisher> {
 
@@ -101,7 +113,9 @@ public class UcmMakeBaseline extends Publisher {
                     .getParameter("mkbl.lock") != null, req
                     .getParameter("mkbl.recommend") != null, req
                     .getParameter("mkbl.fullBaseline") != null, req
-                    .getParameter("mkbl.identical") != null);
+                    .getParameter("mkbl.identical") != null, req
+                    .getParameter("mkbl.rebaseDynamicView") != null, req
+                    .getParameter("mkbl.dynamicViewName"));
             return p;
         }
 
@@ -114,13 +128,16 @@ public class UcmMakeBaseline extends Publisher {
     private UcmMakeBaseline(final String namePattern,
             final String commentPattern, final boolean lock,
             final boolean recommend, final boolean fullBaseline,
-            final boolean identical) {
+            final boolean identical, final boolean rebaseDynamicView,
+            final String dynamicViewName) {
         this.namePattern = namePattern;
         this.commentPattern = commentPattern;
         this.lockStream = lock;
         this.recommend = recommend;
         this.fullBaseline = fullBaseline;
         this.identical = identical;
+        this.rebaseDynamicView = rebaseDynamicView;
+        this.dynamicViewName = dynamicViewName;
     }
 
     @Override
@@ -206,6 +223,15 @@ public class UcmMakeBaseline extends Publisher {
                     recommedBaseline(scm.getStream(), clearToolLauncher,
                             filePath);
                 }
+
+                // Rebase a dynamic view
+                if (this.rebaseDynamicView) {
+                    for (String baseline : this.latestBaselines) {
+                        rebaseDynamicView(clearToolLauncher, filePath,
+                                this.dynamicViewName, baseline);
+                    }
+                }
+
             } else if (build.getResult().equals(Result.FAILURE)) {
                 // On failure, demote only baselines created in this build
                 for (String baselineName : this.createdBaselines) {
@@ -240,6 +266,21 @@ public class UcmMakeBaseline extends Publisher {
     @Override
     public Descriptor<Publisher> getDescriptor() {
         return DESCRIPTOR;
+    }
+
+    private void rebaseDynamicView(HudsonClearToolLauncher clearToolLauncher,
+            FilePath filePath, String dynamicView, String blName)
+            throws InterruptedException, IOException {
+
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("rebase");
+        cmd.add("-baseline");
+        cmd.add(blName);
+        cmd.add("-view");
+        cmd.add(dynamicView);
+        cmd.add("-complete");
+
+        clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
     }
 
     private void unlockStream(String stream,
