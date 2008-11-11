@@ -23,4 +23,16 @@
 	<f:entry title="Recommend baseline" help="/plugin/clearcase/ucm/mkbl/recommend.html">
 		<f:checkbox name="mkbl.recommend" checked="${h.defaultToTrue(instance.recommend)}"  />
 	</f:entry>
+	
+    <f:nested>
+	  <table>	
+         <f:optionalBlock name="mkbl.rebaseDynamicView" title="Rebase a dynamic view"
+                       checked="${instance.rebaseDynamicView}" help="/plugin/clearcase/ucm/mkbl/rebase.html">
+		    <f:entry title="Dynamic view to rebase" help="/plugin/clearcase/ucm/mkbl/dynamicView.html">
+        		<f:textbox name="mkbl.dynamicViewName" value="${instance.dynamicViewName}" />       
+    		</f:entry>
+	     </f:optionalBlock>
+	  </table>
+    </f:nested>
+	
 </j:jelly>
