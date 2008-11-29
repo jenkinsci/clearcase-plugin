@@ -67,7 +67,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
                 one(launcher).run(with(equal(new String[] { "rmview", "-force", "viewName" })),
-                        with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
+                        with(aNull(InputStream.class)), with(aNonNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
             }
         });
@@ -85,7 +85,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
                 one(launcher).run(with(equal(new String[] { "rmview", "-force", "viewName" })),
-                        with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
+                        with(aNull(InputStream.class)), with(aNonNull(OutputStream.class)), with(aNull(FilePath.class)));
                 will(returnValue(Boolean.TRUE));
                 one(launcher).getListener();
                 will(returnValue(listener));
