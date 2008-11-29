@@ -145,7 +145,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 		if (useDynamicView) {
 			if (viewDrive != null) {
 				env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator
-						+ normalizedViewName);
+						+ getNormalizedViewName());
 			} else {
 				env.remove(CLEARCASE_VIEWPATH_ENVSTR);
 			}
@@ -193,7 +193,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					extendedViewPath += "\\";
 				}
 			}
-			extendedViewPath += getNormalizedViewName(build, baseLauncher);
+			extendedViewPath += generateNormalizedViewName(build, baseLauncher);
 			action.setExtendedViewPath(extendedViewPath);
 		}
 		return action;

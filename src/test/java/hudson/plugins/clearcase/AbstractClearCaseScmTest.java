@@ -122,7 +122,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         String username = System.getProperty("user.name");
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("${JOB_NAME}-${USER_NAME}-view", "vob", "", true);
-        assertEquals("The macros were not replaced in the normalized view name", "Hudson-" + username + "-view", scm.getNormalizedViewName(build,launcher));
+        assertEquals("The macros were not replaced in the normalized view name", "Hudson-" + username + "-view", scm.generateNormalizedViewName(build,launcher));
         classContext.assertIsSatisfied();
     }
 
@@ -135,7 +135,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });        
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view  with\\-/-:-?-*-|-,", "vob", "", true);
         assertEquals("The invalid view name chars were not removed from the view name", 
-                "view_with_-_-_-_-_-_-,", scm.getNormalizedViewName(build,launcher));
+                "view_with_-_-_-_-_-_-,", scm.generateNormalizedViewName(build,launcher));
         classContext.assertIsSatisfied();
     }    
 
@@ -155,7 +155,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
-        scm.getNormalizedViewName(build, launcher);
+        scm.generateNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
@@ -180,7 +180,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         Map<String, String> env = new HashMap<String, String>();
-        scm.getNormalizedViewName(build, launcher);
+        scm.generateNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertTrue("The env var VIEWNAME wasnt set", env.containsKey(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertFalse("The env var VIEWPATH was set", env.containsKey(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
@@ -197,7 +197,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname-${JOB_NAME}", "vob", "");
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
-        scm.getNormalizedViewName(build, launcher);
+        scm.generateNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname-CCHudson", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace" + File.separator +"viewname-CCHudson", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
@@ -294,7 +294,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 ignoring(build).getPreviousBuild(); will(returnValue(build));
                 ignoring(build).getTimestamp(); will(returnValue(Calendar.getInstance()));
                 ignoring(build).getParent(); will(returnValue(project));
-                one(project).getName(); will(returnValue("CCHudson"));
+                ignoring(project).getName(); will(returnValue("CCHudson"));
                 
             }
         });
