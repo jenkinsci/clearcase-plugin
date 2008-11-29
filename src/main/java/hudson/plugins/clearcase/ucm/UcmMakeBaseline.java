@@ -170,7 +170,7 @@ public class UcmMakeBaseline extends Publisher {
                 build, listener, launcher);
 
         FilePath filePath = build.getProject().getWorkspace().child(
-                scm.getNormalizedViewName(build, launcher));
+                scm.generateNormalizedViewName(build, launcher));
 
         if (this.lockStream) {
             try {
@@ -229,7 +229,7 @@ public class UcmMakeBaseline extends Publisher {
         if (build.getProject().getScm() instanceof ClearCaseUcmSCM) {
             ClearCaseUcmSCM scm = (ClearCaseUcmSCM) build.getProject().getScm();
             FilePath filePath = build.getProject().getWorkspace().child(
-                    scm.getNormalizedViewName(build, launcher));
+                    scm.generateNormalizedViewName(build, launcher));
 
             HudsonClearToolLauncher clearToolLauncher = getHudsonClearToolLauncher(
                     build, listener, launcher);

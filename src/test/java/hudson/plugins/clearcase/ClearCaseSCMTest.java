@@ -60,7 +60,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
-        scm.getNormalizedViewName(build, launcher);
+        scm.generateNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
@@ -75,7 +75,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         });
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/views", null, false);
         Map<String, String> env = new HashMap<String, String>();
-        scm.getNormalizedViewName(build, launcher);
+        scm.generateNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasnt set", "/views" + File.separator +"viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
@@ -90,7 +90,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         });
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, null, null, false);
         Map<String, String> env = new HashMap<String, String>();
-        scm.getNormalizedViewName(build, launcher);
+        scm.generateNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(ClearCaseSCM.CLEARCASE_VIEWNAME_ENVSTR));
         assertFalse("The env var VIEWPATH was set", env.containsKey(ClearCaseSCM.CLEARCASE_VIEWPATH_ENVSTR));
