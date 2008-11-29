@@ -3,8 +3,12 @@ package hudson.plugins.clearcase;
 import hudson.FilePath;
 import hudson.util.ArgumentListBuilder;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class ClearToolSnapshot extends ClearToolExec {
 
@@ -58,7 +62,27 @@ public class ClearToolSnapshot extends ClearToolExec {
         cmd.add("rmview");
         cmd.add("-force");
         cmd.add(viewName);
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Error")) {
+        	throw new IOException("Failed to remove view: " + builder.toString());
+        }
+       
+        
         FilePath viewFilePath = launcher.getWorkspace().child(viewName);
         if (viewFilePath.exists()) {
             launcher.getListener().getLogger().println(
