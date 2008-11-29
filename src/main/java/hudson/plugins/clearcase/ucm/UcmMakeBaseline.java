@@ -32,11 +32,18 @@ import org.kohsuke.stapler.StaplerRequest;
  * namePattern and commentPattern variables.
  * 
  * @author Peter Liljenberg
+ * 
+ * @author Gregory Boissinot 
+ * 2008-10-11 Add the rebase dynamic view feature
+ * 2008-11-21 Restric the baseline creation on read/write components
+ * 
  */
 public class UcmMakeBaseline extends Publisher {
 
     private static final String ENV_CC_BASELINE_NAME = "CC_BASELINE_NAME";
 
+    private transient List<String> readWriteComponents = null;
+    
     private transient List<String> latestBaselines = null;
 
     private transient List<String> createdBaselines = null;
@@ -93,6 +100,13 @@ public class UcmMakeBaseline extends Publisher {
         return this.rebaseDynamicView;
     }
 
+    public List<String> getReadWriteComponents() {
+		return readWriteComponents;
+	}
+
+
+    
+    
     public static final class UcmMakeBaselineDescriptor extends
             Descriptor<Publisher> {
 
@@ -168,10 +182,17 @@ public class UcmMakeBaseline extends Publisher {
             }
         }
         try {
-            makeBaseline(build, clearToolLauncher, filePath);
-            this.latestBaselines = getLatestBaselineNames(clearToolLauncher,
-                    filePath);
-            addBuildParameter(build);
+        	
+        	//Get read/write component
+        	this.readWriteComponents = getReadWriteComponent(clearToolLauncher,filePath);
+        	   
+        	if (readWriteComponents.size()!=0){
+        		makeBaseline(build, clearToolLauncher, filePath);            
+        		this.latestBaselines = getLatestBaselineNames(clearToolLauncher,filePath);
+            
+        		//addBuildParameter(build);
+        	}
+            
         } catch (Exception ex) {
             listener.getLogger().println("Failed to create baseline: " + ex);
             return false;
@@ -233,22 +254,27 @@ public class UcmMakeBaseline extends Publisher {
                 }
 
             } else if (build.getResult().equals(Result.FAILURE)) {
-                // On failure, demote only baselines created in this build
+              
+            	List<String> alreadyRejected = new ArrayList<String>();
+            	
+            	// On failure, demote only baselines created in this build
                 for (String baselineName : this.createdBaselines) {
-                    // Find full baseline name from latest baselines
+                
+                	// Find full baseline name from latest baselines
                     String realBaselineName = null;
                     for (String fullBaselineName : this.latestBaselines) {
                         if (fullBaselineName.startsWith(baselineName)) {
-                            realBaselineName = fullBaselineName;
+                            if (!alreadyRejected.contains(fullBaselineName)){
+                            	realBaselineName = fullBaselineName;
+                            }
                         }
                     }
                     if (realBaselineName == null) {
-                        listener.getLogger().println(
-                                "Couldn't find baseline name for "
-                                        + baselineName);
+                        listener.getLogger().println("Couldn't find baseline name for "+ baselineName);
                     } else {
                         demoteBaselineToRejectedLevel(scm.getStream(),
                                 clearToolLauncher, filePath, realBaselineName);
+                        alreadyRejected.add(realBaselineName);
                     }
                 }
             }
@@ -347,8 +373,21 @@ public class UcmMakeBaseline extends Publisher {
         } else {
             cmd.add("-incremental");
         }
-        cmd.add(baselineName);
 
+
+        //Make baseline only for read/write components (identical or not)
+        cmd.add("-comp");
+        StringBuffer lstComp = new StringBuffer();
+        for (String comp:this.readWriteComponents){
+        	lstComp.append(",");
+        	lstComp.append(comp);        	
+        }
+        lstComp.delete(0, 1);
+        cmd.add(lstComp.toString());
+        
+        
+        cmd.add(baselineName);        
+        
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
@@ -419,7 +458,75 @@ public class UcmMakeBaseline extends Publisher {
 
         clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
     }
+    
+    
+    /**
+     * Retrieve the read/write component list with PVOB
+     * @param clearToolLauncher
+     * @param filePath
+     * @return the read/write component like 'DeskCore@\P_ORC DeskShared@\P_ORC build_Product@\P_ORC'
+     * @throws Exception
+     */
+    private List<String> getReadWriteComponent(
+            HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
+            throws Exception {
+        
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
 
+        cmd.add("lsstream");
+        cmd.add("-fmt");
+        cmd.add("%[mod_comps]Xp");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
+        baos.close();
+        String cleartoolResult = baos.toString();
+            	
+        final String prefix = "component:";
+        if (cleartoolResult != null && cleartoolResult.startsWith(prefix)) {
+            List<String> componentNames = new ArrayList<String>();
+            String[] componentNamesSplit = cleartoolResult.split(" ");
+            for (String componentName : componentNamesSplit) {
+                String componentNameTrimmed = componentName.substring(componentName.indexOf(prefix)+prefix.length()).trim();
+                if (!componentNameTrimmed.equals("")) {
+                	componentNames.add(componentNameTrimmed);
+                }
+            }
+            return componentNames;
+        }
+        throw new Exception("Failed to get read/write component, reason: "+ cleartoolResult);        
+    }
+            
+
+    /**
+     * Get the component binding to the baseline
+     * @param clearToolLauncher
+     * @param filePath
+     * @param blName the baseline name like 'deskCore_3.2-146_2008-11-14_18-07-22.3543@\P_ORC'
+     * @return the component name like 'Desk_Core@\P_ORC'
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    private String getComponentforBaseline(
+                HudsonClearToolLauncher clearToolLauncher, FilePath filePath,
+                String blName) throws InterruptedException, IOException {    	
+  
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+
+        cmd.add("lsbl");
+        cmd.add("-fmt");
+        cmd.add("%[component]Xp");
+        cmd.add(blName);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();   
+        
+        clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
+        baos.close();
+        String cleartoolResult = baos.toString();
+        
+        String prefix = "component:";
+        return cleartoolResult.substring(cleartoolResult.indexOf(cleartoolResult)+prefix.length());
+    }
+    
+    
     private List<String> getLatestBaselineNames(
             HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
             throws Exception {
@@ -440,8 +547,11 @@ public class UcmMakeBaseline extends Publisher {
             String[] baselineNamesSplit = cleartoolResult.split("baseline:");
             for (String baselineName : baselineNamesSplit) {
                 String baselineNameTrimmed = baselineName.trim();
-                if (!baselineNameTrimmed.equals("")) {
-                    baselineNames.add(baselineNameTrimmed);
+                if (!baselineNameTrimmed.equals("")) {      
+                		//Retrict to baseline bind to read/write component
+                		String blComp = getComponentforBaseline(clearToolLauncher, filePath, baselineNameTrimmed);
+                		if (this.readWriteComponents.contains(blComp))                	
+                			baselineNames.add(baselineNameTrimmed);
                 }
             }
             return baselineNames;
@@ -450,5 +560,7 @@ public class UcmMakeBaseline extends Publisher {
                 + cleartoolResult);
 
     }
+
+
 
 }
