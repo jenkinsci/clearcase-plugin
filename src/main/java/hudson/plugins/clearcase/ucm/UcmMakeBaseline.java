@@ -316,8 +316,7 @@ public class UcmMakeBaseline extends Publisher {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
 
         cmd.add("unlock");
-        cmd.add("stream:");
-        cmd.add(stream);
+        cmd.add("stream:" + stream);
 
         clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
 
@@ -337,8 +336,7 @@ public class UcmMakeBaseline extends Publisher {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
 
         cmd.add("lock");
-        cmd.add("stream:");
-        cmd.add(stream);
+        cmd.add("stream:" + stream);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
