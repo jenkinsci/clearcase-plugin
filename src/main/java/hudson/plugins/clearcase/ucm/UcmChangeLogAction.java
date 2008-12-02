@@ -102,7 +102,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                         activity = new UcmActivity();
                         activity.setName(activityName);                        
                         if (activityName.length()!=0) {
-                            callLsActivity(activity,viewname);
+                            callLsActivity(activity,viewname, 1);
                         } else {
                             activity.setHeadline("Unknown activity");
                             activity.setUser("Unknown");
@@ -130,7 +130,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
         return result;
     }
 
-    private void callLsActivity(UcmActivity activity,String viewname) throws IOException, InterruptedException {
+    private void callLsActivity(UcmActivity activity,String viewname, int numberOfContributingActivitiesToFollow) throws IOException, InterruptedException {
         ClearToolFormatHandler handler = null;
         if (activity.isIntegrationActivity()) {
             handler = new ClearToolFormatHandler(INTEGRATION_ACTIVITY_FORMAT);
@@ -147,7 +147,8 @@ public class UcmChangeLogAction implements ChangeLogAction {
             activity.setStream(matcher.group(2));
             activity.setUser(matcher.group(3));
 
-            if (activity.isIntegrationActivity()) {
+            if (activity.isIntegrationActivity() && numberOfContributingActivitiesToFollow > 0) {
+
                 String contributingActivities = matcher.group(4);
 
                 for (String contributing : contributingActivities.split(" ")) {
@@ -158,7 +159,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                     if (cachedActivity ==null) {
                         subActivity = new UcmActivity();                        
                         subActivity.setName(contributing);
-                        callLsActivity(subActivity,viewname);
+                        callLsActivity(subActivity,viewname,--numberOfContributingActivitiesToFollow);
                         activityNameToEntry.put(contributing, subActivity);
                     } else {
                         /* do deep copy */
@@ -170,5 +171,5 @@ public class UcmChangeLogAction implements ChangeLogAction {
         }
         
         reader.close();
-    }    
+    } 
 }
