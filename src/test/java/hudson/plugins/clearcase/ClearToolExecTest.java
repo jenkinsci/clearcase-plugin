@@ -1,15 +1,18 @@
 package hudson.plugins.clearcase;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import hudson.FilePath;
 import hudson.model.BuildListener;
+import hudson.util.VariableResolver;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.util.Calendar;
 import java.util.List;
+
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.After;
@@ -21,12 +24,14 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     private ClearToolExec clearToolExec;
     private ClearToolLauncher launcher;
     private BuildListener taskListener;
+    private VariableResolver resolver;
     @Before
     public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         launcher = context.mock(ClearToolLauncher.class);
         taskListener = context.mock(BuildListener.class);
+        resolver = context.mock(VariableResolver.class);
         clearToolExec = new ClearToolImpl(launcher);
     }
     @After
@@ -172,8 +177,9 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
      * Simple impl of ClearToolExec to help testing the methods in the class
      */
     private static class ClearToolImpl extends ClearToolExec {
+        
         public ClearToolImpl(ClearToolLauncher launcher) {
-            super(launcher);
+            super(null, launcher);
         }
         public void checkout(String configSpec, String viewName) throws IOException,
                 InterruptedException {

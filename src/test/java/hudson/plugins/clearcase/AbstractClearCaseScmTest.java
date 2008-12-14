@@ -1,15 +1,9 @@
 package hudson.plugins.clearcase;
 
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.matrix.MatrixBuild;
@@ -26,6 +20,15 @@ import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCMDescriptor;
+import hudson.util.VariableResolver;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -52,6 +55,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     private String[] branchArray = new String[] {"branch"};
     public ChangeLogAction changeLogAction;
     public SaveChangeLogAction saveChangeLogAction;
+	private VariableResolver resolver;
     
     @Before
     public void setUp() throws Exception {
@@ -73,6 +77,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         computer = classContext.mock(Computer.class);
         Map systemProperties = new HashMap();
         systemProperties.put("user.name", "henrik");
+        resolver = context.mock(VariableResolver.class);
     }
 
     @After
@@ -675,12 +680,12 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         }
 
         @Override
-        protected CheckOutAction createCheckOutAction(ClearToolLauncher launcher) {
+        protected CheckOutAction createCheckOutAction(VariableResolver resolver,ClearToolLauncher launcher) {
             return checkOutAction;
         }
-
+ 
         @Override
-        protected PollAction createPollAction(ClearToolLauncher launcher) {
+        protected PollAction createPollAction(VariableResolver resolver, ClearToolLauncher launcher) {
             return pollAction;
         }
 

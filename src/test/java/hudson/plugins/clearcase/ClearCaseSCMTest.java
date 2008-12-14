@@ -201,7 +201,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
         classContext.checking(new Expectations() {
             {
-                one(build).getParent(); will(returnValue(project));
+                atLeast(2).of(build).getParent(); will(returnValue(project));
                 one(project).getName(); will(returnValue("ClearCase"));
             }
         });
