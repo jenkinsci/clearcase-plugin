@@ -1,12 +1,5 @@
 package hudson.plugins.clearcase;
 
-import java.io.IOException;
-
-import net.sf.json.JSONObject;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -20,9 +13,18 @@ import hudson.plugins.clearcase.action.UcmSnapshotCheckoutAction;
 import hudson.plugins.clearcase.ucm.UcmChangeLogAction;
 import hudson.plugins.clearcase.ucm.UcmChangeLogParser;
 import hudson.plugins.clearcase.ucm.UcmSaveChangeLogAction;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
+import hudson.util.VariableResolver;
+
+import java.io.IOException;
+
+import net.sf.json.JSONObject;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * SCM for ClearCaseUCM.
@@ -92,18 +94,19 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected CheckOutAction createCheckOutAction(ClearToolLauncher launcher) {
-        return new UcmSnapshotCheckoutAction(createClearTool(launcher), getStream(), getLoadRules());
+    protected CheckOutAction createCheckOutAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+        return new UcmSnapshotCheckoutAction(createClearTool(variableResolver, launcher), getStream(), getLoadRules());
     }
 
     @Override
-    protected PollAction createPollAction(ClearToolLauncher launcher) {
-        return new DefaultPollAction(createClearTool(launcher));
+    protected PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+        return new DefaultPollAction(createClearTool(variableResolver, launcher));
     }
 
     @Override
     protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher) {
-        return new UcmChangeLogAction(createClearTool(launcher));
+    	VariableResolver variableResolver = new BuildVariableResolver(build, baseLauncher);
+    	return new UcmChangeLogAction(createClearTool(null, launcher));
     }
 
     @Override

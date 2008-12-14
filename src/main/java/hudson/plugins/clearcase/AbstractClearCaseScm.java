@@ -20,6 +20,7 @@ import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import hudson.util.StreamTaskListener;
+import hudson.util.VariableResolver;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +69,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 *            the command line launcher
 	 * @return an action that can check out code from a ClearCase repository.
 	 */
-	protected abstract CheckOutAction createCheckOutAction(
+	protected abstract CheckOutAction createCheckOutAction(VariableResolver variableResolver,
 			ClearToolLauncher launcher);
 
 	/**
@@ -79,7 +80,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 * @return an action that can poll if there are any changes a ClearCase
 	 *         repository.
 	 */
-	protected abstract PollAction createPollAction(ClearToolLauncher launcher);
+	protected abstract PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher);
 
 	/**
 	 * Create a SaveChangeLog action that is used to save a change log
@@ -228,7 +229,8 @@ public abstract class AbstractClearCaseScm extends SCM {
 				workspace, launcher);
 
 		// Create actions
-		CheckOutAction checkoutAction = createCheckOutAction(clearToolLauncher);
+		VariableResolver variableResolver = new BuildVariableResolver(build, launcher);
+		CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher);
 		ChangeLogAction changeLogAction = createChangeLogAction(
 				clearToolLauncher, build, launcher);
 		SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
@@ -277,8 +279,8 @@ public abstract class AbstractClearCaseScm extends SCM {
 			EventRecordFilter filter = new EventRecordFilter();
 			filter
 					.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
-
-			PollAction pollAction = createPollAction(createClearToolLauncher(
+			VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, launcher);
+			PollAction pollAction = createPollAction(variableResolver, createClearToolLauncher(
 					listener, workspace, launcher));
 			String normalizedViewName = generateNormalizedViewName(
 					(AbstractBuild) lastBuild, launcher);
@@ -306,8 +308,8 @@ public abstract class AbstractClearCaseScm extends SCM {
 				workspace, launcher);
 	}
 
-	protected ClearTool createClearTool(ClearToolLauncher launcher) {
-		return new ClearToolSnapshot(launcher, mkviewOptionalParam);
+	protected ClearTool createClearTool(VariableResolver variableResolver, ClearToolLauncher launcher) {
+		return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
 	}
 
 	/**
@@ -333,12 +335,11 @@ public abstract class AbstractClearCaseScm extends SCM {
 				if (item instanceof AbstractProject) {
 					AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
 					if (project.getScm() instanceof AbstractClearCaseScm) {
-						// TaskListener listener = TaskListener.NULL;
 						StreamTaskListener listener = new StreamTaskListener(
 								System.out);
 						Launcher launcher = Hudson.getInstance()
 								.createLauncher(listener);
-						ClearTool ct = createClearTool(createClearToolLauncher(
+						ClearTool ct = createClearTool(null, createClearToolLauncher(
 								listener, project.getWorkspace().getParent()
 										.getParent(), launcher));
 						try {

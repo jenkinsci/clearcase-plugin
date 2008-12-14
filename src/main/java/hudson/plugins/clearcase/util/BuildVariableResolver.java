@@ -14,55 +14,63 @@ import hudson.util.VariableResolver;
  * <p>
  * The build variable resolver will resolve the following:
  * <ul>
- * <li> JOB_NAME - The name of the job</li>
- * <li> USER_NAME - The system property "user.name" on the Node that the Launcher
+ * <li>JOB_NAME - The name of the job</li>
+ * <li>USER_NAME - The system property "user.name" on the Node that the Launcher
  * is being executed on (slave or master)</li>
- * <li> NODE_NAME - The name of the node that the Launcher is being executed on</li>
- * <li> Any environment variable that is set on the Node that the Launcher is
- * being executed on (slave or master)</li> 
+ * <li>NODE_NAME - The name of the node that the Launcher is being executed on</li>
+ * <li>Any environment variable that is set on the Node that the Launcher is
+ * being executed on (slave or master)</li>
  * </ul>
  * 
- * Implementation note: This class is modelled after Erik Ramfelt's work 
- * in the Team Foundation Server Plugin. Maybe they should be merged and moved 
- * to the  hudson core
+ * Implementation note: This class is modelled after Erik Ramfelt's work in the
+ * Team Foundation Server Plugin. Maybe they should be merged and moved to the
+ * hudson core
  * 
  * @author Henrik Lynggaard Hansen
  */
 public class BuildVariableResolver implements VariableResolver<String> {
 
-    private static final Logger LOGGER = Logger.getLogger(BuildVariableResolver.class.getName());
+	private static final Logger LOGGER = Logger
+			.getLogger(BuildVariableResolver.class.getName());
 
-    private final AbstractProject<?, ?> project;
-    //private final Computer computer;
-    private final Launcher launcher;
-    
-    public BuildVariableResolver(final AbstractBuild<?, ?> build, final Launcher launcher) {
-        this.project = build.getProject();
-        //this.computer = launcher.getComputer();
-        this.launcher = launcher;
-    }
+	private final AbstractProject<?, ?> project;
+	// private final Computer computer;
+	private final Launcher launcher;
 
-    @Override
-    public String resolve(String key) {
-        System.err.println("now resolving "+key);
-        try {
-            if ("JOB_NAME".equals(key)) {
-                return project.getName();
-            }
+	public BuildVariableResolver(final AbstractBuild<?, ?> build,
+			final Launcher launcher) {
+		this.project = build.getProject();
+		// this.computer = launcher.getComputer();
+		this.launcher = launcher;
+	}
 
-            if ("NODE_NAME".equals(key)) {
-                return (Util.fixEmpty(launcher.getComputer().getName()) == null ? "master" : launcher.getComputer().getName());
-            }
+	@Override
+	public String resolve(String key) {
+		System.err.println("now resolving " + key);
+		try {
+			if ("JOB_NAME".equals(key)) {
+				return project.getName();
+			}
+			if ("COMPUTERNAME".equals(key)) {
+				return (Util.fixEmpty(launcher.getComputer().getName()) == null ? "master"
+						: launcher.getComputer().getName());
+			}
+			if ("NODE_NAME".equals(key)) {
+				return (Util.fixEmpty(launcher.getComputer().getName()) == null ? "master"
+						: launcher.getComputer().getName());
+			}
 
-            if ("USER_NAME".equals(key)) {
-                return (String) launcher.getComputer().getSystemProperties().get("user.name");
-            }
-            if (launcher.getComputer().getEnvVars().containsKey(key)) {
-                return (String) launcher.getComputer().getEnvVars().get(key);
-            }
-        } catch (Exception e) {
-            LOGGER.warning("Variable name '" + key + "' look up failed because of " + e);
-        }
-        return null;
-    }
+			if ("USER_NAME".equals(key)) {
+				return (String) launcher.getComputer().getSystemProperties()
+						.get("user.name");
+			}
+			if (launcher.getComputer().getEnvVars().containsKey(key)) {
+				return (String) launcher.getComputer().getEnvVars().get(key);
+			}
+		} catch (Exception e) {
+			LOGGER.warning("Variable name '" + key
+					+ "' look up failed because of " + e);
+		}
+		return null;
+	}
 }
