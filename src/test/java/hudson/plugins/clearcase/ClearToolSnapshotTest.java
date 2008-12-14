@@ -9,190 +9,258 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import hudson.FilePath;
 import hudson.model.TaskListener;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.util.VariableResolver;
 
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.api.Expectation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.steadystate.css.parser.selectors.OneOfAttributeConditionImpl;
 
 /**
  * Tests for the cleartool snapshot view
  */
 public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 
-    private Mockery context;
+	private Mockery context;
 
-    private ClearTool clearToolExec;
-    private ClearToolLauncher launcher;
+	private ClearTool clearToolExec;
+	private ClearToolLauncher launcher;
+	private VariableResolver resolver;
+	private TaskListener listener;
 
-    private TaskListener listener;
+	@Before
+	public void setUp() throws Exception {
+		createWorkspace();
+		context = new Mockery();
 
-    @Before
-    public void setUp() throws Exception {
-        createWorkspace();
-        context = new Mockery();
+		launcher = context.mock(ClearToolLauncher.class);
+		listener = context.mock(TaskListener.class);
+		resolver = context.mock(VariableResolver.class);
+		clearToolExec = new ClearToolSnapshot(resolver, launcher);
+	}
 
-        launcher = context.mock(ClearToolLauncher.class);
-        listener = context.mock(TaskListener.class);
-        clearToolExec = new ClearToolSnapshot(launcher);
-    }
+	@After
+	public void tearDown() throws Exception {
+		deleteWorkspace();
+	}
 
-    @After
-    public void tearDown() throws Exception {
-        deleteWorkspace();
-    }
+	@Test
+	public void testSetcs() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher).getWorkspace();
+				will(returnValue(workspace));
+				one(launcher).run(with(Matchers.hasItemInArray("setcs")),
+						with(aNull(InputStream.class)),
+						with(aNull(OutputStream.class)),
+						with(aNonNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
 
-    @Test
-    public void testSetcs() throws Exception {
-        context.checking(new Expectations() {
-            {
-                one(launcher).getWorkspace();
-                will(returnValue(workspace));
-                one(launcher).run(with(Matchers.hasItemInArray("setcs")), with(aNull(InputStream.class)),
-                        with(aNull(OutputStream.class)), with(aNonNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-            }
-        });
+		clearToolExec.setcs("viewName", "configspec");
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec.setcs("viewName", "configspec");
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testRemoveView() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher).getWorkspace();
+				will(returnValue(workspace));
+				one(launcher).run(
+						with(equal(new String[] { "rmview", "-force",
+								"viewName" })), with(aNull(InputStream.class)),
+						with(aNonNull(OutputStream.class)),
+						with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
 
-    @Test
-    public void testRemoveView() throws Exception {
-        context.checking(new Expectations() {
-            {
-                one(launcher).getWorkspace();
-                will(returnValue(workspace));
-                one(launcher).run(with(equal(new String[] { "rmview", "-force", "viewName" })),
-                        with(aNull(InputStream.class)), with(aNonNull(OutputStream.class)), with(aNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-            }
-        });
+		clearToolExec.rmview("viewName");
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec.rmview("viewName");
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testForcedRemoveView() throws Exception {
+		workspace.child("viewName").mkdirs();
 
-    @Test
-    public void testForcedRemoveView() throws Exception {
-        workspace.child("viewName").mkdirs();
+		context.checking(new Expectations() {
+			{
+				one(launcher).getWorkspace();
+				will(returnValue(workspace));
+				one(launcher).run(
+						with(equal(new String[] { "rmview", "-force",
+								"viewName" })), with(aNull(InputStream.class)),
+						with(aNonNull(OutputStream.class)),
+						with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+				one(launcher).getListener();
+				will(returnValue(listener));
+				one(listener).getLogger();
+				will(returnValue(new PrintStream(new ByteArrayOutputStream())));
+			}
+		});
 
-        context.checking(new Expectations() {
-            {
-                one(launcher).getWorkspace();
-                will(returnValue(workspace));
-                one(launcher).run(with(equal(new String[] { "rmview", "-force", "viewName" })),
-                        with(aNull(InputStream.class)), with(aNonNull(OutputStream.class)), with(aNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-                one(launcher).getListener();
-                will(returnValue(listener));
-                one(listener).getLogger();
-                will(returnValue(new PrintStream(new ByteArrayOutputStream())));
-            }
-        });
+		clearToolExec.rmview("viewName");
+		assertFalse("View folder still exists", workspace.child("viewName")
+				.exists());
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec.rmview("viewName");
-        assertFalse("View folder still exists", workspace.child("viewName").exists());
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testUpdate() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher).run(
+						with(equal(new String[] { "update", "-force", "-log",
+								"NUL", "viewName" })),
+						with(aNull(InputStream.class)),
+						with(aNull(OutputStream.class)),
+						with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
 
-    @Test
-    public void testUpdate() throws Exception {
-        context.checking(new Expectations() {
-            {
-                one(launcher).run(
-                        with(equal(new String[] { "update", "-force", "-log", "NUL", "viewName" })),
-                        with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-            }
-        });
+		clearToolExec.update("viewName", null);
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec.update("viewName", null);
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testUpdateWithLoadRules() throws Exception {
 
-    @Test
-    public void testUpdateWithLoadRules() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher)
+						.run(
+								with(equal(new String[] {
+										"update",
+										"-force",
+										"-log",
+										"NUL",
+										"-add_loadrules",
+										"viewName" + File.separator
+												+ "more_load_rules" })),
+								with(aNull(InputStream.class)),
+								with(aNull(OutputStream.class)),
+								with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
 
-        context.checking(new Expectations() {
-            {
-                one(launcher).run(
-                        with(equal(new String[] { "update", "-force", "-log", "NUL", "-add_loadrules", "viewName" + File.separator + "more_load_rules" })),
-                        with(aNull(InputStream.class)), with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-            }
-        });
+		clearToolExec.update("viewName", "more_load_rules");
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec.update("viewName", "more_load_rules");
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testCreateView() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher).run(
+						with(equal(new String[] { "mkview", "-snapshot",
+								"-tag", "viewName", "viewName" })),
+						with(aNull(InputStream.class)),
+						with(aNull(OutputStream.class)),
+						with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
 
-    @Test
-    public void testCreateView() throws Exception {
-        context.checking(new Expectations() {
-            {
-                one(launcher).run(
-                        with(equal(new String[] { "mkview", "-snapshot", "-tag", "viewName",
-                                        "viewName" })), with(aNull(InputStream.class)),
-                        with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-            }
-        });
+		clearToolExec.mkview("viewName", null);
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec.mkview("viewName", null);
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testCreateViewWithStream() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher).run(
+						with(equal(new String[] { "mkview", "-snapshot",
+								"-stream", "streamSelector", "-tag",
+								"viewName", "viewName" })),
+						with(aNull(InputStream.class)),
+						with(aNull(OutputStream.class)),
+						with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
 
-    @Test
-    public void testCreateViewWithStream() throws Exception {
-        context.checking(new Expectations() {
-            {
-                one(launcher).run(
-                        with(equal(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", 
-                                "-tag", "viewName", "viewName" })), with(aNull(InputStream.class)),
-                        with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-            }
-        });
+		clearToolExec.mkview("viewName", "streamSelector");
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec.mkview("viewName", "streamSelector");
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testCreateViewExtraParams() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher).run(
+						with(equal(new String[] { "mkview", "-snapshot",
+								"-tag", "viewName", "-anextraparam",
+								"-anotherparam", "viewName" })),
+						with(aNull(InputStream.class)),
+						with(aNull(OutputStream.class)),
+						with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
 
-    @Test
-    public void testCreateViewExtraParams() throws Exception {
-        context.checking(new Expectations() {
-            {
-                one(launcher).run(
-                        with(equal(new String[] { "mkview", "-snapshot", "-tag", "viewName",
-                                        "-anextraparam", "-anotherparam", "viewName" })), with(aNull(InputStream.class)),
-                        with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-            }
-        });
+		clearToolExec = new ClearToolSnapshot(resolver, launcher,
+				"-anextraparam -anotherparam");
+		clearToolExec.mkview("viewName", null);
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec = new ClearToolSnapshot(launcher, "-anextraparam -anotherparam");
-        clearToolExec.mkview("viewName", null);
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testCreateUcmViewWithOptionalParams() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher).run(
+						with(equal(new String[] { "mkview", "-snapshot",
+								"-stream", "streamSelector", "-tag",
+								"viewName", "-anextraparam", "-anotherparam",
+								"viewName" })), with(aNull(InputStream.class)),
+						with(aNull(OutputStream.class)),
+						with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
 
-    @Test
-    public void testCreateUcmViewWithOptionalParams() throws Exception {
-        context.checking(new Expectations() {
-            {
-                one(launcher).run(
-                        with(equal(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", 
-                                "-tag", "viewName", "-anextraparam", "-anotherparam", "viewName" })), with(aNull(InputStream.class)),
-                        with(aNull(OutputStream.class)), with(aNull(FilePath.class)));
-                will(returnValue(Boolean.TRUE));
-            }
-        });
+		clearToolExec = new ClearToolSnapshot(resolver, launcher,
+				"-anextraparam -anotherparam");
+		clearToolExec.mkview("viewName", "streamSelector");
+		context.assertIsSatisfied();
+	}
 
-        clearToolExec = new ClearToolSnapshot(launcher, "-anextraparam -anotherparam");
-        clearToolExec.mkview("viewName", "streamSelector");
-        context.assertIsSatisfied();
-    }
+	@Test
+	public void testCreateViewExtraParamsEvaluated() throws Exception {
+		context.checking(new Expectations() {
+			{
+				one(launcher).run(
+						with(equal(new String[] { "mkview", "-snapshot",
+								"-tag", "viewName", "-anextraparam",
+								"Test", "viewName" })),
+						with(aNull(InputStream.class)),
+						with(aNull(OutputStream.class)),
+						with(aNull(FilePath.class)));
+				will(returnValue(Boolean.TRUE));
+			}
+		});
+		
+		context.checking(new Expectations() {
+			{
+				atLeast(1).of(resolver).resolve("COMPUTERNAME");
+				will(returnValue("Test"));
+			}
+		});
+		clearToolExec = new ClearToolSnapshot(resolver, launcher,
+				"-anextraparam $COMPUTERNAME");
+		clearToolExec.mkview("viewName", null);
+		context.assertIsSatisfied();
+	}
 }

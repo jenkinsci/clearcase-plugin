@@ -1,10 +1,10 @@
 package hudson.plugins.clearcase;
 
+import static hudson.Util.fixEmpty;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.Util;
-import static hudson.Util.fixEmpty;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.model.ModelObject;
@@ -17,16 +17,13 @@ import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseChangeLogAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.util.ByteBuffer;
 import hudson.util.FormFieldValidator;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-import javax.servlet.ServletException;
+import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -37,6 +34,12 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.servlet.ServletException;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
 /**
  * Base ClearCase SCM.
@@ -153,21 +156,21 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	}
 
 	@Override
-	protected CheckOutAction createCheckOutAction(ClearToolLauncher launcher) {
+	protected CheckOutAction createCheckOutAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
 		CheckOutAction action;
 		if (useDynamicView) {
-			action = new DynamicCheckoutAction(createClearTool(launcher),
+			action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher),
 					configSpec);
 		} else {
-			action = new SnapshotCheckoutAction(createClearTool(launcher),
+			action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),
 					configSpec, useUpdate);
 		}
 		return action;
 	}
 
 	@Override
-	protected PollAction createPollAction(ClearToolLauncher launcher) {
-		return new DefaultPollAction(createClearTool(launcher));
+	protected PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+		return new DefaultPollAction(createClearTool(variableResolver, launcher));
 	}
 
 	@Override
@@ -181,8 +184,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	protected BaseChangeLogAction createChangeLogAction(
 			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
 			int logMergeTimeWindow, Launcher baseLauncher) {
+		BuildVariableResolver variableResolver = new BuildVariableResolver(build, baseLauncher);
 		BaseChangeLogAction action = new BaseChangeLogAction(
-				createClearTool(launcher), logMergeTimeWindow);
+				createClearTool(variableResolver, launcher), logMergeTimeWindow);
 		if (useDynamicView) {
 			String extendedViewPath = viewDrive;
 			if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
@@ -223,11 +227,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	}
 
 	@Override
-	protected ClearTool createClearTool(ClearToolLauncher launcher) {
+	protected ClearTool createClearTool(VariableResolver variableResolver, ClearToolLauncher launcher) {
 		if (useDynamicView) {
-			return new ClearToolDynamic(launcher, viewDrive);
+			return new ClearToolDynamic(variableResolver, launcher, viewDrive);
 		} else {
-			return super.createClearTool(launcher);
+			return super.createClearTool(variableResolver, launcher);
 		}
 	}
 

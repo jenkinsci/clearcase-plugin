@@ -1,7 +1,10 @@
 package hudson.plugins.clearcase;
 
 import hudson.FilePath;
+import hudson.Util;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.VariableResolver;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -14,12 +17,12 @@ public class ClearToolSnapshot extends ClearToolExec {
 
     private String optionalMkviewParameters;
     
-    public ClearToolSnapshot(ClearToolLauncher launcher) {
-        super(launcher);
+    public ClearToolSnapshot(VariableResolver variableResolver, ClearToolLauncher launcher) {
+        super(variableResolver, launcher);
     }
 
-    public ClearToolSnapshot(ClearToolLauncher launcher, String optionalParameters) {
-        this(launcher);
+    public ClearToolSnapshot(VariableResolver variableResolver, ClearToolLauncher launcher, String optionalParameters) {
+        this(variableResolver, launcher);
         this.optionalMkviewParameters = optionalParameters;
     }
 
@@ -50,8 +53,10 @@ public class ClearToolSnapshot extends ClearToolExec {
         }
         cmd.add("-tag");
         cmd.add(viewName);
+        
         if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
-            cmd.addTokenized(optionalMkviewParameters);
+        	String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
+            cmd.addTokenized(variabledResolvedParams);
         }
         cmd.add(viewName);
         launcher.run(cmd.toCommandArray(), null, null, null);
