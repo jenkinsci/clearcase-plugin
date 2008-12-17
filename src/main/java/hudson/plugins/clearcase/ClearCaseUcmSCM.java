@@ -29,177 +29,196 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
- * SCM for ClearCaseUCM.
- * This SCM will create a UCM view from a stream and apply a list of load rules to it.
+ * SCM for ClearCaseUCM. This SCM will create a UCM view from a stream and apply
+ * a list of load rules to it.
  */
 public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
-    private final String stream;
-    private final String loadRules;
-    private boolean useDynamicView;
-    private String viewDrive;
+	private final String stream;
+	private final String loadRules;
+	private boolean useDynamicView;
+	private String viewDrive;
 
-    @DataBoundConstructor
-    public ClearCaseUcmSCM(String stream, String loadrules, String viewname, 
-    		boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
-            boolean filterOutDestroySubBranchEvent) {
-        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent);
-        this.stream = shortenStreamName(stream);
-        this.loadRules = loadrules;
-        this.useDynamicView = usedynamicview;
-        this.viewDrive = viewdrive;
+	@DataBoundConstructor
+	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
+			boolean usedynamicview, String viewdrive,
+			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
+			boolean useUpdate) {
+		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+				useUpdate);
+		this.stream = shortenStreamName(stream);
+		this.loadRules = loadrules;
+		this.useDynamicView = usedynamicview;
+		this.viewDrive = viewdrive;
 
-    }
+	}
 
-    /**
-     * Return the load rules for the UCM view.
-     * @return string containing the load rules.
-     */
-    public String getLoadRules() {
-        return loadRules;
-    }
+	/**
+	 * Return the load rules for the UCM view.
+	 * 
+	 * @return string containing the load rules.
+	 */
+	public String getLoadRules() {
+		return loadRules;
+	}
 
-    /**
-     * Return the stream that is used to create the UCM view.
-     * @return string containing the stream selector.
-     */
-    public String getStream() {
-        return stream;
-    }
-    
-    public boolean isUseDynamicView() {
-        return useDynamicView;
-    }
+	/**
+	 * Return the stream that is used to create the UCM view.
+	 * 
+	 * @return string containing the stream selector.
+	 */
+	public String getStream() {
+		return stream;
+	}
 
-    public String getViewDrive() {
-        return viewDrive;
-    }
+	public boolean isUseDynamicView() {
+		return useDynamicView;
+	}
 
-    @Override
-    public ClearCaseUcmScmDescriptor getDescriptor() {
-        return PluginImpl.UCM_DESCRIPTOR;
-    }
+	public String getViewDrive() {
+		return viewDrive;
+	}
 
-    @Override
-    public ChangeLogParser createChangeLogParser() {
-        return new UcmChangeLogParser();
-    }
+	@Override
+	public ClearCaseUcmScmDescriptor getDescriptor() {
+		return PluginImpl.UCM_DESCRIPTOR;
+	}
 
-    @Override
-    public String[] getBranchNames() {
-        String branch = stream;
-        if (stream.contains("@")) {
-            branch = stream.substring(0, stream.indexOf("@"));
-        }
-        return new String[]{ branch };
-    }
+	@Override
+	public ChangeLogParser createChangeLogParser() {
+		return new UcmChangeLogParser();
+	}
 
-    @Override
-    public String[] getViewPaths(FilePath viewPath) throws IOException, InterruptedException {
-        String[] rules = loadRules.split("\n");
-        for (int i = 0; i < rules.length; i++) {
-            String rule = rules[i];
-            // Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if the view is not dynamic
-            // the user normally enters a load rule beginning with those chars
-            while (!useDynamicView && (rule.startsWith("\\") || rule.startsWith("/"))) {
-                rule = rule.substring(1);               
-            }
-            rules[i] = rule;
-        }
-        return rules;
-    }
+	@Override
+	public String[] getBranchNames() {
+		String branch = stream;
+		if (stream.contains("@")) {
+			branch = stream.substring(0, stream.indexOf("@"));
+		}
+		return new String[] { branch };
+	}
 
-    @Override
-    protected CheckOutAction createCheckOutAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
-    	CheckOutAction action;
-    	if (useDynamicView) {
-    		action = new UcmDynamicCheckoutAction(createClearTool(variableResolver, launcher), getStream());
-    	} else {
-    		action = new UcmSnapshotCheckoutAction(createClearTool(variableResolver, launcher), getStream(), getLoadRules());
-    	}
-        return action;
-    }
+	@Override
+	public String[] getViewPaths(FilePath viewPath) throws IOException,
+			InterruptedException {
+		String[] rules = loadRules.split("\n");
+		for (int i = 0; i < rules.length; i++) {
+			String rule = rules[i];
+			// Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if
+			// the view is not dynamic
+			// the user normally enters a load rule beginning with those chars
+			while (!useDynamicView
+					&& (rule.startsWith("\\") || rule.startsWith("/"))) {
+				rule = rule.substring(1);
+			}
+			rules[i] = rule;
+		}
+		return rules;
+	}
 
-    @Override
-    protected PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
-        return new DefaultPollAction(createClearTool(variableResolver, launcher));
-    }
+	@Override
+	protected CheckOutAction createCheckOutAction(
+			VariableResolver variableResolver, ClearToolLauncher launcher) {
+		CheckOutAction action;
+		if (useDynamicView) {
+			action = new UcmDynamicCheckoutAction(createClearTool(
+					variableResolver, launcher), getStream());
+		} else {
+			action = new UcmSnapshotCheckoutAction(createClearTool(
+					variableResolver, launcher), getStream(), getLoadRules(),
+					isUseUpdate());
+		}
+		return action;
+	}
 
-    @Override
-    protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher) {
-    	VariableResolver variableResolver = new BuildVariableResolver(build, baseLauncher);
-    	UcmChangeLogAction action = new UcmChangeLogAction(createClearTool(variableResolver, launcher));
-    	if (useDynamicView) {
-            String extendedViewPath = viewDrive;
-            if (! (viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
-                // Need to deteremine what kind of char to add in between
-                if (viewDrive.contains("/")) {
-                    extendedViewPath += "/";
-                } else {
-                    extendedViewPath += "\\";
-                }                
-            }
-            extendedViewPath += getViewName();
-            action.setExtendedViewPath(extendedViewPath);
-        }
-        return action;
-    }
+	@Override
+	protected PollAction createPollAction(VariableResolver variableResolver,
+			ClearToolLauncher launcher) {
+		return new DefaultPollAction(
+				createClearTool(variableResolver, launcher));
+	}
 
-    @Override
-    protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
-        return new UcmSaveChangeLogAction();
-    }
-    
-    
-    protected ClearTool createClearTool(VariableResolver variableResolver, ClearToolLauncher launcher) {
-        if (useDynamicView) {
-            return new ClearToolDynamicUCM(variableResolver, launcher, viewDrive);
-        } else {
-            return super.createClearTool(variableResolver, launcher);
-        }
-    }
-    
-    private String shortenStreamName(String longStream) {
-        if (longStream.startsWith("stream:")) {
-            return longStream.substring("stream:".length());
-        }
-        return longStream;
-    }
-    
-    /**
-     * ClearCase UCM SCM descriptor
-     * 
-     * @author Erik Ramfelt
-     */
-    public static final class ClearCaseUcmScmDescriptor extends SCMDescriptor<ClearCaseUcmSCM> 
-            implements ModelObject {
+	@Override
+	protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher,
+			AbstractBuild<?, ?> build, Launcher baseLauncher) {
+		VariableResolver variableResolver = new BuildVariableResolver(build,
+				baseLauncher);
+		UcmChangeLogAction action = new UcmChangeLogAction(createClearTool(
+				variableResolver, launcher));
+		if (useDynamicView) {
+			String extendedViewPath = viewDrive;
+			if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
+				// Need to deteremine what kind of char to add in between
+				if (viewDrive.contains("/")) {
+					extendedViewPath += "/";
+				} else {
+					extendedViewPath += "\\";
+				}
+			}
+			extendedViewPath += getViewName();
+			action.setExtendedViewPath(extendedViewPath);
+		}
+		return action;
+	}
 
-        protected ClearCaseUcmScmDescriptor() {
-            super(ClearCaseUcmSCM.class, null);
-            load();
-        }
+	@Override
+	protected SaveChangeLogAction createSaveChangeLogAction(
+			ClearToolLauncher launcher) {
+		return new UcmSaveChangeLogAction();
+	}
 
-        @Override
-        public String getDisplayName() {
-            return "UCM ClearCase";
-        }
+	protected ClearTool createClearTool(VariableResolver variableResolver,
+			ClearToolLauncher launcher) {
+		if (useDynamicView) {
+			return new ClearToolDynamicUCM(variableResolver, launcher,
+					viewDrive);
+		} else {
+			return super.createClearTool(variableResolver, launcher);
+		}
+	}
 
-        @Override
-        public boolean configure(StaplerRequest req) {
-            return true;
-        }
-        
-        @Override
-        public SCM newInstance(StaplerRequest req) throws FormException {
-        	ClearCaseUcmSCM scm = new ClearCaseUcmSCM(
-        			req.getParameter("ucm.stream"),
-        			req.getParameter("ucm.loadrules"),
-        			req.getParameter("ucm.viewname"),
-        			req.getParameter("ucm.usedynamicview") != null,
-        			req.getParameter("ucm.viewdrive"),
-        			req.getParameter("ucm.mkviewoptionalparam"),
-        			req.getParameter("ucm.filterOutDestroySubBranchEvent") != null);
-            return scm;
-        }
-    }
+	private String shortenStreamName(String longStream) {
+		if (longStream.startsWith("stream:")) {
+			return longStream.substring("stream:".length());
+		}
+		return longStream;
+	}
+
+	/**
+	 * ClearCase UCM SCM descriptor
+	 * 
+	 * @author Erik Ramfelt
+	 */
+	public static final class ClearCaseUcmScmDescriptor extends
+			SCMDescriptor<ClearCaseUcmSCM> implements ModelObject {
+
+		protected ClearCaseUcmScmDescriptor() {
+			super(ClearCaseUcmSCM.class, null);
+			load();
+		}
+
+		@Override
+		public String getDisplayName() {
+			return "UCM ClearCase";
+		}
+
+		@Override
+		public boolean configure(StaplerRequest req) {
+			return true;
+		}
+
+		@Override
+		public SCM newInstance(StaplerRequest req) throws FormException {
+			ClearCaseUcmSCM scm = new ClearCaseUcmSCM(
+					req.getParameter("ucm.stream"),
+					req.getParameter("ucm.loadrules"),
+					req.getParameter("ucm.viewname"),
+					req.getParameter("ucm.usedynamicview") != null,
+					req.getParameter("ucm.viewdrive"),
+					req.getParameter("ucm.mkviewoptionalparam"),
+					req.getParameter("ucm.filterOutDestroySubBranchEvent") != null,
+					req.getParameter("ucm.useupdate") != null);
+			return scm;
+		}
+	}
 }

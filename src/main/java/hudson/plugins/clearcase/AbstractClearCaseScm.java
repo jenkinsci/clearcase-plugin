@@ -44,6 +44,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 	private final String mkviewOptionalParam;
 	private final boolean filteringOutDestroySubBranchEvent;
 	private transient String normalizedViewName;
+	private final boolean useUpdate;
 
 	protected void setNormalizedViewName(String normalizedViewName) {
 		this.normalizedViewName = normalizedViewName;
@@ -54,11 +55,11 @@ public abstract class AbstractClearCaseScm extends SCM {
 	}
 
 	public AbstractClearCaseScm(final String viewName,
-			String mkviewOptionalParam, boolean filterOutDestroySubBranchEvent) {
+			String mkviewOptionalParam, boolean filterOutDestroySubBranchEvent, boolean useUpdate) {
 		this.viewName = viewName;
 		this.mkviewOptionalParam = mkviewOptionalParam;
 		this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
-
+		this.useUpdate = useUpdate;
 		createAndRegisterListener();
 	}
 
@@ -355,5 +356,9 @@ public abstract class AbstractClearCaseScm extends SCM {
 				}
 			}
 		});
+	}
+
+	public boolean isUseUpdate() {
+		return useUpdate;
 	}
 }

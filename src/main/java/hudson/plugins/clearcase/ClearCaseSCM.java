@@ -50,7 +50,6 @@ import org.kohsuke.stapler.StaplerResponse;
  */
 public class ClearCaseSCM extends AbstractClearCaseScm {
 
-	private boolean useUpdate;
 	private String configSpec;
 	private boolean useDynamicView;
 	private String viewDrive;
@@ -62,18 +61,14 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String vobpaths,
             boolean usedynamicview, String viewdrive, String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
             boolean doNotUpdateConfigSpec) {
-        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent);
+        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate);
         this.branch = branch;
         this.configSpec = configspec;
-        this.useUpdate = useupdate;
         this.vobPaths = vobpaths;
         this.useDynamicView = usedynamicview;
         this.viewDrive = viewdrive;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
 
-		if (this.useDynamicView) {
-			this.useUpdate = false;
-		}
 	}
 
 	public String getBranch() {
@@ -82,10 +77,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
 	public String getConfigSpec() {
 		return configSpec;
-	}
-
-	public boolean isUseUpdate() {
-		return useUpdate;
 	}
 
 	public boolean isUseDynamicView() {
@@ -167,7 +158,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					configSpec, doNotUpdateConfigSpec);
 		} else {
 			action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),
-					configSpec, useUpdate);
+					configSpec, isUseUpdate());
 		}
 		return action;
 	}
@@ -294,7 +285,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
 		@Override
 		public SCM newInstance(StaplerRequest req) throws FormException {
-			ClearCaseSCM scm = new ClearCaseSCM(
+			AbstractClearCaseScm scm = new ClearCaseSCM(
 					req.getParameter("cc.branch"),
 					req.getParameter("cc.configspec"),
 					req.getParameter("cc.viewname"),
