@@ -56,19 +56,20 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	private String viewDrive;
 	private final String branch;
 	private final String vobPaths;
+    private boolean doNotUpdateConfigSpec;
 
-	@DataBoundConstructor
-	public ClearCaseSCM(String branch, String configspec, String viewname,
-			boolean useupdate, String vobpaths, boolean usedynamicview,
-			String viewdrive, String mkviewoptionalparam,
-			boolean filterOutDestroySubBranchEvent) {
-		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent);
-		this.branch = branch;
-		this.configSpec = configspec;
-		this.useUpdate = useupdate;
-		this.vobPaths = vobpaths;
-		this.useDynamicView = usedynamicview;
-		this.viewDrive = viewdrive;
+    @DataBoundConstructor
+    public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String vobpaths,
+            boolean usedynamicview, String viewdrive, String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
+            boolean doNotUpdateConfigSpec) {
+        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent);
+        this.branch = branch;
+        this.configSpec = configspec;
+        this.useUpdate = useupdate;
+        this.vobPaths = vobpaths;
+        this.useDynamicView = usedynamicview;
+        this.viewDrive = viewdrive;
+        this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
 
 		if (this.useDynamicView) {
 			this.useUpdate = false;
@@ -94,10 +95,14 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	public String getViewDrive() {
 		return viewDrive;
 	}
+    
+    public String getVobPaths() {
+    	return vobPaths;
+    }
 
-	public Object getVobPaths() {
-		return vobPaths;
-	}
+    public boolean isDoNotUpdateConfigSpec() {
+    	return doNotUpdateConfigSpec;
+    }
 
 	/**
 	 * Return the view paths that will be used when getting changes for a view.
@@ -144,7 +149,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	@Override
 	public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
 		super.buildEnvVars(build, env);
-
 		if (useDynamicView) {
 			if (viewDrive != null) {
 				env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator
@@ -160,7 +164,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 		CheckOutAction action;
 		if (useDynamicView) {
 			action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher),
-					configSpec);
+					configSpec, doNotUpdateConfigSpec);
 		} else {
 			action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),
 					configSpec, useUpdate);
@@ -299,7 +303,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					req.getParameter("cc.usedynamicview") != null,
 					req.getParameter("cc.viewdrive"),
 					req.getParameter("cc.mkviewoptionalparam"),
-					req.getParameter("cc.filterOutDestroySubBranchEvent") != null);			
+					req.getParameter("cc.filterOutDestroySubBranchEvent") != null,
+					req.getParameter("cc.doNotUpdateConfigSpec") != null);			
 			return scm;
 		}
 

@@ -55,7 +55,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec");
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -78,7 +78,29 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec");
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false);
+        boolean success = action.checkout(launcher, workspace, "viewname");
+        assertTrue("Checkout method did not return true.", success);
+
+        context.assertIsSatisfied();
+        classContext.assertIsSatisfied();
+    }
+    
+    @Test
+    public void testChangeInConfigSpecDoNotResetConfigSpecEnabled() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(clearTool).startView("viewname");
+                one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                ignoring(launcher).isUnix(); will(returnValue(false));
+            }
+        });
+
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -100,7 +122,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec");
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 

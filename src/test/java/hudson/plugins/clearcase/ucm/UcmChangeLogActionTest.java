@@ -110,11 +110,11 @@ public class UcmChangeLogActionTest {
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +
                         "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
-                        "\"rebase.Release_3_3_jdk5.20080509.155359\" " +
+                        "\"deliver.Release_3_3_jdk5.20080509.155359\" " +
                         "\"create directory version\" " +
                         "\"checkin\" ")));
                 one(cleartool).lsactivity(
-                        with(equal("rebase.Release_3_3_jdk5.20080509.155359")), 
+                        with(equal("deliver.Release_3_3_jdk5.20080509.155359")), 
                         with(aNonNull(String.class)),with(aNonNull(String.class)));
                 will(returnValue(new StringReader("\"Convert to Java 6\" " +
                                 "\"Release_3_3_jdk5\" " +
@@ -141,7 +141,7 @@ public class UcmChangeLogActionTest {
         List<UcmActivity> activities = action.getChanges(filter, null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
         UcmActivity activity = activities.get(0);
-        assertEquals("Activity name is incorrect", "rebase.Release_3_3_jdk5.20080509.155359", activity.getName());
+        assertEquals("Activity name is incorrect", "deliver.Release_3_3_jdk5.20080509.155359", activity.getName());
         assertEquals("Activity headline is incorrect", "Convert to Java 6", activity.getHeadline());
         assertEquals("Activity stream is incorrect", "Release_3_3_jdk5", activity.getStream());
         assertEquals("Activity user is incorrect", "bob", activity.getUser());

@@ -204,6 +204,9 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         public void startView(String viewTag) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
+        public void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException {
+            throw new IllegalStateException("Not implemented");
+        }
         
         @Override
         protected FilePath getRootViewPath(ClearToolLauncher launcher) {
