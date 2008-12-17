@@ -1,26 +1,22 @@
 package hudson.plugins.clearcase;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import hudson.FilePath;
+import hudson.model.TaskListener;
+import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import hudson.FilePath;
-import hudson.model.TaskListener;
-import hudson.plugins.clearcase.util.BuildVariableResolver;
-import hudson.util.VariableResolver;
 
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
-import org.jmock.api.Expectation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.steadystate.css.parser.selectors.OneOfAttributeConditionImpl;
 
 /**
  * Tests for the cleartool snapshot view

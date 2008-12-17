@@ -100,4 +100,14 @@ public interface ClearTool {
      * @param viewTags One or more currently registered view tags (that is, view tags visible to lsview).
      */
     void startView(String viewTags) throws IOException, InterruptedException;
+    
+    /**
+     * Syncronizes the Dynamic UCM view with the streams recomended baseline
+     * 
+     * @param viewName
+     * @param stream
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException;
 }

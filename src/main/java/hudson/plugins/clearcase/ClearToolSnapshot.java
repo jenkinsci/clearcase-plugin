@@ -118,4 +118,8 @@ public class ClearToolSnapshot extends ClearToolExec {
     public void startView(String viewTag) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Snapshot view does not support startview");
     }
+    
+    public void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException {
+        launcher.getListener().fatalError("Snapshot view does not support syncronize");
+    }
 }

@@ -16,16 +16,18 @@ public class DynamicCheckoutAction implements CheckOutAction {
 
     private ClearTool cleartool;
     private String configSpec;
+    private boolean doNotUpdateConfigSpec;
 
-    public DynamicCheckoutAction(ClearTool cleartool, String configSpec) {
+    public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
+        this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException { 
         cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
-        if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
+        if (!doNotUpdateConfigSpec && !configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
             String tempConfigSpec = configSpec;
             if (launcher.isUnix()) {
                 tempConfigSpec = configSpec.replaceAll("\r\n", "\n");

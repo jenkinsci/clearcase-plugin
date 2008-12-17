@@ -3,12 +3,14 @@ package hudson.plugins.clearcase;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractBuild;
 import hudson.model.ModelObject;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.DefaultPollAction;
 import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
+import hudson.plugins.clearcase.action.UcmDynamicCheckoutAction;
 import hudson.plugins.clearcase.action.UcmSnapshotCheckoutAction;
 import hudson.plugins.clearcase.ucm.UcmChangeLogAction;
 import hudson.plugins.clearcase.ucm.UcmChangeLogParser;
@@ -34,13 +36,19 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
     private final String stream;
     private final String loadRules;
+    private boolean useDynamicView;
+    private String viewDrive;
 
     @DataBoundConstructor
-    public ClearCaseUcmSCM(String stream, String loadrules, String viewname, String mkviewoptionalparam,
+    public ClearCaseUcmSCM(String stream, String loadrules, String viewname, 
+    		boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
             boolean filterOutDestroySubBranchEvent) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent);
         this.stream = shortenStreamName(stream);
         this.loadRules = loadrules;
+        this.useDynamicView = usedynamicview;
+        this.viewDrive = viewdrive;
+
     }
 
     /**
@@ -57,6 +65,14 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
      */
     public String getStream() {
         return stream;
+    }
+    
+    public boolean isUseDynamicView() {
+        return useDynamicView;
+    }
+
+    public String getViewDrive() {
+        return viewDrive;
     }
 
     @Override
@@ -83,9 +99,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         String[] rules = loadRules.split("\n");
         for (int i = 0; i < rules.length; i++) {
             String rule = rules[i];
-            // Remove "\\", "\" or "/" from the load rule. (bug#1706)
+            // Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if the view is not dynamic
             // the user normally enters a load rule beginning with those chars
-            while (rule.startsWith("\\") || rule.startsWith("/")) {
+            while (!useDynamicView && (rule.startsWith("\\") || rule.startsWith("/"))) {
                 rule = rule.substring(1);               
             }
             rules[i] = rule;
@@ -95,7 +111,13 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
     @Override
     protected CheckOutAction createCheckOutAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
-        return new UcmSnapshotCheckoutAction(createClearTool(variableResolver, launcher), getStream(), getLoadRules());
+    	CheckOutAction action;
+    	if (useDynamicView) {
+    		action = new UcmDynamicCheckoutAction(createClearTool(variableResolver, launcher), getStream());
+    	} else {
+    		action = new UcmSnapshotCheckoutAction(createClearTool(variableResolver, launcher), getStream(), getLoadRules());
+    	}
+        return action;
     }
 
     @Override
@@ -106,7 +128,21 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     @Override
     protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher) {
     	VariableResolver variableResolver = new BuildVariableResolver(build, baseLauncher);
-    	return new UcmChangeLogAction(createClearTool(null, launcher));
+    	UcmChangeLogAction action = new UcmChangeLogAction(createClearTool(variableResolver, launcher));
+    	if (useDynamicView) {
+            String extendedViewPath = viewDrive;
+            if (! (viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
+                // Need to deteremine what kind of char to add in between
+                if (viewDrive.contains("/")) {
+                    extendedViewPath += "/";
+                } else {
+                    extendedViewPath += "\\";
+                }                
+            }
+            extendedViewPath += getViewName();
+            action.setExtendedViewPath(extendedViewPath);
+        }
+        return action;
     }
 
     @Override
@@ -114,6 +150,14 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return new UcmSaveChangeLogAction();
     }
     
+    
+    protected ClearTool createClearTool(VariableResolver variableResolver, ClearToolLauncher launcher) {
+        if (useDynamicView) {
+            return new ClearToolDynamicUCM(variableResolver, launcher, viewDrive);
+        } else {
+            return super.createClearTool(variableResolver, launcher);
+        }
+    }
     
     private String shortenStreamName(String longStream) {
         if (longStream.startsWith("stream:")) {
@@ -144,10 +188,18 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         public boolean configure(StaplerRequest req) {
             return true;
         }
-
+        
         @Override
-        public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            return req.bindJSON(ClearCaseUcmSCM.class, formData);
+        public SCM newInstance(StaplerRequest req) throws FormException {
+        	ClearCaseUcmSCM scm = new ClearCaseUcmSCM(
+        			req.getParameter("ucm.stream"),
+        			req.getParameter("ucm.loadrules"),
+        			req.getParameter("ucm.viewname"),
+        			req.getParameter("ucm.usedynamicview") != null,
+        			req.getParameter("ucm.viewdrive"),
+        			req.getParameter("ucm.mkviewoptionalparam"),
+        			req.getParameter("ucm.filterOutDestroySubBranchEvent") != null);
+            return scm;
         }
     }
 }

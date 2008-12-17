@@ -51,6 +51,10 @@ public class ClearToolDynamic extends ClearToolExec {
     public void update(String viewName, String loadRules) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic view does not support update");
     }
+    
+    public void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException {
+        launcher.getListener().fatalError("Dynamic view does not support syncronize");
+    }
 
     public void startView(String viewTags)  throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();

@@ -2,6 +2,7 @@ package hudson.plugins.clearcase.ucm;
 
 import static hudson.plugins.clearcase.util.OutputFormat.*;
 
+import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
@@ -47,6 +48,11 @@ public class UcmChangeLogAction implements ChangeLogAction {
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
     private Map<String, UcmActivity> activityNameToEntry = new HashMap<String, UcmActivity>();
 
+    /**
+     * Extended view path that should be removed file paths in entries.
+     */
+    private String extendedViewPath;
+    
     public UcmChangeLogAction(ClearTool cleartool) {
         this.cleartool = cleartool;
     }
@@ -85,7 +91,15 @@ public class UcmChangeLogAction implements ChangeLogAction {
 
                     // read values;
                     currentFile.setDate(dateFormatter.parse(matcher.group(1)));
-                    currentFile.setName(matcher.group(2));
+                    
+                    String fileName = matcher.group(2).trim();
+                    if (extendedViewPath != null) {
+                        if (fileName.toLowerCase().startsWith(extendedViewPath)) {
+                            fileName = fileName.substring(extendedViewPath.length());
+                        }
+                    }
+                    
+                    currentFile.setName(fileName);
                     currentFile.setVersion(matcher.group(3));
                     currentFile.setEvent(matcher.group(5));
                     currentFile.setOperation(matcher.group(6));
@@ -125,7 +139,9 @@ public class UcmChangeLogAction implements ChangeLogAction {
                 currentFile.setComment(commentBuilder.toString());
             }
         } catch (ParseException ex) {
-            throw new IOException("Could not parse cleartool output", ex);
+        	IOException ioe = new IOException("Could not parse cleartool output");
+        	ioe.setStackTrace(ex.getStackTrace());
+            throw ioe;
         }
         return result;
     }
@@ -171,5 +187,24 @@ public class UcmChangeLogAction implements ChangeLogAction {
         }
         
         reader.close();
-    } 
+    }
+    
+    /**
+     * Sets the extended view path.
+     * The extended view path will be removed from file paths in the event.
+     * The extended view path is for example the view root + view name; and this
+     * path shows up in the history and can be conusing for users.
+     * @param path the new extended view path.
+     */
+    public void setExtendedViewPath(String path) {
+        if (path != null) {
+            this.extendedViewPath = path.toLowerCase();
+        } else {
+            this.extendedViewPath = null;
+        }
+    }
+
+    public String getExtendedViewPath() {
+        return extendedViewPath;
+    }
 }
