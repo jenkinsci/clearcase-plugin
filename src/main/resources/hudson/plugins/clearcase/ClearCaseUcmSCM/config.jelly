@@ -26,6 +26,13 @@
 		<f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
 			<f:expandableTextbox name="ucm.mkviewoptionalparam" value="${scm.mkviewOptionalParam}" />
 		</f:entry>
+		
+		<f:entry title="Use update">
+			<f:checkbox name="ucm.useupdate" checked="${h.defaultToTrue(scm.useUpdate)}"/>
+      		If checked, Hudson will use 'cleartool update' whenever possible, making the build faster.
+      		But this causes the artifacts from the previous build to remain when a new build starts.
+		</f:entry>
+		
         <f:entry title="Filter 'Destroy sub branch' event" help="/plugin/clearcase/filteroutdestroysubbranchevent.html">
 		    <f:checkbox name="ucm.filterOutDestroySubBranchEvent" checked="${scm.filteringOutDestroySubBranchEvent}"/>
       			If checked, Hudson will filter out <i>'Destroy sub-branch "BRANCHNAME" of branch'</i> events when polling
