@@ -40,7 +40,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-        		"stream", "loadrule");
+        		"stream", "loadrule", true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -60,7 +60,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-        		"stream", "loadrule");
+        		"stream", "loadrule", true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -81,7 +81,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-        		"stream", loadRules);
+        		"stream", loadRules, true);
         action.checkout(launcher, workspace, viewName);
 
         context.assertIsSatisfied();
@@ -103,7 +103,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-                "stream", "abc/\nabcd");
+                "stream", "abc/\nabcd", true);
         action.checkout(launcher, workspace, viewName);
 
         context.assertIsSatisfied();
@@ -127,7 +127,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-                "stream", "abc/\nabcd");
+                "stream", "abc/\nabcd", true);
         action.checkout(launcher, workspace, viewName);
 
         context.assertIsSatisfied();
@@ -144,7 +144,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-                "stream", "loadrule\r\nanother\t loadrule");
+                "stream", "loadrule\r\nanother\t loadrule", true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -176,7 +176,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-        		"stream", "vobs/base");
+        		"stream", "vobs/base", true);
         action.checkout(launcher, workspace, viewName);
 
         context.assertIsSatisfied();
@@ -193,10 +193,46 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-        		"stream", "\\ \\Windows\n\\\\C:\\System32");
+        		"stream", "\\ \\Windows\n\\\\C:\\System32", true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }
+    
+
+    @Test
+    public void testFirstTimeWithNoUpdate() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(clearTool).rmview("viewname");
+                one(clearTool).mkview("viewname", "stream");
+            }
+        });
+
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
+        		"stream", "loadrule", false);
+        action.checkout(launcher, workspace, "viewname");
+
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testSecondTimeWithNoUpdate() throws Exception {
+        workspace.child("viewname").mkdirs();
+
+        context.checking(new Expectations() {
+            {
+                one(clearTool).rmview("viewname");
+                one(clearTool).mkview("viewname", "stream");
+            }
+        });
+
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
+        		"stream", "loadrule", false);
+        action.checkout(launcher, workspace, "viewname");
+
+        context.assertIsSatisfied();
+    }
+
 
 }
