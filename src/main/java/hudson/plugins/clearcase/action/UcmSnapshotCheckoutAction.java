@@ -2,7 +2,6 @@ package hudson.plugins.clearcase.action;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.Hudson;
 import hudson.plugins.clearcase.ClearTool;
 
 import java.io.IOException;
@@ -16,7 +15,7 @@ import java.util.Set;
 public class UcmSnapshotCheckoutAction implements CheckOutAction {
 
     private ClearTool cleartool;
-
+    
     private String stream;
 
     private String loadRules;
@@ -29,8 +28,8 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
         this.loadRules = loadRules;
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace,
-            String viewName) throws IOException, InterruptedException {
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) 
+    		throws IOException, InterruptedException {
         boolean localViewPathExists = new FilePath(workspace, viewName)
                 .exists();
 

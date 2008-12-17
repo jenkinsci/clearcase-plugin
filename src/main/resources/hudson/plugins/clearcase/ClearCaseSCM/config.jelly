@@ -49,6 +49,12 @@
             </j:choose>
           </f:entry>
           
+          <f:entry title="Do Not Reset Config Spec">
+			<f:checkbox name="cc.doNotUpdateConfigSpec" checked="${scm.doNotUpdateConfigSpec}"/>
+      				If checked, Hudson will not use 'cleartool setcs' even if the specifed config spec is
+      				different to the dynamic view current config spec.
+		  </f:entry>
+          
         </f:optionalBlock>
       </table>
 	</f:block>

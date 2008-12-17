@@ -167,7 +167,6 @@ public abstract class AbstractClearCaseScm extends SCM {
 			Launcher launcher) {
 		String generatedNormalizedViewName = viewName;
 
-		generatedNormalizedViewName = viewName;
 		if (build != null) {
 			generatedNormalizedViewName = Util.replaceMacro(viewName,
 					new BuildVariableResolver(build, launcher));
