@@ -46,9 +46,10 @@ public class UcmMakeBaseline extends Publisher {
     
     private transient List<String> latestBaselines = null;
 
-    private transient List<String> createdBaselines = null;
+    private transient List<String> createdBaselines = new ArrayList<String>();
 
     public final static Descriptor<Publisher> DESCRIPTOR = new UcmMakeBaselineDescriptor();
+    
 
     private final String namePattern;
 
@@ -190,7 +191,7 @@ public class UcmMakeBaseline extends Publisher {
         		makeBaseline(build, clearToolLauncher, filePath);            
         		this.latestBaselines = getLatestBaselineNames(clearToolLauncher,filePath);
             
-        		//addBuildParameter(build);
+        		addBuildParameter(build);
         	}
             
         } catch (Exception ex) {
@@ -395,8 +396,6 @@ public class UcmMakeBaseline extends Publisher {
             throw new Exception("Failed to make baseline, reason: "
                     + cleartoolResult);
         }
-
-        this.createdBaselines = new ArrayList<String>();
 
         Pattern pattern = Pattern.compile("Created baseline \".+?\"");
         Matcher matcher = pattern.matcher(cleartoolResult);
