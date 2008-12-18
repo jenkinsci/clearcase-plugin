@@ -45,8 +45,8 @@
 		</plugins>
 	</build>
 	<scm>
-		<connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/clearcase-0.7</connection>
-		<developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/clearcase-0.7</developerConnection>
-		<url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/clearcase/tags/clearcase-0.7</url>
+		<connection>scm:svn:https://guest@shttps://svn.dev.java.net/svn/hudson/trunk/hudson/plugins/clearcase</connection>
+		<developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/trunk/hudson/plugins/clearcase</developerConnection>
+		<url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/clearcase</url>
 	</scm>
 </project>
