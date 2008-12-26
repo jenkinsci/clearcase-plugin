@@ -8,6 +8,13 @@ import java.util.List;
 public interface ClearTool {
 
     /**
+     * Get the inner CLearToolLauncher.
+     * @return The inner CLearToolLauncher.
+     */
+    public ClearToolLauncher getLauncher();
+
+    
+    /**
      * Updates the elements in the view
      * 
      * @param viewName the name of the view
