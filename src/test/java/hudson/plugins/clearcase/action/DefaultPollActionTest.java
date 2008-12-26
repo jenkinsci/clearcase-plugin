@@ -2,12 +2,18 @@ package hudson.plugins.clearcase.action;
 
 import static org.junit.Assert.*;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.base.BasePollAction;
+import hudson.plugins.clearcase.history.DefaultFilter;
+import hudson.plugins.clearcase.history.DestroySubBranchFilter;
+import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Date;
 
+import java.util.List;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.Before;
@@ -37,8 +43,8 @@ public class DefaultPollActionTest {
             }
         });
         
-        DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
+        DefaultPollAction action = new BasePollAction(cleartool,null);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -52,8 +58,8 @@ public class DefaultPollActionTest {
             }
         });
         
-        DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
+        DefaultPollAction action = new BasePollAction(cleartool,null);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -69,8 +75,8 @@ public class DefaultPollActionTest {
             }
         });
         
-        DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        DefaultPollAction action = new BasePollAction(cleartool,null);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -83,9 +89,10 @@ public class DefaultPollActionTest {
                 will(returnValue(new StringReader("cleartool: Error: Not an object in a vob: \"view.dat\".\n")));
             }
         });
-        
-        DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DefaultFilter());
+        DefaultPollAction action = new BasePollAction(cleartool,filters);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -98,9 +105,10 @@ public class DefaultPollActionTest {
                 will(returnValue(new StringReader("\"20071015.151822\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\0\" \"create version\"  \"mkelem\" ")));
             }
         });
-        
-        DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DefaultFilter());
+        DefaultPollAction action = new BasePollAction(cleartool,filters);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -115,10 +123,11 @@ public class DefaultPollActionTest {
             }
         });
 
-        filter.setFilterOutDestroySubBranchEvent(true);
-        
-        DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DestroySubBranchFilter());
+
+        DefaultPollAction action = new BasePollAction(cleartool,filters);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -133,10 +142,9 @@ public class DefaultPollActionTest {
             }
         });
 
-        filter.setFilterOutDestroySubBranchEvent(false);
         
-        DefaultPollAction action = new DefaultPollAction(cleartool);
-        boolean hasChange = action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        DefaultPollAction action = new BasePollAction(cleartool,null);
+        boolean hasChange = action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method reported a change", hasChange);        
         context.assertIsSatisfied();
     }
@@ -151,8 +159,8 @@ public class DefaultPollActionTest {
             }
         });
         
-        DefaultPollAction action = new DefaultPollAction(cleartool);
-        action.getChanges(filter, null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        DefaultPollAction action = new BasePollAction(cleartool,null);
+        action.getChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         reader.ready();
     }
 }

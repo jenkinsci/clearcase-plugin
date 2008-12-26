@@ -15,6 +15,9 @@ import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
+import hudson.plugins.clearcase.history.DefaultFilter;
+import hudson.plugins.clearcase.history.DestroySubBranchFilter;
+import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogSet;
@@ -24,6 +27,7 @@ import hudson.util.VariableResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +85,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 * @return an action that can poll if there are any changes a ClearCase
 	 *         repository.
 	 */
-	protected abstract PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher);
+	protected abstract PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher,List<Filter> filters);
 
 	/**
 	 * Create a SaveChangeLog action that is used to save a change log
@@ -270,24 +274,27 @@ public abstract class AbstractClearCaseScm extends SCM {
 	public boolean pollChanges(AbstractProject project, Launcher launcher,
 			FilePath workspace, TaskListener listener) throws IOException,
 			InterruptedException {
+
 		Run lastBuild = project.getLastBuild();
 		if (lastBuild == null) {
 			return true;
-		} else {
-			Date buildTime = lastBuild.getTimestamp().getTime();
-
-			EventRecordFilter filter = new EventRecordFilter();
-			filter
-					.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
-			VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, launcher);
-			PollAction pollAction = createPollAction(variableResolver, createClearToolLauncher(
-					listener, workspace, launcher));
-			String normalizedViewName = generateNormalizedViewName(
-					(AbstractBuild) lastBuild, launcher);
-			return pollAction.getChanges(filter, buildTime, normalizedViewName,
-					getBranchNames(), getViewPaths(workspace
-							.child(normalizedViewName)));
 		}
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DefaultFilter());
+
+        if (isFilteringOutDestroySubBranchEvent()) {
+            filters.add(new DestroySubBranchFilter());
+        }
+        Date buildTime = lastBuild.getTimestamp().getTime();
+
+        VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, launcher);
+        PollAction pollAction = createPollAction(variableResolver, createClearToolLauncher(
+                listener, workspace, launcher),filters);
+        String normalizedViewName = generateNormalizedViewName(
+                (AbstractBuild) lastBuild, launcher);
+        return pollAction.getChanges(buildTime, normalizedViewName,
+                getBranchNames(), getViewPaths(workspace
+                        .child(normalizedViewName)));
 	}
 
 	/**

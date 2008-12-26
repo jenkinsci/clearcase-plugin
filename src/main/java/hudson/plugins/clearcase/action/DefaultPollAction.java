@@ -1,77 +1,84 @@
 package hudson.plugins.clearcase.action;
 
-import static hudson.plugins.clearcase.util.OutputFormat.*;
-
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
-import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.text.ParseException;
 import java.util.Date;
-import java.util.regex.Matcher;
+import java.util.List;
 
 /**
  * Default action for polling for changes in a repository.
  */
-public class DefaultPollAction implements PollAction {
+public abstract class DefaultPollAction implements PollAction {
     
-    private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
-        NAME_ELEMENTNAME,
-        NAME_VERSIONID,
-        EVENT, 
-        OPERATION
-    };
-    
-    private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);    
     private ClearTool cleartool;
-
-    public DefaultPollAction(ClearTool cleartool) {
-        this.cleartool = cleartool;
-    }
+    protected List<Filter> filters;
     
-    public boolean getChanges(EventRecordFilter eventFilter, Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public DefaultPollAction(ClearTool cleartool,List<Filter> filters) {
+        this.cleartool = cleartool;
+        this.filters = filters;
+    }
+
+    @Override
+    public boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         boolean hasChanges = false;
+        ClearToolFormatHandler historyHandler = getHistoryFormatHandler();
+
         for (int i = 0; (i < branchNames.length) && (!hasChanges); i++) {
             String branchName = branchNames[i];
+
             Reader lshistoryOutput = cleartool.lshistory(historyHandler.getFormat(), time, viewName, branchName, viewPaths);
-            if (parseHistoryOutputForChanges(new BufferedReader(lshistoryOutput), eventFilter)) {
+
+            if (parseHistoryOutputForChanges(new BufferedReader(lshistoryOutput))) {
                 hasChanges = true;
             }
             lshistoryOutput.close();
         } 
         return hasChanges;
     }
+
+    protected abstract ClearToolFormatHandler getHistoryFormatHandler();
     
-    private boolean parseHistoryOutputForChanges(BufferedReader reader, EventRecordFilter eventRecordFilter) throws IOException, InterruptedException {
+    protected abstract HistoryEntry parseLine(String line) throws ParseException;
+
+    protected boolean parseHistoryOutputForChanges(BufferedReader reader) throws IOException, InterruptedException {
         String line = reader.readLine();
         while (line != null) {
+            try {
+                HistoryEntry entry = parseLine(line);
 
-            //TODO: better error handling
-            if (line.startsWith("cleartool: Error:")) {
-                line = reader.readLine();
-                continue;
-            }
-            Matcher matcher = historyHandler.checkLine(line);
+                if (entry != null) {
+                    boolean accepted = filterEntry(entry);
 
-            // finder find start of lshistory entry
-            if (matcher != null) {
-                // read values;
-//                String dateStr = matcher.group(1);
-//                String name = matcher.group(2);
-                String version = matcher.group(3);
-                String event = matcher.group(4);
-//                String operation = matcher.group(5);
-
-                if (!eventRecordFilter.accept(event, version)) {
-                    line = reader.readLine();
-                    continue;
+                    if (accepted) {
+                        return true;
+                    }
                 }
-                return true;
+            } catch (ParseException e) {
+                cleartool.getLauncher().getListener().getLogger().append("ClearCase Plugin: This line could not be parsed: "+ line);
             }
             line = reader.readLine();
         }
         return false;
     }
+
+    protected boolean filterEntry(HistoryEntry entry) {
+        boolean included = true;
+        if (filters==null) {
+            return true;
+        }
+
+        for (Filter filter : filters) {
+            included = included & filter.accept(entry);
+        }
+
+        return included;
+    }
+
 }
