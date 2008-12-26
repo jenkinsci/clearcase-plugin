@@ -16,7 +16,9 @@ import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseChangeLogAction;
+import hudson.plugins.clearcase.base.BasePollAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
+import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
@@ -164,8 +166,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	}
 
 	@Override
-	protected PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
-		return new DefaultPollAction(createClearTool(variableResolver, launcher));
+	protected PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher,List<Filter> filters) {
+		return new BasePollAction(createClearTool(variableResolver, launcher),filters);
 	}
 
 	@Override

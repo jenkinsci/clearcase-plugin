@@ -12,8 +12,10 @@ import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.UcmDynamicCheckoutAction;
 import hudson.plugins.clearcase.action.UcmSnapshotCheckoutAction;
+import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.ucm.UcmChangeLogAction;
 import hudson.plugins.clearcase.ucm.UcmChangeLogParser;
+import hudson.plugins.clearcase.ucm.UcmPollAction;
 import hudson.plugins.clearcase.ucm.UcmSaveChangeLogAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
@@ -23,6 +25,7 @@ import hudson.util.VariableResolver;
 
 import java.io.IOException;
 
+import java.util.List;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -133,9 +136,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
 	@Override
 	protected PollAction createPollAction(VariableResolver variableResolver,
-			ClearToolLauncher launcher) {
-		return new DefaultPollAction(
-				createClearTool(variableResolver, launcher));
+			ClearToolLauncher launcher,List<Filter> filters) {
+		return new UcmPollAction(
+				createClearTool(variableResolver, launcher),filters);
 	}
 
 	@Override
