@@ -30,6 +30,10 @@ public abstract class ClearToolExec implements ClearTool {
 		this.launcher = launcher;
 	}
 
+    public ClearToolLauncher getLauncher() {
+        return launcher;
+    }
+
 	protected abstract FilePath getRootViewPath(ClearToolLauncher launcher);
 
 	public Reader lshistory(String format, Date lastBuildDate, String viewName,
