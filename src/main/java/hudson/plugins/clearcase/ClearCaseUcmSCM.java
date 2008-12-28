@@ -143,12 +143,14 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
 	@Override
 	protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher,
-			AbstractBuild<?, ?> build, Launcher baseLauncher) {
+			AbstractBuild<?, ?> build, Launcher baseLauncher,List<Filter> filters) {
 		VariableResolver variableResolver = new BuildVariableResolver(build,
 				baseLauncher);
+
 		UcmChangeLogAction action = new UcmChangeLogAction(createClearTool(
-				variableResolver, launcher));
-		if (useDynamicView) {
+				variableResolver, launcher),filters);
+
+        if (useDynamicView) {
 			String extendedViewPath = viewDrive;
 			if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
 				// Need to deteremine what kind of char to add in between
