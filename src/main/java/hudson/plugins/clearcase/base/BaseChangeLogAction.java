@@ -14,9 +14,10 @@ import java.util.regex.Matcher;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.ChangeLogAction;
+import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
-import hudson.plugins.clearcase.util.EventRecordFilter;
 
 /**
  * Change log action for Base ClearCase
@@ -36,23 +37,28 @@ public class BaseChangeLogAction implements ChangeLogAction {
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
 
     private final int maxTimeDifferenceMillis;
-
+    private List<Filter> filters;
     /**
      * Extended view path that should be removed file paths in entries.
      */
     private String extendedViewPath;
 
-    public BaseChangeLogAction(ClearTool cleartool, int maxTimeDifferenceMillis) {
+    public BaseChangeLogAction(ClearTool cleartool, int maxTimeDifferenceMillis,List<Filter> filters) {
         this.cleartool = cleartool;
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
+        this.filters = filters;
+        if (this.filters == null) {
+            this.filters = new ArrayList<Filter>();
+        }
     }
     
-    public List<ClearCaseChangeLogEntry> getChanges(EventRecordFilter eventFilter, Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    @Override
+    public List<ClearCaseChangeLogEntry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();
         try {
             for (String branchName : branchNames) {
                 BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
-                fullList.addAll(parseEntries(reader, eventFilter));
+                fullList.addAll(parseEntries(reader));
                 reader.close();
             }
         } catch (ParseException ex) {
@@ -62,7 +68,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
         return entryMerger.getMergedList(fullList);
     }
 
-    private List<ClearCaseChangeLogEntry> parseEntries(BufferedReader reader, EventRecordFilter eventFilter) 
+    private List<ClearCaseChangeLogEntry> parseEntries(BufferedReader reader) 
         throws IOException, InterruptedException, ParseException {
         
         List<ClearCaseChangeLogEntry> entries = new ArrayList<ClearCaseChangeLogEntry>();        
@@ -71,6 +77,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
         String line = reader.readLine();
 
         ClearCaseChangeLogEntry currentEntry = null;
+        outer:
         while (line != null) {
             //TODO: better error handling
             if (line.startsWith("cleartool: Error:")) {
@@ -102,9 +109,20 @@ public class BaseChangeLogAction implements ChangeLogAction {
                         fileName, matcher.group(5).trim(), matcher.group(3).trim(), matcher.group(6).trim());
                 currentEntry.addElement(element);
                 
-                if (! eventFilter.accept(element.getAction(), element.getVersion())) {
-                    line = reader.readLine();
-                    continue;
+                HistoryEntry entry = new HistoryEntry();
+                entry.setLine(line);
+                entry.setDateText(matcher.group(1).trim());
+                entry.setUser(matcher.group(2).trim());
+                entry.setEvent(matcher.group(3).trim());
+                entry.setElement(matcher.group(4).trim());
+                entry.setVersionId(matcher.group(5).trim());
+                entry.setOperation(matcher.group(6).trim());
+
+                for (Filter filter : filters) {
+                    if (!filter.accept(entry))  {
+                        line = reader.readLine();
+                        continue outer;
+                    }
                 }
                 
                 entries.add(currentEntry);

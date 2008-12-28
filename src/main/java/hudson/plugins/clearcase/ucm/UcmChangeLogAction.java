@@ -2,11 +2,11 @@ package hudson.plugins.clearcase.ucm;
 
 import static hudson.plugins.clearcase.util.OutputFormat.*;
 
-import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.ChangeLogAction;
+import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
-import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,7 +30,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
         NAME_ELEMENTNAME,
         NAME_VERSIONID,
         UCM_VERSION_ACTIVITY,
-        EVENT, OPERATION
+        EVENT, OPERATION,USER_ID
     };
     private static final String[] ACTIVITY_FORMAT = {UCM_ACTIVITY_HEADLINE,
         UCM_ACTIVITY_STREAM,
@@ -47,30 +47,36 @@ public class UcmChangeLogAction implements ChangeLogAction {
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
     private Map<String, UcmActivity> activityNameToEntry = new HashMap<String, UcmActivity>();
-
+    private List<Filter> filters;
+    
     /**
      * Extended view path that should be removed file paths in entries.
      */
     private String extendedViewPath;
     
-    public UcmChangeLogAction(ClearTool cleartool) {
+    public UcmChangeLogAction(ClearTool cleartool,List<Filter> filters) {
         this.cleartool = cleartool;
+        this.filters = filters;
+        if (this.filters == null) {
+            this.filters = new ArrayList<Filter>();
+        }
     }
 
-    public List<UcmActivity> getChanges(EventRecordFilter eventFilter, Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public List<UcmActivity> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchNames[0], viewPaths)); 
-        List<UcmActivity> history = parseHistory(reader,eventFilter,viewName);
+        List<UcmActivity> history = parseHistory(reader,viewName);
         reader.close();
         return history;
     }
 
-    private List<UcmActivity> parseHistory(BufferedReader reader, EventRecordFilter eventRecordFilter,String viewname) throws InterruptedException,IOException {
+    private List<UcmActivity> parseHistory(BufferedReader reader,String viewname) throws InterruptedException,IOException {
         List<UcmActivity> result = new ArrayList<UcmActivity>();
         try {
             StringBuilder commentBuilder = new StringBuilder();
             String line = reader.readLine();
 
             UcmActivity.File currentFile = null;
+            outer:
             while (line != null) {
 
                 //TODO: better error handling
@@ -104,11 +110,23 @@ public class UcmChangeLogAction implements ChangeLogAction {
                     currentFile.setEvent(matcher.group(5));
                     currentFile.setOperation(matcher.group(6));
 
-                    if (! eventRecordFilter.accept(currentFile.getEvent(), currentFile.getVersion())) {
-                        line = reader.readLine();
-                        continue;
-                    }
+                    HistoryEntry historyEntry = new HistoryEntry();
+                    historyEntry.setLine(line);
+                    historyEntry.setDateText(matcher.group(1).trim());
+                    historyEntry.setElement(matcher.group(2).trim());
+                    historyEntry.setVersionId(matcher.group(3).trim());
+                    historyEntry.setActivityName(matcher.group(4).trim());
+                    historyEntry.setEvent(matcher.group(5).trim());
+                    historyEntry.setOperation(matcher.group(6).trim());
+                    historyEntry.setUser(matcher.group(7).trim());
 
+                    for (Filter filter : filters) {
+                        if (!filter.accept(historyEntry))  {
+                            line = reader.readLine();
+                            continue outer;
+                        }
+                    }
+                    
                     String activityName = matcher.group(4);
 
                     UcmActivity activity = activityNameToEntry.get(activityName);

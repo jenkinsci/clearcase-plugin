@@ -109,7 +109,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 */
 	protected abstract ChangeLogAction createChangeLogAction(
 			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-			Launcher baseLauncher);
+			Launcher baseLauncher,List<Filter> filters);
 
 	/**
 	 * Return string array containing the branch names that should be used when
@@ -236,7 +236,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 		VariableResolver variableResolver = new BuildVariableResolver(build, launcher);
 		CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher);
 		ChangeLogAction changeLogAction = createChangeLogAction(
-				clearToolLauncher, build, launcher);
+				clearToolLauncher, build, launcher,configureFilters());
 		SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
 
 		EventRecordFilter filter = new EventRecordFilter();
@@ -252,8 +252,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 		if (build.getPreviousBuild() != null) {
 			Date lastBuildTime = build.getPreviousBuild().getTimestamp()
 					.getTime();
-			changelogEntries = changeLogAction.getChanges(filter,
-					lastBuildTime, generateNormalizedViewName(build, launcher),
+			changelogEntries = changeLogAction.getChanges(lastBuildTime, generateNormalizedViewName(build, launcher),
 					getBranchNames(),
 					getViewPaths(workspace.child(generateNormalizedViewName(
 							build, launcher))));
@@ -279,19 +278,16 @@ public abstract class AbstractClearCaseScm extends SCM {
 		if (lastBuild == null) {
 			return true;
 		}
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DefaultFilter());
 
-        if (isFilteringOutDestroySubBranchEvent()) {
-            filters.add(new DestroySubBranchFilter());
-        }
         Date buildTime = lastBuild.getTimestamp().getTime();
 
         VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, launcher);
         PollAction pollAction = createPollAction(variableResolver, createClearToolLauncher(
-                listener, workspace, launcher),filters);
+                listener, workspace, launcher),configureFilters());
+
         String normalizedViewName = generateNormalizedViewName(
                 (AbstractBuild) lastBuild, launcher);
+        
         return pollAction.getChanges(buildTime, normalizedViewName,
                 getBranchNames(), getViewPaths(workspace
                         .child(normalizedViewName)));
@@ -368,4 +364,14 @@ public abstract class AbstractClearCaseScm extends SCM {
 	public boolean isUseUpdate() {
 		return useUpdate;
 	}
+
+    private List<Filter> configureFilters() {
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DefaultFilter());
+
+        if (isFilteringOutDestroySubBranchEvent()) {
+            filters.add(new DestroySubBranchFilter());
+        }
+        return filters;
+    }
 }

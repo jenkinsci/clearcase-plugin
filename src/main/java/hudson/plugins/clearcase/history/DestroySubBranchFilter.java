@@ -14,8 +14,7 @@ public class DestroySubBranchFilter implements Filter {
     public boolean accept(HistoryEntry entry) {
         if (DESTROYED_SUB_BRANCH_PATTERN.matcher(entry.getEvent()).matches())
             return false;
-
+        
         return true;
     }
-
 }
