@@ -8,8 +8,11 @@ import java.util.Date;
 import java.util.List;
 
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.history.DestroySubBranchFilter;
+import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 
+import java.util.ArrayList;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.Before;
@@ -19,28 +22,27 @@ public class UcmChangeLogActionTest {
 
     private Mockery context;
     private ClearTool cleartool;
-    private EventRecordFilter filter;
 
     @Before
     public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
-        filter = new EventRecordFilter();
+        
     }
 
     @Test
     public void assertFormatContainsComment() throws Exception {
         context.checking(new Expectations() {
             {
-                one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\n%c\\n")), 
+                one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n")),
                         with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
                         with(any(String[].class)));                
                 will(returnValue(new StringReader("")));
             }
         });
         
-        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);
-        action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
+        action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         context.assertIsSatisfied();
     }
     
@@ -56,14 +58,16 @@ public class UcmChangeLogActionTest {
                         "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
                         "\"\" " +
                         "\"destroy sub-branch \"esmalling_branch\" of branch\" " +
-                        "\"checkin\" ")));
+                        "\"checkin\" \"username\" ")));
             }
         });
         
-        filter.setFilterOutDestroySubBranchEvent(true);
+        List<Filter> filters = new ArrayList<Filter>();
+
+        filters.add(new DestroySubBranchFilter());
         
-        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);        
-        List<UcmActivity> activities = action.getChanges(filter, null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool,filters);
+        List<UcmActivity> activities = action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 0 activity", 0, activities.size());
     }
 
@@ -80,7 +84,7 @@ public class UcmChangeLogActionTest {
                         "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
                         "\"Release_3_3_jdk5.20080509.155359\" " +
                         "\"create directory version\" " +
-                        "\"checkin\" ")));
+                        "\"checkin\" \"username\" ")));
                 one(cleartool).lsactivity(
                         with(equal("Release_3_3_jdk5.20080509.155359")), 
                         with(aNonNull(String.class)),with(aNonNull(String.class)));
@@ -90,8 +94,8 @@ public class UcmChangeLogActionTest {
             }
         });
         
-        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);
-        List<UcmActivity> activities = action.getChanges(filter, null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
+        List<UcmActivity> activities = action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
         UcmActivity activity = activities.get(0);
         assertEquals("Activity name is incorrect", "Release_3_3_jdk5.20080509.155359", activity.getName());
@@ -112,7 +116,7 @@ public class UcmChangeLogActionTest {
                         "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
                         "\"deliver.Release_3_3_jdk5.20080509.155359\" " +
                         "\"create directory version\" " +
-                        "\"checkin\" ")));
+                        "\"checkin\" \"username\" ")));
                 one(cleartool).lsactivity(
                         with(equal("deliver.Release_3_3_jdk5.20080509.155359")), 
                         with(aNonNull(String.class)),with(aNonNull(String.class)));
@@ -137,8 +141,8 @@ public class UcmChangeLogActionTest {
             }
         });
         
-        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);
-        List<UcmActivity> activities = action.getChanges(filter, null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
+        List<UcmActivity> activities = action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
         UcmActivity activity = activities.get(0);
         assertEquals("Activity name is incorrect", "deliver.Release_3_3_jdk5.20080509.155359", activity.getName());
@@ -160,7 +164,7 @@ public class UcmChangeLogActionTest {
                 "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
                 "\"Release_3_3_jdk5.20080509.155359\" " +
                 "\"create directory version\" " +
-                "\"checkin\" ");
+                "\"checkin\" \"username\" ");
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
@@ -175,8 +179,8 @@ public class UcmChangeLogActionTest {
             }
         });
         
-        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);
-        action.getChanges(filter, null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
+        action.getChanges( null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
         context.assertIsSatisfied();
         lshistoryReader.ready();
     }
@@ -196,7 +200,7 @@ public class UcmChangeLogActionTest {
                         "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
                         "\"Release_3_3_jdk5.20080509.155359\" " +
                         "\"create directory version\" " +
-                        "\"checkin\" ")));
+                        "\"checkin\" \"username\" ")));
                 ignoring(cleartool).lsactivity(
                         with(equal("Release_3_3_jdk5.20080509.155359")), 
                         with(aNonNull(String.class)),with(aNonNull(String.class)));
@@ -204,8 +208,8 @@ public class UcmChangeLogActionTest {
             }
         });
         
-        UcmChangeLogAction action = new UcmChangeLogAction(cleartool);
-        action.getChanges(filter, null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
+        action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
         context.assertIsSatisfied();
         lsactivityReader.ready();
     }

@@ -13,8 +13,11 @@ import hudson.plugins.clearcase.AbstractClearCaseScm;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
+import hudson.plugins.clearcase.history.DestroySubBranchFilter;
+import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 
+import java.util.ArrayList;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.Before;
@@ -24,13 +27,11 @@ public class BaseChangeLogActionTest {
 
     private Mockery context;
     private ClearTool cleartool;
-    private EventRecordFilter filter;
-
+    
     @Before
     public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
-        filter = new EventRecordFilter();
     }
 
     @Test
@@ -44,8 +45,8 @@ public class BaseChangeLogActionTest {
             }
         });
         
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 0);
-        action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 0,null);
+        action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         context.assertIsSatisfied();
     }
 
@@ -60,11 +61,12 @@ public class BaseChangeLogActionTest {
                         "\"20070906.091701\"   \"egsperi\"    \"destroy sub-branch \"esmalling_branch\" of branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n")));
             }
         });
-        
-        filter.setFilterOutDestroySubBranchEvent(true);
-        
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        List<ClearCaseChangeLogEntry> changes = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+                
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DestroySubBranchFilter());
+
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,filters);
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("The event record should be ignored", 0, changes.size());        
         context.assertIsSatisfied();        
     }
@@ -82,8 +84,8 @@ public class BaseChangeLogActionTest {
             }
         });
         
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        List<ClearCaseChangeLogEntry> changes = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,null);
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Two entries should be merged into one", 1, changes.size());        
         context.assertIsSatisfied();        
     }
@@ -99,8 +101,8 @@ public class BaseChangeLogActionTest {
             }
         });
         
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,null);
+        action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
         context.assertIsSatisfied();
         reader.ready();
     }
@@ -118,8 +120,8 @@ public class BaseChangeLogActionTest {
             }
         });
         
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        List<ClearCaseChangeLogEntry> changes = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,null);
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 3, changes.size());
         assertEquals("First entry is incorrect", "inttest1", changes.get(0).getUser());
         assertEquals("First entry is incorrect", "inttest2", changes.get(1).getUser());
@@ -138,8 +140,8 @@ public class BaseChangeLogActionTest {
                         + "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n")));
             }
         });
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        List<ClearCaseChangeLogEntry> changes = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,null);
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 2, changes.size());
     }
 
@@ -156,8 +158,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         assertEquals("First entry is incorrect", "", entries.get(0).getComment());
         assertEquals("Scond entry is incorrect", "", entries.get(1).getComment());
@@ -174,8 +176,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 2, entries.size());
     }
 
@@ -190,8 +192,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         FileElement element = entries.get(0).getElements().get(0);
         assertEquals("Status is incorrect", "mkelem", element.getOperation());
@@ -208,8 +210,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
 
         assertEquals("Number of history entries are incorrect", 1, entries.size());
 
@@ -233,8 +235,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("Comment is incorrect", "", entry.getComment());
@@ -251,8 +253,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
 
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -270,8 +272,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
 
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -294,8 +296,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
 
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -318,8 +320,8 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000);
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000,null);
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("Action is incorrect", "create a version", entry.getElements().get(0).getAction());
@@ -336,9 +338,9 @@ public class BaseChangeLogActionTest {
             }
         });
 
-        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000);
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 1000,null);
         action.setExtendedViewPath("/view/ralef_0.2_nightly");
-        List<ClearCaseChangeLogEntry> entries = action.getChanges(filter, new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "/vobs/Tools/framework/util/QT.h", entry.getElements().get(0).getFile());

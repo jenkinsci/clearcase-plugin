@@ -25,7 +25,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     private AbstractProject project;
     private Build build;
     private Launcher launcher;
-
+ 
     @Before
     public void setUp() throws Exception {
         createWorkspace();
@@ -193,7 +193,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
             }
         });
         ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, "vob", true, "/view", null, false, false);
-        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0,null);
+        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0,null,null);
         assertEquals("The extended view path is incorrect", "/view/viewname", action.getExtendedViewPath());
     }
 
@@ -206,7 +206,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
             }
         });
         ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false, false);
-        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0,null);
+        BaseChangeLogAction action = scm.createChangeLogAction(null, build, 0,null,null);
         assertEquals("The extended view path is incorrect", "/view/viewname-clearcase", action.getExtendedViewPath());
         classContext.assertIsSatisfied();
     }

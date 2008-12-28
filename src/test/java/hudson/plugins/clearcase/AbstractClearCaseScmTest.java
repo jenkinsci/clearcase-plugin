@@ -41,7 +41,7 @@ import org.junit.Test;
 
 public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     private Mockery classContext;
-    private Mockery context;
+    private Mockery context; 
 
     private BuildListener taskListener;
     private Launcher launcher;
@@ -254,7 +254,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 will(returnValue(true));
                     
                 // normal changelog
-                one(changeLogAction).getChanges(with(any(EventRecordFilter.class)), with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] {"branch"})), with(equal(new String[]{"vob"})));
+                one(changeLogAction).getChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] {"branch"})), with(equal(new String[]{"vob"})));
                     will(returnValue(list));
                 one(saveChangeLogAction).saveChangeLog(changelogFile, list);
                 
@@ -288,8 +288,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 one(checkOutAction).checkout(launcher, workspace, "viewname-CCHudson"); 
                 will(returnValue(true));
                     
-                ignoring(changeLogAction).getChanges(with(any(EventRecordFilter.class)), 
-                        with(any(Date.class)), with(equal("viewname-CCHudson")), 
+                ignoring(changeLogAction).getChanges(with(any(Date.class)), with(equal("viewname-CCHudson")), 
                         with(any(String[].class)), with(any(String[].class)));
                     will(returnValue(new ArrayList<ClearCaseChangeLogEntry>() ));
                 
@@ -325,8 +324,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {   
                 one(checkOutAction).checkout(launcher, workspace, "viewname"); 
                     will(returnValue(true));
-                one(changeLogAction).getChanges(with(any(EventRecordFilter.class)), 
-                        with(equal(mockedCalendar.getTime())), 
+                one(changeLogAction).getChanges(with(equal(mockedCalendar.getTime())), 
                         with(equal("viewname")), 
                         with(equal(new String[] {"branch"})), 
                         with(equal(new String[]{"vob"})));
@@ -362,8 +360,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {   
                 one(checkOutAction).checkout(launcher, workspace, "viewname");
-                one(changeLogAction).getChanges(with(any(EventRecordFilter.class)), 
-                        with(equal(mockedCalendar.getTime())), 
+                one(changeLogAction).getChanges(with(equal(mockedCalendar.getTime())), 
                         with(equal("viewname")), 
                         with(equal(new String[] {"branchone", "branchtwo"})), 
                         with(equal(new String[]{"vob"})));
@@ -694,7 +691,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         }
 
         @Override
-        protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher) {
+        protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher,List<Filter> filters) {
             return changeLogAction;
         }
 

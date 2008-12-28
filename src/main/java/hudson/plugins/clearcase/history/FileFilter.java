@@ -9,21 +9,48 @@ import java.util.regex.Pattern;
  */
 public class FileFilter implements Filter {
 
-    private boolean include;
     private String patternText;
     private Pattern pattern;
+    private FileFilter.Type type;
 
-    public FileFilter(boolean include,String patternText) {
-        this.include = include;
+    public FileFilter(FileFilter.Type type,String patternText) {
+        this.type = type;
         this.patternText = patternText;
-        this.pattern = Pattern.compile(patternText);
+        if (this.type.equals(Type.ContainsRegxp) || this.type.equals(Type.DoesNotContainRegxp)) {
+            pattern = Pattern.compile(patternText);
+        }
     }
 
 
     @Override
     public boolean accept(HistoryEntry entry) {
-        Matcher m = pattern.matcher(entry.getElement());
-        return include == m.find();
+        
+        switch (type) {
+            case Equals:
+                return entry.getElement().equals(patternText);
+            case NotEquals:
+                return !(entry.getElement().equals(patternText));
+            case Contains:
+                return entry.getElement().contains(patternText);
+            case DoesNotContain:
+                return !(entry.getElement().contains(patternText));
+            case ContainsRegxp:
+                Matcher m = pattern.matcher(entry.getElement());
+                return m.find();
+            case DoesNotContainRegxp:
+                Matcher m2 = pattern.matcher(entry.getElement());
+                return !m2.find();
+        }
+        return true;
+    }
+
+    public enum Type {
+        Equals,
+        NotEquals,
+        Contains,
+        DoesNotContain,
+        ContainsRegxp,
+        DoesNotContainRegxp
     }
 
 }

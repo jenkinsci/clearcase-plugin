@@ -173,18 +173,22 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	@Override
 	protected BaseChangeLogAction createChangeLogAction(
 			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-			Launcher baseLauncher) {
+			Launcher baseLauncher,List<Filter> filters) {
+
 		return createChangeLogAction(launcher, build, getDescriptor()
-				.getLogMergeTimeWindow(), baseLauncher);
+				.getLogMergeTimeWindow(), baseLauncher,filters);
 	}
 
 	protected BaseChangeLogAction createChangeLogAction(
 			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-			int logMergeTimeWindow, Launcher baseLauncher) {
+			int logMergeTimeWindow, Launcher baseLauncher,List<Filter> filters) {
+
 		BuildVariableResolver variableResolver = new BuildVariableResolver(build, baseLauncher);
-		BaseChangeLogAction action = new BaseChangeLogAction(
-				createClearTool(variableResolver, launcher), logMergeTimeWindow);
-		if (useDynamicView) {
+
+        BaseChangeLogAction action = new BaseChangeLogAction(
+				createClearTool(variableResolver, launcher), logMergeTimeWindow,filters);
+
+        if (useDynamicView) {
 			String extendedViewPath = viewDrive;
 			if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
 				// Need to deteremine what kind of char to add in between
