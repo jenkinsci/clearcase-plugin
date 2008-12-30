@@ -16,9 +16,11 @@ import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseChangeLogAction;
+import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.base.BasePollAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
@@ -165,28 +167,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 		return action;
 	}
 
-	@Override
-	protected PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher,List<Filter> filters) {
-		return new BasePollAction(createClearTool(variableResolver, launcher),filters);
-	}
 
-	@Override
-	protected BaseChangeLogAction createChangeLogAction(
-			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-			Launcher baseLauncher,List<Filter> filters) {
-
-		return createChangeLogAction(launcher, build, getDescriptor()
-				.getLogMergeTimeWindow(), baseLauncher,filters);
-	}
-
-	protected BaseChangeLogAction createChangeLogAction(
-			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-			int logMergeTimeWindow, Launcher baseLauncher,List<Filter> filters) {
-
-		BuildVariableResolver variableResolver = new BuildVariableResolver(build, baseLauncher);
-
-        BaseChangeLogAction action = new BaseChangeLogAction(
-				createClearTool(variableResolver, launcher), logMergeTimeWindow,filters);
+    @Override
+    protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+        	BaseHistoryAction action = new BaseHistoryAction(createClearTool(variableResolver, launcher),configureFilters(),getDescriptor().getLogMergeTimeWindow());
 
         if (useDynamicView) {
 			String extendedViewPath = viewDrive;
@@ -198,11 +182,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					extendedViewPath += "\\";
 				}
 			}
-			extendedViewPath += generateNormalizedViewName(build, baseLauncher);
+			extendedViewPath += getViewName();
 			action.setExtendedViewPath(extendedViewPath);
 		}
-		return action;
-	}
+
+        return action;
+    }
 
 	@Override
 	protected SaveChangeLogAction createSaveChangeLogAction(
