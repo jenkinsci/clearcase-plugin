@@ -13,8 +13,10 @@ import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.UcmDynamicCheckoutAction;
 import hudson.plugins.clearcase.action.UcmSnapshotCheckoutAction;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.ucm.UcmChangeLogAction;
 import hudson.plugins.clearcase.ucm.UcmChangeLogParser;
+import hudson.plugins.clearcase.ucm.UcmHistoryAction;
 import hudson.plugins.clearcase.ucm.UcmPollAction;
 import hudson.plugins.clearcase.ucm.UcmSaveChangeLogAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
@@ -134,21 +136,16 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 		return action;
 	}
 
-	@Override
-	protected PollAction createPollAction(VariableResolver variableResolver,
-			ClearToolLauncher launcher,List<Filter> filters) {
-		return new UcmPollAction(
-				createClearTool(variableResolver, launcher),filters);
-	}
+//	@Override
+//	protected PollAction createPollAction(VariableResolver variableResolver,
+//			ClearToolLauncher launcher,List<Filter> filters) {
+//		return new UcmPollAction(
+//				createClearTool(variableResolver, launcher),filters);
+//	}
 
-	@Override
-	protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher,
-			AbstractBuild<?, ?> build, Launcher baseLauncher,List<Filter> filters) {
-		VariableResolver variableResolver = new BuildVariableResolver(build,
-				baseLauncher);
-
-		UcmChangeLogAction action = new UcmChangeLogAction(createClearTool(
-				variableResolver, launcher),filters);
+    @Override
+    protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+		UcmHistoryAction action = new UcmHistoryAction(createClearTool(variableResolver, launcher),configureFilters());
 
         if (useDynamicView) {
 			String extendedViewPath = viewDrive;
@@ -164,7 +161,32 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 			action.setExtendedViewPath(extendedViewPath);
 		}
 		return action;
-	}
+    }
+    
+//	@Override
+//	protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher,
+//			AbstractBuild<?, ?> build, Launcher baseLauncher,List<Filter> filters) {
+//		VariableResolver variableResolver = new BuildVariableResolver(build,
+//				baseLauncher);
+//
+//		UcmChangeLogAction action = new UcmChangeLogAction(createClearTool(
+//				variableResolver, launcher),filters);
+//
+//        if (useDynamicView) {
+//			String extendedViewPath = viewDrive;
+//			if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
+//				// Need to deteremine what kind of char to add in between
+//				if (viewDrive.contains("/")) {
+//					extendedViewPath += "/";
+//				} else {
+//					extendedViewPath += "\\";
+//				}
+//			}
+//			extendedViewPath += getViewName();
+//			action.setExtendedViewPath(extendedViewPath);
+//		}
+//		return action;
+//	}
 
 	@Override
 	protected SaveChangeLogAction createSaveChangeLogAction(

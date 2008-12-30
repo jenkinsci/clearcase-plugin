@@ -11,15 +11,13 @@ import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.ItemListener;
-import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
-import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.DefaultFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
-import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import hudson.util.StreamTaskListener;
@@ -77,15 +75,26 @@ public abstract class AbstractClearCaseScm extends SCM {
 	protected abstract CheckOutAction createCheckOutAction(VariableResolver variableResolver,
 			ClearToolLauncher launcher);
 
+//	/**
+//	 * Create a PollAction that will be used by the pollChanges() method.
+//	 *
+//	 * @param launcher
+//	 *            the command line launcher
+//	 * @return an action that can poll if there are any changes a ClearCase
+//	 *         repository.
+//	 */
+//	protected abstract PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher,List<Filter> filters);
+
 	/**
-	 * Create a PollAction that will be used by the pollChanges() method.
-	 * 
+	 * Create a HistoryAction that will be used by the pollChanges() and checkout() method.
+	 *
 	 * @param launcher
 	 *            the command line launcher
 	 * @return an action that can poll if there are any changes a ClearCase
 	 *         repository.
 	 */
-	protected abstract PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher,List<Filter> filters);
+	protected abstract HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher);
+
 
 	/**
 	 * Create a SaveChangeLog action that is used to save a change log
@@ -97,19 +106,19 @@ public abstract class AbstractClearCaseScm extends SCM {
 	protected abstract SaveChangeLogAction createSaveChangeLogAction(
 			ClearToolLauncher launcher);
 
-	/**
-	 * Create a ChangeLogAction that will be used to get the change logs for a
-	 * CC repository
-	 * 
-	 * @param launcher
-	 *            the command line launcher
-	 * @param build
-	 *            the current build
-	 * @return an action that returns the change logs for a CC repository
-	 */
-	protected abstract ChangeLogAction createChangeLogAction(
-			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-			Launcher baseLauncher,List<Filter> filters);
+//	/**
+//	 * Create a ChangeLogAction that will be used to get the change logs for a
+//	 * CC repository
+//	 *
+//	 * @param launcher
+//	 *            the command line launcher
+//	 * @param build
+//	 *            the current build
+//	 * @return an action that returns the change logs for a CC repository
+//	 */
+//	protected abstract ChangeLogAction createChangeLogAction(
+//			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
+//			Launcher baseLauncher,List<Filter> filters);
 
 	/**
 	 * Return string array containing the branch names that should be used when
@@ -235,13 +244,8 @@ public abstract class AbstractClearCaseScm extends SCM {
 		// Create actions
 		VariableResolver variableResolver = new BuildVariableResolver(build, launcher);
 		CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher);
-		ChangeLogAction changeLogAction = createChangeLogAction(
-				clearToolLauncher, build, launcher,configureFilters());
+		HistoryAction historyAction = createHistoryAction(variableResolver,clearToolLauncher);
 		SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
-
-		EventRecordFilter filter = new EventRecordFilter();
-		filter
-				.setFilterOutDestroySubBranchEvent(isFilteringOutDestroySubBranchEvent());
 
 		// Checkout code
 		checkoutAction.checkout(launcher, workspace,
@@ -252,7 +256,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 		if (build.getPreviousBuild() != null) {
 			Date lastBuildTime = build.getPreviousBuild().getTimestamp()
 					.getTime();
-			changelogEntries = changeLogAction.getChanges(lastBuildTime, generateNormalizedViewName(build, launcher),
+			changelogEntries = historyAction.getChanges(lastBuildTime, generateNormalizedViewName(build, launcher),
 					getBranchNames(),
 					getViewPaths(workspace.child(generateNormalizedViewName(
 							build, launcher))));
@@ -282,13 +286,14 @@ public abstract class AbstractClearCaseScm extends SCM {
         Date buildTime = lastBuild.getTimestamp().getTime();
 
         VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, launcher);
-        PollAction pollAction = createPollAction(variableResolver, createClearToolLauncher(
-                listener, workspace, launcher),configureFilters());
+        
+        HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(
+                listener, workspace, launcher));
 
         String normalizedViewName = generateNormalizedViewName(
                 (AbstractBuild) lastBuild, launcher);
         
-        return pollAction.getChanges(buildTime, normalizedViewName,
+        return historyAction.hasChanges(buildTime, normalizedViewName,
                 getBranchNames(), getViewPaths(workspace
                         .child(normalizedViewName)));
 	}
@@ -365,7 +370,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 		return useUpdate;
 	}
 
-    private List<Filter> configureFilters() {
+    protected List<Filter> configureFilters() {
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DefaultFilter());
 
