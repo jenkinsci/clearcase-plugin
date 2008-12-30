@@ -18,8 +18,18 @@ public class HistoryEntry {
     String user;
     String operation;
     String activityName;
+    String comment;
     String activityHeadline;
+    String line;
 
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+    
     public String getActivityHeadline() {
         return activityHeadline;
     }
@@ -35,7 +45,7 @@ public class HistoryEntry {
     public void setActivityName(String activityName) {
         this.activityName = activityName;
     }
-    String line;
+    
 
     public String getDateText() {
         return dateText;
