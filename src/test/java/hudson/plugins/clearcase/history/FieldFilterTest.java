@@ -29,14 +29,14 @@ public class FieldFilterTest {
 
     @Test
     public void testEqualsIgnoreCaseAccepted() {
-        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.Equals,PATTERN);
-        assertTrue(filter.accept(PATTERN));
-        assertTrue(filter.accept(PATTERN_UC));
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.EqualsIgnoreCase,PATTERN);
+        assertTrue("Equals ",filter.accept(PATTERN));
+        assertTrue("Equals UpperCase",filter.accept(PATTERN_UC));
     }
 
     @Test
     public void testEqualsIgnoreCaseFiltered() {
-        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.Equals,PATTERN);
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.EqualsIgnoreCase,PATTERN);
         assertFalse(filter.accept(PATTERN+"_Not"));
         assertFalse(filter.accept(PATTERN.substring(2)));
     }
@@ -57,7 +57,7 @@ public class FieldFilterTest {
 
     @Test
     public void testNotEqualsIgnoreCaseFiltered() {
-        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.NotEquals,PATTERN);
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.NotEqualsIgnoreCase,PATTERN);
         assertFalse(filter.accept(PATTERN));
         assertFalse(filter.accept(PATTERN_UC));
 
@@ -65,11 +65,57 @@ public class FieldFilterTest {
 
     @Test
     public void testNotEqualsIgnoreCaseAccepted() {
-        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.NotEquals,PATTERN);
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.NotEqualsIgnoreCase,PATTERN);
         assertTrue(filter.accept(PATTERN+"_Not"));
         assertTrue(filter.accept(PATTERN.substring(2)));
     }
 
+    @Test
+    public void testContainssAccepted() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.Contains,PATTERN);
+        assertTrue("Equals",filter.accept(PATTERN));
+        assertTrue("PostFix",filter.accept(PATTERN+"_Post"));
+        assertTrue("Prefix",filter.accept("Pre_"+PATTERN));
+    }
+
+    @Test
+    public void testContainsFiltered() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.Contains,PATTERN);
+        assertFalse(filter.accept(PATTERN_UC));
+        assertFalse(filter.accept(PATTERN.substring(2)));
+    }
+
+    @Test
+    public void testNotContainssAccepted() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContain,PATTERN);
+        assertTrue(filter.accept(PATTERN_UC));
+        assertTrue(filter.accept(PATTERN.substring(2)));
+
+    }
+
+    @Test
+    public void testContainsIgnoreCaseFiltered() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.Contains,PATTERN);
+        assertFalse(filter.accept(PATTERN_UC));
+        assertFalse(filter.accept(PATTERN.substring(2)));
+    }
+
+    @Test
+    public void testNotContainsIgnoreCaseAccepted() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContain,PATTERN);
+        assertTrue(filter.accept(PATTERN_UC));
+        assertTrue(filter.accept(PATTERN.substring(2)));
+
+    }
+
+    @Test
+    public void testNotContainsFiltered() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContain,PATTERN);
+        assertFalse("Equals",filter.accept(PATTERN));
+        assertFalse("PostFix",filter.accept(PATTERN+"_Post"));
+        assertFalse("Prefix",filter.accept("Pre_"+PATTERN));
+
+    }
 
     private static class FieldFilterDummy extends FieldFilter {
 
