@@ -20,23 +20,50 @@ public abstract class FieldFilter implements Filter{
 
     public FieldFilter(FieldFilter.Type type,String patternText) {
         this.type = type;
-        this.patternText = patternText;
-        if (this.type.equals(Type.ContainsRegxp) || this.type.equals(Type.DoesNotContainRegxp)) {
-            pattern = Pattern.compile(patternText);
+        switch (this.type) {
+            case Equals:
+            case NotEquals:
+            case Contains:
+            case DoesNotContain:
+                this.patternText = patternText;
+                this.pattern =null;
+                break;
+
+            case EqualsIgnoreCase:
+            case NotEqualsIgnoreCase:
+            case ContainsIgnoreCase:
+            case DoesNotContainIgnoreCase:
+                this.patternText = patternText.toLowerCase();
+                this.pattern =null;
+                break;
+
+            case ContainsRegxp:
+            case DoesNotContainRegxp:
+                this.patternText = patternText;
+                this.pattern = Pattern.compile(patternText);
+                break;
         }
-        }
+    }
     
     public boolean accept(String value) {
 
         switch (type) {
             case Equals:
                 return value.equals(patternText);
+            case EqualsIgnoreCase:
+                return value.toLowerCase().equals(patternText);
             case NotEquals:
                 return !(value.equals(patternText));
+            case NotEqualsIgnoreCase:
+                return !(value.toLowerCase().equals(patternText));
             case Contains:
                 return value.contains(patternText);
+            case ContainsIgnoreCase:
+                return value.toLowerCase().contains(patternText);
             case DoesNotContain:
                 return !(value.contains(patternText));
+            case DoesNotContainIgnoreCase:
+                return !(value.toLowerCase().contains(patternText));
             case ContainsRegxp:
                 Matcher m = pattern.matcher(value);
                 return m.find();
