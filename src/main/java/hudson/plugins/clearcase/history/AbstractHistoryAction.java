@@ -25,7 +25,8 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
     public AbstractHistoryAction(ClearTool cleartool, List<Filter> filters) {
         this.cleartool = cleartool;
-        this.filters = filters;
+        this.filters = filters!=null ? filters : new ArrayList<Filter>();
+
     }
     
     @Override
