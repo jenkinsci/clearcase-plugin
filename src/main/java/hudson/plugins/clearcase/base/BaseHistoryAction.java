@@ -52,7 +52,7 @@ public class BaseHistoryAction extends AbstractHistoryAction{
                         entry.getElement(), entry.getVersionId(), entry.getEvent(), entry.getOperation());
 
                 changelogEntry.addElement(fileElement);
-            
+                fullList.add(changelogEntry);
         }
         ChangeLogEntryMerger entryMerger = new ChangeLogEntryMerger(maxTimeDifferenceMillis);
         return entryMerger.getMergedList(fullList);
