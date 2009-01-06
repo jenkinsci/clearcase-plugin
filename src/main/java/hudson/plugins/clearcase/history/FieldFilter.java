@@ -63,6 +63,7 @@ public abstract class FieldFilter implements Filter{
             case DoesNotContain:
                 return !(value.contains(patternText));
             case DoesNotContainIgnoreCase:
+                System.out.println(value.toLowerCase()+" <>" +patternText);
                 return !(value.toLowerCase().contains(patternText));
             case ContainsRegxp:
                 Matcher m = pattern.matcher(value);

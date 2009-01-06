@@ -12,6 +12,7 @@ public class FieldFilterTest {
 
     private static final String PATTERN="filtertest";
     private static final String PATTERN_UC="FilterTest";
+    private static final String PATTERN_REGXP="F[a-z]*";
 
     @Test
     public void testEqualsAccepted() {
@@ -85,13 +86,6 @@ public class FieldFilterTest {
         assertFalse(filter.accept(PATTERN.substring(2)));
     }
 
-    @Test
-    public void testNotContainssAccepted() {
-        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContain,PATTERN);
-        assertTrue(filter.accept(PATTERN_UC));
-        assertTrue(filter.accept(PATTERN.substring(2)));
-
-    }
 
     @Test
     public void testContainsIgnoreCaseFiltered() {
@@ -109,6 +103,13 @@ public class FieldFilterTest {
     }
 
     @Test
+    public void testNotContainssAccepted() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContain,PATTERN);
+        assertTrue(filter.accept(PATTERN_UC));
+        assertTrue(filter.accept(PATTERN.substring(2)));
+
+    }
+    @Test
     public void testNotContainsFiltered() {
         FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContain,PATTERN);
         assertFalse("Equals",filter.accept(PATTERN));
@@ -116,6 +117,59 @@ public class FieldFilterTest {
         assertFalse("Prefix",filter.accept("Pre_"+PATTERN));
 
     }
+
+    @Test
+    public void testNotContainssIgnoreCaseAccepted() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContainIgnoreCase,PATTERN);
+        assertFalse(filter.accept(PATTERN_UC));
+        
+
+    }
+    
+    @Test
+    public void testNotContainsIgnoreCaseFiltered() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContainIgnoreCase,PATTERN);
+        assertTrue("smaller",filter.accept(PATTERN.substring(2)));
+        assertFalse("Equals",filter.accept(PATTERN));
+        assertFalse("UC",filter.accept(PATTERN_UC));
+        assertFalse("PostFix",filter.accept(PATTERN+"_Post"));
+        assertFalse("Prefix",filter.accept("Pre_"+PATTERN));
+
+    }
+
+    @Test
+    public void testRegxpAccepted() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.ContainsRegxp,PATTERN_REGXP);
+        assertTrue(filter.accept(PATTERN_UC));
+        assertTrue(filter.accept("Fhello"));
+    }
+
+    @Test
+    public void testRegxpfiltered() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.ContainsRegxp,PATTERN_REGXP);
+        assertFalse("Pattern", filter.accept(PATTERN));
+        assertFalse("fhello",filter.accept("fhello"));
+        assertFalse("1hello",filter.accept("1hello"));
+    }
+
+
+    @Test
+    public void testNotRegxpAccepted() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContainRegxp,PATTERN_REGXP);
+        assertTrue("Pattern", filter.accept(PATTERN));
+        assertTrue("fhello",filter.accept("fhello"));
+        assertTrue("1hello",filter.accept("1hello"));
+
+
+    }
+
+    @Test
+    public void testNotRegxpfiltered() {
+        FieldFilter filter = new FieldFilterDummy(FieldFilter.Type.DoesNotContainRegxp,PATTERN_REGXP);
+        assertFalse(filter.accept(PATTERN_UC));
+        assertFalse(filter.accept("Fhello"));
+    }
+
 
     private static class FieldFilterDummy extends FieldFilter {
 
