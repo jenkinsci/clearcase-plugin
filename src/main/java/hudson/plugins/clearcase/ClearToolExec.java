@@ -73,10 +73,12 @@ public abstract class ClearToolExec implements ClearTool {
 		cmd.add("lsactivity");
 		cmd.add("-fmt", commandFormat);
 		cmd.add(activity);
-		FilePath workspace = launcher.getWorkspace();
+		
+		// changed the path from workspace to getRootViewPath to make Dynamic UCM work
+		FilePath viewPath = getRootViewPath(launcher).child(viewname);
+		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		launcher.run(cmd.toCommandArray(), null, baos, workspace
-				.child(viewname));
+		launcher.run(cmd.toCommandArray(), null, baos, viewPath);
 		InputStreamReader reader = new InputStreamReader(
 				new ByteArrayInputStream(baos.toByteArray()));
 		baos.close();
