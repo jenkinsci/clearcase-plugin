@@ -47,12 +47,13 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
 			} else {
 				cleartool.mkview(viewName, stream);
 			}
-			for (String loadRule : loadRules.split("\n")) {
-				cleartool.update(viewName, loadRule.trim());
-			}
+
 		} else {
 			cleartool.rmview(viewName);
 			cleartool.mkview(viewName, stream);
+		}
+		for (String loadRule : loadRules.split("\n")) {
+			cleartool.update(viewName, loadRule.trim());
 		}
 		return true;
 	}
