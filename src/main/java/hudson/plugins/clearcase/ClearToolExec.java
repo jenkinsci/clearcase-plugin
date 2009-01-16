@@ -53,7 +53,7 @@ public abstract class ClearToolExec implements ClearTool {
 		FilePath viewPath = getRootViewPath(launcher).child(viewName);
 
 		for (String path : viewPaths) { 
-			cmd.add(path.replace("\n",""));
+			cmd.add(path.replace("\n","").replace("\r", ""));
 		}
 
 		Reader returnReader = null;
