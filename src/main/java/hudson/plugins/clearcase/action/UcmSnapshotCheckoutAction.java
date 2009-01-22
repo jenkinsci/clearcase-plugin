@@ -49,7 +49,9 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
 			}
 
 		} else {
-			cleartool.rmview(viewName);
+			if (localViewPathExists) {
+				cleartool.rmview(viewName); 
+			}
 			cleartool.mkview(viewName, stream);
 		}
 		for (String loadRule : loadRules.split("\n")) {
