@@ -75,7 +75,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<? extends Entry> buildChangelog(List<HistoryEntry> entries) throws IOException, InterruptedException {
+    protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) throws IOException, InterruptedException {
         List<UcmActivity> result = new ArrayList<UcmActivity>();
         Map<String,UcmActivity> activityMap = new HashMap<String, UcmActivity>();
 
@@ -103,7 +103,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
         }
 
         for (UcmActivity activity : result) {
-            callLsActivity(activityMap,activity, "", 3);
+            callLsActivity(activityMap,activity, viewName, 3);
         }
 
         return result;
