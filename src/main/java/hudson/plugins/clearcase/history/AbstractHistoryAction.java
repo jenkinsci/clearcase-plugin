@@ -43,7 +43,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         List<HistoryEntry> entries = runLsHistory(time,viewName,branchNames,viewPaths);
         List<HistoryEntry> filtered = filterEntries(entries);
 
-        List<? extends Entry> changelog = buildChangelog(filtered);
+        List<? extends Entry> changelog = buildChangelog(viewName,filtered);
         return changelog;
     }
 
@@ -131,7 +131,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         return filtered;
     }
 
-    protected abstract List<? extends Entry> buildChangelog(List<HistoryEntry> entries) throws IOException, InterruptedException;
+    protected abstract List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) throws IOException, InterruptedException;
 
     protected abstract ClearToolFormatHandler getHistoryFormatHandler();
 
