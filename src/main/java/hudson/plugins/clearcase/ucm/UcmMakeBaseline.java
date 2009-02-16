@@ -218,7 +218,7 @@ public class UcmMakeBaseline extends Publisher {
             String baselineName = latestBaselines.get(0);
             parameters.add(new StringParameterValue(ENV_CC_BASELINE_NAME,
                     baselineName));
-            build.addAction(new ParametersAction(parameters, build));
+            build.addAction(new ParametersAction(parameters));
         }
     }
 
