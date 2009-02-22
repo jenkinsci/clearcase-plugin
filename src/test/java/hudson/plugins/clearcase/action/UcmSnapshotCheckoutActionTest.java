@@ -204,8 +204,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     public void testFirstTimeWithNoUpdate() throws Exception {
         context.checking(new Expectations() {
             {
-                one(clearTool).rmview("viewname");
                 one(clearTool).mkview("viewname", "stream");
+                atLeast(1).of(clearTool).update(with(any(String.class)), with(any(String.class)));
             }
         });
 
@@ -224,6 +224,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             {
                 one(clearTool).rmview("viewname");
                 one(clearTool).mkview("viewname", "stream");
+                atLeast(1).of(clearTool).update(with(any(String.class)), with(any(String.class)));
             }
         });
 
