@@ -1,5 +1,9 @@
 package hudson.plugins.clearcase.util;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import hudson.Launcher;
@@ -37,16 +41,22 @@ public class BuildVariableResolver implements VariableResolver<String> {
 	// private final Computer computer;
 	private final Launcher launcher;
 
+
+	private AbstractBuild<?, ?> build;
+
 	public BuildVariableResolver(final AbstractBuild<?, ?> build,
 			final Launcher launcher) {
 		this.project = build.getProject();
-		// this.computer = launcher.getComputer();
+		this.build = build;
+	
 		this.launcher = launcher;
 	}
 
 	@Override
 	public String resolve(String key) {
+	
 		System.err.println("now resolving " + key);
+	
 		try {
 			if ("JOB_NAME".equals(key)) {
 				return project.getName();
@@ -64,9 +74,11 @@ public class BuildVariableResolver implements VariableResolver<String> {
 				return (String) launcher.getComputer().getSystemProperties()
 						.get("user.name");
 			}
-			if (launcher.getComputer().getEnvVars().containsKey(key)) {
-				return (String) launcher.getComputer().getEnvVars().get(key);
+			if (build.getEnvVars().containsKey(key)) {
+				return build.getEnvVars().get(key);
 			}
+		
+			
 		} catch (Exception e) {
 			LOGGER.warning("Variable name '" + key
 					+ "' look up failed because of " + e);
