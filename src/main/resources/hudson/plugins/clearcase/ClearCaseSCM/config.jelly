@@ -32,6 +32,10 @@
       			If checked, Hudson will filter out <i>'Destroy sub-branch "BRANCHNAME" of branch'</i> events when polling
       			and retrieving change logs from a ClearCase repository.
 	  </f:entry>
+	  	<f:entry title="Remove clearcase view on rename">
+			<f:checkbox name="ucm.removeViewOnRename" checked="${h.defaultToFalse(scm.removeViewOnRename)}"/>
+      		If checked, Hudson will try to remove the existing clearcase view.
+		</f:entry>
       <f:block>
         <table>
 

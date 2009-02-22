@@ -59,19 +59,22 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	private String viewDrive;
 	private final String branch;
 	private final String vobPaths;
-    private boolean doNotUpdateConfigSpec;
+	private boolean doNotUpdateConfigSpec;
 
-    @DataBoundConstructor
-    public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String vobpaths,
-            boolean usedynamicview, String viewdrive, String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
-            boolean doNotUpdateConfigSpec) {
-        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate);
-        this.branch = branch;
-        this.configSpec = configspec;
-        this.vobPaths = vobpaths;
-        this.useDynamicView = usedynamicview;
-        this.viewDrive = viewdrive;
-        this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
+	@DataBoundConstructor
+	public ClearCaseSCM(String branch, String configspec, String viewname,
+			boolean useupdate, String vobpaths, boolean usedynamicview,
+			String viewdrive, String mkviewoptionalparam,
+			boolean filterOutDestroySubBranchEvent,
+			boolean doNotUpdateConfigSpec, boolean removeViewOnRename) {
+		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+				(!usedynamicview) && useupdate, removeViewOnRename);
+		this.branch = branch;
+		this.configSpec = configspec;
+		this.vobPaths = vobpaths;
+		this.useDynamicView = usedynamicview;
+		this.viewDrive = viewdrive;
+		this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
 
 	}
 
@@ -90,14 +93,14 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	public String getViewDrive() {
 		return viewDrive;
 	}
-    
-    public String getVobPaths() {
-    	return vobPaths;
-    }
 
-    public boolean isDoNotUpdateConfigSpec() {
-    	return doNotUpdateConfigSpec;
-    }
+	public String getVobPaths() {
+		return vobPaths;
+	}
+
+	public boolean isDoNotUpdateConfigSpec() {
+		return doNotUpdateConfigSpec;
+	}
 
 	/**
 	 * Return the view paths that will be used when getting changes for a view.
@@ -155,24 +158,28 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	}
 
 	@Override
-	protected CheckOutAction createCheckOutAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+	protected CheckOutAction createCheckOutAction(
+			VariableResolver variableResolver, ClearToolLauncher launcher) {
 		CheckOutAction action;
 		if (useDynamicView) {
-			action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher),
-					configSpec, doNotUpdateConfigSpec);
+			action = new DynamicCheckoutAction(createClearTool(
+					variableResolver, launcher), configSpec,
+					doNotUpdateConfigSpec);
 		} else {
-			action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),
-					configSpec, isUseUpdate());
+			action = new SnapshotCheckoutAction(createClearTool(
+					variableResolver, launcher), configSpec, isUseUpdate());
 		}
 		return action;
 	}
 
+	@Override
+	protected HistoryAction createHistoryAction(
+			VariableResolver variableResolver, ClearToolLauncher launcher) {
+		BaseHistoryAction action = new BaseHistoryAction(createClearTool(
+				variableResolver, launcher), configureFilters(),
+				getDescriptor().getLogMergeTimeWindow());
 
-    @Override
-    protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
-        	BaseHistoryAction action = new BaseHistoryAction(createClearTool(variableResolver, launcher),configureFilters(),getDescriptor().getLogMergeTimeWindow());
-
-        if (useDynamicView) {
+		if (useDynamicView) {
 			String extendedViewPath = viewDrive;
 			if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
 				// Need to deteremine what kind of char to add in between
@@ -186,8 +193,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 			action.setExtendedViewPath(extendedViewPath);
 		}
 
-        return action;
-    }
+		return action;
+	}
 
 	@Override
 	protected SaveChangeLogAction createSaveChangeLogAction(
@@ -213,7 +220,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	}
 
 	@Override
-	protected ClearTool createClearTool(VariableResolver variableResolver, ClearToolLauncher launcher) {
+	protected ClearTool createClearTool(VariableResolver variableResolver,
+			ClearToolLauncher launcher) {
 		if (useDynamicView) {
 			return new ClearToolDynamic(variableResolver, launcher, viewDrive);
 		} else {
@@ -286,7 +294,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					req.getParameter("cc.viewdrive"),
 					req.getParameter("cc.mkviewoptionalparam"),
 					req.getParameter("cc.filterOutDestroySubBranchEvent") != null,
-					req.getParameter("cc.doNotUpdateConfigSpec") != null);			
+					req.getParameter("cc.doNotUpdateConfigSpec") != null,
+					req.getParameter("ucm.removeViewOnRename") != null);			
 			return scm;
 		}
 
@@ -366,12 +375,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 				throws IOException, ServletException, InterruptedException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			Proc proc = Hudson.getInstance().createLauncher(TaskListener.NULL)
-					.launch(new String[] { getCleartoolExe(), "lsview", "-short" },
-							new String[0], baos, null);
+					.launch(
+							new String[] { getCleartoolExe(), "lsview",
+									"-short" }, new String[0], baos, null);
 			proc.join();
 			rsp.setContentType("text/plain");
-			rsp.getOutputStream().println(
-					"ClearCase Views found:\n");
+			rsp.getOutputStream().println("ClearCase Views found:\n");
 			baos.writeTo(rsp.getOutputStream());
 		}
 	}

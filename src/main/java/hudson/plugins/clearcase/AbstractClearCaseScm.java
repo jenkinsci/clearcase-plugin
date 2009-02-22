@@ -47,6 +47,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 	private final boolean filteringOutDestroySubBranchEvent;
 	private transient String normalizedViewName;
 	private final boolean useUpdate;
+	private final boolean removeViewOnRename;
 
 	protected void setNormalizedViewName(String normalizedViewName) {
 		this.normalizedViewName = normalizedViewName;
@@ -57,11 +58,14 @@ public abstract class AbstractClearCaseScm extends SCM {
 	}
 
 	public AbstractClearCaseScm(final String viewName,
-			String mkviewOptionalParam, boolean filterOutDestroySubBranchEvent, boolean useUpdate) {
+			final String mkviewOptionalParam,
+			final boolean filterOutDestroySubBranchEvent,
+			final boolean useUpdate, final boolean removeViewOnRename) {
 		this.viewName = viewName;
 		this.mkviewOptionalParam = mkviewOptionalParam;
 		this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
 		this.useUpdate = useUpdate;
+		this.removeViewOnRename = removeViewOnRename;
 		createAndRegisterListener();
 	}
 
@@ -72,29 +76,31 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 *            the command line launcher
 	 * @return an action that can check out code from a ClearCase repository.
 	 */
-	protected abstract CheckOutAction createCheckOutAction(VariableResolver variableResolver,
-			ClearToolLauncher launcher);
+	protected abstract CheckOutAction createCheckOutAction(
+			VariableResolver variableResolver, ClearToolLauncher launcher);
 
-//	/**
-//	 * Create a PollAction that will be used by the pollChanges() method.
-//	 *
-//	 * @param launcher
-//	 *            the command line launcher
-//	 * @return an action that can poll if there are any changes a ClearCase
-//	 *         repository.
-//	 */
-//	protected abstract PollAction createPollAction(VariableResolver variableResolver, ClearToolLauncher launcher,List<Filter> filters);
+	// /**
+	// * Create a PollAction that will be used by the pollChanges() method.
+	// *
+	// * @param launcher
+	// * the command line launcher
+	// * @return an action that can poll if there are any changes a ClearCase
+	// * repository.
+	// */
+	// protected abstract PollAction createPollAction(VariableResolver
+	// variableResolver, ClearToolLauncher launcher,List<Filter> filters);
 
 	/**
-	 * Create a HistoryAction that will be used by the pollChanges() and checkout() method.
-	 *
+	 * Create a HistoryAction that will be used by the pollChanges() and
+	 * checkout() method.
+	 * 
 	 * @param launcher
 	 *            the command line launcher
 	 * @return an action that can poll if there are any changes a ClearCase
 	 *         repository.
 	 */
-	protected abstract HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher);
-
+	protected abstract HistoryAction createHistoryAction(
+			VariableResolver variableResolver, ClearToolLauncher launcher);
 
 	/**
 	 * Create a SaveChangeLog action that is used to save a change log
@@ -106,19 +112,19 @@ public abstract class AbstractClearCaseScm extends SCM {
 	protected abstract SaveChangeLogAction createSaveChangeLogAction(
 			ClearToolLauncher launcher);
 
-//	/**
-//	 * Create a ChangeLogAction that will be used to get the change logs for a
-//	 * CC repository
-//	 *
-//	 * @param launcher
-//	 *            the command line launcher
-//	 * @param build
-//	 *            the current build
-//	 * @return an action that returns the change logs for a CC repository
-//	 */
-//	protected abstract ChangeLogAction createChangeLogAction(
-//			ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-//			Launcher baseLauncher,List<Filter> filters);
+	// /**
+	// * Create a ChangeLogAction that will be used to get the change logs for a
+	// * CC repository
+	// *
+	// * @param launcher
+	// * the command line launcher
+	// * @param build
+	// * the current build
+	// * @return an action that returns the change logs for a CC repository
+	// */
+	// protected abstract ChangeLogAction createChangeLogAction(
+	// ClearToolLauncher launcher, AbstractBuild<?, ?> build,
+	// Launcher baseLauncher,List<Filter> filters);
 
 	/**
 	 * Return string array containing the branch names that should be used when
@@ -242,9 +248,12 @@ public abstract class AbstractClearCaseScm extends SCM {
 				workspace, launcher);
 
 		// Create actions
-		VariableResolver variableResolver = new BuildVariableResolver(build, launcher);
-		CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher);
-		HistoryAction historyAction = createHistoryAction(variableResolver,clearToolLauncher);
+		VariableResolver variableResolver = new BuildVariableResolver(build,
+				launcher);
+		CheckOutAction checkoutAction = createCheckOutAction(variableResolver,
+				clearToolLauncher);
+		HistoryAction historyAction = createHistoryAction(variableResolver,
+				clearToolLauncher);
 		SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
 
 		// Checkout code
@@ -256,7 +265,8 @@ public abstract class AbstractClearCaseScm extends SCM {
 		if (build.getPreviousBuild() != null) {
 			Date lastBuildTime = build.getPreviousBuild().getTimestamp()
 					.getTime();
-			changelogEntries = historyAction.getChanges(lastBuildTime, generateNormalizedViewName(build, launcher),
+			changelogEntries = historyAction.getChanges(lastBuildTime,
+					generateNormalizedViewName(build, launcher),
 					getBranchNames(),
 					getViewPaths(workspace.child(generateNormalizedViewName(
 							build, launcher))));
@@ -283,19 +293,20 @@ public abstract class AbstractClearCaseScm extends SCM {
 			return true;
 		}
 
-        Date buildTime = lastBuild.getTimestamp().getTime();
+		Date buildTime = lastBuild.getTimestamp().getTime();
 
-        VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, launcher);
-        
-        HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(
-                listener, workspace, launcher));
+		VariableResolver variableResolver = new BuildVariableResolver(
+				(AbstractBuild<?, ?>) lastBuild, launcher);
 
-        String normalizedViewName = generateNormalizedViewName(
-                (AbstractBuild) lastBuild, launcher);
-        
-        return historyAction.hasChanges(buildTime, normalizedViewName,
-                getBranchNames(), getViewPaths(workspace
-                        .child(normalizedViewName)));
+		HistoryAction historyAction = createHistoryAction(variableResolver,
+				createClearToolLauncher(listener, workspace, launcher));
+
+		String normalizedViewName = generateNormalizedViewName(
+				(AbstractBuild) lastBuild, launcher);
+
+		return historyAction.hasChanges(buildTime, normalizedViewName,
+				getBranchNames(), getViewPaths(workspace
+						.child(normalizedViewName)));
 	}
 
 	/**
@@ -316,8 +327,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 				workspace, launcher);
 	}
 
-	protected ClearTool createClearTool(VariableResolver variableResolver, ClearToolLauncher launcher) {
-		return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
+	protected ClearTool createClearTool(VariableResolver variableResolver,
+			ClearToolLauncher launcher) {
+		return new ClearToolSnapshot(variableResolver, launcher,
+				mkviewOptionalParam);
 	}
 
 	/**
@@ -338,6 +351,14 @@ public abstract class AbstractClearCaseScm extends SCM {
 			return;
 		}
 		hudson.getJobListeners().add(new ItemListener() {
+
+			@Override
+			public void onRenamed(Item item, String oldName, String newName) {
+				if (removeViewOnRename) {
+					onDeleted(item);
+				}
+			}
+
 			@Override
 			public void onDeleted(Item item) {
 				if (item instanceof AbstractProject) {
@@ -347,9 +368,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 								System.out);
 						Launcher launcher = Hudson.getInstance()
 								.createLauncher(listener);
-						ClearTool ct = createClearTool(null, createClearToolLauncher(
-								listener, project.getWorkspace().getParent()
-										.getParent(), launcher));
+						ClearTool ct = createClearTool(null,
+								createClearToolLauncher(listener,
+										project.getWorkspace().getParent()
+												.getParent(), launcher));
 						try {
 							ct
 									.rmview(generateNormalizedViewName(null,
@@ -370,13 +392,13 @@ public abstract class AbstractClearCaseScm extends SCM {
 		return useUpdate;
 	}
 
-    protected List<Filter> configureFilters() {
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DefaultFilter());
+	protected List<Filter> configureFilters() {
+		List<Filter> filters = new ArrayList<Filter>();
+		filters.add(new DefaultFilter());
 
-        if (isFilteringOutDestroySubBranchEvent()) {
-            filters.add(new DestroySubBranchFilter());
-        }
-        return filters;
-    }
+		if (isFilteringOutDestroySubBranchEvent()) {
+			filters.add(new DestroySubBranchFilter());
+		}
+		return filters;
+	}
 }
