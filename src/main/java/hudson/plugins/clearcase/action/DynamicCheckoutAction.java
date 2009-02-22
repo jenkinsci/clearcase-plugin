@@ -3,6 +3,7 @@ package hudson.plugins.clearcase.action;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.util.WindowsUnixConversion;
 
 import java.io.IOException;
 
@@ -28,12 +29,11 @@ public class DynamicCheckoutAction implements CheckOutAction {
         cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
         if (!doNotUpdateConfigSpec && !configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
-            String tempConfigSpec = configSpec;
-            if (launcher.isUnix()) {
-                tempConfigSpec = configSpec.replaceAll("\r\n", "\n");
-            }
+            String tempConfigSpec = WindowsUnixConversion.convertConfigSpecsForUnixAndWindows(configSpec, launcher);
             cleartool.setcs(viewName, tempConfigSpec);
         }
         return true;
     }
+
+
 }

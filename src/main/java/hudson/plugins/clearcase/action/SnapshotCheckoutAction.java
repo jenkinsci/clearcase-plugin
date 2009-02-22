@@ -5,6 +5,7 @@ import java.io.IOException;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.util.WindowsUnixConversion;
 
 /**
  * Check out action that will check out files into a snapshot view.
@@ -41,10 +42,7 @@ public class SnapshotCheckoutAction implements CheckOutAction {
 
         if (!localViewPathExists) {
             cleartool.mkview(viewName, null);
-            String tempConfigSpec = configSpec;
-            if (launcher.isUnix()) {
-                tempConfigSpec = configSpec.replaceAll("\r\n", "\n");
-            }
+            String tempConfigSpec = WindowsUnixConversion.convertConfigSpecsForUnixAndWindows(configSpec, launcher);
             cleartool.setcs(viewName, tempConfigSpec);
             updateView = false;
         }
