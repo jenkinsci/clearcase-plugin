@@ -48,7 +48,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     
     @Test
     public void testCreateChangeLogParser() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false, false);
         assertNotNull("The change log parser is null", scm.createChangeLogParser());
         assertNotSame("The change log parser is re-used", scm.createChangeLogParser(), scm.createChangeLogParser());
     }
@@ -60,7 +60,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 ignoring(build).getParent(); will(returnValue(project));
             }
         });
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
         scm.generateNormalizedViewName(build, launcher);
@@ -76,7 +76,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 ignoring(build).getParent(); will(returnValue(project));
             }
         });
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/views", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/views", null, false, false,false);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
@@ -91,7 +91,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 ignoring(build).getParent(); will(returnValue(project));
             }
         });
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, null, null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, null, null, false, false,false);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build, launcher);
         scm.buildEnvVars(build, env);
@@ -101,71 +101,71 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
     @Test
     public void testGetBranch() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false);
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
         assertEquals("The branch isnt correct", "branch", scm.getBranch());
     }
     
     @Test
     public void testGetConfigSpec() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false);
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
         assertEquals("The config spec isnt correct", "configspec", scm.getConfigSpec());
     }
 
     @Test
     public void testIsUseUpdate() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
         assertTrue("The isUpdate isnt correct", scm.isUseUpdate());
         
-        scm = new ClearCaseSCM("branch", "configspec", "viewname", false, "", false, "", null, false, false);
+        scm = new ClearCaseSCM("branch", "configspec", "viewname", false, "", false, "", null, false, false,false);
         assertFalse("The isUpdate isnt correct", scm.isUseUpdate());
     }
 
     @Test
     public void testIsDynamicView() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "", null, false, false);
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "", null, false, false,false);
         assertTrue("The dynamic isnt correct", scm.isUseDynamicView());
         assertFalse("The use update isnt correct", scm.isUseUpdate());
     }
 
     @Test
     public void testGetViewDrive() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false);
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
         assertEquals("The view drive isnt correct", "/tmp/c", scm.getViewDrive());
     }
 
     @Test
     public void testGetBranchNames() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
         assertArrayEquals("The branch name array is incorrect", new String[]{"branchone", "branchtwo"}, scm.getBranchNames());
     }
 
     @Test
     public void assertEmptyBranchIsReturnedAsABranch() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
         assertArrayEquals("The branch name array is incorrect", new String[]{""}, scm.getBranchNames());
     }
 
     @Test
     public void assertBranchWithSpaceWorks() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch\\ one", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch\\ one", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
         assertArrayEquals("The branch name array is incorrect", new String[]{"branch one"}, scm.getBranchNames());
     }
 
     @Test
     public void testGetViewPaths() throws Exception {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "tmp", true, "", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "tmp", true, "", null, false, false,false);
         assertEquals("The view paths string is incorrect", "tmp", scm.getViewPaths(workspace)[0]);
     }
 
     @Test
     public void assertGetVobPaths() throws Exception {
-        ClearCaseSCM scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "tmp", true, "", null, false, false);
+        ClearCaseSCM scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "tmp", true, "", null, false, false,false);
         assertEquals("The vob paths string is incorrect", "tmp", scm.getVobPaths());
     }
     
     @Test
     public void assertViewPathIsCopiedFromVobPaths() throws Exception {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "vob1 vob2 vob\\ 3", true, "", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "vob1 vob2 vob\\ 3", true, "", null, false, false,false);
         String[] viewPaths = scm.getViewPaths(workspace.child("viewName"));
         assertEquals("The size of view paths array is incorrect", 3, viewPaths.length);
         assertObjectInArray(viewPaths, "vob1");
@@ -180,7 +180,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         workspace.child("viewName").child("vob2").child("vob2-1").mkdirs();
         workspace.child("viewName").child("vob 4").mkdirs();
         workspace.child("viewName").createTextTempFile("view", ".dat", "text");
-        AbstractClearCaseScm scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, " ", true, "", null, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, " ", true, "", null, false, false,false);
         String[] viewPaths = scm.getViewPaths(workspace.child("viewName"));
         assertEquals("The size of view paths array is incorrect", 3, viewPaths.length);
         assertObjectInArray(viewPaths, "vob1");
