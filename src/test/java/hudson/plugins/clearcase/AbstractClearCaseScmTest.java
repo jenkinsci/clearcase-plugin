@@ -655,7 +655,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         public AbstractClearCaseScmDummy(String viewName, String[] vobPaths, String mkviewOptionalParam,
                 boolean filterOutDestroySubBranchEvent) {
-            super( viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false);
+            super( viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false);
             this.vobPaths = vobPaths;
         }
 
