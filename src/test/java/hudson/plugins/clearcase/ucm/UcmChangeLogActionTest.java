@@ -51,7 +51,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));                
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));                
                 will(returnValue(new StringReader(
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +
@@ -67,7 +67,7 @@ public class UcmChangeLogActionTest {
         filters.add(new DestroySubBranchFilter());
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,filters);
-        List<UcmActivity> activities = action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 0 activity", 0, activities.size());
     }
 
@@ -77,7 +77,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));                
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));                
                 will(returnValue(new StringReader(
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +
@@ -95,7 +95,7 @@ public class UcmChangeLogActionTest {
         });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
-        List<UcmActivity> activities = action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
         UcmActivity activity = activities.get(0);
         assertEquals("Activity name is incorrect", "Release_3_3_jdk5.20080509.155359", activity.getName());
@@ -109,7 +109,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));                
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));                
                 will(returnValue(new StringReader(
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +
@@ -142,7 +142,7 @@ public class UcmChangeLogActionTest {
         });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
-        List<UcmActivity> activities = action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
         UcmActivity activity = activities.get(0);
         assertEquals("Activity name is incorrect", "deliver.Release_3_3_jdk5.20080509.155359", activity.getName());
@@ -168,7 +168,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));
                 will(returnValue(lshistoryReader));
                 ignoring(cleartool).lsactivity(
                         with(equal("Release_3_3_jdk5.20080509.155359")), 
@@ -180,7 +180,7 @@ public class UcmChangeLogActionTest {
         });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
-        action.getChanges( null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        action.getChanges( null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
         context.assertIsSatisfied();
         lshistoryReader.ready();
     }
@@ -193,7 +193,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));
                 will(returnValue(new StringReader(
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +
@@ -209,7 +209,7 @@ public class UcmChangeLogActionTest {
         });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
-        action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        action.getChanges(null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
         context.assertIsSatisfied();
         lsactivityReader.ready();
     }
