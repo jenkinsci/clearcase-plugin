@@ -33,6 +33,11 @@
       		But this causes the artifacts from the previous build to remain when a new build starts.
 		</f:entry>
 		
+		<f:entry title="Remove clearcase view on rename">
+			<f:checkbox name="ucm.removeViewOnRename" checked="${h.defaultToFalse(scm.removeViewOnRename)}"/>
+      		If checked, Hudson will try to remove the existing clearcase view.
+		</f:entry>
+		
         <f:entry title="Filter 'Destroy sub branch' event" help="/plugin/clearcase/filteroutdestroysubbranchevent.html">
 		    <f:checkbox name="ucm.filterOutDestroySubBranchEvent" checked="${scm.filteringOutDestroySubBranchEvent}"/>
       			If checked, Hudson will filter out <i>'Destroy sub-branch "BRANCHNAME" of branch'</i> events when polling
