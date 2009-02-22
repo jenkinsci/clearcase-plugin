@@ -48,7 +48,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(false));
+                atLeast(2).of(launcher).isUnix(); will(returnValue(false));
             }
         });
 
@@ -69,7 +69,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(true));
+            	atLeast(2).of(launcher).isUnix(); will(returnValue(true));
             }
         });
 
@@ -90,7 +90,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(true));
+            	atLeast(2).of(launcher).isUnix(); will(returnValue(true));
             }
         });
 
@@ -132,7 +132,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(true));
+            	atLeast(2).of(launcher).isUnix(); will(returnValue(true));
             }
         });
 
@@ -157,7 +157,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
-                one(launcher).isUnix(); will(returnValue(true));
+            	atLeast(2).of(launcher).isUnix(); will(returnValue(true));
             }
         });
 
