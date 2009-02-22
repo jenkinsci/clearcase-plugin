@@ -48,9 +48,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
 			boolean usedynamicview, String viewdrive,
 			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
-			boolean useUpdate) {
+			boolean useUpdate, boolean removeViewOnRename) {
 		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-				useUpdate);
+				useUpdate, removeViewOnRename);
 		this.stream = shortenStreamName(stream);
 		this.loadRules = loadrules;
 		this.useDynamicView = usedynamicview;
@@ -244,7 +244,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 					req.getParameter("ucm.viewdrive"),
 					req.getParameter("ucm.mkviewoptionalparam"),
 					req.getParameter("ucm.filterOutDestroySubBranchEvent") != null,
-					req.getParameter("ucm.useupdate") != null);
+					req.getParameter("ucm.useupdate") != null,
+					req.getParameter("ucm.removeViewOnRename") != null);
 			return scm;
 		}
 	}
