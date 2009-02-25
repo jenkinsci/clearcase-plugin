@@ -196,7 +196,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void assertBuildEnvVarsUsesNormalizedViewName() {
         classContext.checking(new Expectations() {
             {
-                one(build).getParent(); will(returnValue(project));
+                atLeast(1).of(build).getParent(); will(returnValue(project));
                 one(project).getName(); will(returnValue("CCHudson"));
             }
         });
