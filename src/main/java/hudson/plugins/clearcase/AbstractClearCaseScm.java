@@ -187,10 +187,9 @@ public abstract class AbstractClearCaseScm extends SCM {
 			Launcher launcher) {
 		String generatedNormalizedViewName = viewName;
 
-		if (build != null) {
-			generatedNormalizedViewName = Util.replaceMacro(viewName,
-					new BuildVariableResolver(build, launcher));
-		}
+		generatedNormalizedViewName = Util.replaceMacro(viewName,
+				new BuildVariableResolver(build, launcher));
+
 		generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
 				"[\\s\\\\\\/:\\?\\*\\|]+", "_");
 		this.normalizedViewName = generatedNormalizedViewName;
@@ -257,8 +256,8 @@ public abstract class AbstractClearCaseScm extends SCM {
 		SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
 
 		// Checkout code
-		checkoutAction.checkout(launcher, workspace,
-				generateNormalizedViewName(build, launcher));
+		String normalizedViewName = generateNormalizedViewName(build, launcher);
+		checkoutAction.checkout(launcher, workspace, normalizedViewName);
 
 		// Gather change log
 		List<? extends ChangeLogSet.Entry> changelogEntries = null;
@@ -266,10 +265,8 @@ public abstract class AbstractClearCaseScm extends SCM {
 			Date lastBuildTime = build.getPreviousBuild().getTimestamp()
 					.getTime();
 			changelogEntries = historyAction.getChanges(lastBuildTime,
-					generateNormalizedViewName(build, launcher),
-					getBranchNames(),
-					getViewPaths(workspace.child(generateNormalizedViewName(
-							build, launcher))));
+					normalizedViewName, getBranchNames(),
+					getViewPaths(workspace.child(normalizedViewName)));
 		}
 
 		// Save change log
