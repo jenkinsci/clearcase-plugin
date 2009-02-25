@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.TimeZone;
 
 public abstract class ClearToolExec implements ClearTool {
 
@@ -39,7 +40,9 @@ public abstract class ClearToolExec implements ClearTool {
 	public Reader lshistory(String format, Date lastBuildDate, String viewName,
 			String branch, String[] viewPaths) throws IOException,
 			InterruptedException {
-		SimpleDateFormat formatter = new SimpleDateFormat("d-MMM.HH:mm:ss");
+            SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z");
+            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+            
 		ArgumentListBuilder cmd = new ArgumentListBuilder();
 		cmd.add("lshistory");
 		cmd.add("-r");
