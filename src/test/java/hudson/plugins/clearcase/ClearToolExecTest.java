@@ -19,6 +19,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+
 public class ClearToolExecTest extends AbstractWorkspaceTest {
     private Mockery context;
     private ClearToolExec clearToolExec;
@@ -118,12 +121,15 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         workspace.child("viewName").mkdirs();
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.set(2007, 10, 18, 15, 05, 25);
+        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z");
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final String formattedDate = formatter.format(mockedCalendar.getTime()).toLowerCase();
         context.checking(new Expectations() {
             {
                 one(launcher).getWorkspace();
                 will(returnValue(workspace));
                 one(launcher).run(
-                        with(equal(new String[] { "lshistory", "-r", "-since", "18-nov.15:05:25",
+                        with(equal(new String[] { "lshistory", "-r", "-since", formattedDate,
                                 "-fmt", "FORMAT", "-branch", "brtype:branch", "-nco",
                                 "vob1", "vob2", "vob 3" })), (InputStream) with(anything()),
                         (OutputStream) with(an(OutputStream.class)), with(aNonNull(FilePath.class)));
