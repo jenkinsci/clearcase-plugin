@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
+
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
@@ -37,8 +39,6 @@ public class BuildVariableResolver implements VariableResolver<String> {
 	private static final Logger LOGGER = Logger
 			.getLogger(BuildVariableResolver.class.getName());
 
-	private final AbstractProject<?, ?> project;
-	// private final Computer computer;
 	private final Launcher launcher;
 
 
@@ -46,7 +46,6 @@ public class BuildVariableResolver implements VariableResolver<String> {
 
 	public BuildVariableResolver(final AbstractBuild<?, ?> build,
 			final Launcher launcher) {
-		this.project = build.getProject();
 		this.build = build;
 	
 		this.launcher = launcher;
@@ -54,20 +53,17 @@ public class BuildVariableResolver implements VariableResolver<String> {
 
 	@Override
 	public String resolve(String key) {
-	
-		System.err.println("now resolving " + key);
-	
 		try {
-			if ("JOB_NAME".equals(key)) {
-				return project.getName();
+			if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
+				return build.getProject().getName();
 			}
 			if ("COMPUTERNAME".equals(key)) {
-				return (Util.fixEmpty(launcher.getComputer().getName()) == null ? "master"
-						: launcher.getComputer().getName());
+				return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
+						: launcher.getComputer().getName()));
 			}
 			if ("NODE_NAME".equals(key)) {
-				return (Util.fixEmpty(launcher.getComputer().getName()) == null ? "master"
-						: launcher.getComputer().getName());
+				return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
+						: launcher.getComputer().getName()));
 			}
 
 			if ("USER_NAME".equals(key)) {
