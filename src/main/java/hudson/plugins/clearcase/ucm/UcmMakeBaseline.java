@@ -469,8 +469,9 @@ public class UcmMakeBaseline extends Publisher {
             throws Exception {
         
         ArgumentListBuilder cmd = new ArgumentListBuilder();
-
-        cmd.add("lsstream");
+      
+        cmd.add("lsproject");
+        cmd.add("-cview");
         cmd.add("-fmt");
         cmd.add("%[mod_comps]Xp");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
