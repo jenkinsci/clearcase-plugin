@@ -78,4 +78,12 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
         }
         return true;
     }
+    
+    /* 
+     * {@inheritDoc}
+     * @see hudson.plugins.clearcase.ClearToolLauncher#getLauncher()
+     */
+    public Launcher getLauncher() {
+    	return this.launcher;
+    }
 }
