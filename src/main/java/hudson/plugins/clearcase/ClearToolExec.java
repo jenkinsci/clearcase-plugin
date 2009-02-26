@@ -2,6 +2,7 @@ package hudson.plugins.clearcase;
 
 import hudson.AbortException;
 import hudson.FilePath;
+import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 
@@ -15,9 +16,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.TimeZone;
 
 public abstract class ClearToolExec implements ClearTool {
 
@@ -56,9 +57,8 @@ public abstract class ClearToolExec implements ClearTool {
 		FilePath viewPath = getRootViewPath(launcher).child(viewName);
 
 		for (String path : viewPaths) { 
-			cmd.add(path.replace("\n","").replace("\r", ""));
+			cmd.add(PathUtil.convertPathsBetweenUnixAndWindows(path, getLauncher().getLauncher()));
 		}
-
 		Reader returnReader = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {

@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase;
 
 import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.TaskListener;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,5 +46,10 @@ public interface ClearToolLauncher {
      * 
      * @return the workspace file path
      */
-    FilePath getWorkspace();    
+    FilePath getWorkspace(); 
+    
+    /**
+     * @return the Hudsonlauncher
+     */
+    Launcher getLauncher();
 }
