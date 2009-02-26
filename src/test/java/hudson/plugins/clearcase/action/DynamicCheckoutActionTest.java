@@ -69,7 +69,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
             {
                 one(clearTool).startView("viewname");
                 one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                one(clearTool).setcs("viewname", "config\r\nspec");
+                one(clearTool).setcs("viewname", "config\r\r\nspec");
             }
         });
         classContext.checking(new Expectations() {
