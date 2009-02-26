@@ -57,7 +57,7 @@ public abstract class ClearToolExec implements ClearTool {
 		FilePath viewPath = getRootViewPath(launcher).child(viewName);
 
 		for (String path : viewPaths) { 
-			cmd.add(PathUtil.convertPathsBetweenUnixAndWindows(path, getLauncher().getLauncher()));
+			cmd.add(path.replace("\n","").replace("\r", ""));
 		}
 		Reader returnReader = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
