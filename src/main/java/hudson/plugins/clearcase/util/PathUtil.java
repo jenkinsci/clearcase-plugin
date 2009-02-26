@@ -9,9 +9,10 @@ public abstract class PathUtil {
 
 		String tempPath = path;
 		if (launcher.isUnix()) {
-			tempPath = path.replaceAll("\r\n", "\n");
+			tempPath = tempPath.replaceAll("\r\n", "\n");
 		} else {
-			tempPath = path.replaceAll("\n", "\r\n");
+			tempPath = tempPath.replaceAll("\n", "\r\n");
+			tempPath = tempPath.replaceAll("\r\r\n", "\r\n");
 		}
 		if (launcher.isUnix()) {
 			tempPath = tempPath.replaceAll("\\\\", "/");
