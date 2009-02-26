@@ -30,10 +30,14 @@ public class PathUtilTest {
 		Assert.assertEquals("\r\nPeter\r\n", converted2);
 		String converted3 = PathUtil.convertPathsBetweenUnixAndWindows(
 				"C\\abc", launcher);
-		Assert.assertEquals("C\\abc", converted);
+		Assert.assertEquals("C\\abc", converted3);
 		String converted4 = PathUtil.convertPathsBetweenUnixAndWindows(
 				"\r\nPeter\r\n", launcher);
-		Assert.assertEquals("\r\nPeter\r\n", converted2);
+		Assert.assertEquals("\r\nPeter\r\n", converted4);
+		String converted5 = PathUtil.convertPathsBetweenUnixAndWindows(
+				"\nPeter\n", launcher);
+		Assert.assertEquals("\r\nPeter\r\n", converted5);
+		
 
 	}
 
@@ -49,10 +53,10 @@ public class PathUtilTest {
 		Assert.assertEquals("\nPeter\n", converted2);
 		String converted3 = PathUtil.convertPathsBetweenUnixAndWindows("C/abc",
 				launcher);
-		Assert.assertEquals("C/abc", converted);
+		Assert.assertEquals("C/abc", converted3);
 		String converted4 = PathUtil.convertPathsBetweenUnixAndWindows(
 				"\nPeter\n", launcher);
-		Assert.assertEquals("\nPeter\n", converted2);
+		Assert.assertEquals("\nPeter\n", converted4);
 	}
 
 	private static class MyLauncher extends Launcher {
