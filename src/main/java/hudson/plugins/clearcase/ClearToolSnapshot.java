@@ -2,7 +2,7 @@ package hudson.plugins.clearcase;
 
 import hudson.FilePath;
 import hudson.Util;
-import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 
@@ -34,10 +34,12 @@ public class ClearToolSnapshot extends ClearToolExec {
             InterruptedException {
         FilePath workspace = launcher.getWorkspace();
         FilePath configSpecFile = workspace.createTextTempFile("configspec", ".txt", configSpec);
-
+        String csLocation = ".." + File.separatorChar + configSpecFile.getName();
+        csLocation = PathUtil.convertPathsBetweenUnixAndWindows(csLocation, launcher.getLauncher());
+	
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
-        cmd.add(".." + File.separatorChar + configSpecFile.getName());
+     	cmd.add(csLocation);
         launcher.run(cmd.toCommandArray(), null, null, workspace.child(viewName));
 
         configSpecFile.delete();
@@ -105,7 +107,8 @@ public class ClearToolSnapshot extends ClearToolExec {
             cmd.add(viewName);
         } else {
             cmd.add("-add_loadrules");
-            cmd.add(viewName + File.separator + loadRules);
+            String loadRulesLocation = viewName + File.separator + loadRules;
+			cmd.add(PathUtil.convertPathsBetweenUnixAndWindows(loadRulesLocation, getLauncher().getLauncher()));
         }
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
