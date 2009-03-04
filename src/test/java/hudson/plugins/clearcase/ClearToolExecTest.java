@@ -122,7 +122,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
 //        workspace.child("viewName").mkdirs();
 //        final Calendar mockedCalendar = Calendar.getInstance();
 //        mockedCalendar.set(2007, 10, 18, 15, 05, 25);
-//        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z");
+//        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'");
 //        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 //        final String formattedDate = formatter.format(mockedCalendar.getTime()).toLowerCase();
 //        context.checking(new Expectations() {
