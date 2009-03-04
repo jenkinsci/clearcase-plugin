@@ -15,6 +15,7 @@ import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import java.util.ArrayList;
@@ -64,6 +65,26 @@ public class BaseChangeLogActionTest {
                 
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DestroySubBranchFilter());
+
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,filters);
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        assertEquals("The event record should be ignored", 0, changes.size());        
+        context.assertIsSatisfied();        
+    }
+
+    @Test
+    public void assertExcludedRegionsAreIgnored() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(any(String.class)), 
+                        with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
+                        with(any(String[].class)));
+                will(returnValue(new StringReader("\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n")));
+            }
+        });
+                
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, ".*Application.*"));
 
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,filters);
         List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
@@ -126,6 +147,31 @@ public class BaseChangeLogActionTest {
         assertEquals("First entry is incorrect", "inttest1", changes.get(0).getUser());
         assertEquals("First entry is incorrect", "inttest2", changes.get(1).getUser());
         assertEquals("First entry is incorrect", "inttest3", changes.get(2).getUser());
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testExcludedRegionsRegexp() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
+                        with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                will(returnValue(new StringReader(
+                        "\"20070827.084801\"   \"inttest2\"  \"create version\" \"First\\Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
+                      + "\"20070825.084801\"   \"inttest3\"  \"create version\" \"Second/Source/Definitions/Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
+                      + "\"20070830.084801\"   \"inttest1\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n")));
+            }
+        });
+        
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "^Source[\\\\\\/]Definitions[\\\\\\/].*"));
+
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,filters);
+
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        assertEquals("Number of history entries are incorrect", 2, changes.size());
+        assertEquals("First entry is incorrect", "inttest2", changes.get(0).getUser());
+        assertEquals("First entry is incorrect", "inttest3", changes.get(1).getUser());
         context.assertIsSatisfied();
     }
 

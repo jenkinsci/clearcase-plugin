@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase;
 
 import static hudson.Util.fixEmpty;
+import static hudson.Util.fixEmptyAndTrim;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
@@ -38,6 +39,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.servlet.ServletException;
 
@@ -63,12 +66,14 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
 	@DataBoundConstructor
 	public ClearCaseSCM(String branch, String configspec, String viewname,
-			boolean useupdate, String vobpaths, boolean usedynamicview,
-			String viewdrive, String mkviewoptionalparam,
-			boolean filterOutDestroySubBranchEvent,
-			boolean doNotUpdateConfigSpec, boolean removeViewOnRename) {
+                            boolean useupdate, String vobpaths, boolean usedynamicview,
+                            String viewdrive, String mkviewoptionalparam,
+                            boolean filterOutDestroySubBranchEvent,
+                            boolean doNotUpdateConfigSpec, boolean removeViewOnRename,
+                            String excludedRegions) {
 		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-				(!usedynamicview) && useupdate, removeViewOnRename);
+                      (!usedynamicview) && useupdate, removeViewOnRename,
+                      excludedRegions);
 		this.branch = branch;
 		this.configSpec = configspec;
 		this.vobPaths = vobpaths;
@@ -77,6 +82,17 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 		this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
 
 	}
+
+    public ClearCaseSCM(String branch, String configspec, String viewname,
+                            boolean useupdate, String vobpaths, boolean usedynamicview,
+                            String viewdrive, String mkviewoptionalparam,
+                            boolean filterOutDestroySubBranchEvent,
+                            boolean doNotUpdateConfigSpec, boolean removeViewOnRename) {
+            this(branch, configspec, viewname, useupdate, vobpaths, usedynamicview, viewdrive,
+                 mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, 
+                 removeViewOnRename, "");
+        }
+
 
 	public String getBranch() {
 		return branch;
@@ -295,7 +311,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					req.getParameter("cc.mkviewoptionalparam"),
 					req.getParameter("cc.filterOutDestroySubBranchEvent") != null,
 					req.getParameter("cc.doNotUpdateConfigSpec") != null,
-					req.getParameter("ucm.removeViewOnRename") != null);			
+					req.getParameter("ucm.removeViewOnRename") != null,
+                                        req.getParameter("cc.excludedRegions")
+                                                                    );			
 			return scm;
 		}
 
@@ -306,6 +324,30 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 				throws IOException, ServletException {
 			new FormFieldValidator.Executable(req, rsp).process();
 		}
+                
+                /**
+                 * Validates the excludedRegions Regex
+                 */
+                public void doExcludedRegionsCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+                    new FormFieldValidator(req,rsp,false) {
+                        protected void check() throws IOException, ServletException {
+                            String v = fixEmptyAndTrim(request.getParameter("value"));
+                            
+                            if(v != null) {
+                                String[] regions = v.split("[\\r\\n]+");
+                                for (String region : regions) {
+		                    try {
+                                        Pattern.compile(region);
+		                    }
+		                    catch (PatternSyntaxException e) {
+                                        error("Invalid regular expression. " + e.getMessage());
+		                    }
+                                }
+                            }
+                            ok();
+                        }
+                    }.process();
+                }
 
 		public void doConfigSpecCheck(StaplerRequest req, StaplerResponse rsp)
 				throws IOException, ServletException {

@@ -48,15 +48,24 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
 			boolean usedynamicview, String viewdrive,
 			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
-			boolean useUpdate, boolean removeViewOnRename) {
+                               boolean useUpdate, boolean removeViewOnRename,
+                               String excludedRegions) {
 		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-				useUpdate, removeViewOnRename);
+                      useUpdate, removeViewOnRename, excludedRegions);
 		this.stream = shortenStreamName(stream);
 		this.loadRules = loadrules;
 		this.useDynamicView = usedynamicview;
 		this.viewDrive = viewdrive;
 
 	}
+
+	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
+			boolean usedynamicview, String viewdrive,
+			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
+                               boolean useUpdate, boolean removeViewOnRename) {
+            this(stream, loadrules, viewname, usedynamicview, viewdrive, mkviewoptionalparam,
+                 filterOutDestroySubBranchEvent, useUpdate, removeViewOnRename, "");
+        }
 
 	/**
 	 * Return the load rules for the UCM view.
@@ -245,7 +254,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 					req.getParameter("ucm.mkviewoptionalparam"),
 					req.getParameter("ucm.filterOutDestroySubBranchEvent") != null,
 					req.getParameter("ucm.useupdate") != null,
-					req.getParameter("ucm.removeViewOnRename") != null);
+					req.getParameter("ucm.removeViewOnRename") != null,
+                                        req.getParameter("ucm.excludedRegions")
+                                                                  );
 			return scm;
 		}
 	}
