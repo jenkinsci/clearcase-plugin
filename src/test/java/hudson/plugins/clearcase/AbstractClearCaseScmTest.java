@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.matrix.MatrixBuild;
@@ -114,6 +115,12 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testGetViewNameNonNull() {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy(null, "vob", "");
         assertNotNull("The view name can not be null", scm.getViewName());
+    }
+
+    @Test
+    public void testGetExcludedRegions() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "", false, "excludedone\nexcludedtwo");
+        assertArrayEquals("The excluded regions array is incorrect", new String[]{"excludedone", "excludedtwo"}, scm.getExcludedRegionsNormalized());
     }
 
     @Test
@@ -645,6 +652,12 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             this (viewName, new String[]{vobPaths}, mkviewOptionalParam, filterOutDestroySubBranchEvent);
         }
 
+        public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam,
+                                         boolean filterOutDestroySubBranchEvent, String excludedRegions) {
+            this (viewName, new String[]{vobPaths}, mkviewOptionalParam, filterOutDestroySubBranchEvent,
+                  excludedRegions);
+        }
+
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam) {
             this (viewName, new String[]{vobPaths}, mkviewOptionalParam);
         }
@@ -655,7 +668,12 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         public AbstractClearCaseScmDummy(String viewName, String[] vobPaths, String mkviewOptionalParam,
                 boolean filterOutDestroySubBranchEvent) {
-            super( viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false);
+            this( viewName, vobPaths, mkviewOptionalParam, filterOutDestroySubBranchEvent, "");
+        }
+
+        public AbstractClearCaseScmDummy(String viewName, String[] vobPaths, String mkviewOptionalParam,
+                                         boolean filterOutDestroySubBranchEvent, String excludedRegions) {
+            super( viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, excludedRegions);
             this.vobPaths = vobPaths;
         }
 

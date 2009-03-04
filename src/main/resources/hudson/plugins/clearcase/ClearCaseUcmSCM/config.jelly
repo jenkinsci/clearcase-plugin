@@ -23,6 +23,9 @@
 	</f:entry>
 
 	<f:advanced>
+          <f:entry title="Excluded Regions" help="/plugin/clearcase/excludedRegions.html">
+            <f:textarea name="ucm.excludedRegions" value="${scm.excludedRegions}" checkUrl="'${rootURL}/scm/ClearCaseSCM/excludedRegionsCheck?value='+escape(this.value)"/>
+          </f:entry>
 		<f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
 			<f:expandableTextbox name="ucm.mkviewoptionalparam" value="${scm.mkviewOptionalParam}" />
 		</f:entry>

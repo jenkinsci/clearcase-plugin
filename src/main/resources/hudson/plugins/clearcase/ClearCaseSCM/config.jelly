@@ -21,6 +21,9 @@
 	</f:entry>
 	
 	<f:advanced>
+          <f:entry title="Excluded Regions" help="/plugin/clearcase/excludedRegions.html">
+            <f:textarea name="cc.excludedRegions" value="${scm.excludedRegions}" checkUrl="'${rootURL}/scm/ClearCaseSCM/excludedRegionsCheck?value='+escape(this.value)"/>
+          </f:entry>
       <f:entry title="VOB path(s)" help="/plugin/clearcase/vobpaths.html">
         <f:expandableTextbox name="cc.vobpaths" value="${scm.vobPaths}"/>
       </f:entry>

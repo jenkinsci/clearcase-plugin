@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Date;
 import java.util.List;
+import java.io.File;
 
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
@@ -51,7 +52,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));                
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
                 will(returnValue(new StringReader(
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +
@@ -77,7 +78,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));                
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
                 will(returnValue(new StringReader(
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +
@@ -109,7 +110,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));                
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
                 will(returnValue(new StringReader(
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +
@@ -168,7 +169,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));
                 will(returnValue(lshistoryReader));
                 ignoring(cleartool).lsactivity(
                         with(equal("Release_3_3_jdk5.20080509.155359")), 
@@ -193,7 +194,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
             {
                 one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME/vobs/projects/Server"})));
+                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));
                 will(returnValue(new StringReader(
                         "\"20080509.140451\" " +
                         "\"vobs/projects/Server//config-admin-client\" " +

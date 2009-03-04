@@ -16,6 +16,7 @@ import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.DefaultFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogSet;
@@ -31,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Abstract class for ClearCase SCM. The class contains the logic around
@@ -38,39 +41,43 @@ import java.util.logging.Logger;
  * specific checkout and polling logic.
  */
 public abstract class AbstractClearCaseScm extends SCM {
-
-	public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
-	public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
-
-	private final String viewName;
-	private final String mkviewOptionalParam;
-	private final boolean filteringOutDestroySubBranchEvent;
-	private transient String normalizedViewName;
-	private final boolean useUpdate;
-	private final boolean removeViewOnRename;
-
-	protected void setNormalizedViewName(String normalizedViewName) {
-		this.normalizedViewName = normalizedViewName;
-	}
-
-	protected String getNormalizedViewName() {
-		return normalizedViewName;
-	}
-
-	public AbstractClearCaseScm(final String viewName,
-			final String mkviewOptionalParam,
-			final boolean filterOutDestroySubBranchEvent,
-			final boolean useUpdate, final boolean removeViewOnRename) {
-		this.viewName = viewName;
-		this.mkviewOptionalParam = mkviewOptionalParam;
-		this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
-		this.useUpdate = useUpdate;
-		this.removeViewOnRename = removeViewOnRename;
-		createAndRegisterListener();
-	}
-
-	/**
-	 * Create a CheckOutAction that will be used by the checkout method.
+    
+    public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
+    public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
+    
+    private final String viewName;
+    private final String mkviewOptionalParam;
+    private final boolean filteringOutDestroySubBranchEvent;
+    private transient String normalizedViewName;
+    private final boolean useUpdate;
+    private final boolean removeViewOnRename;
+    private String excludedRegions;
+    
+    protected void setNormalizedViewName(String normalizedViewName) {
+        this.normalizedViewName = normalizedViewName;
+    }
+    
+    protected String getNormalizedViewName() {
+        return normalizedViewName;
+    }
+    
+    public AbstractClearCaseScm(final String viewName,
+                                final String mkviewOptionalParam,
+                                final boolean filterOutDestroySubBranchEvent,
+                                final boolean useUpdate, 
+                                final boolean removeViewOnRename,
+                                final String excludedRegions) {
+        this.viewName = viewName;
+        this.mkviewOptionalParam = mkviewOptionalParam;
+        this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
+        this.useUpdate = useUpdate;
+        this.removeViewOnRename = removeViewOnRename;
+        this.excludedRegions = excludedRegions;
+        createAndRegisterListener();
+    }
+    
+    /**
+     * Create a CheckOutAction that will be used by the checkout method.
 	 * 
 	 * @param launcher
 	 *            the command line launcher
@@ -389,13 +396,48 @@ public abstract class AbstractClearCaseScm extends SCM {
 		return useUpdate;
 	}
 
-	protected List<Filter> configureFilters() {
-		List<Filter> filters = new ArrayList<Filter>();
-		filters.add(new DefaultFilter());
 
-		if (isFilteringOutDestroySubBranchEvent()) {
-			filters.add(new DestroySubBranchFilter());
-		}
-		return filters;
-	}
+	 public String getExcludedRegions() {
+		  return excludedRegions;
+	 }
+
+	 public String[] getExcludedRegionsNormalized() {
+		  return excludedRegions == null ? null : excludedRegions.split("[\\r\\n]+");
+	 }
+
+	 private Pattern[] getExcludedRegionsPatterns() {
+		 String[] excludedRegions = getExcludedRegionsNormalized();
+		 if (excludedRegions != null)
+		 {
+			 Pattern[] patterns = new Pattern[excludedRegions.length];
+
+			 int i = 0;
+			 for (String excludedRegion : excludedRegions)
+			 {
+				 patterns[i++] = Pattern.compile(excludedRegion);
+			 }
+
+			 return patterns;
+		 }
+
+		 return null;
+	 }
+    
+    protected List<Filter> configureFilters() {
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DefaultFilter());
+        
+        String[] excludedStrings = getExcludedRegionsNormalized();
+        
+        if (excludedStrings != null && excludedStrings.length > 0) {
+            for (String s : excludedStrings) {
+                filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, s));
+            }
+        }
+                                           
+	if (isFilteringOutDestroySubBranchEvent()) {
+            filters.add(new DestroySubBranchFilter());
+        }
+        return filters;
+    }
 }
