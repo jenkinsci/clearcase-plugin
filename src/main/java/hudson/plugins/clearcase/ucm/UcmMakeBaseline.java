@@ -399,7 +399,10 @@ public class UcmMakeBaseline extends Publisher {
 
         Pattern pattern = Pattern.compile("Created baseline \".+?\"");
         Matcher matcher = pattern.matcher(cleartoolResult);
-        while (matcher.find()) {
+        if (createdBaselines == null) {
+            createdBaselines = new ArrayList<String>();
+        }
+	while (matcher.find()) {
             String match = matcher.group();
             String newBaseline = match.substring(match.indexOf("\"") + 1, match
                     .length() - 1);
