@@ -14,6 +14,7 @@ import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
 import hudson.plugins.clearcase.history.DefaultFilter;
+import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.Filter;
 
@@ -207,6 +208,30 @@ public class BaseHistoryActionTest {
                 
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DestroySubBranchFilter());
+
+        BaseHistoryAction action = new BaseHistoryAction(cleartool,filters, 10000);
+        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        assertEquals("The event record should be ignored", 0, changes.size());        
+        context.assertIsSatisfied();        
+    }
+
+    @Test
+    public void assertExcludedRegionsAreIgnored() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
+                        with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
+                        with(any(String[].class)));
+                will(returnValue(new StringReader(
+                                                  "\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" ")));
+
+
+            }
+        });
+                
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DefaultFilter());
+        filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "Customer"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,filters, 10000);
         List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});

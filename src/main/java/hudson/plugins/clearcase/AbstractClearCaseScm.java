@@ -402,7 +402,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 }
 
 	 public String[] getExcludedRegionsNormalized() {
-		  return excludedRegions == null ? null : excludedRegions.split("[\\r\\n]+");
+             return excludedRegions.isEmpty() ? null : excludedRegions.split("[\\r\\n]+");
 	 }
 
 	 private Pattern[] getExcludedRegionsPatterns() {
