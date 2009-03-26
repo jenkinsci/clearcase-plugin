@@ -9,6 +9,7 @@ import java.util.List;
 
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.history.DefaultFilter;
+import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.Filter;
 
@@ -211,6 +212,53 @@ public class UcmHistoryActionTest {
         @SuppressWarnings("unchecked")
         List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 0 activity", 0, activities.size());
+    }
+
+    @Test
+    public void assertExcludedRegionsAreIgnored() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                        with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})));                
+                will(returnValue(new StringReader(
+                        "\"20080509.140451\" " +
+                        "\"user\"" +
+                        "\"vobs/projects/Server//config-admin-client\" " +
+                        "\"/main/Product/Release_3_3_int/activityA/2\" " +
+                        "\"create version\" " +
+                        "\"checkin\" \"activityA\" " +
+                        "\"20080509.140451\" " +
+                        "\"user\"" +
+                        "\"vobs/projects/Client//config-admin-client\" " +
+                        "\"/main/Product/Release_3_3_int/activityB/2\" " +
+                        "\"create version\" " +
+                        "\"checkin\" \"activityB\" ")));
+                one(cleartool).lsactivity(
+                        with(equal("activityA")), 
+                        with(aNonNull(String.class)),with(aNonNull(String.class)));
+                will(returnValue(new StringReader("\"Activity A info \" " +
+                                "\"activityA\" " +
+                                "\"bob\" " +
+                                "\"maven2_Release_3_3.20080421.154619\" ")));
+                one(cleartool).lsactivity(
+                        with(equal("activityB")), 
+                        with(aNonNull(String.class)),with(aNonNull(String.class)));
+                will(returnValue(new StringReader("\"Activity B info \" " +
+                                "\"activityB\" " +
+                                "\"bob\" " +
+                                "\"maven2_Release_3_3.20080421.154619\" ")));
+
+            }
+        });
+        
+        List<Filter> filters = new ArrayList<Filter>();
+
+        filters.add(new DefaultFilter());
+        filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "Server"));
+        UcmHistoryAction action = new UcmHistoryAction(cleartool,filters);
+        @SuppressWarnings("unchecked")
+        List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        assertEquals("There should be 1 activity", 1, activities.size());
     }
 
     
