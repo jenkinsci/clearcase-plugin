@@ -63,7 +63,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
 	private boolean currentConfigSpecUptodate(Set<String> configSpecLoadRules) {
 		boolean recreate = false;
 		for (String loadRule : loadRules.split("\n")) {
-			if (!configSpecLoadRules.contains(loadRule)) {
+			if (!configSpecLoadRules.contains(loadRule.replace("\r",""))) {
 				System.out
 						.println("Load rule: "
 								+ loadRule
