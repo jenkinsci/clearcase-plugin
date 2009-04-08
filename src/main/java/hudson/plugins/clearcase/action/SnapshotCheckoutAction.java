@@ -26,11 +26,12 @@ public class SnapshotCheckoutAction implements CheckOutAction {
 
         boolean updateView = useUpdate;        
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();
+        String tempConfigSpec = PathUtil.convertPathsBetweenUnixAndWindows(configSpec, launcher);
             
         if (localViewPathExists) {
             if (updateView) {
                 String currentConfigSpec = cleartool.catcs(viewName).trim();
-                if (!configSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
+                if (!tempConfigSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
                     updateView = false;
                 }
             }
@@ -42,7 +43,6 @@ public class SnapshotCheckoutAction implements CheckOutAction {
 
         if (!localViewPathExists) {
             cleartool.mkview(viewName, null);
-            String tempConfigSpec = PathUtil.convertPathsBetweenUnixAndWindows(configSpec, launcher);
             cleartool.setcs(viewName, tempConfigSpec);
             updateView = false;
         }
