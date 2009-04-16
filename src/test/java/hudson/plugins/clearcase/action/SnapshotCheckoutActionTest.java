@@ -111,6 +111,11 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 one(clearTool).update("viewname", null);
             }
         });
+        classContext.checking(new Expectations() {
+            {
+            	atLeast(2).of(launcher).isUnix(); will(returnValue(true));
+            }
+        });
 
         SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", true);
         action.checkout(launcher, workspace, "viewname");
