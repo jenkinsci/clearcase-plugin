@@ -405,23 +405,6 @@ public abstract class AbstractClearCaseScm extends SCM {
              return excludedRegions.isEmpty() ? null : excludedRegions.split("[\\r\\n]+");
 	 }
 
-	 private Pattern[] getExcludedRegionsPatterns() {
-		 String[] excludedRegions = getExcludedRegionsNormalized();
-		 if (excludedRegions != null)
-		 {
-			 Pattern[] patterns = new Pattern[excludedRegions.length];
-
-			 int i = 0;
-			 for (String excludedRegion : excludedRegions)
-			 {
-				 patterns[i++] = Pattern.compile(excludedRegion);
-			 }
-
-			 return patterns;
-		 }
-
-		 return null;
-	 }
     
     protected List<Filter> configureFilters() {
         List<Filter> filters = new ArrayList<Filter>();
