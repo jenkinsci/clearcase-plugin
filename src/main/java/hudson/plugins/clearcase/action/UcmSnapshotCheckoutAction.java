@@ -3,6 +3,7 @@ package hudson.plugins.clearcase.action;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.util.PathUtil;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -37,7 +38,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
 				.exists();
 		if (this.useUpdate) {
 			if (localViewPathExists) {
-				String configSpec = cleartool.catcs(viewName);
+                                String configSpec = PathUtil.convertPathsBetweenUnixAndWindows(cleartool.catcs(viewName), launcher);
 				Set<String> configSpecLoadRules = extractLoadRules(configSpec);
 				boolean recreate = currentConfigSpecUptodate(configSpecLoadRules);
 				if (recreate) {
@@ -81,11 +82,11 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
 			if (trimmedRow.startsWith("load")) {
 				String rule = row.trim().substring("load".length()).trim();
 				rules.add(rule);
-				if (!rule.startsWith("/")) {
-					rules.add("/" + rule);
-				} else {
+				if ((!rule.startsWith("/")) && (!rule.startsWith("\\"))) {
+                                    rules.add(rule);
+                                } else {
 					rules.add(rule.substring(1));
-				}
+                                }
 			}
 		}
 		return rules;
