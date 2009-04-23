@@ -11,7 +11,7 @@
 	<packaging>hpi</packaging>
 	<name>Hudson ClearCase Plug-in</name>
 	<version>0.9-SNAPSHOT</version>
-	<url>http://hudson.gotdns.com/wiki/display/HUDSON/ClearCase+Plugin</url>
+	<url>http://wiki.hudson-ci.org/display/HUDSON/ClearCase+Plugin</url>
 	<licenses>
 		<license>
 			<name>MIT license</name>
