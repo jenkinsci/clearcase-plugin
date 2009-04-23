@@ -48,7 +48,8 @@ public abstract class ClearToolExec implements ClearTool {
 		cmd.add("lshistory");
 		cmd.add("-r");
 		cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
-		cmd.add("-fmt", format);
+		cmd.add("-fmt");
+		cmd.addQuoted(format);
 		if ((branch != null) && (branch.length() > 0)) {
 			cmd.add("-branch", "brtype:" + branch);
 		}
