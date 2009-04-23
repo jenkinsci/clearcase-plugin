@@ -57,10 +57,10 @@ public class BuildVariableResolver implements VariableResolver<String> {
 			if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
 				return build.getProject().getName();
 			}
-			if ("COMPUTERNAME".equals(key)) {
+			/*if ("COMPUTERNAME".equals(key)) {
 				return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
 						: launcher.getComputer().getName()));
-			}
+                                                }*/
 			if ("NODE_NAME".equals(key)) {
 				return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
 						: launcher.getComputer().getName()));
