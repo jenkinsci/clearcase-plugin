@@ -438,7 +438,9 @@ public abstract class AbstractClearCaseScm extends SCM {
         
         if (excludedStrings != null && excludedStrings.length > 0) {
             for (String s : excludedStrings) {
-                filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, s));
+                if (!s.equals("")) {
+                    filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, s));
+                }
             }
         }
                                            
