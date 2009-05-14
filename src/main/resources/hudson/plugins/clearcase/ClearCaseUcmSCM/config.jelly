@@ -63,7 +63,7 @@
 		</f:entry>
 		
 		<f:entry title="Remove clearcase view on rename">
-			<f:checkbox name="ucm.removeViewOnRename" checked="${h.defaultToFalse(scm.removeViewOnRename)}"/>
+			<f:checkbox name="ucm.rmviewonrename" checked="${scm.removeViewOnRename}"/>
       		If checked, Hudson will try to remove the existing clearcase view.
 		</f:entry>
 		

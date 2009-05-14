@@ -54,6 +54,14 @@ public interface ClearTool {
     void rmview(String viewName) throws IOException, InterruptedException;
 
     /**
+     * Removes the view tag from the ClearCase registry - used when the view storage in 
+     *   the workspace has already been deleted.
+     * 
+     * @param viewName the name of the view
+     */
+    void rmviewtag(String viewName) throws IOException, InterruptedException;
+
+    /**
      * Creates and registers a view
      * 
      * @param launcher launcher for launching the command

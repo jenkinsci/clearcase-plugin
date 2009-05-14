@@ -72,10 +72,10 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
 			boolean usedynamicview, String viewdrive,
 			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
-                               boolean useUpdate, boolean removeViewOnRename,
+                               boolean useUpdate, boolean rmviewonrename,
                                String excludedRegions) {
 		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-                      useUpdate, removeViewOnRename, excludedRegions);
+                      useUpdate, rmviewonrename, excludedRegions);
 		this.stream = shortenStreamName(stream);
 		this.loadRules = loadrules;
 		this.useDynamicView = usedynamicview;
@@ -86,9 +86,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
 			boolean usedynamicview, String viewdrive,
 			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
-                               boolean useUpdate, boolean removeViewOnRename) {
+                               boolean useUpdate, boolean rmviewonrename) {
             this(stream, loadrules, viewname, usedynamicview, viewdrive, mkviewoptionalparam,
-                 filterOutDestroySubBranchEvent, useUpdate, removeViewOnRename, "");
+                 filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "");
         }
 
 	/**
@@ -278,7 +278,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 					req.getParameter("ucm.mkviewoptionalparam"),
 					req.getParameter("ucm.filterOutDestroySubBranchEvent") != null,
 					req.getParameter("ucm.useupdate") != null,
-					req.getParameter("ucm.removeViewOnRename") != null,
+					req.getParameter("ucm.rmviewonrename") != null,
                                         req.getParameter("ucm.excludedRegions")
                                                                   );
 			return scm;
