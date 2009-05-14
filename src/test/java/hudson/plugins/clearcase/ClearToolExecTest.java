@@ -227,6 +227,9 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         public void rmview(String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
+        public void rmviewtag(String viewName) throws IOException, InterruptedException {
+            throw new IllegalStateException("Not implemented");
+        }
         public void setcs(String viewName, String configSpec) throws IOException,
                 InterruptedException {
             throw new IllegalStateException("Not implemented");

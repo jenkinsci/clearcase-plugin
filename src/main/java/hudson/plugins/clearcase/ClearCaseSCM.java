@@ -93,10 +93,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                             boolean useupdate, String vobpaths, boolean usedynamicview,
                             String viewdrive, String mkviewoptionalparam,
                             boolean filterOutDestroySubBranchEvent,
-                            boolean doNotUpdateConfigSpec, boolean removeViewOnRename,
+                            boolean doNotUpdateConfigSpec, boolean rmviewonrename,
                             String excludedRegions) {
 		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-                      (!usedynamicview) && useupdate, removeViewOnRename,
+                      (!usedynamicview) && useupdate, rmviewonrename,
                       excludedRegions);
 		this.branch = branch;
 		this.configSpec = configspec;
@@ -111,10 +111,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                             boolean useupdate, String vobpaths, boolean usedynamicview,
                             String viewdrive, String mkviewoptionalparam,
                             boolean filterOutDestroySubBranchEvent,
-                            boolean doNotUpdateConfigSpec, boolean removeViewOnRename) {
+                            boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
             this(branch, configspec, viewname, useupdate, vobpaths, usedynamicview, viewdrive,
                  mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, 
-                 removeViewOnRename, "");
+                 rmviewonrename, "");
         }
 
 
@@ -335,7 +335,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					req.getParameter("cc.mkviewoptionalparam"),
 					req.getParameter("cc.filterOutDestroySubBranchEvent") != null,
 					req.getParameter("cc.doNotUpdateConfigSpec") != null,
-					req.getParameter("ucm.removeViewOnRename") != null,
+					req.getParameter("cc.rmviewonrename") != null,
                                         req.getParameter("cc.excludedRegions")
                                                                     );			
 			return scm;

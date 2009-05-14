@@ -173,36 +173,38 @@ public abstract class ClearToolExec implements ClearTool {
 		baos.close();
 		return retString;
 	}
+    
+ 
 
-	private List<String> parseListOutput(Reader consoleReader,
-			boolean onlyStarMarked) throws IOException {
-		List<String> views = new ArrayList<String>();
-		BufferedReader reader = new BufferedReader(consoleReader);
-		String line = reader.readLine();
-		while (line != null) {
-			Matcher matcher = viewListPattern.matcher(line);
-			if (matcher.find() && matcher.groupCount() == 3) {
-				if ((!onlyStarMarked)
-						|| (onlyStarMarked && matcher.group(1).equals("*"))) {
-					String vob = matcher.group(2);
-					int pos = Math.max(vob.lastIndexOf('\\'), vob
-							.lastIndexOf('/'));
-					if (pos != -1) {
-						vob = vob.substring(pos + 1);
-					}
-					views.add(vob);
-				}
-			}
-			line = reader.readLine();
-		}
-		reader.close();
-		return views;
-	}
-
-	private Pattern getListPattern() {
-		if (viewListPattern == null) {
-			viewListPattern = Pattern.compile("(.)\\s*(\\S*)\\s*(\\S*)");
-		}
-		return viewListPattern;
-	}
+    private List<String> parseListOutput(Reader consoleReader,
+                                         boolean onlyStarMarked) throws IOException {
+        List<String> views = new ArrayList<String>();
+        BufferedReader reader = new BufferedReader(consoleReader);
+        String line = reader.readLine();
+        while (line != null) {
+            Matcher matcher = viewListPattern.matcher(line);
+            if (matcher.find() && matcher.groupCount() == 3) {
+                if ((!onlyStarMarked)
+                    || (onlyStarMarked && matcher.group(1).equals("*"))) {
+                    String vob = matcher.group(2);
+                    int pos = Math.max(vob.lastIndexOf('\\'), vob
+                                       .lastIndexOf('/'));
+                    if (pos != -1) {
+                        vob = vob.substring(pos + 1);
+                    }
+                    views.add(vob);
+                }
+            }
+            line = reader.readLine();
+        }
+        reader.close();
+        return views;
+    }
+    
+    private Pattern getListPattern() {
+        if (viewListPattern == null) {
+            viewListPattern = Pattern.compile("(.)\\s*(\\S*)\\s*(\\S*)");
+        }
+        return viewListPattern;
+    }
 }

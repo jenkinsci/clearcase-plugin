@@ -89,13 +89,13 @@ public abstract class AbstractClearCaseScm extends SCM {
                                 final String mkviewOptionalParam,
                                 final boolean filterOutDestroySubBranchEvent,
                                 final boolean useUpdate, 
-                                final boolean removeViewOnRename,
+                                final boolean rmviewonrename,
                                 final String excludedRegions) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
         this.useUpdate = useUpdate;
-        this.removeViewOnRename = removeViewOnRename;
+        this.removeViewOnRename = rmviewonrename;
         this.excludedRegions = excludedRegions;
         createAndRegisterListener();
     }
@@ -401,9 +401,9 @@ public abstract class AbstractClearCaseScm extends SCM {
 										project.getWorkspace().getParent()
 												.getParent(), launcher));
 						try {
-							ct
-									.rmview(generateNormalizedViewName(null,
-											launcher));
+                                                    ct
+                                                        .rmviewtag(generateNormalizedViewName(null,
+                                                                                                  launcher));
 						} catch (Exception e) {
 							Logger.getLogger(
 									AbstractClearCaseScm.class.getName()).log(
@@ -420,6 +420,9 @@ public abstract class AbstractClearCaseScm extends SCM {
 		return useUpdate;
 	}
 
+    public boolean isRemoveViewOnRename() {
+        return removeViewOnRename;
+    }
 
 	 public String getExcludedRegions() {
 		  return excludedRegions;

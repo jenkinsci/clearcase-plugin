@@ -101,6 +101,10 @@ public class ClearToolDynamicUCM extends ClearToolExec {
         launcher.getListener().fatalError("Dynamic UCM view does not support rmview");
     }
 
+    public void rmviewtag(String viewName) throws IOException, InterruptedException {
+        launcher.getListener().fatalError("Dynamic UCM view does not support rmviewtag");
+    }
+
     public void update(String viewName, String loadRules) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic UCM view does not support update");
     }
