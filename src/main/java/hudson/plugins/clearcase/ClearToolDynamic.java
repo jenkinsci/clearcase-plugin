@@ -72,6 +72,10 @@ public class ClearToolDynamic extends ClearToolExec {
         launcher.getListener().fatalError("Dynamic view does not support rmview");
     }
 
+    public void rmviewtag(String viewName) throws IOException, InterruptedException {
+        launcher.getListener().fatalError("Dynamic view does not support rmviewtag");
+    }
+
     public void update(String viewName, String loadRules) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic view does not support update");
     }
