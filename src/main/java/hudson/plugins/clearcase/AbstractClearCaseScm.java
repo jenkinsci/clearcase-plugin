@@ -34,6 +34,7 @@ import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.model.Node;
 import hudson.model.listeners.ItemListener;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
