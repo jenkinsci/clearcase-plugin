@@ -57,8 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Abstract class for ClearCase SCM. The class contains the logic around
@@ -211,15 +209,13 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 * trying to find an unique view name. It will also replace invalid chars
 	 * from a view name.
 	 * 
-	 * @param project
+	 * @param build
 	 *            the project to get the name from
 	 * @return a string containing no invalid chars.
 	 */
 	public String generateNormalizedViewName(AbstractBuild<?, ?> build,
 			Launcher launcher) {
-		String generatedNormalizedViewName = viewName;
-
-		generatedNormalizedViewName = Util.replaceMacro(viewName,
+		String generatedNormalizedViewName = Util.replaceMacro(viewName,
 				new BuildVariableResolver(build, launcher));
 
 		generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
@@ -366,9 +362,6 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 * Register listeners for Hudson events. At the moment we listen to
 	 * onDeleted and try to remove the ClearCase view that was created for this
 	 * job.
-	 * 
-	 * @param viewName
-	 *            the name of the view
 	 */
 	protected void createAndRegisterListener() {
 		Hudson hudson = Hudson.getInstance();
