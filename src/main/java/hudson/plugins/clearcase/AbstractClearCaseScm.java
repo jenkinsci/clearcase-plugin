@@ -416,6 +416,26 @@ public abstract class AbstractClearCaseScm extends SCM {
 		});
 	}
 
+    @Override
+    public boolean processWorkspaceBeforeDeletion(AbstractProject<?,?> project, FilePath workspace, Node node) throws IOException, InterruptedException {
+        StreamTaskListener listener = new StreamTaskListener(System.out);
+        Launcher launcher = Hudson.getInstance().createLauncher(listener);
+        ClearTool ct = createClearTool(null, createClearToolLauncher(listener,
+                                                                     project.getWorkspace().getParent()
+                                                                     .getParent(), launcher));
+        try {
+            ct.rmview(generateNormalizedViewName(null,
+                                                 launcher));
+        } catch (Exception e) {
+            Logger.getLogger(
+                             AbstractClearCaseScm.class.getName()).log(
+                                                                  Level.WARNING,
+                                                                  "Failed to remove ClearCase view", e);
+        }
+        return true;
+        
+    }
+
 	public boolean isUseUpdate() {
 		return useUpdate;
 	}
