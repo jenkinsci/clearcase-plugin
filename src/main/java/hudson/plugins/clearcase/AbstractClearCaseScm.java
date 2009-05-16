@@ -33,6 +33,7 @@ import hudson.model.BuildListener;
 import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Run;
+import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.model.Node;
 import hudson.model.listeners.ItemListener;
