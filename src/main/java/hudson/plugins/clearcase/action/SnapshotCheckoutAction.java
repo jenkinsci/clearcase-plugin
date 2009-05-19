@@ -46,7 +46,7 @@ public class SnapshotCheckoutAction implements CheckOutAction {
         this.useUpdate = useUpdate;        
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
+   public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
 
         boolean updateView = useUpdate;        
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();
@@ -59,7 +59,7 @@ public class SnapshotCheckoutAction implements CheckOutAction {
                     updateView = false;
                 }
             }
-            if (!updateView) {
+            else {
                 cleartool.rmview(viewName);
                 localViewPathExists = false;
             }                
@@ -67,13 +67,16 @@ public class SnapshotCheckoutAction implements CheckOutAction {
 
         if (!localViewPathExists) {
             cleartool.mkview(viewName, null);
-            cleartool.setcs(viewName, tempConfigSpec);
             updateView = false;
         }
-
+        
         if (updateView) {
             cleartool.update(viewName, null);
         }
+        else {
+            cleartool.setcs(viewName, tempConfigSpec);
+        }
+
         return true;
     }
 
