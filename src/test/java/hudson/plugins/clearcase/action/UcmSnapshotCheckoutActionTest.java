@@ -85,10 +85,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
-                one(clearTool).catcs("viewname");
-                one(clearTool).rmview("viewname");
-                one(clearTool).mkview("viewname", "stream");
-                one(clearTool).update("viewname", "loadrule");
+                one(clearTool).catcs("viewname"); will(returnValue("ucm configspec"));
+                one(clearTool).setcs("viewname", "ucm configspec\nload loadrule\n");
             }
         });
 
@@ -170,12 +168,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
-                one(clearTool).catcs(viewName);
-                will(returnValue("load abc/"));
-                one(clearTool).rmview(viewName);
-                one(clearTool).mkview(viewName, "stream");
-                one(clearTool).update(viewName, "abc/");
-                one(clearTool).update(viewName, "abcd");
+                one(clearTool).catcs(viewName); will(returnValue("ucm configspec\nload abc/\n"));
+                one(clearTool).setcs(viewName, "ucm configspec\nload abc/\nload abcd\n");
             }
         });
         classContext.checking(new Expectations() {
