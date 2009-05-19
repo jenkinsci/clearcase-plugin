@@ -139,7 +139,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 	@Override
 	public String[] getViewPaths(FilePath viewPath) throws IOException,
 			InterruptedException {
-		String[] rules = loadRules.split("\n");
+		String[] rules = loadRules.split("[\\r\\n]+");
 		for (int i = 0; i < rules.length; i++) {
 			String rule = rules[i];
 			// Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if
