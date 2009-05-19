@@ -71,7 +71,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
                 if (configSpecNeedsUpdating(configSpecLoadRules)) {
                     String newConfigSpec = getLoadRuleFreeConfigSpec(configSpec) + "\n";
                     
-                    for (String loadRule : loadRules.split("[\r\n]+")) {
+                    for (String loadRule : loadRules.split("[\\r\\n]+")) {
                         newConfigSpec += "load " + loadRule.trim() + "\n";
                     }
                     cleartool.setcs(viewName, newConfigSpec);
@@ -86,7 +86,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
             cleartool.mkview(viewName, stream);
         }
         if (updateLoadRules) {
-            for (String loadRule : loadRules.split("[\r\n]+")) {
+            for (String loadRule : loadRules.split("[\\r\\n]+")) {
                 cleartool.update(viewName, loadRule.trim());
             }
         }
@@ -95,7 +95,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
     
     private boolean configSpecNeedsUpdating(Set<String> configSpecLoadRules) {
         boolean recreate = false;
-        for (String loadRule : loadRules.split("[\r\n]+")) {
+        for (String loadRule : loadRules.split("[\\r\\n]+")) {
             if (!configSpecLoadRules.contains(loadRule)) {
                 System.out
                     .println("Load rule: "
@@ -109,7 +109,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
     
     private Set<String> extractLoadRules(String configSpec) {
         Set<String> rules = new HashSet<String>();
-        for (String row : configSpec.split("[\r\n]+")) {
+        for (String row : configSpec.split("[\\r\\n]+")) {
             String trimmedRow = row.toLowerCase().trim();
             if (trimmedRow.startsWith("load")) {
                 String rule = row.trim().substring("load".length()).trim();
@@ -128,7 +128,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
     private String getLoadRuleFreeConfigSpec(String configSpec) {
         String lrFreeCS = "";
 
-        for (String row : configSpec.split("[\r\n]+")) {
+        for (String row : configSpec.split("[\\r\\n]+")) {
             if (!row.startsWith("load")) {
                 lrFreeCS += row;
             }
