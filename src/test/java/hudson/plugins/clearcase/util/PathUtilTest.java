@@ -122,7 +122,13 @@ public class PathUtilTest {
 			return null;
 		}
 
-		@Override
+        @Override
+        public Proc launch(ProcStarter starter) throws IOException {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
 		public boolean isUnix() {
 			return this.unix;
 		}
