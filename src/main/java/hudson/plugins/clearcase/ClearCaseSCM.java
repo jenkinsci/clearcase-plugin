@@ -197,6 +197,16 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 		}
 	}
 
+    @Override
+    public FilePath getModuleRoot(FilePath workspace) {
+        if (useDynamicView) {
+            return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
+        }
+        else {
+            return super.getModuleRoot(workspace);
+        }
+    }
+
 	@Override
 	protected CheckOutAction createCheckOutAction(
 			VariableResolver variableResolver, ClearToolLauncher launcher) {
