@@ -50,6 +50,7 @@ import hudson.scm.SCMDescriptor;
 import hudson.util.VariableResolver;
 
 import java.io.IOException;
+import java.io.File;
 
 import java.util.List;
 import net.sf.json.JSONObject;
@@ -153,6 +154,16 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 		}
 		return rules;
 	}
+
+    @Override
+    public FilePath getModuleRoot(FilePath workspace) {
+        if (useDynamicView) {
+            return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
+        }
+        else {
+            return super.getModuleRoot(workspace);
+        }
+    }
 
 	@Override
 	protected CheckOutAction createCheckOutAction(
