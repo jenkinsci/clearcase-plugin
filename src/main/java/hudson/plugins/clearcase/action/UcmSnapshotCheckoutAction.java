@@ -74,7 +74,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
                     for (String loadRule : loadRules.split("[\\r\\n]+")) {
                         newConfigSpec += "load " + loadRule.trim() + "\n";
                     }
-                    cleartool.setcs(viewName, newConfigSpec);
+                    cleartool.setcs(viewName, PathUtil.convertPathsBetweenUnixAndWindows(newConfigSpec, launcher));
                     updateLoadRules = false;
                 }
             } else {
@@ -130,7 +130,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
 
         for (String row : configSpec.split("[\\r\\n]+")) {
             if (!row.startsWith("load")) {
-                lrFreeCS += row;
+                lrFreeCS += row + "\n";
             }
         }
 
