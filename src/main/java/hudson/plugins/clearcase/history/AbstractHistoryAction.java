@@ -75,7 +75,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     protected List<HistoryEntry> runLsHistory(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         ClearToolFormatHandler historyHandler = getHistoryFormatHandler();
         List<HistoryEntry> fullList = new ArrayList<HistoryEntry>();
-
+        System.err.println("format: |" + historyHandler.getFormat() + COMMENT + LINEEND + "|");
         try {
             for (String branchName : branchNames) {
                 BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
