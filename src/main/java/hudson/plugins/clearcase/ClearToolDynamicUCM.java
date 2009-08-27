@@ -50,12 +50,12 @@ public class ClearToolDynamicUCM extends ClearToolExec {
     
     /**
      * Syncronize the dynamic view with the latest recomended baseline for the stream.
-     * 1. Generated a new config spec
-     * 2. Set the config spec on the view
+     * 1. Set the config spec on the view
+     * (Removed call to chstream - based on
+     *  http://www.nabble.com/-clearcase-plugin--Use-of-chstream--generate-is-not-necessary-td25118511.html)
      */
     public void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException {
-        chstream(viewName, stream);
-        setcs(viewName);
+	setcs(viewName);
     }
     
     /**
