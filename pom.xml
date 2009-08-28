@@ -19,6 +19,14 @@
 		</license>
 	</licenses>
 
+  <developers>
+    <developer>
+      <id>abayer</id>
+      <name>Andrew Bayer</name>
+      <email>andrew.bayer@gmail.com</email>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
 	<dependencies>
 		<dependency>
 			<groupId>org.jmock</groupId>
