@@ -67,10 +67,13 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import javax.servlet.ServletException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+
 
 /**
  * Base ClearCase SCM.
@@ -82,37 +85,31 @@ import org.kohsuke.stapler.StaplerResponse;
 public class ClearCaseSCM extends AbstractClearCaseScm {
 
 	private String configSpec;
-	private boolean useDynamicView;
-	private String viewDrive;
 	private final String branch;
-	private final String vobPaths;
 	private boolean doNotUpdateConfigSpec;
 
 	@DataBoundConstructor
 	public ClearCaseSCM(String branch, String configspec, String viewname,
-                            boolean useupdate, String vobpaths, boolean usedynamicview,
+                            boolean useupdate, String loadRules, boolean usedynamicview,
                             String viewdrive, String mkviewoptionalparam,
                             boolean filterOutDestroySubBranchEvent,
                             boolean doNotUpdateConfigSpec, boolean rmviewonrename,
                             String excludedRegions) {
 		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
                       (!usedynamicview) && useupdate, rmviewonrename,
-                      excludedRegions);
+                      excludedRegions, usedynamicview, viewdrive, loadRules);
 		this.branch = branch;
 		this.configSpec = configspec;
-		this.vobPaths = vobpaths;
-		this.useDynamicView = usedynamicview;
-		this.viewDrive = viewdrive;
 		this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
 
 	}
 
     public ClearCaseSCM(String branch, String configspec, String viewname,
-                            boolean useupdate, String vobpaths, boolean usedynamicview,
+                            boolean useupdate, String loadRules, boolean usedynamicview,
                             String viewdrive, String mkviewoptionalparam,
                             boolean filterOutDestroySubBranchEvent,
                             boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
-            this(branch, configspec, viewname, useupdate, vobpaths, usedynamicview, viewdrive,
+            this(branch, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive,
                  mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, 
                  rmviewonrename, "");
         }
@@ -126,52 +123,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 		return configSpec;
 	}
 
-	public boolean isUseDynamicView() {
-		return useDynamicView;
-	}
-
-	public String getViewDrive() {
-		return viewDrive;
-	}
-
-	public String getVobPaths() {
-		return vobPaths;
-	}
-
 	public boolean isDoNotUpdateConfigSpec() {
 		return doNotUpdateConfigSpec;
-	}
-
-	/**
-	 * Return the view paths that will be used when getting changes for a view.
-	 * If the user configured vob paths field is empty, then the folder within
-	 * the view will be used as view paths.
-	 * 
-	 * @return the view paths that will be used when getting changes for a view.
-	 */
-	public String[] getViewPaths(FilePath viewPath) throws IOException,
-			InterruptedException {
-		String[] vobNameArray;
-		if (Util.fixEmpty(vobPaths.trim()) == null) {
-			List<String> vobList = new ArrayList<String>();
-			List<FilePath> subFilePaths = viewPath.list((FileFilter) null);
-			if ((subFilePaths != null) && (subFilePaths.size() > 0)) {
-
-				for (int i = 0; i < subFilePaths.size(); i++) {
-					if (subFilePaths.get(i).isDirectory()) {
-						vobList.add(subFilePaths.get(i).getName());
-					}
-				}
-			}
-			vobNameArray = vobList.toArray(new String[0]);
-		} else {
-			// split by whitespace, except "\ "
-			vobNameArray = vobPaths.split("(?<!\\\\)[ \\r\\n]+");
-			// now replace "\ " to " ".
-			for (int i = 0; i < vobNameArray.length; i++)
-				vobNameArray[i] = vobNameArray[i].replaceAll("\\\\ ", " ");
-		}
-		return vobNameArray;
 	}
 
 	@Override
@@ -187,9 +140,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	@Override
 	public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
 		super.buildEnvVars(build, env);
-		if (useDynamicView) {
-			if (viewDrive != null) {
-				env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator
+		if (isUseDynamicView()) {
+                    if (getViewDrive() != null) {
+                        env.put(CLEARCASE_VIEWPATH_ENVSTR, getViewDrive() + File.separator
 						+ getNormalizedViewName());
 			} else {
 				env.remove(CLEARCASE_VIEWPATH_ENVSTR);
@@ -197,27 +150,19 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 		}
 	}
 
-    @Override
-    public FilePath getModuleRoot(FilePath workspace) {
-        if (useDynamicView) {
-            return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
-        }
-        else {
-            return super.getModuleRoot(workspace);
-        }
-    }
 
 	@Override
 	protected CheckOutAction createCheckOutAction(
 			VariableResolver variableResolver, ClearToolLauncher launcher) {
 		CheckOutAction action;
-		if (useDynamicView) {
+		if (isUseDynamicView()) {
 			action = new DynamicCheckoutAction(createClearTool(
 					variableResolver, launcher), configSpec,
 					doNotUpdateConfigSpec);
 		} else {
 			action = new SnapshotCheckoutAction(createClearTool(
-					variableResolver, launcher), configSpec, isUseUpdate());
+                                                                            variableResolver, launcher), 
+                                                            configSpec, getLoadRules(), isUseUpdate());
 		}
 		return action;
 	}
@@ -225,25 +170,48 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	@Override
 	protected HistoryAction createHistoryAction(
 			VariableResolver variableResolver, ClearToolLauncher launcher) {
-		BaseHistoryAction action = new BaseHistoryAction(createClearTool(
-				variableResolver, launcher), configureFilters(),
-				getDescriptor().getLogMergeTimeWindow());
-
-		if (useDynamicView) {
-			String extendedViewPath = viewDrive;
-			if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
-				// Need to deteremine what kind of char to add in between
-				if (viewDrive.contains("/")) {
-					extendedViewPath += "/";
-				} else {
-					extendedViewPath += "\\";
-				}
-			}
-			extendedViewPath += getViewName();
-			action.setExtendedViewPath(extendedViewPath);
-		}
-
-		return action;
+            ClearTool ct = createClearTool(variableResolver, launcher);
+            
+            BaseHistoryAction action = new BaseHistoryAction(ct, configureFilters(launcher),
+                                                             getDescriptor().getLogMergeTimeWindow());
+            
+            /*            if (isUseDynamicView()) {
+                String extendedViewPath = getViewDrive();
+                if (!(getViewDrive().endsWith("\\") && getViewDrive().endsWith("/"))) {
+                    // Need to deteremine what kind of char to add in between
+                    if (getViewDrive().contains("/")) {
+                        extendedViewPath += "/";
+                    } else {
+                        extendedViewPath += "\\";
+                    }
+                }
+                extendedViewPath += getViewName();
+                action.setExtendedViewPath(extendedViewPath);
+            } else {
+                String pwv = ct.pwv(getViewName());
+                if (pwv != null) {
+                    action.setExtendedViewPath(pwv);
+                }
+                } */
+            
+            try {
+                String pwv = ct.pwv(getViewName());
+                if (pwv != null) {
+                    if (pwv.contains("/")) {
+                        pwv += "/";
+                    }
+                    else {
+                        pwv += "\\";
+                    }
+                    action.setExtendedViewPath(pwv);
+                }
+            } catch (Exception e) {
+                Logger.getLogger(ClearCaseSCM.class.getName()).log(Level.WARNING,
+                                                                   "Exception when running 'cleartool pwv'",
+                                                                   e);
+            } 
+            
+            return action;
 	}
 
 	@Override
@@ -272,8 +240,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	@Override
 	protected ClearTool createClearTool(VariableResolver variableResolver,
 			ClearToolLauncher launcher) {
-		if (useDynamicView) {
-			return new ClearToolDynamic(variableResolver, launcher, viewDrive);
+            if (isUseDynamicView()) {
+                return new ClearToolDynamic(variableResolver, launcher, getViewDrive());
 		} else {
 			return super.createClearTool(variableResolver, launcher);
 		}
@@ -339,7 +307,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					req.getParameter("cc.configspec"),
 					req.getParameter("cc.viewname"),
 					req.getParameter("cc.useupdate") != null,
-					req.getParameter("cc.vobpaths"),
+					req.getParameter("cc.loadrules"),
 					req.getParameter("cc.usedynamicview") != null,
 					req.getParameter("cc.viewdrive"),
 					req.getParameter("cc.mkviewoptionalparam"),
@@ -394,7 +362,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 						error("Config spec is mandatory");
 						return;
 					}
-
+                                        for (String cSpecLine : v.split("[\\r\\n]+")) {
+                                            if (cSpecLine.startsWith("load ")) {
+                                                error("Config spec can not contain load rules");
+                                                return;
+                                            }
+                                        }
 					// all tests passed so far
 					ok();
 				}

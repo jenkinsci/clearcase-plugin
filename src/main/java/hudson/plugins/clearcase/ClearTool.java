@@ -127,6 +127,14 @@ public interface ClearTool {
     List<String> lsvob(boolean onlyMOunted) throws IOException, InterruptedException;
 
     /**
+     * Retrieves the canonical working directory for a given view.
+     *
+     * @param viewName the view to use
+     * @return the return from "cleartool pwv"
+     */
+    String pwv(String viewName) throws IOException, InterruptedException;
+     
+    /**
      * Retrives the config spec for the specified viewname
      * @param viewName the name of the view
      * @return a string containing the config spec

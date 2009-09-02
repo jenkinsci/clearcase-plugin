@@ -36,6 +36,11 @@
       		checkUrl="'${rootURL}/scm/ClearCaseSCM/configSpecCheck?value='+escape(this.value)"/>
   	</f:entry>
 	
+        <f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
+          <f:expandableTextbox name="cc.loadrules"
+                               value="${scm.loadRules}"
+                               checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules are mandatory')+'&amp;value='+escape(this.value)" />
+        </f:entry>
 	<f:entry title="Use update">
 		<f:checkbox name="cc.useupdate" checked="${h.defaultToTrue(scm.useUpdate)}"/>
       		If checked, Hudson will use 'cleartool update' whenever possible, making the build faster.
@@ -50,9 +55,6 @@
           <f:entry title="Excluded Regions" help="/plugin/clearcase/excludedRegions.html">
             <f:textarea name="cc.excludedRegions" value="${scm.excludedRegions}" checkUrl="'${rootURL}/scm/ClearCaseSCM/excludedRegionsCheck?value='+escape(this.value)"/>
           </f:entry>
-      <f:entry title="VOB path(s)" help="/plugin/clearcase/vobpaths.html">
-        <f:expandableTextbox name="cc.vobpaths" value="${scm.vobPaths}"/>
-      </f:entry>
       <f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
         <f:expandableTextbox name="cc.mkviewoptionalparam" value="${scm.mkviewOptionalParam}"/>
       </f:entry>
