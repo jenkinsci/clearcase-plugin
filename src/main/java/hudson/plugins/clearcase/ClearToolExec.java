@@ -69,31 +69,31 @@ public abstract class ClearToolExec implements ClearTool {
             SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
             formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
             
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add("lshistory");
-		cmd.add("-r");
-		cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
-		cmd.add("-fmt", format);
-                //		cmd.addQuoted(format);
-		if ((branch != null) && (branch.length() > 0)) {
-			cmd.add("-branch", "brtype:" + branch);
-		}
-		cmd.add("-nco");
-
-		FilePath viewPath = getRootViewPath(launcher).child(viewName);
-
-		for (String path : viewPaths) { 
-			cmd.add(path.replace("\n","").replace("\r", ""));
-		}
-		Reader returnReader = null;
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
-			returnReader = new InputStreamReader(new ByteArrayInputStream(baos
-					.toByteArray()));
-		}
-		baos.close();
-
-		return returnReader;
+            ArgumentListBuilder cmd = new ArgumentListBuilder();
+            cmd.add("lshistory");
+            cmd.add("-all");
+            cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
+            cmd.add("-fmt", format);
+            //		cmd.addQuoted(format);
+            if ((branch != null) && (branch.length() > 0)) {
+                cmd.add("-branch", "brtype:" + branch);
+            }
+            cmd.add("-nco");
+            
+            FilePath viewPath = getRootViewPath(launcher).child(viewName);
+            
+            for (String path : viewPaths) { 
+                cmd.add(path.replace("\n","").replace("\r", ""));
+            }
+            Reader returnReader = null;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
+                returnReader = new InputStreamReader(new ByteArrayInputStream(baos
+                                                                              .toByteArray()));
+            }
+            baos.close();
+            
+            return returnReader;
 	}
 
 	public Reader lsactivity(String activity, String commandFormat,
@@ -147,7 +147,32 @@ public abstract class ClearToolExec implements ClearTool {
 		}
 		return new ArrayList<String>();
 	}
+    
+    public String pwv(String viewName) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("pwv");
+        cmd.add("-root");
 
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        String retString = "";
+
+        // changed the path from workspace to getRootViewPath to make Dynamic UCM work
+        FilePath viewPath = getRootViewPath(launcher).child(viewName);
+        
+        if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                                                                             new ByteArrayInputStream(baos.toByteArray())));
+            retString = reader.readLine();
+            
+            reader.close();
+        }
+        
+        baos.close();
+
+        return retString;
+    }
+
+        
 	public String catcs(String viewName) throws IOException,
 			InterruptedException {
 		ArgumentListBuilder cmd = new ArgumentListBuilder();

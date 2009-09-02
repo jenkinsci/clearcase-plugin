@@ -34,6 +34,7 @@ import hudson.model.Result;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.HudsonClearToolLauncher;
 import hudson.plugins.clearcase.PluginImpl;
+import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.util.ArgumentListBuilder;
 
@@ -133,6 +134,13 @@ public class UcmMakeBaselineComposite extends Publisher {
         return true;
     }
 
+
+    @Override
+    public BuildStepMonitor getRequiredMonitorService() {
+	return BuildStepMonitor.BUILD;
+    }
+    
+    
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
 

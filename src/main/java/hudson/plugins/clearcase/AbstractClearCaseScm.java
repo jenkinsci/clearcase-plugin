@@ -45,6 +45,7 @@ import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.plugins.clearcase.util.PathUtil;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
 import hudson.util.StreamTaskListener;
@@ -52,6 +53,7 @@ import hudson.util.VariableResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -76,7 +78,10 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean useUpdate;
     private final boolean removeViewOnRename;
     private String excludedRegions;
-    
+    private final String loadRules;
+    private final boolean useDynamicView;
+    private final String viewDrive;
+
     protected void setNormalizedViewName(String normalizedViewName) {
         this.normalizedViewName = normalizedViewName;
     }
@@ -90,13 +95,19 @@ public abstract class AbstractClearCaseScm extends SCM {
                                 final boolean filterOutDestroySubBranchEvent,
                                 final boolean useUpdate, 
                                 final boolean rmviewonrename,
-                                final String excludedRegions) {
+                                final String excludedRegions,
+                                final boolean useDynamicView,
+                                final String viewDrive,
+                                final String loadRules) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
         this.useUpdate = useUpdate;
         this.removeViewOnRename = rmviewonrename;
         this.excludedRegions = excludedRegions;
+        this.useDynamicView = useDynamicView;
+        this.viewDrive = viewDrive;
+        this.loadRules = loadRules;
         createAndRegisterListener();
     }
     
@@ -173,8 +184,33 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 *            the file path for the view
 	 * @return string array that will be used by the lshistory command
 	 */
-	public abstract String[] getViewPaths(FilePath viewPath)
-			throws IOException, InterruptedException;
+    public String[] getViewPaths(FilePath viewPath)
+        throws IOException, InterruptedException {
+        String[] rules = getLoadRules().split("[\\r\\n]+");
+        for (int i = 0; i < rules.length; i++) {
+            String rule = rules[i];
+            // Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if
+            // the view is not dynamic
+            // the user normally enters a load rule beginning with those chars
+            while (rule.startsWith("\\") || rule.startsWith("/")) {
+                rule = rule.substring(1);
+            }
+            rules[i] = rule;
+        }
+        return rules;
+    }
+
+	public boolean isUseDynamicView() {
+		return useDynamicView;
+	}
+
+	public String getViewDrive() {
+		return viewDrive;
+	}
+
+    public String getLoadRules() {
+        return loadRules;
+    }
 
 	@Override
 	public boolean supportsPolling() {
@@ -188,12 +224,17 @@ public abstract class AbstractClearCaseScm extends SCM {
 
 	@Override
 	public FilePath getModuleRoot(FilePath workspace) {
-		if (getNormalizedViewName() == null) {
-			return super.getModuleRoot(workspace);
+            if (useDynamicView) {
+                return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
+            }
+            else {
+                if (getNormalizedViewName() == null) {
+                    return super.getModuleRoot(workspace);
 		} else {
-			return workspace.child(getNormalizedViewName());
+                    return workspace.child(getNormalizedViewName());
 		}
-	}
+            }
+        }
 
 	public String getViewName() {
 		if (viewName == null) {
@@ -448,7 +489,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 }
 
     
-    protected List<Filter> configureFilters() {
+    protected List<Filter> configureFilters(ClearToolLauncher ctLauncher) {
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DefaultFilter());
         
@@ -461,7 +502,26 @@ public abstract class AbstractClearCaseScm extends SCM {
                 }
             }
         }
-                                           
+
+        // Note - the logic here to do ORing to match against *any* of the load rules is, quite frankly,
+        // hackishly ugly. I'm embarassed by it. But it's what I've got for right now.
+        String loadRules = getLoadRules();
+        String tempFilterRules = "";
+        if (loadRules != null) {
+            for (String loadRule : loadRules.split("[\\r\\n]+")) {
+                if (!loadRule.equals("")) {
+                    // Make sure the load rule starts with \ or /, as appropriate
+                    while (loadRule.startsWith("\\") || loadRule.startsWith("/")) {
+                        loadRule = loadRule.substring(1);
+                    }
+
+                    tempFilterRules += Pattern.quote(loadRule) + "\n";
+                }
+            }
+            filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, "^(" + tempFilterRules.trim().replaceAll("\\n", "|") + ")"));
+            
+        }
+        
 	if (isFilteringOutDestroySubBranchEvent()) {
             filters.add(new DestroySubBranchFilter());
         }
