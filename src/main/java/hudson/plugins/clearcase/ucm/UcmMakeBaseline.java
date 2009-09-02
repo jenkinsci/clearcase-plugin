@@ -35,6 +35,7 @@ import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.Result;
 import hudson.model.StringParameterValue;
+import hudson.tasks.BuildStepMonitor;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.HudsonClearToolLauncher;
 import hudson.plugins.clearcase.PluginImpl;
@@ -181,6 +182,11 @@ public class UcmMakeBaseline extends Publisher {
 		return true;
 	}
 
+	@Override
+	public BuildStepMonitor getRequiredMonitorService() {
+	    return BuildStepMonitor.BUILD;
+	}
+	
 	@Override
 	public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
 

@@ -52,7 +52,7 @@ public class DynamicCheckoutAction implements CheckOutAction {
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException { 
         cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
-        String tempConfigSpec = PathUtil.convertPathsBetweenUnixAndWindows(configSpec, launcher);
+        String tempConfigSpec = PathUtil.convertPathForOS(configSpec, launcher);
         if (!doNotUpdateConfigSpec && !tempConfigSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
             cleartool.setcs(viewName, tempConfigSpec);
         }

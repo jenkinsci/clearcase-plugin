@@ -40,12 +40,6 @@ public class ClearCaseUcmSCMTest {
     }
     
     @Test
-    public void testGetLoadRules() {
-        ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option", false, false ,false);
-        assertEquals("The load rules arent correct", "loadrules", scm.getLoadRules());
-    }
-
-    @Test
     public void testGetStream() {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option", false, false ,false);
         assertEquals("The stream isnt correct", "stream", scm.getStream());
@@ -92,13 +86,15 @@ public class ClearCaseUcmSCMTest {
      * VOBPaths are used by the lshistory command, and should not start with a 
      * "\\" or "/" as that would make the cleartool command think the view is
      * located by an absolute path and not an relative path.
+     *
+     * 7/10/09, abayer - Commenting out for now, because I can't actually see why we'd want this behavior to differ for dynamic views.
      */
-    @Test
+    /*    @Test
     public void assertLoadRuleIsConvertedToRelativeViewPathIfNotDynamic() throws Exception {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "\\\\loadrule\\one\n/loadrule/two", "viewname", true, "viewdrive", "option", false, false ,false);
         assertEquals("The first view path is not correct", "\\\\loadrule\\one", scm.getViewPaths(null)[0]);
         assertEquals("The second view path is not correct", "/loadrule/two", scm.getViewPaths(null)[1]);
-    }
+        }*/
 
     @Test
     public void testGetVobPathsWithSpaces() throws Exception {

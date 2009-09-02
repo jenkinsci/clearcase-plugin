@@ -181,37 +181,6 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         assertEquals("The view paths string is incorrect", "tmp", scm.getViewPaths(workspace)[0]);
     }
 
-    @Test
-    public void assertGetVobPaths() throws Exception {
-        ClearCaseSCM scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "tmp", true, "", null, false, false,false);
-        assertEquals("The vob paths string is incorrect", "tmp", scm.getVobPaths());
-    }
-    
-    @Test
-    public void assertViewPathIsCopiedFromVobPaths() throws Exception {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "vob1 vob2 vob\\ 3", true, "", null, false, false,false);
-        String[] viewPaths = scm.getViewPaths(workspace.child("viewName"));
-        assertEquals("The size of view paths array is incorrect", 3, viewPaths.length);
-        assertObjectInArray(viewPaths, "vob1");
-        assertObjectInArray(viewPaths, "vob2");
-        assertObjectInArray(viewPaths, "vob 3");
-    }
-    
-    @Test
-    public void assertViewPathsAreReadFromViewFolder() throws Exception {
-        workspace.child("viewName").mkdirs();
-        workspace.child("viewName").child("vob1").mkdirs();
-        workspace.child("viewName").child("vob2").child("vob2-1").mkdirs();
-        workspace.child("viewName").child("vob 4").mkdirs();
-        workspace.child("viewName").createTextTempFile("view", ".dat", "text");
-        AbstractClearCaseScm scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, " ", true, "", null, false, false,false);
-        String[] viewPaths = scm.getViewPaths(workspace.child("viewName"));
-        assertEquals("The size of view paths array is incorrect", 3, viewPaths.length);
-        assertObjectInArray(viewPaths, "vob1");
-        assertObjectInArray(viewPaths, "vob2");
-        assertObjectInArray(viewPaths, "vob 4");
-    }
-
 //    @Test
 //    public void assertExtendedViewPathIsSetForDynamicViews() throws Exception {
 //        classContext.checking(new Expectations() {

@@ -67,7 +67,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(clearTool).mkview("viewname", null);
-                one(clearTool).setcs("viewname", "config\r\nspec");
+                one(clearTool).setcs("viewname", "config\r\nspec\r\nload \\foo\r\n");
             }
         });
         classContext.checking(new Expectations() {
@@ -76,7 +76,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", false);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", "foo", false);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -88,7 +88,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(clearTool).mkview("viewname", null);
-                one(clearTool).setcs("viewname", "config\nspec");
+                one(clearTool).setcs("viewname", "config\nspec\nload /foo\n");
             }
         });
         classContext.checking(new Expectations() {
@@ -97,7 +97,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", false);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", "foo", false);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -109,7 +109,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(clearTool).mkview("viewname", null);
-                one(clearTool).setcs("viewname", "configspec");
+                one(clearTool).setcs("viewname", "configspec\nload /foo\n");
             }
         });
         classContext.checking(new Expectations() {
@@ -118,7 +118,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", true);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", "foo", true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -131,7 +131,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
-                one(clearTool).catcs("viewname"); will(returnValue("configspec"));
+                one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
                 one(clearTool).update("viewname", null);
             }
         });
@@ -141,7 +141,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", true);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", "foo", true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -156,7 +156,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             {
                 one(clearTool).rmview("viewname");
                 one(clearTool).mkview("viewname", null);
-                one(clearTool).setcs("viewname", "configspec");
+                one(clearTool).setcs("viewname", "configspec\nload /foo\n");
             }
         });
         classContext.checking(new Expectations() {
@@ -165,7 +165,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", false);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", "foo", false);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -179,7 +179,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                one(clearTool).setcs("viewname", "configspec");
+                one(clearTool).setcs("viewname", "configspec\nload /foo\n");
             }
         });
         classContext.checking(new Expectations() {
@@ -188,7 +188,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", true);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", "foo", true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();

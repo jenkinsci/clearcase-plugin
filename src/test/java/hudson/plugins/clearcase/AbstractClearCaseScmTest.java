@@ -142,6 +142,12 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testGetLoadRules() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules");
+        assertEquals("The load rules arent correct", "loadrules", scm.getLoadRules());
+    }
+
+    @Test
     public void testGetExcludedRegions() {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "", false, "excludedone\nexcludedtwo");
         assertArrayEquals("The excluded regions array is incorrect", new String[]{"excludedone", "excludedtwo"}, scm.getExcludedRegionsNormalized());
@@ -574,7 +580,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             }
         });
 
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", new String[]{"vob1", "vob2/vob2-1", "vob\\ 3"}, "");
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob1\nvob2/vob2-1\nvob\\ 3", "");
         scm.pollChanges(project, launcher, workspace, taskListener);
 
         classContext.assertIsSatisfied();
@@ -669,37 +675,35 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
     private class AbstractClearCaseScmDummy extends AbstractClearCaseScm {
 
-        private final String[] vobPaths;
-
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam,
                 boolean filterOutDestroySubBranchEvent) {
-            this (viewName, new String[]{vobPaths}, mkviewOptionalParam, filterOutDestroySubBranchEvent);
+            this(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, "", false, "",
+                 vobPaths);
         }
 
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam,
                                          boolean filterOutDestroySubBranchEvent, String excludedRegions) {
-            this (viewName, new String[]{vobPaths}, mkviewOptionalParam, filterOutDestroySubBranchEvent,
-                  excludedRegions);
+            this(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, excludedRegions,
+                 false, "", vobPaths);
         }
 
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam) {
-            this (viewName, new String[]{vobPaths}, mkviewOptionalParam);
+            this(viewName, mkviewOptionalParam, false, false, false, "", false, "", vobPaths);
+        }
+        
+        public AbstractClearCaseScmDummy(String viewName,
+                                         String mkviewOptionalParam,
+                                         boolean filterOutDestroySubBranchEvent,
+                                         boolean useUpdate, 
+                                         boolean rmviewonrename,
+                                         String excludedRegions,
+                                         boolean useDynamicView,
+                                         String viewDrive,
+                                         String loadRules) {
+            super(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename,
+                  excludedRegions, useDynamicView, viewDrive, loadRules);
         }
 
-        public AbstractClearCaseScmDummy(String viewName, String[] vobPaths, String mkviewOptionalParam) {
-            this( viewName, vobPaths, mkviewOptionalParam, false);
-        }
-
-        public AbstractClearCaseScmDummy(String viewName, String[] vobPaths, String mkviewOptionalParam,
-                boolean filterOutDestroySubBranchEvent) {
-            this( viewName, vobPaths, mkviewOptionalParam, filterOutDestroySubBranchEvent, "");
-        }
-
-        public AbstractClearCaseScmDummy(String viewName, String[] vobPaths, String mkviewOptionalParam,
-                                         boolean filterOutDestroySubBranchEvent, String excludedRegions) {
-            super( viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, excludedRegions);
-            this.vobPaths = vobPaths;
-        }
 
         @Override
         public SCMDescriptor<?> getDescriptor() {
@@ -724,11 +728,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         @Override
         public String[] getBranchNames() {
             return branchArray;
-        }
-
-        @Override
-        public String[] getViewPaths(FilePath viewPath) throws IOException, InterruptedException {
-            return vobPaths;
         }
 
 //        @Override

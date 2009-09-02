@@ -37,7 +37,7 @@ import java.util.Set;
  * Check out action that will check out files into a UCM snapshot view. Checking
  * out the files will also update the load rules in the view.
  */
-public class UcmSnapshotCheckoutAction implements CheckOutAction {
+public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
 
     private ClearTool cleartool;
     
@@ -66,7 +66,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
         
         if (localViewPathExists) {
             if (this.useUpdate) {
-                String configSpec = PathUtil.convertPathsBetweenUnixAndWindows(cleartool.catcs(viewName), launcher);
+                String configSpec = PathUtil.convertPathForOS(cleartool.catcs(viewName), launcher);
                 Set<String> configSpecLoadRules = extractLoadRules(configSpec);
                 if (configSpecNeedsUpdating(configSpecLoadRules)) {
                     String newConfigSpec = getLoadRuleFreeConfigSpec(configSpec) + "\n";
@@ -74,7 +74,7 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
                     for (String loadRule : loadRules.split("[\\r\\n]+")) {
                         newConfigSpec += "load " + loadRule.trim() + "\n";
                     }
-                    cleartool.setcs(viewName, PathUtil.convertPathsBetweenUnixAndWindows(newConfigSpec, launcher));
+                    cleartool.setcs(viewName, PathUtil.convertPathForOS(newConfigSpec, launcher));
                     updateLoadRules = false;
                 }
             } else {
@@ -107,34 +107,4 @@ public class UcmSnapshotCheckoutAction implements CheckOutAction {
         return recreate;
     }
     
-    private Set<String> extractLoadRules(String configSpec) {
-        Set<String> rules = new HashSet<String>();
-        for (String row : configSpec.split("[\\r\\n]+")) {
-            String trimmedRow = row.toLowerCase().trim();
-            if (trimmedRow.startsWith("load")) {
-                String rule = row.trim().substring("load".length()).trim();
-                rules.add(rule);
-                if ((!rule.startsWith("/")) && (!rule.startsWith("\\"))) {
-                    rules.add(rule);
-                } else {
-                    rules.add(rule.substring(1));
-                }
-            }
-        }
-        return rules;
-    }
-    
-    
-    private String getLoadRuleFreeConfigSpec(String configSpec) {
-        String lrFreeCS = "";
-
-        for (String row : configSpec.split("[\\r\\n]+")) {
-            if (!row.startsWith("load")) {
-                lrFreeCS += row + "\n";
-            }
-        }
-
-        return lrFreeCS.trim();
-    }
-
 }

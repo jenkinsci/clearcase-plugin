@@ -59,7 +59,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         FilePath workspace = launcher.getWorkspace();
         FilePath configSpecFile = workspace.createTextTempFile("configspec", ".txt", configSpec);
         String csLocation = ".." + File.separatorChar + configSpecFile.getName();
-        csLocation = PathUtil.convertPathsBetweenUnixAndWindows(csLocation, launcher.getLauncher());
+        csLocation = PathUtil.convertPathForOS(csLocation, launcher.getLauncher());
 	
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
@@ -132,7 +132,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         } else {
             cmd.add("-add_loadrules");
             String loadRulesLocation = viewName + File.separator + loadRules;
-			cmd.add(PathUtil.convertPathsBetweenUnixAndWindows(loadRulesLocation, getLauncher().getLauncher()));
+			cmd.add(PathUtil.convertPathForOS(loadRulesLocation, getLauncher().getLauncher()));
         }
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
