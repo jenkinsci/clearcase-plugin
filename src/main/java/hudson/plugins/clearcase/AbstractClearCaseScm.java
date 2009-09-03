@@ -135,14 +135,16 @@ public abstract class AbstractClearCaseScm extends SCM {
 	/**
 	 * Create a HistoryAction that will be used by the pollChanges() and
 	 * checkout() method.
-	 * 
+	 *
+	 * @param variableResolver
 	 * @param launcher
 	 *            the command line launcher
 	 * @return an action that can poll if there are any changes a ClearCase
 	 *         repository.
 	 */
 	protected abstract HistoryAction createHistoryAction(
-			VariableResolver variableResolver, ClearToolLauncher launcher);
+							     VariableResolver variableResolver,
+							     ClearToolLauncher launcher);
 
 	/**
 	 * Create a SaveChangeLog action that is used to save a change log
@@ -199,96 +201,111 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         return rules;
     }
-
-	public boolean isUseDynamicView() {
-		return useDynamicView;
-	}
-
-	public String getViewDrive() {
-		return viewDrive;
-	}
-
+    
+    public boolean isUseDynamicView() {
+	return useDynamicView;
+    }
+    
+    public String getViewDrive() {
+	return viewDrive;
+    }
+    
     public String getLoadRules() {
         return loadRules;
     }
-
-	@Override
-	public boolean supportsPolling() {
-		return true;
+    
+    @Override
+    public boolean supportsPolling() {
+	return true;
+    }
+    
+    @Override
+    public boolean requiresWorkspaceForPolling() {
+	return true;
+    }
+    
+    @Override
+    public FilePath getModuleRoot(FilePath workspace) {
+	if (useDynamicView) {
+	    return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
 	}
-
-	@Override
-	public boolean requiresWorkspaceForPolling() {
-		return true;
+	else {
+	    if (getNormalizedViewName() == null) {
+		return super.getModuleRoot(workspace);
+	    } else {
+		return workspace.child(getNormalizedViewName());
+	    }
 	}
-
-	@Override
-	public FilePath getModuleRoot(FilePath workspace) {
-            if (useDynamicView) {
-                return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
-            }
-            else {
-                if (getNormalizedViewName() == null) {
-                    return super.getModuleRoot(workspace);
-		} else {
-                    return workspace.child(getNormalizedViewName());
-		}
-            }
-        }
-
-	public String getViewName() {
-		if (viewName == null) {
-			return "${USER_NAME}_${JOB_NAME}_${NODE_NAME}_view";
-		} else {
-			return viewName;
-		}
+    }
+    
+    public String getViewName() {
+	if (viewName == null) {
+	    return "${USER_NAME}_${JOB_NAME}_${NODE_NAME}_view";
+	} else {
+	    return viewName;
 	}
+    }
+    
+    /**
+     * Returns a normalized view name that will be used in cleartool commands.
+     * It will replace ${JOB_NAME} with the name of the job, * ${USER_NAME} with
+     * the name of the user. This way it will be easier to add new jobs without
+     * trying to find an unique view name. It will also replace invalid chars
+     * from a view name.
+     * 
+     * @param build
+     *            the project to get the name from
+     * @return a string containing no invalid chars.
+     */
+    public String generateNormalizedViewName(AbstractBuild<?, ?> build,
+					     Launcher launcher) {
+	return generateNormalizedViewName(new BuildVariableResolver(build, launcher));
+    }
 
-	/**
-	 * Returns a normalized view name that will be used in cleartool commands.
-	 * It will replace ${JOB_NAME} with the name of the job, * ${USER_NAME} with
-	 * the name of the user. This way it will be easier to add new jobs without
-	 * trying to find an unique view name. It will also replace invalid chars
-	 * from a view name.
-	 * 
-	 * @param build
-	 *            the project to get the name from
-	 * @return a string containing no invalid chars.
-	 */
-	public String generateNormalizedViewName(AbstractBuild<?, ?> build,
-			Launcher launcher) {
-		String generatedNormalizedViewName = Util.replaceMacro(viewName,
-				new BuildVariableResolver(build, launcher));
-
-		generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
-				"[\\s\\\\\\/:\\?\\*\\|]+", "_");
-		this.normalizedViewName = generatedNormalizedViewName;
-		return generatedNormalizedViewName;
-	}
-
-	/**
-	 * Returns the user configured optional params that will be used in when
-	 * creating a new view.
-	 * 
-	 * @return string containing optional mkview parameters.
-	 */
-	public String getMkviewOptionalParam() {
-		return mkviewOptionalParam;
-	}
-
-	/**
-	 * Returns if the "Destroyed branch" event should be filtered out or not.
-	 * For more information about the boolean, see the full discussion at
-	 * http://www.nabble.com/ClearCase-build-triggering-td17507838i20.html
-	 * "Usually, CC admins have a CC trigger, fires on an uncheckout event, that
-	 * destroys empty branches."
-	 * 
-	 * @return true if the "Destroyed branch" event should be filtered out or
-	 *         not; false otherwise
-	 */
-	public boolean isFilteringOutDestroySubBranchEvent() {
-		return filteringOutDestroySubBranchEvent;
-	}
+    /**
+     * Returns a normalized view name that will be used in cleartool commands.
+     * It will replace ${JOB_NAME} with the name of the job, * ${USER_NAME} with
+     * the name of the user. This way it will be easier to add new jobs without
+     * trying to find an unique view name. It will also replace invalid chars
+     * from a view name.
+     * 
+     * @param variableResolver
+     *            An initialized build variable resolver.
+     * @return a string containing no invalid chars.
+     */
+    
+    public String generateNormalizedViewName(BuildVariableResolver variableResolver) {
+	String generatedNormalizedViewName = Util.replaceMacro(viewName, variableResolver);
+	
+	generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
+									     "[\\s\\\\\\/:\\?\\*\\|]+", "_");
+	this.normalizedViewName = generatedNormalizedViewName;
+	return generatedNormalizedViewName;
+    }
+    
+    /**
+     * Returns the user configured optional params that will be used in when
+     * creating a new view.
+     * 
+     * @return string containing optional mkview parameters.
+     */
+    public String getMkviewOptionalParam() {
+	return mkviewOptionalParam;
+    }
+    
+    /**
+     * Returns if the "Destroyed branch" event should be filtered out or not.
+     * For more information about the boolean, see the full discussion at
+     * http://www.nabble.com/ClearCase-build-triggering-td17507838i20.html
+     * "Usually, CC admins have a CC trigger, fires on an uncheckout event, that
+     * destroys empty branches."
+     * 
+     * @return true if the "Destroyed branch" event should be filtered out or
+     *         not; false otherwise
+     */
+    public boolean isFilteringOutDestroySubBranchEvent() {
+	return filteringOutDestroySubBranchEvent;
+    }
 
 	/**
 	 * Adds the env variable for the ClearCase SCMs. CLEARCASE_VIEWNAME - The
