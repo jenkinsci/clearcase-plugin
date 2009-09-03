@@ -129,7 +129,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
 	@Override
 	public ClearCaseScmDescriptor getDescriptor() {
-		return PluginImpl.BASE_DESCRIPTOR;
+	    return PluginImpl.BASE_DESCRIPTOR;
 	}
 
 	@Override
@@ -171,31 +171,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	protected HistoryAction createHistoryAction(
 			VariableResolver variableResolver, ClearToolLauncher launcher) {
             ClearTool ct = createClearTool(variableResolver, launcher);
-            
-            BaseHistoryAction action = new BaseHistoryAction(ct, configureFilters(launcher),
-                                                             getDescriptor().getLogMergeTimeWindow());
-            
-            /*            if (isUseDynamicView()) {
-                String extendedViewPath = getViewDrive();
-                if (!(getViewDrive().endsWith("\\") && getViewDrive().endsWith("/"))) {
-                    // Need to deteremine what kind of char to add in between
-                    if (getViewDrive().contains("/")) {
-                        extendedViewPath += "/";
-                    } else {
-                        extendedViewPath += "\\";
-                    }
-                }
-                extendedViewPath += getViewName();
-                action.setExtendedViewPath(extendedViewPath);
-            } else {
-                String pwv = ct.pwv(getViewName());
-                if (pwv != null) {
-                    action.setExtendedViewPath(pwv);
-                }
-                } */
-            
+	    BaseHistoryAction action = new BaseHistoryAction(ct, configureFilters(launcher),
+							     getDescriptor().getLogMergeTimeWindow());
+
             try {
-                String pwv = ct.pwv(getViewName());
+		String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
                 if (pwv != null) {
                     if (pwv.contains("/")) {
                         pwv += "/";
@@ -252,7 +232,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 	 * 
 	 * @author Erik Ramfelt
 	 */
-	public static final class ClearCaseScmDescriptor extends
+	public static class ClearCaseScmDescriptor extends
 			SCMDescriptor<ClearCaseSCM> implements ModelObject {
 		private String cleartoolExe;
 		private int changeLogMergeTimeWindow = 5;

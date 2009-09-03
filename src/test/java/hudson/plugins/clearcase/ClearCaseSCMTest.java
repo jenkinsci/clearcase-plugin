@@ -27,10 +27,11 @@ package hudson.plugins.clearcase;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
+import hudson.util.VariableResolver;
 import hudson.plugins.clearcase.base.BaseChangeLogAction;
-
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.history.HistoryAction;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,10 +50,14 @@ import org.kohsuke.stapler.StaplerRequest;
 public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
     private Mockery classContext;
+    private Mockery context;
+    private ClearTool cleartool;
     private AbstractProject project;
     private Build build;
     private Launcher launcher;
- 
+    private ClearToolLauncher clearToolLauncher;
+    private ClearCaseSCM.ClearCaseScmDescriptor clearCaseScmDescriptor;
+    
     @Before
     public void setUp() throws Exception {
         createWorkspace();
@@ -64,6 +69,11 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
         launcher = classContext.mock(Launcher.class);
+	clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
+	context = new Mockery();
+	cleartool = context.mock(ClearTool.class);
+	clearToolLauncher = context.mock(ClearToolLauncher.class);
+	
     }
     @After
     public void tearDown() throws Exception {
@@ -193,19 +203,31 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 //        assertEquals("The extended view path is incorrect", "/view/viewname", action.getExtendedViewPath());
 //    }
 
-//    @Test
-//    public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
-//        classContext.checking(new Expectations() {
-//            {
-//                atLeast(2).of(build).getParent(); will(returnValue(project));
-//                one(project).getName(); will(returnValue("ClearCase"));
-//            }
-//        });
-//        ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false, false);
-//        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(null, null);
-//        assertEquals("The extended view path is incorrect", "/view/viewname-clearcase", action.getExtendedViewPath());
-//        classContext.assertIsSatisfied();
-//    }
+    @Test
+    public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
+        classContext.checking(new Expectations() {
+            {
+                atLeast(2).of(build).getParent(); will(returnValue(project));
+                one(project).getName(); will(returnValue("ClearCase"));
+		atLeast(1).of(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
+	    }
+	    });
+	context.checking(new Expectations() {
+		{
+		    one(cleartool).pwv("viewname-ClearCase");
+		    will(returnValue("/view/viewname-ClearCase"));
+		}
+	    });
+	
+        ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob",
+					    true, "/view", null, false, false, false, null);
+	// Create actions
+	VariableResolver variableResolver = new BuildVariableResolver(build,
+								      launcher);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
+        assertEquals("The extended view path is incorrect", "/view/viewname-clearcase/", action.getExtendedViewPath());
+	classContext.assertIsSatisfied();
+    }
     
     private void assertObjectInArray(Object[] array, Object obj) {
         boolean found = false;
@@ -218,4 +240,29 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
             fail(obj + " was not found in array " + Arrays.toString(array));
         }
     }
+
+    private class ClearCaseSCMDummy extends ClearCaseSCM {
+	public ClearCaseSCMDummy(String branch, String configspec, String viewname,
+				 boolean useupdate, String loadRules, boolean usedynamicview,
+				 String viewdrive, String mkviewoptionalparam,
+				 boolean filterOutDestroySubBranchEvent,
+				 boolean doNotUpdateConfigSpec, boolean rmviewonrename,
+				 String excludedRegions) {
+	    super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
+		  viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
+		  rmviewonrename, excludedRegions);
+	}
+    
+	@Override
+	protected ClearTool createClearTool(VariableResolver variableResolver,
+					    ClearToolLauncher launcher) {
+	    return cleartool;
+	}
+
+	@Override
+	public ClearCaseScmDescriptor getDescriptor() {
+	    return clearCaseScmDescriptor;
+	}
+    }
+	
 }
