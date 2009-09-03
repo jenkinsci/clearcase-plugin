@@ -27,7 +27,6 @@ package hudson.plugins.clearcase;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractBuild;
 import hudson.model.ModelObject;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
@@ -144,9 +143,10 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
         ClearTool ct = createClearTool(variableResolver, launcher);
         UcmHistoryAction action = new UcmHistoryAction(ct,configureFilters(launcher));
-        
+
         try {
-            String pwv = ct.pwv(getViewName());
+	    String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
+	    
             if (pwv != null) {
                 if (pwv.contains("/")) {
                     pwv += "/";
@@ -218,7 +218,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 	 * 
 	 * @author Erik Ramfelt
 	 */
-	public static final class ClearCaseUcmScmDescriptor extends
+	public static class ClearCaseUcmScmDescriptor extends
 			SCMDescriptor<ClearCaseUcmSCM> implements ModelObject {
 
 		protected ClearCaseUcmScmDescriptor() {

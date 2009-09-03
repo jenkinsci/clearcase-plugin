@@ -24,13 +24,58 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.Launcher;
+import hudson.model.AbstractProject;
+import hudson.model.Build;
+import hudson.util.VariableResolver;
+import hudson.plugins.clearcase.ucm.UcmChangeLogAction;
+import hudson.plugins.clearcase.ucm.UcmHistoryAction;
+import hudson.plugins.clearcase.history.HistoryAction;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
+
 import static org.junit.Assert.*;
+
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 
 import java.io.IOException;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-public class ClearCaseUcmSCMTest {
+
+public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
+    private Mockery classContext;
+    private Mockery context;
+    private ClearTool cleartool;
+    private AbstractProject project;
+    private Build build;
+    private Launcher launcher;
+    private ClearToolLauncher clearToolLauncher;
+
+    @Before
+    public void setUp() throws Exception {
+        createWorkspace();
+        classContext = new Mockery() {
+            {
+                setImposteriser(ClassImposteriser.INSTANCE);
+            }
+        };
+        project = classContext.mock(AbstractProject.class);
+        build = classContext.mock(Build.class);
+        launcher = classContext.mock(Launcher.class);
+
+	context = new Mockery();
+	cleartool = context.mock(ClearTool.class);
+	clearToolLauncher = context.mock(ClearToolLauncher.class);
+	
+    }
+    @After
+    public void tearDown() throws Exception {
+        deleteWorkspace();
+    }
 
     @Test
     public void testCreateChangeLogParser() {
@@ -120,4 +165,50 @@ public class ClearCaseUcmSCMTest {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream:mystream", "file with space\nanotherfile", "viewname", false, "viewdrive", "option", false, false ,false);
         assertEquals("stream name not shortenen correctly", "mystream",scm.getStream());
     }
+
+    @Test
+    public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
+        classContext.checking(new Expectations() {
+            {
+                atLeast(2).of(build).getParent(); will(returnValue(project));
+                one(project).getName(); will(returnValue("ClearCase"));
+	    }
+	    });
+	context.checking(new Expectations() {
+		{
+		    one(cleartool).pwv("viewname-ClearCase");
+		    will(returnValue("/view/viewname-ClearCase"));
+		}
+	    });
+	
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCMDummy("stream:mystream", "somefile", "viewname-${JOB_NAME}", true, "/view",
+						       null, true, false, false, null);
+	// Create actions
+	VariableResolver variableResolver = new BuildVariableResolver(build,
+								      launcher);
+        UcmHistoryAction action = (UcmHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
+        assertEquals("The extended view path is incorrect", "/view/viewname-clearcase/", action.getExtendedViewPath());
+	classContext.assertIsSatisfied();
+    }
+
+
+    private class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
+	public ClearCaseUcmSCMDummy(String stream, String loadrules, String viewname,
+				    boolean usedynamicview, String viewdrive,
+				    String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
+				    boolean useUpdate, boolean rmviewonrename,
+				    String excludedRegions) {
+	    super(stream, loadrules, viewname, usedynamicview,
+		  viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate,
+		  rmviewonrename, excludedRegions);
+	}
+    
+	@Override
+	protected ClearTool createClearTool(VariableResolver variableResolver,
+					    ClearToolLauncher launcher) {
+	    return cleartool;
+	}
+
+    }
+
 }
