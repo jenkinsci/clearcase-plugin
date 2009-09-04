@@ -76,7 +76,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", "foo", false);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", new String[]{"foo"}, false);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -97,7 +97,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", "foo", false);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", new String[]{"foo"}, false);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -118,7 +118,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", "foo", true);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", new String[]{"foo"}, true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -141,7 +141,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", "foo", true);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", new String[]{"foo"}, true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -165,7 +165,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", "foo", false);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", new String[]{"foo"}, false);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -188,7 +188,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             }
         });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", "foo", true);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", new String[]{"foo"}, true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
