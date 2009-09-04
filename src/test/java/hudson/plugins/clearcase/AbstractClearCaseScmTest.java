@@ -148,6 +148,30 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testGetViewPaths() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules");
+        assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
+    }
+
+    @Test
+    public void testGetViewPathsNoLoad() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load loadrules");
+        assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
+    }
+
+    @Test
+    public void testGetViewPathsLeadingSlash() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "/loadrules");
+        assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
+    }
+
+    @Test
+    public void testGetViewPathsLeadingSlashAndLoad() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load /loadrules");
+        assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
+    }
+
+    @Test
     public void testGetExcludedRegions() {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "", false, "excludedone\nexcludedtwo");
         assertArrayEquals("The excluded regions array is incorrect", new String[]{"excludedone", "excludedtwo"}, scm.getExcludedRegionsNormalized());

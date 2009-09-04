@@ -39,9 +39,9 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
     private final String configSpec;
     private final boolean useUpdate;
     private final ClearTool cleartool;
-    private final String loadRules;
+    private final String[] loadRules;
 
-    public SnapshotCheckoutAction(ClearTool clearTool, String configSpec, String loadRules, boolean useUpdate) {
+    public SnapshotCheckoutAction(ClearTool clearTool, String configSpec, String[] loadRules, boolean useUpdate) {
         this.cleartool = clearTool;
         this.configSpec = configSpec;
         this.loadRules = loadRules;
@@ -77,7 +77,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         }
         else {
             String newConfigSpec = jobConfigSpec + "\n";
-            for (String loadRule : loadRules.split("[\\r\\n]+")) {
+            for (String loadRule : loadRules) {
                 // Make sure the load rule starts with \ or /, as appropriate
                 if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
                     loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;

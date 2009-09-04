@@ -182,15 +182,17 @@ public abstract class AbstractClearCaseScm extends SCM {
 	 * Return string array containing the paths in the view that should be used
 	 * when polling for changes.
 	 * 
-	 * @param viewPath
-	 *            the file path for the view
-	 * @return string array that will be used by the lshistory command
+	 * @return string array that will be used by the lshistory command and for
+	 *         constructing the config spec, etc.
 	 */
-    public String[] getViewPaths(FilePath viewPath)
-        throws IOException, InterruptedException {
+    public String[] getViewPaths() {
         String[] rules = getLoadRules().split("[\\r\\n]+");
         for (int i = 0; i < rules.length; i++) {
             String rule = rules[i];
+	    // Remove "load " from the string, just in case.
+            if (rule.startsWith("load ")) {
+		rule = rule.substring(5);
+	    }
             // Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if
             // the view is not dynamic
             // the user normally enters a load rule beginning with those chars
@@ -213,7 +215,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String getLoadRules() {
         return loadRules;
     }
-    
+
     @Override
     public boolean supportsPolling() {
 	return true;
@@ -353,7 +355,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 					.getTime();
 			changelogEntries = historyAction.getChanges(lastBuildTime,
 					normalizedViewName, getBranchNames(),
-					getViewPaths(workspace.child(normalizedViewName)));
+								    getViewPaths());
 		}
 
 		// Save change log
@@ -389,8 +391,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 				(AbstractBuild) lastBuild, launcher);
 
 		return historyAction.hasChanges(buildTime, normalizedViewName,
-				getBranchNames(), getViewPaths(workspace
-						.child(normalizedViewName)));
+						getBranchNames(), getViewPaths());
 	}
 
 	/**
@@ -522,23 +523,19 @@ public abstract class AbstractClearCaseScm extends SCM {
 
         // Note - the logic here to do ORing to match against *any* of the load rules is, quite frankly,
         // hackishly ugly. I'm embarassed by it. But it's what I've got for right now.
-        String loadRules = getLoadRules();
+        String[] loadRules = getViewPaths();
         String tempFilterRules = "";
-        if (loadRules != null) {
-            for (String loadRule : loadRules.split("[\\r\\n]+")) {
-                if (!loadRule.equals("")) {
-                    // Make sure the load rule starts with \ or /, as appropriate
-                    while (loadRule.startsWith("\\") || loadRule.startsWith("/")) {
-                        loadRule = loadRule.substring(1);
-                    }
 
-                    tempFilterRules += Pattern.quote(loadRule) + "\n";
-                }
-            }
+	for (String loadRule : loadRules) {
+	    if (!loadRule.equals("")) {
+		tempFilterRules += Pattern.quote(loadRule) + "\n";
+	    }
+	}
+
+	if (!tempFilterRules.equals("")) {
             filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, "^(" + tempFilterRules.trim().replaceAll("\\n", "|") + ")"));
-            
-        }
-        
+	}
+	
 	if (isFilteringOutDestroySubBranchEvent()) {
             filters.add(new DestroySubBranchFilter());
         }
