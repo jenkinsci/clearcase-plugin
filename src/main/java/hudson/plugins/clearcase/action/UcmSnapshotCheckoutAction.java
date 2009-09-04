@@ -43,12 +43,12 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
     
     private String stream;
     
-    private String loadRules;
+    private String[] loadRules;
     
     private boolean useUpdate;
     
     public UcmSnapshotCheckoutAction(ClearTool cleartool, String stream,
-                                     String loadRules, boolean useUpdate) {
+                                     String[] loadRules, boolean useUpdate) {
         super();
         this.cleartool = cleartool;
         this.stream = stream;
@@ -71,8 +71,13 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
                 if (configSpecNeedsUpdating(configSpecLoadRules)) {
                     String newConfigSpec = getLoadRuleFreeConfigSpec(configSpec) + "\n";
                     
-                    for (String loadRule : loadRules.split("[\\r\\n]+")) {
-                        newConfigSpec += "load " + loadRule.trim() + "\n";
+                    for (String loadRule : loadRules) {
+			// Make sure the load rule starts with \ or /, as appropriate
+			if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
+			    loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;
+			}
+
+			newConfigSpec += "load " + loadRule.trim() + "\n";
                     }
                     cleartool.setcs(viewName, PathUtil.convertPathForOS(newConfigSpec, launcher));
                     updateLoadRules = false;
@@ -86,7 +91,12 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
             cleartool.mkview(viewName, stream);
         }
         if (updateLoadRules) {
-            for (String loadRule : loadRules.split("[\\r\\n]+")) {
+            for (String loadRule : loadRules) {
+		// Make sure the load rule starts with \ or /, as appropriate
+		if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
+		    loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;
+		}
+		
                 cleartool.update(viewName, loadRule.trim());
             }
         }
@@ -95,7 +105,7 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
     
     private boolean configSpecNeedsUpdating(Set<String> configSpecLoadRules) {
         boolean recreate = false;
-        for (String loadRule : loadRules.split("[\\r\\n]+")) {
+        for (String loadRule : loadRules) {
             if (!configSpecLoadRules.contains(loadRule)) {
                 System.out
                     .println("Load rule: "

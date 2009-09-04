@@ -126,7 +126,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 					variableResolver, launcher), getStream());
 		} else {
 			action = new UcmSnapshotCheckoutAction(createClearTool(
-					variableResolver, launcher), getStream(), getLoadRules(),
+					variableResolver, launcher), getStream(), getViewPaths(),
 					isUseUpdate());
 		}
 		return action;

@@ -162,7 +162,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 		} else {
 			action = new SnapshotCheckoutAction(createClearTool(
                                                                             variableResolver, launcher), 
-                                                            configSpec, getLoadRules(), isUseUpdate());
+                                                            configSpec, getViewPaths(), isUseUpdate());
 		}
 		return action;
 	}

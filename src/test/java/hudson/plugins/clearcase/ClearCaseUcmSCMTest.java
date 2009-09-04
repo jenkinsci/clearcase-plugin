@@ -110,7 +110,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     @Test
     public void testGetViewPaths() throws Exception {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option", false, false ,false);
-        assertEquals("The view path is not the same as the load rules", "loadrules", scm.getViewPaths(null)[0]);
+        assertEquals("The view path is not the same as the load rules", "loadrules", scm.getViewPaths()[0]);
     }
     
     /**
@@ -122,8 +122,8 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     @Test
     public void assertLoadRuleIsConvertedToRelativeViewPath() throws Exception {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "\\\\loadrule\\one\n/loadrule/two", "viewname", false, "viewdrive", "option", false, false ,false);
-        assertEquals("The first view path is not correct", "loadrule\\one", scm.getViewPaths(null)[0]);
-        assertEquals("The second view path is not correct", "loadrule/two", scm.getViewPaths(null)[1]);
+        assertEquals("The first view path is not correct", "loadrule\\one", scm.getViewPaths()[0]);
+        assertEquals("The second view path is not correct", "loadrule/two", scm.getViewPaths()[1]);
     }
     
     /**
@@ -137,15 +137,15 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     /*    @Test
     public void assertLoadRuleIsConvertedToRelativeViewPathIfNotDynamic() throws Exception {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "\\\\loadrule\\one\n/loadrule/two", "viewname", true, "viewdrive", "option", false, false ,false);
-        assertEquals("The first view path is not correct", "\\\\loadrule\\one", scm.getViewPaths(null)[0]);
-        assertEquals("The second view path is not correct", "/loadrule/two", scm.getViewPaths(null)[1]);
+        assertEquals("The first view path is not correct", "\\\\loadrule\\one", scm.getViewPaths()[0]);
+        assertEquals("The second view path is not correct", "/loadrule/two", scm.getViewPaths()[1]);
         }*/
 
     @Test
     public void testGetVobPathsWithSpaces() throws Exception {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "file with space\nanotherfile", "viewname", false, "viewdrive", "option", false, false ,false);
-        assertEquals("The vob path is not the same as the load rules", "file with space", scm.getViewPaths(null)[0]);
-        assertEquals("The vob path is not the same as the load rules", "anotherfile", scm.getViewPaths(null)[1]);
+        assertEquals("The vob path is not the same as the load rules", "file with space", scm.getViewPaths()[0]);
+        assertEquals("The vob path is not the same as the load rules", "anotherfile", scm.getViewPaths()[1]);
     }
     
     /**
@@ -156,8 +156,8 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     @Test
     public void testGetWindowsVobPaths() throws Exception {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "\\ \\ Windows\n\\\\C\\System\\\\32", "viewname", false, "viewdrive", "option", false, false ,false);
-        assertEquals("The vob path is not the same as the load rules", " \\ Windows", scm.getViewPaths(null)[0]);
-        assertEquals("The vob path is not the same as the load rules", "C\\System\\\\32", scm.getViewPaths(null)[1]);
+        assertEquals("The vob path is not the same as the load rules", " \\ Windows", scm.getViewPaths()[0]);
+        assertEquals("The vob path is not the same as the load rules", "C\\System\\\\32", scm.getViewPaths()[1]);
     }  
 
     @Test 

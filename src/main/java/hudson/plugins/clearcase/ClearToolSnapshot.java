@@ -131,7 +131,10 @@ public class ClearToolSnapshot extends ClearToolExec {
             cmd.add(viewName);
         } else {
             cmd.add("-add_loadrules");
-            String loadRulesLocation = viewName + File.separator + loadRules;
+	    // We're assuming loadRules already has a leading slash or backslash, since the only place
+	    // I can find where it's called like this is in UcmSnapshotCheckoutAction, where we
+	    // definitely put the slash/backslash.
+            String loadRulesLocation = viewName + loadRules;
 			cmd.add(PathUtil.convertPathForOS(loadRulesLocation, getLauncher().getLauncher()));
         }
         launcher.run(cmd.toCommandArray(), null, null, null);
