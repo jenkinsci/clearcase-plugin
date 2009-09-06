@@ -220,7 +220,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 	    });
 	
         ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob",
-					    true, "/view", null, false, false, false, null);
+						 true, "/view", null, false, false, false, null, null);
 	// Create actions
 	VariableResolver variableResolver = new BuildVariableResolver(build,
 								      launcher);
@@ -247,10 +247,10 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 				 String viewdrive, String mkviewoptionalparam,
 				 boolean filterOutDestroySubBranchEvent,
 				 boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-				 String excludedRegions) {
+				 String excludedRegions, String multiSitePollBuffer) {
 	    super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
 		  viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-		  rmviewonrename, excludedRegions);
+		  rmviewonrename, excludedRegions, multiSitePollBuffer);
 	}
     
 	@Override

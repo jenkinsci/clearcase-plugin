@@ -67,6 +67,10 @@
 			<f:checkbox name="cc.rmviewonrename" checked="${scm.removeViewOnRename}"/>
       		If checked, Hudson will try to remove the existing clearcase view.
 		</f:entry>
+		<f:entry title="Multi-site poll buffer" help="/plugin/clearcase/multiSitePollBuffer.html">
+		  <f:textbox name="cc.multiSitePollBuffer"
+			     value="${scm.multiSitePollBuffer}" />
+		</f:entry>
       <f:block>
         <table>
 
