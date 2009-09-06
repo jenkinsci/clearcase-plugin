@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase;
 
+import static hudson.Util.fixEmpty;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -69,13 +70,13 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
 	@DataBoundConstructor
 	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
-			boolean usedynamicview, String viewdrive,
-			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
+			       boolean usedynamicview, String viewdrive,
+			       String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
                                boolean useUpdate, boolean rmviewonrename,
-                               String excludedRegions) {
+                               String excludedRegions, String multiSitePollBuffer) {
 		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
                       useUpdate, rmviewonrename, excludedRegions, usedynamicview, 
-                      viewdrive, loadrules);
+                      viewdrive, loadrules, multiSitePollBuffer);
 		this.stream = shortenStreamName(stream);
 
 	}
@@ -85,7 +86,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
                                boolean useUpdate, boolean rmviewonrename) {
             this(stream, loadrules, viewname, usedynamicview, viewdrive, mkviewoptionalparam,
-                 filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "");
+                 filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "", null);
         }
 
 	/**
@@ -248,8 +249,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 					req.getParameter("ucm.filterOutDestroySubBranchEvent") != null,
 					req.getParameter("ucm.useupdate") != null,
 					req.getParameter("ucm.rmviewonrename") != null,
-                                        req.getParameter("ucm.excludedRegions")
-                                                                  );
+                                        req.getParameter("ucm.excludedRegions"),
+					fixEmpty(req.getParameter("ucm.multiSitePollBuffer"))
+						 );
 			return scm;
 		}
 	}

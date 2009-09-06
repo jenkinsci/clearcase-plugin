@@ -182,7 +182,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
 	    });
 	
         ClearCaseUcmSCM scm = new ClearCaseUcmSCMDummy("stream:mystream", "somefile", "viewname-${JOB_NAME}", true, "/view",
-						       null, true, false, false, null);
+						       null, true, false, false, null, null);
 	// Create actions
 	VariableResolver variableResolver = new BuildVariableResolver(build,
 								      launcher);
@@ -197,10 +197,10 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
 				    boolean usedynamicview, String viewdrive,
 				    String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
 				    boolean useUpdate, boolean rmviewonrename,
-				    String excludedRegions) {
+				    String excludedRegions, String multiSitePollBuffer) {
 	    super(stream, loadrules, viewname, usedynamicview,
 		  viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate,
-		  rmviewonrename, excludedRegions);
+		  rmviewonrename, excludedRegions, multiSitePollBuffer);
 	}
     
 	@Override
