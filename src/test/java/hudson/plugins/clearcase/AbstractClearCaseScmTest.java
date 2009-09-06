@@ -143,31 +143,31 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
     @Test
     public void testGetLoadRules() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules");
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules", null);
         assertEquals("The load rules arent correct", "loadrules", scm.getLoadRules());
     }
 
     @Test
     public void testGetViewPaths() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules");
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules", null);
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
     }
 
     @Test
     public void testGetViewPathsNoLoad() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load loadrules");
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load loadrules", null);
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
     }
 
     @Test
     public void testGetViewPathsLeadingSlash() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "/loadrules");
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "/loadrules", null);
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
     }
 
     @Test
     public void testGetViewPathsLeadingSlashAndLoad() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load /loadrules");
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load /loadrules", null);
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
     }
 
@@ -337,7 +337,53 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
         classContext.assertIsSatisfied();
     }
-    
+
+    @Test
+    public void assertCheckoutWithChangesWithBuffer() throws Exception {
+        workspace.child("viewname").mkdirs();
+        final File changelogFile = new File(parentFile, "changelog.xml");
+        final File extendedChangelogFile = new File(parentFile, "extended-changelog.xml");
+        
+        final ArrayList<ClearCaseChangeLogEntry> list = new ArrayList<ClearCaseChangeLogEntry>();
+        list.add(new ClearCaseChangeLogEntry(new Date(12), "user", "comment"));
+        list.add(new ClearCaseChangeLogEntry(new Date(12), "user", "comment"));
+
+        final Calendar mockedCalendar = Calendar.getInstance();
+        mockedCalendar.setTimeInMillis(1000000);
+	final Date bufferedDate = new Date(mockedCalendar.getTimeInMillis() - (1000 * 60 * 5));
+
+        context.checking(new Expectations() {
+            {
+                one(checkOutAction).checkout(launcher, workspace, "viewname"); 
+                will(returnValue(true));
+                    
+                // normal changelog
+                one(historyAction).getChanges(with(equal(bufferedDate)), with(equal("viewname")), with(equal(new String[] {"branch"})), with(equal(new String[]{"vob"})));
+                    will(returnValue(list));
+                one(saveChangeLogAction).saveChangeLog(changelogFile, list);
+                
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                // normal changelog
+                exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
+                allowing(build).getTimestamp(); will(returnValue(mockedCalendar));
+                ignoring(build).getParent(); will(returnValue(project));
+                
+            }
+        });
+
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", false, false, false, "",
+								 false, "", "vob", "5"
+								 );
+        boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
+        assertTrue("The first time should always return true", hasChanges);
+
+        context.assertIsSatisfied();
+        classContext.assertIsSatisfied();
+    }
+
     @Test
     public void assertCheckoutUsesNormalizedViewName() throws Exception {
         workspace.child("viewname-CCHudson").mkdirs();
@@ -464,11 +510,43 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         classContext.checking(new Expectations() {
             {
                 ignoring(build).getParent(); will(returnValue(project));
-                one(build).getTimestamp(); will(returnValue(mockedCalendar));
+                allowing(build).getTimestamp(); will(returnValue(mockedCalendar));
                 one(project).getLastBuild(); will(returnValue(build));
             }
         });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
+        boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
+        assertTrue("The first time should always return true", hasChanges);
+
+        classContext.assertIsSatisfied();
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testPollChangesWithBuffer() throws Exception {
+        final Calendar mockedCalendar = Calendar.getInstance();
+        mockedCalendar.setTimeInMillis(1000000);
+	final Date bufferedDate = new Date(mockedCalendar.getTimeInMillis() - (1000 * 60 * 5));
+        context.checking(new Expectations() {
+            {
+                
+                one(historyAction).hasChanges(with(equal(bufferedDate)),
+                        with(equal("viewname")), 
+                        with(equal(new String[] {"branch"})), 
+                        with(equal(new String[]{"vob"}))); 
+                will(returnValue(true));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                ignoring(build).getParent(); will(returnValue(project));
+                allowing(build).getTimestamp(); will(returnValue(mockedCalendar));
+                one(project).getLastBuild(); will(returnValue(build));
+            }
+        });
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", false, false, false, "",
+								 false, "", "vob", "5"
+								 );
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
 
@@ -702,17 +780,17 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam,
                 boolean filterOutDestroySubBranchEvent) {
             this(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, "", false, "",
-                 vobPaths);
+                 vobPaths, null);
         }
 
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam,
                                          boolean filterOutDestroySubBranchEvent, String excludedRegions) {
             this(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, excludedRegions,
-                 false, "", vobPaths);
+                 false, "", vobPaths, null);
         }
 
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam) {
-            this(viewName, mkviewOptionalParam, false, false, false, "", false, "", vobPaths);
+            this(viewName, mkviewOptionalParam, false, false, false, "", false, "", vobPaths, null);
         }
         
         public AbstractClearCaseScmDummy(String viewName,
@@ -723,9 +801,10 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                                          String excludedRegions,
                                          boolean useDynamicView,
                                          String viewDrive,
-                                         String loadRules) {
+                                         String loadRules,
+					 String multiSitePollBuffer) {
             super(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename,
-                  excludedRegions, useDynamicView, viewDrive, loadRules);
+                  excludedRegions, useDynamicView, viewDrive, loadRules, multiSitePollBuffer);
         }
 
 
@@ -758,7 +837,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 //        protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher,List<Filter> filters) {
 //            return changeLogAction;
 //        }
-
+	
         @Override
         protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
             return saveChangeLogAction;

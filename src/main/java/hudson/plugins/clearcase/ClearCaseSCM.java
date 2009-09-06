@@ -94,10 +94,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                             String viewdrive, String mkviewoptionalparam,
                             boolean filterOutDestroySubBranchEvent,
                             boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-                            String excludedRegions) {
+                            String excludedRegions, String multiSitePollBuffer) {
 		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
                       (!usedynamicview) && useupdate, rmviewonrename,
-                      excludedRegions, usedynamicview, viewdrive, loadRules);
+                      excludedRegions, usedynamicview, viewdrive, loadRules,
+		      multiSitePollBuffer);
 		this.branch = branch;
 		this.configSpec = configspec;
 		this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
@@ -108,10 +109,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                             boolean useupdate, String loadRules, boolean usedynamicview,
                             String viewdrive, String mkviewoptionalparam,
                             boolean filterOutDestroySubBranchEvent,
-                            boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
+			boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
             this(branch, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive,
                  mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, 
-                 rmviewonrename, "");
+                 rmviewonrename, "", null);
         }
 
 
@@ -294,7 +295,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 					req.getParameter("cc.filterOutDestroySubBranchEvent") != null,
 					req.getParameter("cc.doNotUpdateConfigSpec") != null,
 					req.getParameter("cc.rmviewonrename") != null,
-                                        req.getParameter("cc.excludedRegions")
+                                        req.getParameter("cc.excludedRegions"),
+					fixEmpty(req.getParameter("cc.multiSitePollBuffer"))
                                                                     );			
 			return scm;
 		}

@@ -67,7 +67,12 @@
       		If checked, Hudson will try to remove the existing clearcase view.
 		</f:entry>
 		
-        <f:entry title="Filter 'Destroy sub branch' event" help="/plugin/clearcase/filteroutdestroysubbranchevent.html">
+		<f:entry title="Multi-site poll buffer" help="/plugin/clearcase/multiSitePollBuffer.html">
+		  <f:textbox name="ucm.multiSitePollBuffer"
+			     value="${scm.multiSitePollBuffer}" />
+		</f:entry>
+
+		<f:entry title="Filter 'Destroy sub branch' event" help="/plugin/clearcase/filteroutdestroysubbranchevent.html">
 		    <f:checkbox name="ucm.filterOutDestroySubBranchEvent" checked="${scm.filteringOutDestroySubBranchEvent}"/>
       			If checked, Hudson will filter out <i>'Destroy sub-branch "BRANCHNAME" of branch'</i> events when polling
       			and retrieving change logs from a ClearCase repository.
