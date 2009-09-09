@@ -125,7 +125,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
                 currentEntry.setUser(matcher.group(2));
                 String fileName = matcher.group(4).trim();
                 if (extendedViewPath != null) {
-                    if (fileName.toLowerCase().startsWith(extendedViewPath)) {
+                    if (fileName.startsWith(extendedViewPath)) {
                         fileName = fileName.substring(extendedViewPath.length());
                     }
                 }
@@ -174,11 +174,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
      * @param path the new extended view path.
      */
     public void setExtendedViewPath(String path) {
-        if (path != null) {
-            this.extendedViewPath = path.toLowerCase();
-        } else {
-            this.extendedViewPath = null;
-        }
+	this.extendedViewPath = path;
     }
 
     public String getExtendedViewPath() {

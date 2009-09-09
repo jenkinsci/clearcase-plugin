@@ -78,7 +78,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
         try {
             for (String branchName : branchNames) {
-                BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
+		BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
                 fullList.addAll(parseLsHistory(reader));
                 reader.close();
             }
@@ -96,8 +96,9 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
         StringBuilder commentBuilder = new StringBuilder();
         String line = reader.readLine();
-
+	
         while (line != null) {
+
             //TODO: better error handling
             if (line.startsWith("cleartool: Error:")) {
                 line = reader.readLine();
@@ -170,11 +171,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
      * @param path the new extended view path.
      */
     public void setExtendedViewPath(String path) {
-        if (path != null) {
-            this.extendedViewPath = path.toLowerCase();
-        } else {
-            this.extendedViewPath = null;
-        }
+	this.extendedViewPath = path;
     }
 
     public String getExtendedViewPath() {

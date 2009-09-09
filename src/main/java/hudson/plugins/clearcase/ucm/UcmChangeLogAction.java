@@ -149,9 +149,9 @@ public class UcmChangeLogAction implements ChangeLogAction {
 
 					String fileName = matcher.group(2).trim();
 					if (extendedViewPath != null) {
-						if (fileName.toLowerCase().startsWith(extendedViewPath)) {
-							fileName = fileName.substring(extendedViewPath
-									.length());
+						if (fileName.startsWith(extendedViewPath)) {
+						    fileName = fileName.substring(extendedViewPath
+										  .length());
 						}
 					}
 
@@ -265,24 +265,20 @@ public class UcmChangeLogAction implements ChangeLogAction {
 		reader.close();
 	}
 
-	/**
-	 * Sets the extended view path. The extended view path will be removed from
-	 * file paths in the event. The extended view path is for example the view
-	 * root + view name; and this path shows up in the history and can be
-	 * conusing for users.
-	 * 
-	 * @param path
-	 *            the new extended view path.
-	 */
-	public void setExtendedViewPath(String path) {
-		if (path != null) {
-			this.extendedViewPath = path.toLowerCase();
-		} else {
-			this.extendedViewPath = null;
-		}
-	}
-
-	public String getExtendedViewPath() {
-		return extendedViewPath;
-	}
+    /**
+     * Sets the extended view path. The extended view path will be removed from
+     * file paths in the event. The extended view path is for example the view
+     * root + view name; and this path shows up in the history and can be
+     * conusing for users.
+     * 
+     * @param path
+     *            the new extended view path.
+     */
+    public void setExtendedViewPath(String path) {
+	this.extendedViewPath = path;
+    }
+    
+    public String getExtendedViewPath() {
+	return extendedViewPath;
+    }
 }

@@ -220,12 +220,13 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 	    });
 	
         ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob",
-						 true, "/view", null, false, false, false, null, null);
+						 true, "/view", null, false, false, false, null, null,
+						 cleartool, clearCaseScmDescriptor);
 	// Create actions
 	VariableResolver variableResolver = new BuildVariableResolver(build,
 								      launcher);
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
-        assertEquals("The extended view path is incorrect", "/view/viewname-clearcase/", action.getExtendedViewPath());
+        assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
 	classContext.assertIsSatisfied();
     }
     
@@ -239,30 +240,6 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         if (!found) {
             fail(obj + " was not found in array " + Arrays.toString(array));
         }
-    }
-
-    private class ClearCaseSCMDummy extends ClearCaseSCM {
-	public ClearCaseSCMDummy(String branch, String configspec, String viewname,
-				 boolean useupdate, String loadRules, boolean usedynamicview,
-				 String viewdrive, String mkviewoptionalparam,
-				 boolean filterOutDestroySubBranchEvent,
-				 boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-				 String excludedRegions, String multiSitePollBuffer) {
-	    super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
-		  viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-		  rmviewonrename, excludedRegions, multiSitePollBuffer);
-	}
-    
-	@Override
-	protected ClearTool createClearTool(VariableResolver variableResolver,
-					    ClearToolLauncher launcher) {
-	    return cleartool;
-	}
-
-	@Override
-	public ClearCaseScmDescriptor getDescriptor() {
-	    return clearCaseScmDescriptor;
-	}
     }
 	
 }
