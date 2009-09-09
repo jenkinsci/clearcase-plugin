@@ -41,7 +41,7 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
     protected Set<String> extractLoadRules(String configSpec) {
         Set<String> rules = new HashSet<String>();
         for (String row : configSpec.split("[\\r\\n]+")) {
-            String trimmedRow = row.toLowerCase().trim();
+            String trimmedRow = row.trim();
             if (trimmedRow.startsWith("load")) {
                 String rule = row.trim().substring("load".length()).trim();
                 rules.add(rule);

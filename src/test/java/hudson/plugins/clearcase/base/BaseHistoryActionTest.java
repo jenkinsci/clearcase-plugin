@@ -35,15 +35,27 @@ import java.util.List;
 
 import hudson.plugins.clearcase.AbstractClearCaseScm;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
+import hudson.plugins.clearcase.ClearCaseSCM;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
 import hudson.plugins.clearcase.history.DefaultFilter;
 import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
+
+import hudson.plugins.clearcase.ClearCaseSCMTest;
+import hudson.plugins.clearcase.ClearCaseSCMDummy;
+
+import hudson.Launcher;
+import hudson.model.AbstractProject;
+import hudson.model.Build;
+import hudson.util.VariableResolver;
 
 import java.util.ArrayList;
 import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Mockery;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,12 +64,29 @@ public class BaseHistoryActionTest {
 
     private static final String VALID_HISTORY_FORMAT="\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\n%c\\n";
     private Mockery context;
+    private Mockery classContext;
+    private AbstractProject project;
+    private Build build;
+    private Launcher launcher;
+    private ClearToolLauncher clearToolLauncher;
+    private ClearCaseSCM.ClearCaseScmDescriptor clearCaseScmDescriptor;
+
     private ClearTool cleartool;
     
     @Before
     public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
+	clearToolLauncher = context.mock(ClearToolLauncher.class);
+        classContext = new Mockery() {
+            {
+                setImposteriser(ClassImposteriser.INSTANCE);
+            }
+        };
+        project = classContext.mock(AbstractProject.class);
+        build = classContext.mock(Build.class);
+        launcher = classContext.mock(Launcher.class);
+	clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
     }
 
     /*
@@ -540,7 +569,65 @@ public class BaseHistoryActionTest {
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "/vobs/Tools/framework/util/QT.h", entry.getElements().get(0).getFile());
     }
-    
+
+    /**
+     * Bug was that we had (pre-1.0) been converting extended view path to lower case whenever we used it
+     * or compared against it. I believe this was done because the view drive was manually specified, and so
+     * on Windows, the configured value could be, say, m:\ or M:\ and either would be valid. In that context,
+     * normalizing to lower-case meant we wouldn't have to worry about how view drive was specified, case-wise.
+     * But with 1.0 and later, we're actually getting extended view path directly from cleartool pwv, and it
+     * got changed in some places to no longer do toLowerCase() before comparisons, while the setter was still
+     * converting to lower-case, which caused any path in a view with upper-case to be rejected by the filters.
+     *
+     * Now, we never call toLowerCase() on the extended view path, at any point, since it's just going to be the
+     * output of pwv, which will have consistent case usage regardless of what we do.
+     */
+    @Bug(3666)
+    @Test
+    public void testCaseSensitivityInViewPaths() throws Exception {
+        classContext.checking(new Expectations() {
+		{
+		    allowing(build).getParent(); will(returnValue(project));
+		    allowing(project).getName(); will(returnValue("Issue3666"));
+		    allowing(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
+		}});
+	
+	context.checking(new Expectations() {
+		{
+		    allowing(cleartool).pwv(with(any(String.class)));
+		    will(returnValue("Y:\\Hudson.SAP.ICI.7.6.Quick"));
+		    allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
+						  with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+		    will(returnValue(new StringReader(
+						      "\"20090909.151109\" \"nugarov\" " +
+						      "\"Y:\\Hudson.SAP.ICI.7.6.Quick\\sapiciadapter\\Tools\\gplus_tt\\gplus_tt_config.py\" \"\\main\\dev-kiev-7.6\\10\" \"create version\" \"checkin\"\nvolatile")));
+		    
+		}
+	    });
+
+	ClearCaseSCMDummy scm = new ClearCaseSCMDummy("", "configspec", "Hudson.SAP.ICI.7.6.Quick",
+						      false, "load /sapiciadapter", true,
+						      "Y:\\", "", false, false, false, "", "",
+						      cleartool, clearCaseScmDescriptor);
+
+	VariableResolver variableResolver = new BuildVariableResolver(build, launcher);
+
+	BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
+	/*	assertEquals("The extended view path is incorrect.",
+		     "Y:\\Hudson.SAP.ICI.7.6.Quick\\",
+		     action.getExtendedViewPath());
+	*/
+	List<ClearCaseChangeLogEntry> entries =
+	    (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
+							      scm.generateNormalizedViewName((BuildVariableResolver)variableResolver),
+							      scm.getBranchNames(),
+							      scm.getViewPaths());
+        assertEquals("Number of history entries are incorrect", 1, entries.size());
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        assertEquals("File path is incorrect", "sapiciadapter\\Tools\\gplus_tt\\gplus_tt_config.py", entry.getElements().get(0).getFile());
+    }
+
+
     private Date getDate(int year, int month, int day, int hour, int min, int sec) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(0);
