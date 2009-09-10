@@ -48,6 +48,8 @@ import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.ClearCaseSCMTest;
 import hudson.plugins.clearcase.ClearCaseSCMDummy;
 
+import org.jvnet.hudson.test.Bug;
+
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
@@ -584,7 +586,7 @@ public class BaseHistoryActionTest {
      */
     @Bug(3666)
     @Test
-    public void testCaseSensitivityInViewPaths() throws Exception {
+    public void testCaseSensitivityInViewName() throws Exception {
         classContext.checking(new Expectations() {
 		{
 		    allowing(build).getParent(); will(returnValue(project));
@@ -625,6 +627,65 @@ public class BaseHistoryActionTest {
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "sapiciadapter\\Tools\\gplus_tt\\gplus_tt_config.py", entry.getElements().get(0).getFile());
+    }
+
+    /**
+     * Very similar to above - but here, the upper-case is in the path to the workspace. Also, we're verifying that
+     * an lshistory item for a path *not* specified in the load rules doesn't get included in the changelog.
+     */
+    @Bug(4430)
+    @Test
+    public void testCaseSensitivityInExtendedViewPath() throws Exception {
+        classContext.checking(new Expectations() {
+		{
+		    allowing(build).getParent(); will(returnValue(project));
+		    allowing(project).getName(); will(returnValue("Issue4430"));
+		    allowing(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
+		}});
+	
+	context.checking(new Expectations() {
+		{
+		    allowing(cleartool).pwv(with(any(String.class)));
+		    will(returnValue("D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot"));
+		    allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
+						  with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+		    will(returnValue(new StringReader(
+						      "\"20090909.124752\" \"erustt\" " +
+						      "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\apps\\esa\\ecl\\sot\\sot_impl\\src\\main\\java\\com\\ascom\\ecs3\\ecl\\sot\\nodeoperationstate\\OperationStateManagerImpl.java\" " +
+						      "\"\\main\\refact_structure\\2\" \"create version\" \"checkin\"\n\n" +
+						      "\"20090909.105713\" \"eveter\" " +
+						      "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\apps\\confcmdnet\\ecl\\confcmdnet_webapp\\doc\" " +
+						      "\"\\main\\refact_structure\\13\" \"create directory version\" \"checkin\"\nUncataloged file element \"ConfCmdNet_PendenzenListe.xlsx\".\n" +
+						      "\"20090909.091004\" \"eruegr\" " +
+						      "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\components\\ecc_dal\\dal_impl_hibernate\\src\\main\\java\\com\\ascom\\ecs3\\ecc\\dal\\impl\\hibernate\\ctrl\\SotButtonController.java\" " +
+						      "\"\\main\\refact_structure\\16\" \"create version\" \"checkin\"\n\n"
+						      )));
+		    
+		}
+	    });
+
+	ClearCaseSCMDummy scm = new ClearCaseSCMDummy("refact_structure", "configspec",
+						      "sa-seso-tempusr4__refact_structure__sot",
+						      true, "load \\ecs3cop\\projects\\buildconfigurations\n" +
+						      "load \\ecs3cop\\projects\\apps\\esa\n" +
+						      "load \\ecs3cop\\projects\\apps\\tmp\n" +
+						      "load \\ecs3cop\\projects\\components\n" +
+						      "load \\ecs3cop\\projects\\test\n", false,
+						      "", "", false, false, false, "", "",
+						      cleartool, clearCaseScmDescriptor);
+
+	VariableResolver variableResolver = new BuildVariableResolver(build, launcher);
+
+	BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
+
+	List<ClearCaseChangeLogEntry> entries =
+	    (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
+							      scm.generateNormalizedViewName((BuildVariableResolver)variableResolver),
+							      scm.getBranchNames(),
+							      scm.getViewPaths());
+        assertEquals("Number of history entries are incorrect", 2, entries.size());
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        assertEquals("File path is incorrect", "ecs3cop\\projects\\apps\\esa\\ecl\\sot\\sot_impl\\src\\main\\java\\com\\ascom\\ecs3\\ecl\\sot\\nodeoperationstate\\OperationStateManagerImpl.java", entry.getElements().get(0).getFile());
     }
 
 
