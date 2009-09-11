@@ -148,9 +148,21 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testGetLoadRulesWithSpaces() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load rules", null);
+        assertEquals("The load rules arent correct", "load rules", scm.getLoadRules());
+    }
+
+    @Test
     public void testGetViewPaths() {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules", null);
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
+    }
+
+    @Test
+    public void testGetViewPathsWithSpaces() {
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "test rules", null);
+        assertEquals("The view paths aren't correct", "test rules", scm.getViewPaths()[0]);
     }
 
     @Test
