@@ -48,7 +48,7 @@ public class PluginImpl extends Plugin {
      * Registers ClearCase SCM.
      */
     @Override
-    public void start() throws Exception {
+        public void start() throws Exception {
         SCMS.SCMS.add(BASE_DESCRIPTOR);
         SCMS.SCMS.add(UCM_DESCRIPTOR);
         Publisher.PUBLISHERS.add(UcmMakeBaseline.DESCRIPTOR);

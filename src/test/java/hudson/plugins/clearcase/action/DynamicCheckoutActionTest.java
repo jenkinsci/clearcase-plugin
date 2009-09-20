@@ -46,38 +46,38 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     private Launcher launcher;
 
     @Before
-    public void setUp() throws Exception {
+        public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         classContext = new Mockery() {
-            {
-                setImposteriser(ClassImposteriser.INSTANCE);
-            }
-        };
+                {
+                    setImposteriser(ClassImposteriser.INSTANCE);
+                }
+            };
 
         launcher = classContext.mock(Launcher.class);
         clearTool = context.mock(ClearTool.class);
     }
 
     @After
-    public void teardown() throws Exception {
+        public void teardown() throws Exception {
         deleteWorkspace();
     }
     
     @Test
-    public void testChangeInConfigSpecOnUnix() throws Exception {
+        public void testChangeInConfigSpecOnUnix() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).startView("viewname");
-                one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                one(clearTool).setcs("viewname", "config\nspec");
-            }
-        });
+                {
+                    one(clearTool).startView("viewname");
+                    one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
+                    one(clearTool).setcs("viewname", "config\nspec");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-                ignoring(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    ignoring(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false);
         boolean success = action.checkout(launcher, workspace, "viewname");
@@ -88,19 +88,19 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-    public void testChangeInConfigSpec() throws Exception {
+        public void testChangeInConfigSpec() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).startView("viewname");
-                one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                one(clearTool).setcs("viewname", "config\r\nspec");
-            }
-        });
+                {
+                    one(clearTool).startView("viewname");
+                    one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
+                    one(clearTool).setcs("viewname", "config\r\nspec");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-                ignoring(launcher).isUnix(); will(returnValue(false));
-            }
-        });
+                {
+                    ignoring(launcher).isUnix(); will(returnValue(false));
+                }
+            });
 
         DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false);
         boolean success = action.checkout(launcher, workspace, "viewname");
@@ -111,18 +111,18 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-    public void testChangeInConfigSpecDoNotResetConfigSpecEnabled() throws Exception {
+        public void testChangeInConfigSpecDoNotResetConfigSpecEnabled() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).startView("viewname");
-                one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-            }
-        });
+                {
+                    one(clearTool).startView("viewname");
+                    one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-                ignoring(launcher).isUnix(); will(returnValue(false));
-            }
-        });
+                {
+                    ignoring(launcher).isUnix(); will(returnValue(false));
+                }
+            });
 
         DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true);
         boolean success = action.checkout(launcher, workspace, "viewname");
@@ -133,18 +133,18 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testNoChangeInConfigSpec() throws Exception {
+        public void testNoChangeInConfigSpec() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).startView("viewname");
-                one(clearTool).catcs("viewname"); will(returnValue("config\nspec"));
-            }
-        });
+                {
+                    one(clearTool).startView("viewname");
+                    one(clearTool).catcs("viewname"); will(returnValue("config\nspec"));
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-                ignoring(launcher).isUnix(); will(returnValue(false));
-            }
-        });
+                {
+                    ignoring(launcher).isUnix(); will(returnValue(false));
+                }
+            });
 
         DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false);
         boolean success = action.checkout(launcher, workspace, "viewname");

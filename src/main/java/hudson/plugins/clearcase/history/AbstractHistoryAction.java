@@ -54,7 +54,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     }
     
     @Override
-    public boolean hasChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        public boolean hasChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> entries = runLsHistory(time,viewName,branchNames,viewPaths); 
         List<HistoryEntry> filtered = filterEntries(entries);
 
@@ -63,7 +63,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     }
 
     @Override
-    public List<? extends Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        public List<? extends Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> entries = runLsHistory(time,viewName,branchNames,viewPaths);
         List<HistoryEntry> filtered = filterEntries(entries);
 
@@ -78,7 +78,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
         try {
             for (String branchName : branchNames) {
-		BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
+                BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
                 fullList.addAll(parseLsHistory(reader));
                 reader.close();
             }
@@ -96,7 +96,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
         StringBuilder commentBuilder = new StringBuilder();
         String line = reader.readLine();
-	
+        
         while (line != null) {
 
             //TODO: better error handling
@@ -171,7 +171,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
      * @param path the new extended view path.
      */
     public void setExtendedViewPath(String path) {
-	this.extendedViewPath = path;
+        this.extendedViewPath = path;
     }
 
     public String getExtendedViewPath() {

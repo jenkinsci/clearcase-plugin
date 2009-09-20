@@ -47,112 +47,112 @@ import java.util.regex.Pattern;
 
 public abstract class ClearToolExec implements ClearTool {
 
-	private transient Pattern viewListPattern;
-	protected ClearToolLauncher launcher;
-	protected VariableResolver variableResolver;
+    private transient Pattern viewListPattern;
+    protected ClearToolLauncher launcher;
+    protected VariableResolver variableResolver;
 
-	public ClearToolExec(VariableResolver variableResolver,
-			ClearToolLauncher launcher) {
-		this.variableResolver = variableResolver;
-		this.launcher = launcher;
-	}
+    public ClearToolExec(VariableResolver variableResolver,
+                         ClearToolLauncher launcher) {
+        this.variableResolver = variableResolver;
+        this.launcher = launcher;
+    }
 
     public ClearToolLauncher getLauncher() {
         return launcher;
     }
 
-	protected abstract FilePath getRootViewPath(ClearToolLauncher launcher);
+    protected abstract FilePath getRootViewPath(ClearToolLauncher launcher);
 
-	public Reader lshistory(String format, Date lastBuildDate, String viewName,
-			String branch, String[] viewPaths) throws IOException,
-			InterruptedException {
-            SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
-            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    public Reader lshistory(String format, Date lastBuildDate, String viewName,
+                            String branch, String[] viewPaths) throws IOException,
+                                                                      InterruptedException {
+        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
             
-            ArgumentListBuilder cmd = new ArgumentListBuilder();
-            cmd.add("lshistory");
-            cmd.add("-all");
-            cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
-            cmd.add("-fmt", format);
-            //		cmd.addQuoted(format);
-            if ((branch != null) && (branch.length() > 0)) {
-                cmd.add("-branch", "brtype:" + branch);
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("lshistory");
+        cmd.add("-all");
+        cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
+        cmd.add("-fmt", format);
+        //              cmd.addQuoted(format);
+        if ((branch != null) && (branch.length() > 0)) {
+            cmd.add("-branch", "brtype:" + branch);
+        }
+        cmd.add("-nco");
+            
+        FilePath viewPath = getRootViewPath(launcher).child(viewName);
+            
+        for (String path : viewPaths) {
+            path = path.replace("\n","").replace("\r","");
+            if (path.matches(".*\\s.*")) {
+                cmd.addQuoted(path);
             }
-            cmd.add("-nco");
-            
-            FilePath viewPath = getRootViewPath(launcher).child(viewName);
-            
-            for (String path : viewPaths) {
-		path = path.replace("\n","").replace("\r","");
-		if (path.matches(".*\\s.*")) {
-		    cmd.addQuoted(path);
-		}
-		else {
-		    cmd.add(path);
-		}
+            else {
+                cmd.add(path);
             }
-            Reader returnReader = null;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
-                returnReader = new InputStreamReader(new ByteArrayInputStream(baos
-                                                                              .toByteArray()));
-            }
-            baos.close();
+        }
+        Reader returnReader = null;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
+            returnReader = new InputStreamReader(new ByteArrayInputStream(baos
+                                                                          .toByteArray()));
+        }
+        baos.close();
             
-            return returnReader;
-	}
+        return returnReader;
+    }
 
-	public Reader lsactivity(String activity, String commandFormat,
-			String viewname) throws IOException, InterruptedException {
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add("lsactivity");
-		cmd.add("-fmt", commandFormat);
-		cmd.add(activity);
-		
-		// changed the path from workspace to getRootViewPath to make Dynamic UCM work
-		FilePath viewPath = getRootViewPath(launcher).child(viewname);
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		launcher.run(cmd.toCommandArray(), null, baos, viewPath);
-		InputStreamReader reader = new InputStreamReader(
-				new ByteArrayInputStream(baos.toByteArray()));
-		baos.close();
-		return reader;
-	}
+    public Reader lsactivity(String activity, String commandFormat,
+                             String viewname) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("lsactivity");
+        cmd.add("-fmt", commandFormat);
+        cmd.add(activity);
+                
+        // changed the path from workspace to getRootViewPath to make Dynamic UCM work
+        FilePath viewPath = getRootViewPath(launcher).child(viewname);
+                
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        launcher.run(cmd.toCommandArray(), null, baos, viewPath);
+        InputStreamReader reader = new InputStreamReader(
+                                                         new ByteArrayInputStream(baos.toByteArray()));
+        baos.close();
+        return reader;
+    }
 
-	public void mklabel(String viewName, String label) throws IOException,
-			InterruptedException {
-		throw new AbortException();
-	}
+    public void mklabel(String viewName, String label) throws IOException,
+                                                              InterruptedException {
+        throw new AbortException();
+    }
 
-	public List<String> lsview(boolean onlyActiveDynamicViews)
-			throws IOException, InterruptedException {
-		viewListPattern = getListPattern();
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add("lsview");
+    public List<String> lsview(boolean onlyActiveDynamicViews)
+        throws IOException, InterruptedException {
+        viewListPattern = getListPattern();
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("lsview");
 
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
-			return parseListOutput(new InputStreamReader(
-					new ByteArrayInputStream(baos.toByteArray())),
-					onlyActiveDynamicViews);
-		}
-		return new ArrayList<String>();
-	}
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
+            return parseListOutput(new InputStreamReader(
+                                                         new ByteArrayInputStream(baos.toByteArray())),
+                                   onlyActiveDynamicViews);
+        }
+        return new ArrayList<String>();
+    }
 
-	public List<String> lsvob(boolean onlyMOunted) throws IOException,
-			InterruptedException {
-		viewListPattern = getListPattern();
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add("lsvob");
+    public List<String> lsvob(boolean onlyMOunted) throws IOException,
+                                                          InterruptedException {
+        viewListPattern = getListPattern();
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("lsvob");
 
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
-			return parseListOutput(new InputStreamReader(
-					new ByteArrayInputStream(baos.toByteArray())), onlyMOunted);
-		}
-		return new ArrayList<String>();
-	}
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
+            return parseListOutput(new InputStreamReader(
+                                                         new ByteArrayInputStream(baos.toByteArray())), onlyMOunted);
+        }
+        return new ArrayList<String>();
+    }
     
     public String pwv(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -179,32 +179,32 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
         
-	public String catcs(String viewName) throws IOException,
-			InterruptedException {
-		ArgumentListBuilder cmd = new ArgumentListBuilder();
-		cmd.add("catcs");
-		cmd.add("-tag", viewName);
+    public String catcs(String viewName) throws IOException,
+                                                InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("catcs");
+        cmd.add("-tag", viewName);
 
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		String retString = "";
-		if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					new ByteArrayInputStream(baos.toByteArray())));
-			String line = reader.readLine();
-			StringBuilder builder = new StringBuilder();
-			while (line != null) {
-				if (builder.length() > 0) {
-					builder.append("\n");
-				}
-				builder.append(line);
-				line = reader.readLine();
-			}
-			reader.close();
-			retString = builder.toString();
-		}
-		baos.close();
-		return retString;
-	}
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        String retString = "";
+        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                                                                             new ByteArrayInputStream(baos.toByteArray())));
+            String line = reader.readLine();
+            StringBuilder builder = new StringBuilder();
+            while (line != null) {
+                if (builder.length() > 0) {
+                    builder.append("\n");
+                }
+                builder.append(line);
+                line = reader.readLine();
+            }
+            reader.close();
+            retString = builder.toString();
+        }
+        baos.close();
+        return retString;
+    }
     
  
 

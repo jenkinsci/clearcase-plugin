@@ -55,15 +55,15 @@ public class ClearToolSnapshot extends ClearToolExec {
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     public void setcs(String viewName, String configSpec) throws IOException,
-            InterruptedException {
+                                                                 InterruptedException {
         FilePath workspace = launcher.getWorkspace();
         FilePath configSpecFile = workspace.createTextTempFile("configspec", ".txt", configSpec);
         String csLocation = ".." + File.separatorChar + configSpecFile.getName();
         csLocation = PathUtil.convertPathForOS(csLocation, launcher.getLauncher());
-	
+        
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
-     	cmd.add(csLocation);
+        cmd.add(csLocation);
         launcher.run(cmd.toCommandArray(), null, null, workspace.child(viewName));
 
         configSpecFile.delete();
@@ -81,7 +81,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         cmd.add(viewName);
         
         if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
-        	String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
+            String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
             cmd.addTokenized(variabledResolvedParams);
         }
         cmd.add(viewName);
@@ -110,14 +110,14 @@ public class ClearToolSnapshot extends ClearToolExec {
         reader.close();
         
         if (builder.toString().contains("cleartool: Error")) {
-        	throw new IOException("Failed to remove view: " + builder.toString());
+            throw new IOException("Failed to remove view: " + builder.toString());
         }
        
         
         FilePath viewFilePath = launcher.getWorkspace().child(viewName);
         if (viewFilePath.exists()) {
             launcher.getListener().getLogger().println(
-                    "Removing view folder as it was not removed when the view was removed.");
+                                                       "Removing view folder as it was not removed when the view was removed.");
             viewFilePath.deleteRecursive();
         }
     }
@@ -131,17 +131,17 @@ public class ClearToolSnapshot extends ClearToolExec {
             cmd.add(viewName);
         } else {
             cmd.add("-add_loadrules");
-	    // We're assuming loadRules already has a leading slash or backslash, since the only place
-	    // I can find where it's called like this is in UcmSnapshotCheckoutAction, where we
-	    // definitely put the slash/backslash.
-	    String loadRulesLocation = PathUtil.convertPathForOS(viewName + loadRules, getLauncher().getLauncher());
-	    if (loadRulesLocation.matches(".*\\s.*")) {
-		cmd.addQuoted(loadRulesLocation);
-	    }
-	    else {
-		cmd.add(loadRulesLocation);
-	    }
-	}
+            // We're assuming loadRules already has a leading slash or backslash, since the only place
+            // I can find where it's called like this is in UcmSnapshotCheckoutAction, where we
+            // definitely put the slash/backslash.
+            String loadRulesLocation = PathUtil.convertPathForOS(viewName + loadRules, getLauncher().getLauncher());
+            if (loadRulesLocation.matches(".*\\s.*")) {
+                cmd.addQuoted(loadRulesLocation);
+            }
+            else {
+                cmd.add(loadRulesLocation);
+            }
+        }
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
 
@@ -168,13 +168,13 @@ public class ClearToolSnapshot extends ClearToolExec {
         reader.close();
         
         if (builder.toString().contains("cleartool: Error")) {
-        	throw new IOException("Failed to remove view tag: " + builder.toString());
+            throw new IOException("Failed to remove view tag: " + builder.toString());
         }
        
     }
  
     @Override
-    protected FilePath getRootViewPath(ClearToolLauncher launcher) {
+        protected FilePath getRootViewPath(ClearToolLauncher launcher) {
         return launcher.getWorkspace();
     }
 

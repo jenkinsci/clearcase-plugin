@@ -60,49 +60,49 @@ import hudson.util.VariableResolver;
  */
 public class BuildVariableResolver implements VariableResolver<String> {
 
-	private static final Logger LOGGER = Logger
-			.getLogger(BuildVariableResolver.class.getName());
+    private static final Logger LOGGER = Logger
+        .getLogger(BuildVariableResolver.class.getName());
 
-	private final Launcher launcher;
+    private final Launcher launcher;
 
 
-	private AbstractBuild<?, ?> build;
+    private AbstractBuild<?, ?> build;
 
-	public BuildVariableResolver(final AbstractBuild<?, ?> build,
-			final Launcher launcher) {
-		this.build = build;
-	
-		this.launcher = launcher;
-	}
+    public BuildVariableResolver(final AbstractBuild<?, ?> build,
+                                 final Launcher launcher) {
+        this.build = build;
+        
+        this.launcher = launcher;
+    }
 
-	@Override
-	public String resolve(String key) {
-		try {
-			if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
-				return build.getProject().getName();
-			}
-			/*if ("COMPUTERNAME".equals(key)) {
-				return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
-						: launcher.getComputer().getName()));
-                                                }*/
-			if ("NODE_NAME".equals(key)) {
-				return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
-						: launcher.getComputer().getName()));
-			}
+    @Override
+        public String resolve(String key) {
+        try {
+            if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
+                return build.getProject().getName();
+            }
+            /*if ("COMPUTERNAME".equals(key)) {
+              return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
+              : launcher.getComputer().getName()));
+              }*/
+            if ("NODE_NAME".equals(key)) {
+                return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
+                                      : launcher.getComputer().getName()));
+            }
 
-			if ("USER_NAME".equals(key)) {
-				return (String) launcher.getComputer().getSystemProperties()
-						.get("user.name");
-			}
-			if (build.getEnvVars().containsKey(key)) {
-				return build.getEnvVars().get(key);
-			}
-		
-			
-		} catch (Exception e) {
-			LOGGER.warning("Variable name '" + key
-					+ "' look up failed because of " + e);
-		}
-		return null;
-	}
+            if ("USER_NAME".equals(key)) {
+                return (String) launcher.getComputer().getSystemProperties()
+                    .get("user.name");
+            }
+            if (build.getEnvVars().containsKey(key)) {
+                return build.getEnvVars().get(key);
+            }
+                
+                        
+        } catch (Exception e) {
+            LOGGER.warning("Variable name '" + key
+                           + "' look up failed because of " + e);
+        }
+        return null;
+    }
 }

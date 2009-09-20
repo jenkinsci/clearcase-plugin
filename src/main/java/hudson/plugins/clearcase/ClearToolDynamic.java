@@ -40,7 +40,7 @@ public class ClearToolDynamic extends ClearToolExec {
     }
 
     @Override
-    protected FilePath getRootViewPath(ClearToolLauncher launcher) {
+        protected FilePath getRootViewPath(ClearToolLauncher launcher) {
         return new FilePath(launcher.getWorkspace().getChannel(), viewDrive);
     }
 
@@ -51,7 +51,7 @@ public class ClearToolDynamic extends ClearToolExec {
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     public void setcs(String viewName, String configSpec) throws IOException,
-            InterruptedException {
+                                                                 InterruptedException {
         FilePath configSpecFile = launcher.getWorkspace().createTextTempFile("configspec", ".txt", configSpec);
 
         ArgumentListBuilder cmd = new ArgumentListBuilder();

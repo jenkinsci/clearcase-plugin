@@ -44,9 +44,9 @@ public class EventRecordFilter {
      */
     public boolean accept(String event, String version) {
         return !  (version.endsWith("/0") 
-                || version.endsWith("\\0") 
-                || event.equalsIgnoreCase("create branch")
-                || (filterOutDestroySubBranchEvent && DESTROYED_SUB_BRANCH_PATTERN.matcher(event).matches()));
+                   || version.endsWith("\\0") 
+                   || event.equalsIgnoreCase("create branch")
+                   || (filterOutDestroySubBranchEvent && DESTROYED_SUB_BRANCH_PATTERN.matcher(event).matches()));
     }
     
     /**

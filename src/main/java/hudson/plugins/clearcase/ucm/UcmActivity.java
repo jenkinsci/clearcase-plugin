@@ -80,7 +80,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @Exported
-    public String getHeadline() {
+        public String getHeadline() {
         return headline;
     }
 
@@ -89,7 +89,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @Exported
-    public String getName() {
+        public String getName() {
         return name;
     }
 
@@ -98,7 +98,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @Exported
-    public String getStream() {
+        public String getStream() {
         return stream;
     }
 
@@ -107,7 +107,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @Exported
-    public String getUser() {
+        public String getUser() {
         return user;
     }
 
@@ -116,7 +116,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @Exported
-    public boolean isIntegrationActivity() {
+        public boolean isIntegrationActivity() {
         if (name.startsWith("deliver.")) {
             return true;
         } else {
@@ -133,12 +133,12 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @Exported
-    public List<File> getFiles() {
+        public List<File> getFiles() {
         return files;
     }
 
     @Exported
-    public boolean hasFiles() {
+        public boolean hasFiles() {
         return files.size() > 0;
     }
 
@@ -151,12 +151,12 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @Exported
-    public List<UcmActivity> getSubActivities() {
+        public List<UcmActivity> getSubActivities() {
         return subActivities;
     }
 
     @Exported
-    public boolean hasSubActivities() {
+        public boolean hasSubActivities() {
         return subActivities.size() >0;
     }
 
@@ -164,22 +164,22 @@ public class UcmActivity extends ChangeLogSet.Entry {
      * Overrides the setParent() method so the ClearCaseChangeLogSet can access it.
      */
     @Override
-    public void setParent(ChangeLogSet parent) {
+        public void setParent(ChangeLogSet parent) {
         super.setParent(parent);
     }
 
     @Override
-    public String getMsg() {
+        public String getMsg() {
         return headline;
     }
 
     @Override
-    public User getAuthor() {
+        public User getAuthor() {
         return User.get(user);
     }
 
     @Override
-    public Collection<String> getAffectedPaths() {
+        public Collection<String> getAffectedPaths() {
         Collection<String> paths = new ArrayList<String>(files.size());
         for (File file : files) {
             paths.add(file.getName());
@@ -188,123 +188,123 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @Override
-    public String toString() {
+        public String toString() {
         return name+": "+headline;
     }
       
     @ExportedBean(defaultVisibility=999)
-    public static class File {
+        public static class File {
 
-        private Date date;
-        private String name;
-        private String version;
-        private String operation;
-        private String event; // can maybe be dumbed       
+            private Date date;
+            private String name;
+            private String version;
+            private String operation;
+            private String event; // can maybe be dumbed       
 
-        private String comment;
+            private String comment;
 
-        public File() {
-            /* empty by design */
-        }
+            public File() {
+                /* empty by design */
+            }
 
-        public File(File other) {
-            this.date= other.date;
-            this.name = other.name;
-            this.version = other.version;
-            this.operation = other.operation;
-            this.event = other.event;
-        }
+            public File(File other) {
+                this.date= other.date;
+                this.name = other.name;
+                this.version = other.version;
+                this.operation = other.operation;
+                this.event = other.event;
+            }
 
-        @Exported
-        public String getEvent() {
-            return event;
-        }
+            @Exported
+                public String getEvent() {
+                return event;
+            }
 
-        public void setEvent(String event) {
-            this.event = event;
-        }
+            public void setEvent(String event) {
+                this.event = event;
+            }
 
-        @Exported
-        public String getName() {
-            return name;
-        }
+            @Exported
+                public String getName() {
+                return name;
+            }
 
-        public void setName(String name) {
-            this.name = name;
-        }
+            public void setName(String name) {
+                this.name = name;
+            }
 
-        @Exported
-        public String getOperation() {
-            return operation;
-        }
+            @Exported
+                public String getOperation() {
+                return operation;
+            }
 
-        public void setOperation(String operation) {
-            this.operation = operation;
-        }
+            public void setOperation(String operation) {
+                this.operation = operation;
+            }
 
-        @Exported
-        public String getVersion() {
-            return version;
-        }
+            @Exported
+                public String getVersion() {
+                return version;
+            }
 
-        public void setVersion(String version) {
-            this.version = version;
-        }
+            public void setVersion(String version) {
+                this.version = version;
+            }
         
-        @Exported
-        public String getShortVersion() {
-            return version.substring(version.lastIndexOf("/")+1);
-        }
-
-        @Exported
-        public String getComment() {
-            return comment;
-        }
-
-        public void setComment(String comment) {
-            this.comment = comment;
-        }
-
-        @Exported
-        public Date getDate() {
-            return date;
-        }
-
-        public void setDate(Date date) {
-            this.date = date;
-        }
-
-        public String getDateStr() {
-            if (date == null) {
-                return "";
-            } else {
-                return DATE_FORMATTER.format(date);
+            @Exported
+                public String getShortVersion() {
+                return version.substring(version.lastIndexOf("/")+1);
             }
-        }
 
-        public void setDateStr(String date) {
-            try {
-                this.date = DATE_FORMATTER.parse(date);
-            } catch (ParseException e) {
-                //TODO: error handling
+            @Exported
+                public String getComment() {
+                return comment;
             }
-        }
 
-        @Exported
-        public EditType getEditType() {
-            if (operation.equalsIgnoreCase("mkelem")) {
-                return EditType.ADD;
-            } else if (operation.equalsIgnoreCase("rmelem")) {
-                return EditType.DELETE;
-            } else if (operation.equalsIgnoreCase("checkin")) {
-                return EditType.EDIT;
+            public void setComment(String comment) {
+                this.comment = comment;
             }
-            return null;
-        }        
 
-        @Override
-        public String toString() {
-            return name;
-        }               
-    }
+            @Exported
+                public Date getDate() {
+                return date;
+            }
+
+            public void setDate(Date date) {
+                this.date = date;
+            }
+
+            public String getDateStr() {
+                if (date == null) {
+                    return "";
+                } else {
+                    return DATE_FORMATTER.format(date);
+                }
+            }
+
+            public void setDateStr(String date) {
+                try {
+                    this.date = DATE_FORMATTER.parse(date);
+                } catch (ParseException e) {
+                    //TODO: error handling
+                }
+            }
+
+            @Exported
+                public EditType getEditType() {
+                if (operation.equalsIgnoreCase("mkelem")) {
+                    return EditType.ADD;
+                } else if (operation.equalsIgnoreCase("rmelem")) {
+                    return EditType.DELETE;
+                } else if (operation.equalsIgnoreCase("checkin")) {
+                    return EditType.EDIT;
+                }
+                return null;
+            }        
+
+            @Override
+                public String toString() {
+                return name;
+            }               
+        }
 }

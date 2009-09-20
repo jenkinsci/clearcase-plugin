@@ -48,7 +48,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         this.useUpdate = useUpdate;        
     }
 
-   public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
 
         boolean updateView = useUpdate;        
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();

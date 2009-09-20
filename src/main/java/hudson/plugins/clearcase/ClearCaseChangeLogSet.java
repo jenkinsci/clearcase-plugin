@@ -61,7 +61,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
     }
 
     @Override
-    public boolean isEmptySet() {
+        public boolean isEmptySet() {
         return history.size() == 0;
     }
 
@@ -95,7 +95,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
      * @return the change log set
      */
     static ClearCaseChangeLogSet parse(AbstractBuild build, InputStream changeLogStream) throws IOException,
-            SAXException {
+        SAXException {
 
         ArrayList<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
 
@@ -133,7 +133,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
      * @throws IOException
      */
     public static void saveToChangeLog(OutputStream outputStream, List<ClearCaseChangeLogEntry> history)
-            throws IOException {
+        throws IOException {
         PrintStream stream = new PrintStream(outputStream, false, "UTF-8");
 
         int tagcount = ClearCaseChangeLogSet.TAGS.length;

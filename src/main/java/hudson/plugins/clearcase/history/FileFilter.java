@@ -36,7 +36,7 @@ public class FileFilter extends FieldFilter {
 
     
     @Override
-    public boolean accept(HistoryEntry entry) {
+        public boolean accept(HistoryEntry entry) {
         return accept(entry.getElement());
     }
 

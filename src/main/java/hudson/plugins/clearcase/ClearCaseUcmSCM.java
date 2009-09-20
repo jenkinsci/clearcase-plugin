@@ -66,88 +66,88 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
-	private final String stream;
+    private final String stream;
 
-	@DataBoundConstructor
-	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
-			       boolean usedynamicview, String viewdrive,
-			       String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
+    @DataBoundConstructor
+        public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
+                               boolean usedynamicview, String viewdrive,
+                               String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
                                boolean useUpdate, boolean rmviewonrename,
                                String excludedRegions, String multiSitePollBuffer) {
-		super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-                      useUpdate, rmviewonrename, excludedRegions, usedynamicview, 
-                      viewdrive, loadrules, multiSitePollBuffer);
-		this.stream = shortenStreamName(stream);
+        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+              useUpdate, rmviewonrename, excludedRegions, usedynamicview, 
+              viewdrive, loadrules, multiSitePollBuffer);
+        this.stream = shortenStreamName(stream);
 
-	}
+    }
 
-	public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
-			boolean usedynamicview, String viewdrive,
-			String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
-                               boolean useUpdate, boolean rmviewonrename) {
-            this(stream, loadrules, viewname, usedynamicview, viewdrive, mkviewoptionalparam,
-                 filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "", null);
-        }
+    public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
+                           boolean usedynamicview, String viewdrive,
+                           String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
+                           boolean useUpdate, boolean rmviewonrename) {
+        this(stream, loadrules, viewname, usedynamicview, viewdrive, mkviewoptionalparam,
+             filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "", null);
+    }
 
-	/**
-	 * Return the stream that is used to create the UCM view.
-	 * 
-	 * @return string containing the stream selector.
-	 */
-	public String getStream() {
-		return stream;
-	}
-
-	@Override
-	public ClearCaseUcmScmDescriptor getDescriptor() {
-		return PluginImpl.UCM_DESCRIPTOR;
-	}
-
-	@Override
-	public ChangeLogParser createChangeLogParser() {
-		return new UcmChangeLogParser();
-	}
-
-	@Override
-	public String[] getBranchNames() {
-		String branch = stream;
-		if (stream.contains("@")) {
-			branch = stream.substring(0, stream.indexOf("@"));
-		}
-		return new String[] { branch };
-	}
-
-
-	@Override
-	protected CheckOutAction createCheckOutAction(
-			VariableResolver variableResolver, ClearToolLauncher launcher) {
-		CheckOutAction action;
-		if (isUseDynamicView()) {
-			action = new UcmDynamicCheckoutAction(createClearTool(
-					variableResolver, launcher), getStream());
-		} else {
-			action = new UcmSnapshotCheckoutAction(createClearTool(
-					variableResolver, launcher), getStream(), getViewPaths(),
-					isUseUpdate());
-		}
-		return action;
-	}
-
-//	@Override
-//	protected PollAction createPollAction(VariableResolver variableResolver,
-//			ClearToolLauncher launcher,List<Filter> filters) {
-//		return new UcmPollAction(
-//				createClearTool(variableResolver, launcher),filters);
-//	}
+    /**
+     * Return the stream that is used to create the UCM view.
+     * 
+     * @return string containing the stream selector.
+     */
+    public String getStream() {
+        return stream;
+    }
 
     @Override
-    protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+        public ClearCaseUcmScmDescriptor getDescriptor() {
+        return PluginImpl.UCM_DESCRIPTOR;
+    }
+
+    @Override
+        public ChangeLogParser createChangeLogParser() {
+        return new UcmChangeLogParser();
+    }
+
+    @Override
+        public String[] getBranchNames() {
+        String branch = stream;
+        if (stream.contains("@")) {
+            branch = stream.substring(0, stream.indexOf("@"));
+        }
+        return new String[] { branch };
+    }
+
+
+    @Override
+        protected CheckOutAction createCheckOutAction(
+                                                      VariableResolver variableResolver, ClearToolLauncher launcher) {
+        CheckOutAction action;
+        if (isUseDynamicView()) {
+            action = new UcmDynamicCheckoutAction(createClearTool(
+                                                                  variableResolver, launcher), getStream());
+        } else {
+            action = new UcmSnapshotCheckoutAction(createClearTool(
+                                                                   variableResolver, launcher), getStream(), getViewPaths(),
+                                                   isUseUpdate());
+        }
+        return action;
+    }
+
+    //  @Override
+    //  protected PollAction createPollAction(VariableResolver variableResolver,
+    //                  ClearToolLauncher launcher,List<Filter> filters) {
+    //          return new UcmPollAction(
+    //                          createClearTool(variableResolver, launcher),filters);
+    //  }
+
+    @Override
+        protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
         ClearTool ct = createClearTool(variableResolver, launcher);
         UcmHistoryAction action = new UcmHistoryAction(ct,configureFilters(launcher));
 
         try {
-	    String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
-	    
+            String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
+            
             if (pwv != null) {
                 if (pwv.contains("/")) {
                     pwv += "/";
@@ -166,93 +166,93 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return action;
     }
     
-//	@Override
-//	protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher,
-//			AbstractBuild<?, ?> build, Launcher baseLauncher,List<Filter> filters) {
-//		VariableResolver variableResolver = new BuildVariableResolver(build,
-//				baseLauncher);
-//
-//		UcmChangeLogAction action = new UcmChangeLogAction(createClearTool(
-//				variableResolver, launcher),filters);
-//
-//        if (useDynamicView) {
-//			String extendedViewPath = viewDrive;
-//			if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
-//				// Need to deteremine what kind of char to add in between
-//				if (viewDrive.contains("/")) {
-//					extendedViewPath += "/";
-//				} else {
-//					extendedViewPath += "\\";
-//				}
-//			}
-//			extendedViewPath += getViewName();
-//			action.setExtendedViewPath(extendedViewPath);
-//		}
-//		return action;
-//	}
+    //  @Override
+    //  protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher,
+    //                  AbstractBuild<?, ?> build, Launcher baseLauncher,List<Filter> filters) {
+    //          VariableResolver variableResolver = new BuildVariableResolver(build,
+    //                          baseLauncher);
+    //
+    //          UcmChangeLogAction action = new UcmChangeLogAction(createClearTool(
+    //                          variableResolver, launcher),filters);
+    //
+    //        if (useDynamicView) {
+    //                  String extendedViewPath = viewDrive;
+    //                  if (!(viewDrive.endsWith("\\") && viewDrive.endsWith("/"))) {
+    //                          // Need to deteremine what kind of char to add in between
+    //                          if (viewDrive.contains("/")) {
+    //                                  extendedViewPath += "/";
+    //                          } else {
+    //                                  extendedViewPath += "\\";
+    //                          }
+    //                  }
+    //                  extendedViewPath += getViewName();
+    //                  action.setExtendedViewPath(extendedViewPath);
+    //          }
+    //          return action;
+    //  }
 
-	@Override
-	protected SaveChangeLogAction createSaveChangeLogAction(
-			ClearToolLauncher launcher) {
-		return new UcmSaveChangeLogAction();
-	}
+    @Override
+        protected SaveChangeLogAction createSaveChangeLogAction(
+                                                                ClearToolLauncher launcher) {
+        return new UcmSaveChangeLogAction();
+    }
 
-	protected ClearTool createClearTool(VariableResolver variableResolver,
-			ClearToolLauncher launcher) {
-            if (isUseDynamicView()) {
-                return new ClearToolDynamicUCM(variableResolver, launcher,
-                                               getViewDrive());
-            } else {
-                return super.createClearTool(variableResolver, launcher);
-            }
-	}
+    protected ClearTool createClearTool(VariableResolver variableResolver,
+                                        ClearToolLauncher launcher) {
+        if (isUseDynamicView()) {
+            return new ClearToolDynamicUCM(variableResolver, launcher,
+                                           getViewDrive());
+        } else {
+            return super.createClearTool(variableResolver, launcher);
+        }
+    }
 
-	private String shortenStreamName(String longStream) {
-		if (longStream.startsWith("stream:")) {
-			return longStream.substring("stream:".length());
-		}
-		return longStream;
-	}
+    private String shortenStreamName(String longStream) {
+        if (longStream.startsWith("stream:")) {
+            return longStream.substring("stream:".length());
+        }
+        return longStream;
+    }
 
-	/**
-	 * ClearCase UCM SCM descriptor
-	 * 
-	 * @author Erik Ramfelt
-	 */
-	public static class ClearCaseUcmScmDescriptor extends
-			SCMDescriptor<ClearCaseUcmSCM> implements ModelObject {
+    /**
+     * ClearCase UCM SCM descriptor
+     * 
+     * @author Erik Ramfelt
+     */
+    public static class ClearCaseUcmScmDescriptor extends
+                                                      SCMDescriptor<ClearCaseUcmSCM> implements ModelObject {
 
-		protected ClearCaseUcmScmDescriptor() {
-			super(ClearCaseUcmSCM.class, null);
-			load();
-		}
+        protected ClearCaseUcmScmDescriptor() {
+            super(ClearCaseUcmSCM.class, null);
+            load();
+        }
 
-		@Override
-		public String getDisplayName() {
-			return "UCM ClearCase";
-		}
+        @Override
+            public String getDisplayName() {
+            return "UCM ClearCase";
+        }
 
-		@Override
-		public boolean configure(StaplerRequest req) {
-			return true;
-		}
+        @Override
+            public boolean configure(StaplerRequest req) {
+            return true;
+        }
 
-		@Override
-		public SCM newInstance(StaplerRequest req) throws FormException {
-			ClearCaseUcmSCM scm = new ClearCaseUcmSCM(
-					req.getParameter("ucm.stream"),
-					req.getParameter("ucm.loadrules"),
-					req.getParameter("ucm.viewname"),
-					req.getParameter("ucm.usedynamicview") != null,
-					req.getParameter("ucm.viewdrive"),
-					req.getParameter("ucm.mkviewoptionalparam"),
-					req.getParameter("ucm.filterOutDestroySubBranchEvent") != null,
-					req.getParameter("ucm.useupdate") != null,
-					req.getParameter("ucm.rmviewonrename") != null,
-                                        req.getParameter("ucm.excludedRegions"),
-					fixEmpty(req.getParameter("ucm.multiSitePollBuffer"))
-						 );
-			return scm;
-		}
-	}
+        @Override
+            public SCM newInstance(StaplerRequest req) throws FormException {
+            ClearCaseUcmSCM scm = new ClearCaseUcmSCM(
+                                                      req.getParameter("ucm.stream"),
+                                                      req.getParameter("ucm.loadrules"),
+                                                      req.getParameter("ucm.viewname"),
+                                                      req.getParameter("ucm.usedynamicview") != null,
+                                                      req.getParameter("ucm.viewdrive"),
+                                                      req.getParameter("ucm.mkviewoptionalparam"),
+                                                      req.getParameter("ucm.filterOutDestroySubBranchEvent") != null,
+                                                      req.getParameter("ucm.useupdate") != null,
+                                                      req.getParameter("ucm.rmviewonrename") != null,
+                                                      req.getParameter("ucm.excludedRegions"),
+                                                      fixEmpty(req.getParameter("ucm.multiSitePollBuffer"))
+                                                      );
+            return scm;
+        }
+    }
 }

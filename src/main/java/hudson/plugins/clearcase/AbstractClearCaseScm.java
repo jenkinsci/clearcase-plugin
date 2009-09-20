@@ -102,7 +102,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                                 final boolean useDynamicView,
                                 final String viewDrive,
                                 final String loadRules,
-				final String multiSitePollBuffer) {
+                                final String multiSitePollBuffer) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
@@ -112,17 +112,17 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.useDynamicView = useDynamicView;
         this.viewDrive = viewDrive;
         this.loadRules = loadRules;
-	if (multiSitePollBuffer != null) {
-	    try {
-		this.multiSitePollBuffer = DecimalFormat
-		    .getIntegerInstance().parse(multiSitePollBuffer)
-		    .intValue();
-	    } catch (ParseException e) {
-		this.multiSitePollBuffer = 0;
-	    }
-	} else {
-	    this.multiSitePollBuffer = 0;
-	}
+        if (multiSitePollBuffer != null) {
+            try {
+                this.multiSitePollBuffer = DecimalFormat
+                    .getIntegerInstance().parse(multiSitePollBuffer)
+                    .intValue();
+            } catch (ParseException e) {
+                this.multiSitePollBuffer = 0;
+            }
+        } else {
+            this.multiSitePollBuffer = 0;
+        }
         createAndRegisterListener();
     }
     
@@ -134,7 +134,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return an action that can check out code from a ClearCase repository.
      */
     protected abstract CheckOutAction createCheckOutAction(
-							   VariableResolver variableResolver, ClearToolLauncher launcher);
+                                                           VariableResolver variableResolver, ClearToolLauncher launcher);
     
     // /**
     // * Create a PollAction that will be used by the pollChanges() method.
@@ -158,8 +158,8 @@ public abstract class AbstractClearCaseScm extends SCM {
      *         repository.
      */
     protected abstract HistoryAction createHistoryAction(
-							 VariableResolver variableResolver,
-							 ClearToolLauncher launcher);
+                                                         VariableResolver variableResolver,
+                                                         ClearToolLauncher launcher);
     
     /**
      * Create a SaveChangeLog action that is used to save a change log
@@ -169,7 +169,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return an action that can save a change log to the Hudson changlog file
      */
     protected abstract SaveChangeLogAction createSaveChangeLogAction(
-								     ClearToolLauncher launcher);
+                                                                     ClearToolLauncher launcher);
     
     // /**
     // * Create a ChangeLogAction that will be used to get the change logs for a
@@ -204,10 +204,10 @@ public abstract class AbstractClearCaseScm extends SCM {
         String[] rules = getLoadRules().split("[\\r\\n]+");
         for (int i = 0; i < rules.length; i++) {
             String rule = rules[i];
-	    // Remove "load " from the string, just in case.
+            // Remove "load " from the string, just in case.
             if (rule.startsWith("load ")) {
-		rule = rule.substring(5);
-	    }
+                rule = rule.substring(5);
+            }
             // Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if
             // the view is not dynamic
             // the user normally enters a load rule beginning with those chars
@@ -220,16 +220,16 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
     
     public boolean isUseDynamicView() {
-	return useDynamicView;
+        return useDynamicView;
     }
     
     public int getMultiSitePollBuffer() {
-	
-	return multiSitePollBuffer;
+        
+        return multiSitePollBuffer;
     }
     
     public String getViewDrive() {
-	return viewDrive;
+        return viewDrive;
     }
     
     public String getLoadRules() {
@@ -237,35 +237,35 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     @Override
-    public boolean supportsPolling() {
-	return true;
+        public boolean supportsPolling() {
+        return true;
     }
     
     @Override
-    public boolean requiresWorkspaceForPolling() {
-	return true;
+        public boolean requiresWorkspaceForPolling() {
+        return true;
     }
     
     @Override
-    public FilePath getModuleRoot(FilePath workspace) {
-	if (useDynamicView) {
-	    return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
-	}
-	else {
-	    if (getNormalizedViewName() == null) {
-		return super.getModuleRoot(workspace);
-	    } else {
-		return workspace.child(getNormalizedViewName());
-	    }
-	}
+        public FilePath getModuleRoot(FilePath workspace) {
+        if (useDynamicView) {
+            return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
+        }
+        else {
+            if (getNormalizedViewName() == null) {
+                return super.getModuleRoot(workspace);
+            } else {
+                return workspace.child(getNormalizedViewName());
+            }
+        }
     }
     
     public String getViewName() {
-	if (viewName == null) {
-	    return "${USER_NAME}_${JOB_NAME}_${NODE_NAME}_view";
-	} else {
-	    return viewName;
-	}
+        if (viewName == null) {
+            return "${USER_NAME}_${JOB_NAME}_${NODE_NAME}_view";
+        } else {
+            return viewName;
+        }
     }
     
     /**
@@ -280,8 +280,8 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return a string containing no invalid chars.
      */
     public String generateNormalizedViewName(AbstractBuild<?, ?> build,
-					     Launcher launcher) {
-	return generateNormalizedViewName(new BuildVariableResolver(build, launcher));
+                                             Launcher launcher) {
+        return generateNormalizedViewName(new BuildVariableResolver(build, launcher));
     }
 
     /**
@@ -297,12 +297,12 @@ public abstract class AbstractClearCaseScm extends SCM {
      */
     
     public String generateNormalizedViewName(BuildVariableResolver variableResolver) {
-	String generatedNormalizedViewName = Util.replaceMacro(viewName, variableResolver);
-	
-	generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
-									     "[\\s\\\\\\/:\\?\\*\\|]+", "_");
-	this.normalizedViewName = generatedNormalizedViewName;
-	return generatedNormalizedViewName;
+        String generatedNormalizedViewName = Util.replaceMacro(viewName, variableResolver);
+        
+        generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
+                                                                             "[\\s\\\\\\/:\\?\\*\\|]+", "_");
+        this.normalizedViewName = generatedNormalizedViewName;
+        return generatedNormalizedViewName;
     }
     
     /**
@@ -312,7 +312,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return string containing optional mkview parameters.
      */
     public String getMkviewOptionalParam() {
-	return mkviewOptionalParam;
+        return mkviewOptionalParam;
     }
     
     /**
@@ -326,7 +326,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      *         not; false otherwise
      */
     public boolean isFilteringOutDestroySubBranchEvent() {
-	return filteringOutDestroySubBranchEvent;
+        return filteringOutDestroySubBranchEvent;
     }
 
     /**
@@ -335,95 +335,95 @@ public abstract class AbstractClearCaseScm extends SCM {
      * clearcase view.
      */
     @Override
-    public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
-	if (getNormalizedViewName() != null) {
+        public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
+        if (getNormalizedViewName() != null) {
 
-	    env.put(CLEARCASE_VIEWNAME_ENVSTR, getNormalizedViewName());
+            env.put(CLEARCASE_VIEWNAME_ENVSTR, getNormalizedViewName());
 
-	    String workspace = env.get("WORKSPACE");
-	    if (workspace != null) {
-		env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + File.separator
-			+ getNormalizedViewName());
-	    }
-	}
+            String workspace = env.get("WORKSPACE");
+            if (workspace != null) {
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + File.separator
+                        + getNormalizedViewName());
+            }
+        }
     }
 
     @Override
-    public boolean checkout(AbstractBuild build, Launcher launcher,
-			    FilePath workspace, BuildListener listener, File changelogFile)
-	throws IOException, InterruptedException {
-	ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener,
-								      workspace, launcher);
+        public boolean checkout(AbstractBuild build, Launcher launcher,
+                                FilePath workspace, BuildListener listener, File changelogFile)
+        throws IOException, InterruptedException {
+        ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener,
+                                                                      workspace, launcher);
 
-	// Create actions
-	VariableResolver variableResolver = new BuildVariableResolver(build,
-								      launcher);
-	CheckOutAction checkoutAction = createCheckOutAction(variableResolver,
-							     clearToolLauncher);
-	HistoryAction historyAction = createHistoryAction(variableResolver,
-							  clearToolLauncher);
-	SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
+        // Create actions
+        VariableResolver variableResolver = new BuildVariableResolver(build,
+                                                                      launcher);
+        CheckOutAction checkoutAction = createCheckOutAction(variableResolver,
+                                                             clearToolLauncher);
+        HistoryAction historyAction = createHistoryAction(variableResolver,
+                                                          clearToolLauncher);
+        SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
 
-	// Checkout code
-	String normalizedViewName = generateNormalizedViewName(build, launcher);
-	checkoutAction.checkout(launcher, workspace, normalizedViewName);
+        // Checkout code
+        String normalizedViewName = generateNormalizedViewName(build, launcher);
+        checkoutAction.checkout(launcher, workspace, normalizedViewName);
 
-	// Gather change log
-	List<? extends ChangeLogSet.Entry> changelogEntries = null;
-	if (build.getPreviousBuild() != null) {
-	    Run prevBuild = build.getPreviousBuild();
-	    Date lastBuildTime = prevBuild.getTimestamp()
-		.getTime();
+        // Gather change log
+        List<? extends ChangeLogSet.Entry> changelogEntries = null;
+        if (build.getPreviousBuild() != null) {
+            Run prevBuild = build.getPreviousBuild();
+            Date lastBuildTime = prevBuild.getTimestamp()
+                .getTime();
 
-	    if (getMultiSitePollBuffer()!=0) {
-		long lastBuildMilliSecs = prevBuild.getTimestamp().getTimeInMillis();
-		lastBuildTime = new Date(lastBuildMilliSecs - (1000 * 60 * getMultiSitePollBuffer()));
-	    }
-			
-	    changelogEntries = historyAction.getChanges(lastBuildTime,
-							normalizedViewName, getBranchNames(),
-							getViewPaths());
-	}
+            if (getMultiSitePollBuffer()!=0) {
+                long lastBuildMilliSecs = prevBuild.getTimestamp().getTimeInMillis();
+                lastBuildTime = new Date(lastBuildMilliSecs - (1000 * 60 * getMultiSitePollBuffer()));
+            }
+                        
+            changelogEntries = historyAction.getChanges(lastBuildTime,
+                                                        normalizedViewName, getBranchNames(),
+                                                        getViewPaths());
+        }
 
-	// Save change log
-	if ((changelogEntries == null) || (changelogEntries.isEmpty())) {
-	    // no changes
-	    return createEmptyChangeLog(changelogFile, listener, "changelog");
-	} else {
-	    saveChangeLogAction.saveChangeLog(changelogFile, changelogEntries);
-	}
+        // Save change log
+        if ((changelogEntries == null) || (changelogEntries.isEmpty())) {
+            // no changes
+            return createEmptyChangeLog(changelogFile, listener, "changelog");
+        } else {
+            saveChangeLogAction.saveChangeLog(changelogFile, changelogEntries);
+        }
 
-	return true;
+        return true;
     }
 
     @Override
-    public boolean pollChanges(AbstractProject project, Launcher launcher,
-			       FilePath workspace, TaskListener listener) throws IOException,
-										 InterruptedException {
+        public boolean pollChanges(AbstractProject project, Launcher launcher,
+                                   FilePath workspace, TaskListener listener) throws IOException,
+                                                                                     InterruptedException {
 
-	Run lastBuild = project.getLastBuild();
-	if (lastBuild == null) {
-	    return true;
-	}
+        Run lastBuild = project.getLastBuild();
+        if (lastBuild == null) {
+            return true;
+        }
 
-	Date buildTime = lastBuild.getTimestamp().getTime();
+        Date buildTime = lastBuild.getTimestamp().getTime();
 
-	if (getMultiSitePollBuffer()!=0) {
-	    long lastBuildMilliSecs = lastBuild.getTimestamp().getTimeInMillis();
-	    buildTime = new Date(lastBuildMilliSecs - (1000 * 60 * getMultiSitePollBuffer()));
-	}
+        if (getMultiSitePollBuffer()!=0) {
+            long lastBuildMilliSecs = lastBuild.getTimestamp().getTimeInMillis();
+            buildTime = new Date(lastBuildMilliSecs - (1000 * 60 * getMultiSitePollBuffer()));
+        }
 
-	VariableResolver variableResolver = new BuildVariableResolver(
-								      (AbstractBuild<?, ?>) lastBuild, launcher);
+        VariableResolver variableResolver = new BuildVariableResolver(
+                                                                      (AbstractBuild<?, ?>) lastBuild, launcher);
 
-	HistoryAction historyAction = createHistoryAction(variableResolver,
-							  createClearToolLauncher(listener, workspace, launcher));
+        HistoryAction historyAction = createHistoryAction(variableResolver,
+                                                          createClearToolLauncher(listener, workspace, launcher));
 
-	String normalizedViewName = generateNormalizedViewName(
-							       (AbstractBuild) lastBuild, launcher);
+        String normalizedViewName = generateNormalizedViewName(
+                                                               (AbstractBuild) lastBuild, launcher);
 
-	return historyAction.hasChanges(buildTime, normalizedViewName,
-					getBranchNames(), getViewPaths());
+        return historyAction.hasChanges(buildTime, normalizedViewName,
+                                        getBranchNames(), getViewPaths());
     }
 
     /**
@@ -438,16 +438,16 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return a clear tool launcher that uses Hudson for launching commands
      */
     protected ClearToolLauncher createClearToolLauncher(TaskListener listener,
-							FilePath workspace, Launcher launcher) {
-	return new HudsonClearToolLauncher(PluginImpl.BASE_DESCRIPTOR
-					   .getCleartoolExe(), getDescriptor().getDisplayName(), listener,
-					   workspace, launcher);
+                                                        FilePath workspace, Launcher launcher) {
+        return new HudsonClearToolLauncher(PluginImpl.BASE_DESCRIPTOR
+                                           .getCleartoolExe(), getDescriptor().getDisplayName(), listener,
+                                           workspace, launcher);
     }
 
     protected ClearTool createClearTool(VariableResolver variableResolver,
-					ClearToolLauncher launcher) {
-	return new ClearToolSnapshot(variableResolver, launcher,
-				     mkviewOptionalParam);
+                                        ClearToolLauncher launcher) {
+        return new ClearToolSnapshot(variableResolver, launcher,
+                                     mkviewOptionalParam);
     }
 
     /**
@@ -456,54 +456,54 @@ public abstract class AbstractClearCaseScm extends SCM {
      * job.
      */
     protected void createAndRegisterListener() {
-	Hudson hudson = Hudson.getInstance();
-	if (hudson == null) {
-	    // Probably a JUnit test run?
-	    Logger.getLogger(AbstractClearCaseScm.class.getName()).log(
-								       Level.INFO, "Failed to get Hudson instance");
+        Hudson hudson = Hudson.getInstance();
+        if (hudson == null) {
+            // Probably a JUnit test run?
+            Logger.getLogger(AbstractClearCaseScm.class.getName()).log(
+                                                                       Level.INFO, "Failed to get Hudson instance");
 
-	    return;
-	}
-	hudson.getJobListeners().add(new ItemListener() {
+            return;
+        }
+        hudson.getJobListeners().add(new ItemListener() {
 
-		@Override
-		public void onRenamed(Item item, String oldName, String newName) {
-		    if (removeViewOnRename) {
-			onDeleted(item);
-		    }
-		}
+                @Override
+                    public void onRenamed(Item item, String oldName, String newName) {
+                    if (removeViewOnRename) {
+                        onDeleted(item);
+                    }
+                }
 
-		@Override
-		public void onDeleted(Item item) {
-		    if (item instanceof AbstractProject) {
-			AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
-			if (project.getScm() instanceof AbstractClearCaseScm) {
-			    StreamTaskListener listener = new StreamTaskListener(
-										 System.out);
-			    Launcher launcher = Hudson.getInstance()
-				.createLauncher(listener);
-			    ClearTool ct = createClearTool(null,
-							   createClearToolLauncher(listener,
-										   project.getWorkspace().getParent()
-										   .getParent(), launcher));
-			    try {
-				ct
-				    .rmviewtag(generateNormalizedViewName(null,
-									  launcher));
-			    } catch (Exception e) {
-				Logger.getLogger(
-						 AbstractClearCaseScm.class.getName()).log(
-											   Level.WARNING,
-											   "Failed to remove ClearCase view", e);
-			    }
-			}
-		    }
-		}
-	    });
+                @Override
+                    public void onDeleted(Item item) {
+                    if (item instanceof AbstractProject) {
+                        AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
+                        if (project.getScm() instanceof AbstractClearCaseScm) {
+                            StreamTaskListener listener = new StreamTaskListener(
+                                                                                 System.out);
+                            Launcher launcher = Hudson.getInstance()
+                                .createLauncher(listener);
+                            ClearTool ct = createClearTool(null,
+                                                           createClearToolLauncher(listener,
+                                                                                   project.getWorkspace().getParent()
+                                                                                   .getParent(), launcher));
+                            try {
+                                ct
+                                    .rmviewtag(generateNormalizedViewName(null,
+                                                                          launcher));
+                            } catch (Exception e) {
+                                Logger.getLogger(
+                                                 AbstractClearCaseScm.class.getName()).log(
+                                                                                           Level.WARNING,
+                                                                                           "Failed to remove ClearCase view", e);
+                            }
+                        }
+                    }
+                }
+            });
     }
 
     @Override
-    public boolean processWorkspaceBeforeDeletion(AbstractProject<?,?> project, FilePath workspace, Node node) throws IOException, InterruptedException {
+        public boolean processWorkspaceBeforeDeletion(AbstractProject<?,?> project, FilePath workspace, Node node) throws IOException, InterruptedException {
         StreamTaskListener listener = new StreamTaskListener(System.out);
         Launcher launcher = Hudson.getInstance().createLauncher(listener);
         ClearTool ct = createClearTool(null, createClearToolLauncher(listener,
@@ -515,15 +515,15 @@ public abstract class AbstractClearCaseScm extends SCM {
         } catch (Exception e) {
             Logger.getLogger(
                              AbstractClearCaseScm.class.getName()).log(
-								       Level.WARNING,
-								       "Failed to remove ClearCase view", e);
+                                                                       Level.WARNING,
+                                                                       "Failed to remove ClearCase view", e);
         }
         return true;
         
     }
 
     public boolean isUseUpdate() {
-	return useUpdate;
+        return useUpdate;
     }
 
     public boolean isRemoveViewOnRename() {
@@ -531,11 +531,11 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     public String getExcludedRegions() {
-	return excludedRegions;
+        return excludedRegions;
     }
 
     public String[] getExcludedRegionsNormalized() {
-	return excludedRegions == null ? null : excludedRegions.split("[\\r\\n]+");
+        return excludedRegions == null ? null : excludedRegions.split("[\\r\\n]+");
     }
 
     
@@ -558,17 +558,17 @@ public abstract class AbstractClearCaseScm extends SCM {
         String[] loadRules = getViewPaths();
         String tempFilterRules = "";
 
-	for (String loadRule : loadRules) {
-	    if (!loadRule.equals("")) {
-		tempFilterRules += Pattern.quote(loadRule) + "\n";
-	    }
-	}
+        for (String loadRule : loadRules) {
+            if (!loadRule.equals("")) {
+                tempFilterRules += Pattern.quote(loadRule) + "\n";
+            }
+        }
 
-	if (!tempFilterRules.equals("")) {
+        if (!tempFilterRules.equals("")) {
             filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, "^(" + tempFilterRules.trim().replaceAll("\\n", "|") + ")"));
-	}
-	
-	if (isFilteringOutDestroySubBranchEvent()) {
+        }
+        
+        if (isFilteringOutDestroySubBranchEvent()) {
             filters.add(new DestroySubBranchFilter());
         }
         return filters;

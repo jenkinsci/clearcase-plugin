@@ -46,11 +46,11 @@ import java.util.regex.Matcher;
 public class BaseHistoryAction extends AbstractHistoryAction{
 
     private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
-        USER_ID,        
-        NAME_ELEMENTNAME,
-        NAME_VERSIONID,
-        EVENT,
-        OPERATION
+                                                    USER_ID,        
+                                                    NAME_ELEMENTNAME,
+                                                    NAME_VERSIONID,
+                                                    EVENT,
+                                                    OPERATION
     };
 
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
@@ -62,33 +62,33 @@ public class BaseHistoryAction extends AbstractHistoryAction{
     }
 
     @Override
-    protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) {
+        protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();
 
         for (HistoryEntry entry : entries) {
-                ClearCaseChangeLogEntry changelogEntry = new ClearCaseChangeLogEntry();
+            ClearCaseChangeLogEntry changelogEntry = new ClearCaseChangeLogEntry();
 
-                changelogEntry.setDate(entry.getDate());
-                changelogEntry.setUser(entry.getUser());
-                changelogEntry.setComment(entry.getComment());
+            changelogEntry.setDate(entry.getDate());
+            changelogEntry.setUser(entry.getUser());
+            changelogEntry.setComment(entry.getComment());
 
-                ClearCaseChangeLogEntry.FileElement fileElement = new ClearCaseChangeLogEntry.FileElement(
-                        entry.getElement(), entry.getVersionId(), entry.getEvent(), entry.getOperation());
+            ClearCaseChangeLogEntry.FileElement fileElement = new ClearCaseChangeLogEntry.FileElement(
+                                                                                                      entry.getElement(), entry.getVersionId(), entry.getEvent(), entry.getOperation());
 
-                changelogEntry.addElement(fileElement);
-                fullList.add(changelogEntry);
+            changelogEntry.addElement(fileElement);
+            fullList.add(changelogEntry);
         }
         ChangeLogEntryMerger entryMerger = new ChangeLogEntryMerger(maxTimeDifferenceMillis);
         return entryMerger.getMergedList(fullList);
     }
 
     @Override
-    protected ClearToolFormatHandler getHistoryFormatHandler() {
+        protected ClearToolFormatHandler getHistoryFormatHandler() {
         return historyHandler;
     }
 
     @Override
-    protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException{
+        protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException{
         // read values;
         HistoryEntry entry = new HistoryEntry();
         entry.setLine(line);

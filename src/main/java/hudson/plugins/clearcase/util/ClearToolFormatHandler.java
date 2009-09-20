@@ -38,11 +38,11 @@ public class ClearToolFormatHandler {
     private int groupCount;
     private Pattern pattern;
     
-   public ClearToolFormatHandler(String... elements) {
+    public ClearToolFormatHandler(String... elements) {
         setPattern(elements);
     }    
    
-   public void setPattern(String... elements) {
+    public void setPattern(String... elements) {
         StringBuilder formatBuilder = new StringBuilder();
         StringBuilder patternBuilder = new StringBuilder();
         for (String element : elements) {
@@ -56,7 +56,7 @@ public class ClearToolFormatHandler {
         format = formatBuilder.toString();
         patternStr = patternBuilder.toString();
         pattern = Pattern.compile(patternStr);
-   }
+    }
 
     public String getFormat() {
         return format;
@@ -66,12 +66,12 @@ public class ClearToolFormatHandler {
         return patternStr;
     }
    
-   public Matcher checkLine(String line) {
-       Matcher matcher = pattern.matcher(line);
+    public Matcher checkLine(String line) {
+        Matcher matcher = pattern.matcher(line);
        
-       if (matcher.find() && matcher.groupCount() == groupCount) {
-           return matcher;
-       } 
-       return null;       
-   }       
+        if (matcher.find() && matcher.groupCount() == groupCount) {
+            return matcher;
+        } 
+        return null;       
+    }       
 }
