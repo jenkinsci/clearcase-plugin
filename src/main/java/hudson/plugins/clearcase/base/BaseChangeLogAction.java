@@ -49,11 +49,11 @@ import hudson.plugins.clearcase.util.ClearToolFormatHandler;
 public class BaseChangeLogAction implements ChangeLogAction {
 
     private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
-        USER_ID,
-        EVENT,
-        NAME_ELEMENTNAME,
-        NAME_VERSIONID,
-        OPERATION
+                                                    USER_ID,
+                                                    EVENT,
+                                                    NAME_ELEMENTNAME,
+                                                    NAME_VERSIONID,
+                                                    OPERATION
     };
 
     private ClearTool cleartool;    
@@ -77,7 +77,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
     }
     
     @Override
-    public List<ClearCaseChangeLogEntry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        public List<ClearCaseChangeLogEntry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();
         try {
             for (String branchName : branchNames) {
@@ -130,7 +130,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
                     }
                 }
                 ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(
-                        fileName, matcher.group(5).trim(), matcher.group(3).trim(), matcher.group(6).trim());
+                                                                                                      fileName, matcher.group(5).trim(), matcher.group(3).trim(), matcher.group(6).trim());
                 currentEntry.addElement(element);
                 
                 HistoryEntry entry = new HistoryEntry();
@@ -174,7 +174,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
      * @param path the new extended view path.
      */
     public void setExtendedViewPath(String path) {
-	this.extendedViewPath = path;
+        this.extendedViewPath = path;
     }
 
     public String getExtendedViewPath() {

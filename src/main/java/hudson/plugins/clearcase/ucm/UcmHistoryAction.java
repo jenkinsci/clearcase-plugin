@@ -51,23 +51,23 @@ import java.util.regex.Matcher;
 public class UcmHistoryAction extends AbstractHistoryAction {
 
     private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
-        USER_ID,
-        NAME_ELEMENTNAME,
-        NAME_VERSIONID,
-        EVENT,
-        OPERATION,
-        UCM_VERSION_ACTIVITY
+                                                    USER_ID,
+                                                    NAME_ELEMENTNAME,
+                                                    NAME_VERSIONID,
+                                                    EVENT,
+                                                    OPERATION,
+                                                    UCM_VERSION_ACTIVITY
     };
 
     private static final String[] ACTIVITY_FORMAT = {UCM_ACTIVITY_HEADLINE,
-        UCM_ACTIVITY_STREAM,
-        USER_ID,
+                                                     UCM_ACTIVITY_STREAM,
+                                                     USER_ID,
     };
 
     private static final String[] INTEGRATION_ACTIVITY_FORMAT = {UCM_ACTIVITY_HEADLINE,
-        UCM_ACTIVITY_STREAM,
-        USER_ID,
-        UCM_ACTIVITY_CONTRIBUTING
+                                                                 UCM_ACTIVITY_STREAM,
+                                                                 USER_ID,
+                                                                 UCM_ACTIVITY_CONTRIBUTING
     };
 
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
@@ -78,12 +78,12 @@ public class UcmHistoryAction extends AbstractHistoryAction {
 
     
     @Override
-    protected ClearToolFormatHandler getHistoryFormatHandler() {
+        protected ClearToolFormatHandler getHistoryFormatHandler() {
         return historyHandler;
     }
 
     @Override
-    protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException {
+        protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException {
         // read values;
         HistoryEntry entry = new HistoryEntry();
         entry.setLine(line);
@@ -99,7 +99,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) throws IOException, InterruptedException {
+        protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) throws IOException, InterruptedException {
         List<UcmActivity> result = new ArrayList<UcmActivity>();
         Map<String,UcmActivity> activityMap = new HashMap<String, UcmActivity>();
 

@@ -40,7 +40,7 @@ public class ClearToolDynamicUCM extends ClearToolExec {
     }
 
     @Override
-    protected FilePath getRootViewPath(ClearToolLauncher launcher) {
+        protected FilePath getRootViewPath(ClearToolLauncher launcher) {
         return new FilePath(launcher.getWorkspace().getChannel(), viewDrive);
     }
 

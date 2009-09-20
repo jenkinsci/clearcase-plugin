@@ -114,19 +114,19 @@ public abstract class FieldFilter implements Filter{
 
     public enum Type {
         Equals,
-        EqualsIgnoreCase,
-        NotEquals,
-        NotEqualsIgnoreCase,
-        StartsWith,
-        StartsWithIgnoreCase,
-        EndsWith,
-        EndsWithIgnoreCase,
-        Contains,
-        ContainsIgnoreCase,
-        DoesNotContain,
-        DoesNotContainIgnoreCase,
-        ContainsRegxp,
-        DoesNotContainRegxp
-    }
+            EqualsIgnoreCase,
+            NotEquals,
+            NotEqualsIgnoreCase,
+            StartsWith,
+            StartsWithIgnoreCase,
+            EndsWith,
+            EndsWithIgnoreCase,
+            Contains,
+            ContainsIgnoreCase,
+            DoesNotContain,
+            DoesNotContainIgnoreCase,
+            ContainsRegxp,
+            DoesNotContainRegxp
+            }
 
 }

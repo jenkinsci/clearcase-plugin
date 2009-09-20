@@ -70,10 +70,10 @@ public class ChangeLogEntryMerger {
         }
         List<ClearCaseChangeLogEntry> list = getList();
         Collections.sort(list, new Comparator<ClearCaseChangeLogEntry>() {
-            public int compare(ClearCaseChangeLogEntry o1, ClearCaseChangeLogEntry o2) {
-                return o2.getDate().compareTo(o1.getDate());
-            }
-        });
+                public int compare(ClearCaseChangeLogEntry o1, ClearCaseChangeLogEntry o2) {
+                    return o2.getDate().compareTo(o1.getDate());
+                }
+            });
         return list;
     }
 

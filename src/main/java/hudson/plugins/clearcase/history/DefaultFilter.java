@@ -31,14 +31,14 @@ package hudson.plugins.clearcase.history;
 public class DefaultFilter implements Filter {
 
     @Override
-    public boolean accept(HistoryEntry entry) {
+        public boolean accept(HistoryEntry entry) {
         if (entry.getVersionId().endsWith("/0"))
             return false;
 
         if (entry.getVersionId().endsWith("\\0"))
             return false;
-       if  (entry.getEvent().equalsIgnoreCase("create branch"))
-           return false;
+        if  (entry.getEvent().equalsIgnoreCase("create branch"))
+            return false;
 
         return true;
     }

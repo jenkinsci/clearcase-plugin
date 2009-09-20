@@ -44,37 +44,37 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     private Launcher launcher;
 
     @Before
-    public void setUp() throws Exception {
+        public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         classContext = new Mockery() {
-            {
-                setImposteriser(ClassImposteriser.INSTANCE);
-            }
-        };
+                {
+                    setImposteriser(ClassImposteriser.INSTANCE);
+                }
+            };
 
         launcher = classContext.mock(Launcher.class);
         clearTool = context.mock(ClearTool.class);
     }
 
     @After
-    public void teardown() throws Exception {
+        public void teardown() throws Exception {
         deleteWorkspace();
     }
     
     @Test
-    public void testFirstTimeNotOnUnix() throws Exception {
+        public void testFirstTimeNotOnUnix() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).mkview("viewname", null);
-                one(clearTool).setcs("viewname", "config\r\nspec\r\nload \\foo\r\n");
-            }
-        });
+                {
+                    one(clearTool).mkview("viewname", null);
+                    one(clearTool).setcs("viewname", "config\r\nspec\r\nload \\foo\r\n");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-                atLeast(1).of(launcher).isUnix(); will(returnValue(false));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(false));
+                }
+            });
 
         SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", new String[]{"foo"}, false);
         action.checkout(launcher, workspace, "viewname");
@@ -84,18 +84,18 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-    public void testFirstTimeOnUnix() throws Exception {
+        public void testFirstTimeOnUnix() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).mkview("viewname", null);
-                one(clearTool).setcs("viewname", "config\nspec\nload /foo\n");
-            }
-        });
+                {
+                    one(clearTool).mkview("viewname", null);
+                    one(clearTool).setcs("viewname", "config\nspec\nload /foo\n");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-            	atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", new String[]{"foo"}, false);
         action.checkout(launcher, workspace, "viewname");
@@ -105,18 +105,18 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testFirstTimeUsingUpdate() throws Exception {
+        public void testFirstTimeUsingUpdate() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).mkview("viewname", null);
-                one(clearTool).setcs("viewname", "configspec\nload /foo\n");
-            }
-        });
+                {
+                    one(clearTool).mkview("viewname", null);
+                    one(clearTool).setcs("viewname", "configspec\nload /foo\n");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-            	atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", new String[]{"foo"}, true);
         action.checkout(launcher, workspace, "viewname");
@@ -126,20 +126,20 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-    public void testSecondTimeUsingUpdate() throws Exception {
+        public void testSecondTimeUsingUpdate() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
-            {
-                one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
-                one(clearTool).update("viewname", null);
-            }
-        });
+                {
+                    one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
+                    one(clearTool).update("viewname", null);
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-            	atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", new String[]{"foo"}, true);
         action.checkout(launcher, workspace, "viewname");
@@ -149,21 +149,21 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-    public void testSecondTimeNotUsingUpdate() throws Exception {
+        public void testSecondTimeNotUsingUpdate() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
-            {
-                one(clearTool).rmview("viewname");
-                one(clearTool).mkview("viewname", null);
-                one(clearTool).setcs("viewname", "configspec\nload /foo\n");
-            }
-        });
+                {
+                    one(clearTool).rmview("viewname");
+                    one(clearTool).mkview("viewname", null);
+                    one(clearTool).setcs("viewname", "configspec\nload /foo\n");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-            	atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", new String[]{"foo"}, false);
         action.checkout(launcher, workspace, "viewname");
@@ -173,20 +173,20 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testSecondTimeNewConfigSpec() throws Exception {
+        public void testSecondTimeNewConfigSpec() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
-            {
-                one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                one(clearTool).setcs("viewname", "configspec\nload /foo\n");
-            }
-        });
+                {
+                    one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
+                    one(clearTool).setcs("viewname", "configspec\nload /foo\n");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-            	atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "configspec", new String[]{"foo"}, true);
         action.checkout(launcher, workspace, "viewname");

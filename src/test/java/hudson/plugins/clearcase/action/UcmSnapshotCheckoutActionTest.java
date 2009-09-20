@@ -45,63 +45,63 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     private Launcher launcher;
 
     @Before
-    public void setUp() throws Exception {
+        public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         clearTool = context.mock(ClearTool.class);
         classContext = new Mockery() {
-            {
-                setImposteriser(ClassImposteriser.INSTANCE);
-            }
-        };
+                {
+                    setImposteriser(ClassImposteriser.INSTANCE);
+                }
+            };
 
         launcher = classContext.mock(Launcher.class);
     }
 
     @After
-    public void teardown() throws Exception {
+        public void teardown() throws Exception {
         deleteWorkspace();
     }
 
     @Test
-    public void testFirstTime() throws Exception {
+        public void testFirstTime() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).mkview("viewname", "stream");
-                one(clearTool).update("viewname", "/loadrule");
-            }
-        });
-	classContext.checking(new Expectations() {
-		{
-		    allowing(launcher).isUnix(); will(returnValue(true));
-		}
-	    });
+                {
+                    one(clearTool).mkview("viewname", "stream");
+                    one(clearTool).update("viewname", "/loadrule");
+                }
+            });
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(true));
+                }
+            });
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"loadrule"}, true);
+                                                              "stream", new String[]{"loadrule"}, true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }
 
     @Test
-    public void testSecondTime() throws Exception {
+        public void testSecondTime() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
-            {
-                atLeast(1).of(clearTool).catcs("viewname"); will(returnValue("ucm configspec"));
-                one(clearTool).setcs("viewname", "ucm configspec\nload /loadrule\n");
-            }
-        });
+                {
+                    atLeast(1).of(clearTool).catcs("viewname"); will(returnValue("ucm configspec"));
+                    one(clearTool).setcs("viewname", "ucm configspec\nload /loadrule\n");
+                }
+            });
 
         classContext.checking(new Expectations() {
-            {
-                atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"loadrule"}, true);
+                                                              "stream", new String[]{"loadrule"}, true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -109,27 +109,27 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testSecondTimeWithLoadRulesSatisfied() throws Exception {
+        public void testSecondTimeWithLoadRulesSatisfied() throws Exception {
         final String viewName = "viewname";
         final String loadRules = "/abc/";
         workspace.child(viewName).mkdirs();
 
         context.checking(new Expectations() {
-            {
-                one(clearTool).catcs(viewName);
-                will(returnValue("load " + loadRules));
-                one(clearTool).update(viewName, loadRules);
-            }
-        });
+                {
+                    one(clearTool).catcs(viewName);
+                    will(returnValue("load " + loadRules));
+                    one(clearTool).update(viewName, loadRules);
+                }
+            });
 
         classContext.checking(new Expectations() {
-            {
-                atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{loadRules}, true);
+                                                              "stream", new String[]{loadRules}, true);
         action.checkout(launcher, workspace, viewName);
 
         context.assertIsSatisfied();
@@ -137,27 +137,27 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testSecondTimeWithMultipleLoadRulesSatisfied() throws Exception {
+        public void testSecondTimeWithMultipleLoadRulesSatisfied() throws Exception {
         final String viewName = "viewname";
 
         workspace.child(viewName).mkdirs();
 
         context.checking(new Expectations() {
-            {
-                one(clearTool).catcs(viewName);
-                will(returnValue("load abc/\nload abcd"));
-                one(clearTool).update(viewName, "/abc/");
-                one(clearTool).update(viewName, "/abcd");
-            }
-        });
+                {
+                    one(clearTool).catcs(viewName);
+                    will(returnValue("load abc/\nload abcd"));
+                    one(clearTool).update(viewName, "/abc/");
+                    one(clearTool).update(viewName, "/abcd");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-                atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"abc/", "abcd"}, true);
+                                                              "stream", new String[]{"abc/", "abcd"}, true);
         action.checkout(launcher, workspace, viewName);
 
         context.assertIsSatisfied();
@@ -165,25 +165,25 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testSecondTimeWithMultipleLoadRulesNotSatisfied()
-            throws Exception {
+        public void testSecondTimeWithMultipleLoadRulesNotSatisfied()
+        throws Exception {
         final String viewName = "viewname";
         workspace.child(viewName).mkdirs();
 
         context.checking(new Expectations() {
-            {
-                one(clearTool).catcs(viewName); will(returnValue("ucm configspec\nload abc/\n"));
-		one(clearTool).setcs(viewName, "ucm configspec\nload /abc/\nload /abcd\n");
-            }
-        });
+                {
+                    one(clearTool).catcs(viewName); will(returnValue("ucm configspec\nload abc/\n"));
+                    one(clearTool).setcs(viewName, "ucm configspec\nload /abc/\nload /abcd\n");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-                atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"abc/","abcd"}, true);
+                                                              "stream", new String[]{"abc/","abcd"}, true);
         action.checkout(launcher, workspace, viewName);
 
         context.assertIsSatisfied();
@@ -191,59 +191,59 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testMultipleLoadRules() throws Exception {
+        public void testMultipleLoadRules() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).mkview("viewname", "stream");
-                one(clearTool).update("viewname", "/loadrule");
-                one(clearTool).update("viewname", "/another\t loadrule");
-            }
-        });
-	classContext.checking(new Expectations() {
-		{
-		    allowing(launcher).isUnix(); will(returnValue(true));
-		}
-	    });
+                {
+                    one(clearTool).mkview("viewname", "stream");
+                    one(clearTool).update("viewname", "/loadrule");
+                    one(clearTool).update("viewname", "/another\t loadrule");
+                }
+            });
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(true));
+                }
+            });
         
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"loadrule", "another\t loadrule"}, true);
+                                                              "stream", new String[]{"loadrule", "another\t loadrule"}, true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }
 
     @Test
-    public void testSecondTimeWithRealMultipleLoadRulesSatisfied()
-            throws Exception {
+        public void testSecondTimeWithRealMultipleLoadRulesSatisfied()
+        throws Exception {
         final String viewName = "viewname";
 
         final String catcsOutput = "ucm\nidentity UCM.Stream oid:b689a462.74e011dd.8df7.00:16:35:7e:e1:93@vobuuid:9851d17f.c5aa11dc.9e7d.00:16:35:7e:e1:93 2\n"
-                + "# ONLY EDIT THIS CONFIG SPEC IN THE INDICATED \"CUSTOM\" AREAS\n#\n# This config spec was automatically generated by the UCM stream\n"
-                + "# \"base_1_4_Integration\" at 2008-09-02T16:12:44+02.\n#\n\n\n\n# Select checked out versions\nelement * CHECKEDOUT\n# Component selection rules..."
-                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" .../base_1_4_Integration/LATEST\n"
-                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" base_Main_080902_bjsa01_dsme_deliver -mkbranch base_1_4_Integration\n"
-                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" /main/0 -mkbranch base_1_4_Integration\n"
-                + "\n\n\nend ucm\n\n#UCMCustomElemBegin - DO NOT REMOVE - ADD CUSTOM ELEMENT RULES AFTER THIS LINE\n#UCMCustomElemEnd - DO NOT REMOVE - END CUSTOM ELEMENT RULES"
-                + "\n# Non-included component backstop rule: no checkouts\nelement * /main/0 -ucm -nocheckout\n\n#UCMCustomLoadBegin - DO NOT REMOVE - ADD CUSTOM LOAD RULES AFTER THIS LINE\n"
-                + "load /vobs/base";
+            + "# ONLY EDIT THIS CONFIG SPEC IN THE INDICATED \"CUSTOM\" AREAS\n#\n# This config spec was automatically generated by the UCM stream\n"
+            + "# \"base_1_4_Integration\" at 2008-09-02T16:12:44+02.\n#\n\n\n\n# Select checked out versions\nelement * CHECKEDOUT\n# Component selection rules..."
+            + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" .../base_1_4_Integration/LATEST\n"
+            + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" base_Main_080902_bjsa01_dsme_deliver -mkbranch base_1_4_Integration\n"
+            + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" /main/0 -mkbranch base_1_4_Integration\n"
+            + "\n\n\nend ucm\n\n#UCMCustomElemBegin - DO NOT REMOVE - ADD CUSTOM ELEMENT RULES AFTER THIS LINE\n#UCMCustomElemEnd - DO NOT REMOVE - END CUSTOM ELEMENT RULES"
+            + "\n# Non-included component backstop rule: no checkouts\nelement * /main/0 -ucm -nocheckout\n\n#UCMCustomLoadBegin - DO NOT REMOVE - ADD CUSTOM LOAD RULES AFTER THIS LINE\n"
+            + "load /vobs/base";
 
         workspace.child(viewName).mkdirs();
 
         context.checking(new Expectations() {
-            {
-                one(clearTool).catcs(viewName);
-                will(returnValue(catcsOutput));
-                one(clearTool).update(viewName, "/vobs/base");
-            }
-        });
+                {
+                    one(clearTool).catcs(viewName);
+                    will(returnValue(catcsOutput));
+                    one(clearTool).update(viewName, "/vobs/base");
+                }
+            });
         classContext.checking(new Expectations() {
-            {
-                atLeast(1).of(launcher).isUnix(); will(returnValue(true));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"vobs/base"}, true);
+                                                              "stream", new String[]{"vobs/base"}, true);
         action.checkout(launcher, workspace, viewName);
 
         context.assertIsSatisfied();
@@ -251,23 +251,23 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testMultipleWindowsLoadRules() throws Exception {
+        public void testMultipleWindowsLoadRules() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).mkview("viewname", "stream");
-                one(clearTool).update("viewname", "\\ \\Windows");
-                one(clearTool).update("viewname", "\\\\C:\\System32");
-            }
-        });
+                {
+                    one(clearTool).mkview("viewname", "stream");
+                    one(clearTool).update("viewname", "\\ \\Windows");
+                    one(clearTool).update("viewname", "\\\\C:\\System32");
+                }
+            });
 
-	classContext.checking(new Expectations() {
-		{
-		    allowing(launcher).isUnix(); will(returnValue(false));
-		}
-	    });
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(false));
+                }
+            });
 
-		CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"\\ \\Windows","\\\\C:\\System32"}, true);
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
+                                                              "stream", new String[]{"\\ \\Windows","\\\\C:\\System32"}, true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
@@ -275,53 +275,53 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     
 
     @Test
-    public void testFirstTimeWithNoUpdate() throws Exception {
+        public void testFirstTimeWithNoUpdate() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(clearTool).mkview("viewname", "stream");
-                atLeast(1).of(clearTool).update(with(any(String.class)), with(any(String.class)));
-            }
-        });
-	classContext.checking(new Expectations() {
-		{
-		    allowing(launcher).isUnix(); will(returnValue(true));
-		}
-	    });
+                {
+                    one(clearTool).mkview("viewname", "stream");
+                    atLeast(1).of(clearTool).update(with(any(String.class)), with(any(String.class)));
+                }
+            });
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(true));
+                }
+            });
         
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"loadrule"}, false);
+                                                              "stream", new String[]{"loadrule"}, false);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }
 
     @Test
-    public void testSecondTimeWithNoUpdate() throws Exception {
+        public void testSecondTimeWithNoUpdate() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
-            {
-                one(clearTool).rmview("viewname");
-                one(clearTool).mkview("viewname", "stream");
-                atLeast(1).of(clearTool).update(with(any(String.class)), with(any(String.class)));
-            }
-        });
+                {
+                    one(clearTool).rmview("viewname");
+                    one(clearTool).mkview("viewname", "stream");
+                    atLeast(1).of(clearTool).update(with(any(String.class)), with(any(String.class)));
+                }
+            });
 
-	classContext.checking(new Expectations() {
-		{
-		    allowing(launcher).isUnix(); will(returnValue(true));
-		}
-	    });
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(true));
+                }
+            });
 
-	CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"loadrule"}, false);
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
+                                                              "stream", new String[]{"loadrule"}, false);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();
     }
 
     @Test
-    public void testCrossOSLoadRulesOnWindows() throws Exception {
+        public void testCrossOSLoadRulesOnWindows() throws Exception {
         final String catcsOutput = "ucm\r\nidentity UCM.Stream oid:19c4bc38.514b4432.b8a6.65:da:92:41:9f:df@vobuuid:a10d9aff.8c1349a8.829e.24:09:ef:18:ad:e6 16\r\n\r\n"
             + "# ONLY EDIT THIS CONFIG SPEC IN THE INDICATED \"CUSTOM\" AREAS\r\n"
             + "#\r\n\r\n# This config spec was automatically generated by the UCM stream\r\n# \"WindowsForms_Int\" at 8/1/2007 12:36:35 PM.\r\n"
@@ -354,15 +354,15 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
         classContext.checking(new Expectations() {
-            {
-                atLeast(1).of(launcher).isUnix(); will(returnValue(false));
-            }
-        });
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(false));
+                }
+            });
 
         workspace.child("viewname").mkdirs();
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
-							      "stream", new String[]{"PRODUCT","COTS\\NUnit"}, true);
+                                                              "stream", new String[]{"PRODUCT","COTS\\NUnit"}, true);
         action.checkout(launcher, workspace, "viewname");
 
         context.assertIsSatisfied();

@@ -56,7 +56,7 @@ public interface ClearToolLauncher {
      * @return true if the command was successful, false otherwise
      */
     boolean run(String[] cmd, InputStream in, OutputStream out, FilePath execPath) throws IOException,
-            InterruptedException;
+                                                                                          InterruptedException;
 
     /**
      * Returns a task listener for a hudson job

@@ -52,7 +52,7 @@ public class UcmChangeLogParser extends ChangeLogParser {
      * @return the change log set
      */
     @Override
-    public UcmChangeLogSet parse(AbstractBuild build, File changeLogFile) throws IOException, SAXException {
+        public UcmChangeLogSet parse(AbstractBuild build, File changeLogFile) throws IOException, SAXException {
         FileInputStream fileInputStream = new FileInputStream(changeLogFile);
         UcmChangeLogSet logSet = parse(build, fileInputStream);
         fileInputStream.close();

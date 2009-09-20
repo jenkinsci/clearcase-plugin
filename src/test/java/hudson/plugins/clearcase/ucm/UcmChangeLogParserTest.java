@@ -32,7 +32,7 @@ import org.junit.Test;
 public class UcmChangeLogParserTest {
 
     @Test
-    public void assertParseOutput() throws Exception {
+        public void assertParseOutput() throws Exception {
         UcmChangeLogParser parser = new UcmChangeLogParser();
         UcmChangeLogSet logSet = parser.parse(null, UcmChangeLogParserTest.class.getResourceAsStream("ucmchangelog.xml"));
         assertEquals("The log set should only contain 1 entry", 1, logSet.getItems().length);

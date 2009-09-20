@@ -66,7 +66,7 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     }
 
     public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, FilePath filePath) throws IOException,
-            InterruptedException {
+                                                                                                                   InterruptedException {
         OutputStream out = outputStream;
         FilePath path = filePath;
         String[] env = new String[0];
@@ -98,7 +98,7 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
             }
             listener.fatalError(scmName + " failed. exit code=" + r);
             throw new IOException("cleartool did not return the expected exit code. Command line=\""
-                    + builder.toString() + "\", actual exit code=" + r);
+                                  + builder.toString() + "\", actual exit code=" + r);
         }
         return true;
     }
@@ -108,6 +108,6 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
      * @see hudson.plugins.clearcase.ClearToolLauncher#getLauncher()
      */
     public Launcher getLauncher() {
-    	return this.launcher;
+        return this.launcher;
     }
 }

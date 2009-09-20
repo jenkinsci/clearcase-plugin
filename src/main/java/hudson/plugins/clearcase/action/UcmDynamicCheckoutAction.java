@@ -47,8 +47,8 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {        
-    	cleartool.startView(viewName);
-    	cleartool.syncronizeViewWithStream(viewName, stream);
+        cleartool.startView(viewName);
+        cleartool.syncronizeViewWithStream(viewName, stream);
         
         return true;
     }
