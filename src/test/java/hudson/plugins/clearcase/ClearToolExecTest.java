@@ -54,7 +54,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     private BuildListener taskListener;
     private VariableResolver resolver;
     @Before
-    public void setUp() throws Exception {
+        public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         launcher = context.mock(ClearToolLauncher.class);
@@ -63,21 +63,21 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         clearToolExec = new ClearToolImpl(launcher);
     }
     @After
-    public void tearDown() throws Exception {
+        public void tearDown() throws Exception {
         deleteWorkspace();
     }
     
     @Test
-    public void testListViews() throws Exception {
+        public void testListViews() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(launcher).run(with(equal(new String[] { "lsview" })),
-                        (InputStream) with(anything()), (OutputStream) with(an(OutputStream.class)),
-                        with(aNull(FilePath.class)));
-                will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")),
-                        returnValue(Boolean.TRUE)));
-            }
-        });
+                {
+                    one(launcher).run(with(equal(new String[] { "lsview" })),
+                                      (InputStream) with(anything()), (OutputStream) with(an(OutputStream.class)),
+                                      with(aNull(FilePath.class)));
+                    will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")),
+                               returnValue(Boolean.TRUE)));
+                }
+            });
         List<String> views = clearToolExec.lsview(false);
         assertEquals("The view list should contain 4 items", 4, views.size());
         assertEquals("The first view name is incorrect", "qaaaabbb_R3A_view", views.get(0));
@@ -87,31 +87,31 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
     @Test
-    public void testListActiveDynamicViews() throws Exception {
+        public void testListActiveDynamicViews() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(launcher).run(with(equal(new String[] { "lsview" })),
-                        (InputStream) with(anything()), (OutputStream) with(an(OutputStream.class)),
-                        with(aNull(FilePath.class)));
-                will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")),
-                        returnValue(Boolean.TRUE)));
-            }
-        });
+                {
+                    one(launcher).run(with(equal(new String[] { "lsview" })),
+                                      (InputStream) with(anything()), (OutputStream) with(an(OutputStream.class)),
+                                      with(aNull(FilePath.class)));
+                    will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")),
+                               returnValue(Boolean.TRUE)));
+                }
+            });
         List<String> views = clearToolExec.lsview(true);
         assertEquals("The view list should contain 1 item", 1, views.size());
         assertEquals("The third view name is incorrect", "qeeefff_view", views.get(0));
         context.assertIsSatisfied();
     }
     @Test
-    public void testListVobs() throws Exception {
+        public void testListVobs() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(launcher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
-                        (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
-                will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")),
-                        returnValue(Boolean.TRUE)));
-            }
-        });
+                {
+                    one(launcher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
+                                      (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
+                    will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")),
+                               returnValue(Boolean.TRUE)));
+                }
+            });
         List<String> vobs = clearToolExec.lsvob(false);
         assertEquals("The vob list should contain 6 items", 6, vobs.size());
         assertEquals("The first vob name is incorrect", "demo", vobs.get(0));
@@ -123,15 +123,15 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
     @Test
-    public void testListVobsMounted() throws Exception {
+        public void testListVobsMounted() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(launcher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
-                        (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
-                will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")),
-                        returnValue(Boolean.TRUE)));
-            }
-        });
+                {
+                    one(launcher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
+                                      (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
+                    will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")),
+                               returnValue(Boolean.TRUE)));
+                }
+            });
         List<String> vobs = clearToolExec.lsvob(true);
         assertEquals("The vob list should contain 3 items", 3, vobs.size());
         assertEquals("The first vob name is incorrect", "demo", vobs.get(0));
@@ -141,45 +141,45 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     }
     
 
-   @Test
-   public void testLshistory() throws Exception {
-       workspace.child("viewName").mkdirs();
-       final Calendar mockedCalendar = Calendar.getInstance();
-       mockedCalendar.set(2007, 10, 18, 15, 05, 25);
-       SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'+0000");
-       formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-       final String formattedDate = formatter.format(mockedCalendar.getTime()).toLowerCase();
-       context.checking(new Expectations() {
-           {
-               one(launcher).getWorkspace();
-               will(returnValue(workspace));
-               allowing(launcher).getLauncher();
-               will(returnValue(new Launcher.LocalLauncher(null)));
-               one(launcher).run(
-                       with(equal(new String[] { "lshistory", "-all", "-since", formattedDate,
-                               "-fmt", "FORMAT", "-branch", "brtype:branch", "-nco",
-                               "vob1", "vob2", "\"vob 3\"" })), (InputStream) with(anything()),
-                       (OutputStream) with(an(OutputStream.class)), with(aNonNull(FilePath.class)));
-               will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lshistory-1.log")),
-                       returnValue(Boolean.TRUE)));
-           }
-       });
-       Reader reader = clearToolExec.lshistory("FORMAT",
-               mockedCalendar.getTime(), "viewName","branch", new String[]{ "vob1", "vob2\n", "vob 3"});
-       assertNotNull("Returned console reader can not be null", reader);
-       context.assertIsSatisfied();
-   }
+    @Test
+        public void testLshistory() throws Exception {
+        workspace.child("viewName").mkdirs();
+        final Calendar mockedCalendar = Calendar.getInstance();
+        mockedCalendar.set(2007, 10, 18, 15, 05, 25);
+        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'+0000");
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final String formattedDate = formatter.format(mockedCalendar.getTime()).toLowerCase();
+        context.checking(new Expectations() {
+                {
+                    one(launcher).getWorkspace();
+                    will(returnValue(workspace));
+                    allowing(launcher).getLauncher();
+                    will(returnValue(new Launcher.LocalLauncher(null)));
+                    one(launcher).run(
+                                      with(equal(new String[] { "lshistory", "-all", "-since", formattedDate,
+                                                                "-fmt", "FORMAT", "-branch", "brtype:branch", "-nco",
+                                                                "vob1", "vob2", "\"vob 3\"" })), (InputStream) with(anything()),
+                                      (OutputStream) with(an(OutputStream.class)), with(aNonNull(FilePath.class)));
+                    will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lshistory-1.log")),
+                               returnValue(Boolean.TRUE)));
+                }
+            });
+        Reader reader = clearToolExec.lshistory("FORMAT",
+                                                mockedCalendar.getTime(), "viewName","branch", new String[]{ "vob1", "vob2\n", "vob 3"});
+        assertNotNull("Returned console reader can not be null", reader);
+        context.assertIsSatisfied();
+    }
 
     @Test
-    public void testCatConfigSpec() throws Exception {
+        public void testCatConfigSpec() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(launcher).run(with(equal(new String[] { "catcs", "-tag", "viewname" })), (InputStream) with(anything()),
-                        (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
-                will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-catcs-1.log")),
-                        returnValue(Boolean.TRUE)));
-            }
-        });
+                {
+                    one(launcher).run(with(equal(new String[] { "catcs", "-tag", "viewname" })), (InputStream) with(anything()),
+                                      (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
+                    will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-catcs-1.log")),
+                               returnValue(Boolean.TRUE)));
+                }
+            });
         String configSpec = clearToolExec.catcs("viewname");
         assertEquals("The config spec was not correct", "element * CHECKEDOUT\nelement * ...\\rel2_bugfix\\LATEST\nelement * \\main\\LATEST -mkbranch rel2_bugfix", configSpec);
         
@@ -187,20 +187,20 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     }
     
     @Test
-    public void assertLsactivityReturnsReader() throws Exception {
+        public void assertLsactivityReturnsReader() throws Exception {
         workspace.child("viewName").mkdirs();
         context.checking(new Expectations() {
-            {
-                one(launcher).getWorkspace();
-                will(returnValue(workspace));                
-                one(launcher).run(
-                        with(equal(new String[] { "lsactivity", "-fmt", "ACTIVITY_FORMAT", 
-                                "ACTIVITY@VOB"})), (InputStream) with(anything()),
-                        (OutputStream) with(an(OutputStream.class)), (FilePath) with(an(FilePath.class)));
-                will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsactivity-1.log")),
-                        returnValue(Boolean.TRUE)));
-            }
-        });
+                {
+                    one(launcher).getWorkspace();
+                    will(returnValue(workspace));                
+                    one(launcher).run(
+                                      with(equal(new String[] { "lsactivity", "-fmt", "ACTIVITY_FORMAT", 
+                                                                "ACTIVITY@VOB"})), (InputStream) with(anything()),
+                                      (OutputStream) with(an(OutputStream.class)), (FilePath) with(an(FilePath.class)));
+                    will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsactivity-1.log")),
+                               returnValue(Boolean.TRUE)));
+                }
+            });
         Reader reader = clearToolExec.lsactivity("ACTIVITY@VOB", "ACTIVITY_FORMAT","VIEW_NAME");
         assertNotNull("Returned console reader can not be null", reader);
         context.assertIsSatisfied();
@@ -215,7 +215,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
             super(null, launcher);
         }
         public void checkout(String configSpec, String viewName) throws IOException,
-                InterruptedException {
+                                                                        InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
         public void mkview(String viewName) throws IOException, InterruptedException {
@@ -231,7 +231,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
             throw new IllegalStateException("Not implemented");
         }
         public void setcs(String viewName, String configSpec) throws IOException,
-                InterruptedException {
+                                                                     InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
         public void update(String viewName) throws IOException, InterruptedException {
@@ -245,7 +245,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         }
         
         @Override
-        protected FilePath getRootViewPath(ClearToolLauncher launcher) {
+            protected FilePath getRootViewPath(ClearToolLauncher launcher) {
             return launcher.getWorkspace();
         }
         public void update(String viewName, String loadRules) throws IOException, InterruptedException {

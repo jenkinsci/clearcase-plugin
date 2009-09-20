@@ -116,7 +116,7 @@ public interface ClearTool {
      * @return list of view names
      */
     List<String> lsview(boolean onlyActiveDynamicViews) throws IOException,
-            InterruptedException;
+                                                               InterruptedException;
 
     /**
      * Lists VOB registry entries

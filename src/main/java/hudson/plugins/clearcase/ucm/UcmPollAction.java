@@ -48,11 +48,11 @@ import static hudson.plugins.clearcase.util.OutputFormat.*;
 public class UcmPollAction extends DefaultPollAction {
 
     private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
-        NAME_ELEMENTNAME,
-        NAME_VERSIONID,
-        UCM_VERSION_ACTIVITY,
-        EVENT,
-        OPERATION
+                                                    NAME_ELEMENTNAME,
+                                                    NAME_VERSIONID,
+                                                    UCM_VERSION_ACTIVITY,
+                                                    EVENT,
+                                                    OPERATION
     };
 
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
@@ -64,12 +64,12 @@ public class UcmPollAction extends DefaultPollAction {
 
 
     @Override
-    protected ClearToolFormatHandler getHistoryFormatHandler() {
+        protected ClearToolFormatHandler getHistoryFormatHandler() {
         return historyHandler;
 
     }
     @Override
-    protected HistoryEntry parseLine(String line) throws ParseException {
+        protected HistoryEntry parseLine(String line) throws ParseException {
         if (line.startsWith("cleartool: Error:")) {
             return null;
         }

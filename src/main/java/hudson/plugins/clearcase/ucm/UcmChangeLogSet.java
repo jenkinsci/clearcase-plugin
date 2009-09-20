@@ -57,7 +57,7 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
     }
 
     @Override
-    public boolean isEmptySet() {
+        public boolean isEmptySet() {
         return history.size() == 0;
     }
 
@@ -66,7 +66,7 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
     }
 
     @Exported
-    public List<UcmActivity> getLogs() {
+        public List<UcmActivity> getLogs() {
         return history;
     }
 
@@ -78,7 +78,7 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
      * @throws IOException
      */
     public static void saveToChangeLog(OutputStream outputStream, List<UcmActivity> history)
-            throws IOException {
+        throws IOException {
         PrintStream stream = new PrintStream(outputStream, false, "UTF-8");
 
         stream.println("<?xml version='1.0' encoding='UTF-8'?>");
@@ -140,21 +140,21 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
     }
     
     private static void writeSubActivity(PrintStream stream, UcmActivity activity) {
-            stream.println("<subactivity>");
-            String[] activityValues = getEntryAsStrings(activity);
-            for (int tag = 0; tag < ACTIVITY_TAGS.length; tag++) {
-                stream.print("\t<");
-                stream.print(UcmChangeLogSet.ACTIVITY_TAGS[tag]);
-                stream.print('>');
-                stream.print(ClearCaseChangeLogSet.escapeForXml(activityValues[tag]));
-                stream.print("</");
-                stream.print(UcmChangeLogSet.ACTIVITY_TAGS[tag]);
-                stream.println('>');
-            }
-            for (UcmActivity subActivity : activity.getSubActivities()) {
-                writeSubActivity(stream,subActivity);
-            }
-            stream.println("</subactivity>");
+        stream.println("<subactivity>");
+        String[] activityValues = getEntryAsStrings(activity);
+        for (int tag = 0; tag < ACTIVITY_TAGS.length; tag++) {
+            stream.print("\t<");
+            stream.print(UcmChangeLogSet.ACTIVITY_TAGS[tag]);
+            stream.print('>');
+            stream.print(ClearCaseChangeLogSet.escapeForXml(activityValues[tag]));
+            stream.print("</");
+            stream.print(UcmChangeLogSet.ACTIVITY_TAGS[tag]);
+            stream.println('>');
+        }
+        for (UcmActivity subActivity : activity.getSubActivities()) {
+            writeSubActivity(stream,subActivity);
+        }
+        stream.println("</subactivity>");
         
     }
     

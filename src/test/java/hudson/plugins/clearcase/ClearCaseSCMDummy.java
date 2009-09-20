@@ -34,35 +34,35 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     private ClearCaseScmDescriptor clearCaseScmDescriptor;
     
     public ClearCaseSCMDummy(String branch, String configspec, String viewname,
-			     boolean useupdate, String loadRules, boolean usedynamicview,
-			     String viewdrive, String mkviewoptionalparam,
-			     boolean filterOutDestroySubBranchEvent,
-			     boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-			     String excludedRegions, String multiSitePollBuffer,
-			     ClearTool cleartool,
-			     ClearCaseScmDescriptor clearCaseScmDescriptor) {
-	super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
-	      viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-	      rmviewonrename, excludedRegions, multiSitePollBuffer);
-	this.cleartool = cleartool;
-	this.clearCaseScmDescriptor = clearCaseScmDescriptor;
+                             boolean useupdate, String loadRules, boolean usedynamicview,
+                             String viewdrive, String mkviewoptionalparam,
+                             boolean filterOutDestroySubBranchEvent,
+                             boolean doNotUpdateConfigSpec, boolean rmviewonrename,
+                             String excludedRegions, String multiSitePollBuffer,
+                             ClearTool cleartool,
+                             ClearCaseScmDescriptor clearCaseScmDescriptor) {
+        super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
+              viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
+              rmviewonrename, excludedRegions, multiSitePollBuffer);
+        this.cleartool = cleartool;
+        this.clearCaseScmDescriptor = clearCaseScmDescriptor;
     }
     
     @Override
-    protected ClearTool createClearTool(VariableResolver variableResolver,
-					ClearToolLauncher launcher) {
-	return cleartool;
+        protected ClearTool createClearTool(VariableResolver variableResolver,
+                                            ClearToolLauncher launcher) {
+        return cleartool;
     }
 
     @Override
-    public HistoryAction createHistoryAction(
-					     VariableResolver variableResolver, ClearToolLauncher launcher) {
-	return super.createHistoryAction(variableResolver, launcher);
+        public HistoryAction createHistoryAction(
+                                                 VariableResolver variableResolver, ClearToolLauncher launcher) {
+        return super.createHistoryAction(variableResolver, launcher);
     }
     
     @Override
-    public ClearCaseScmDescriptor getDescriptor() {
-	return clearCaseScmDescriptor;
+        public ClearCaseScmDescriptor getDescriptor() {
+        return clearCaseScmDescriptor;
     }
 }
 

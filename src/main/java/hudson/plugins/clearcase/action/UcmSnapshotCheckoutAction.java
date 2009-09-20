@@ -72,12 +72,12 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
                     String newConfigSpec = getLoadRuleFreeConfigSpec(configSpec) + "\n";
                     
                     for (String loadRule : loadRules) {
-			// Make sure the load rule starts with \ or /, as appropriate
-			if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
-			    loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;
-			}
+                        // Make sure the load rule starts with \ or /, as appropriate
+                        if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
+                            loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;
+                        }
 
-			newConfigSpec += "load " + loadRule.trim() + "\n";
+                        newConfigSpec += "load " + loadRule.trim() + "\n";
                     }
                     cleartool.setcs(viewName, PathUtil.convertPathForOS(newConfigSpec, launcher));
                     updateLoadRules = false;
@@ -92,11 +92,11 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
         }
         if (updateLoadRules) {
             for (String loadRule : loadRules) {
-		// Make sure the load rule starts with \ or /, as appropriate
-		if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
-		    loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;
-		}
-		
+                // Make sure the load rule starts with \ or /, as appropriate
+                if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
+                    loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;
+                }
+                
                 cleartool.update(viewName, loadRule.trim());
             }
         }

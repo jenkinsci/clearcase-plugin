@@ -35,7 +35,7 @@ import org.junit.Test;
 public class ClearCaseChangeLogEntryTest {
 
     @Test
-    public void testSetFormattedDateStr() {
+        public void testSetFormattedDateStr() {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
         entry.setDateStr("28/08/2007 15:27:00");
         assertEquals("The date str is incorrect", "28/08/2007 15:27:00", entry.getDateStr());
@@ -47,15 +47,15 @@ public class ClearCaseChangeLogEntryTest {
     }
 
     @Test
-    public void testSetNonFormattedDateStr() {
+        public void testSetNonFormattedDateStr() {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
         entry.setDateStr("Tue Aug 28 15:27:00 CEST 2007");
         assertEquals("Tue Aug 28 15:27:00 CEST 2007", entry.getDateStr());
     }
 
     @SuppressWarnings("deprecation")
-    @Test
-    public void testSetFileAndThenVersion() {
+        @Test
+        public void testSetFileAndThenVersion() {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
         entry.setFile("Filename");
         entry.setVersion("version1");
@@ -64,8 +64,8 @@ public class ClearCaseChangeLogEntryTest {
     }
 
     @SuppressWarnings("deprecation")
-    @Test
-    public void testSetVersionAndThenFile() {
+        @Test
+        public void testSetVersionAndThenFile() {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
         entry.setVersion("version1");
         entry.setFile("Filename");
@@ -74,28 +74,28 @@ public class ClearCaseChangeLogEntryTest {
     }
 
     @Test
-    public void testFileElementAddEditType() {
+        public void testFileElementAddEditType() {
         FileElement element = new FileElement();
         element.setOperation("mkelem");
         assertSame("Edit type was incorrect", EditType.ADD, element.getEditType());
     }
 
     @Test
-    public void testFileElementEditEditType() {
+        public void testFileElementEditEditType() {
         FileElement element = new FileElement();
         element.setOperation("checkin");
         assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
     }
 
     @Test
-    public void testFileElementDeleteEditType() {
+        public void testFileElementDeleteEditType() {
         FileElement element = new FileElement();
         element.setOperation("rmelem");
         assertSame("Edit type was incorrect", EditType.DELETE, element.getEditType());
     }
 
     @Test
-    public void testFileElementUnknownEditType() {
+        public void testFileElementUnknownEditType() {
         FileElement element = new FileElement();
         assertNull("Edit type was not null", element.getEditType());
     }

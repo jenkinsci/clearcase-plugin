@@ -59,41 +59,41 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     private ClearCaseSCM.ClearCaseScmDescriptor clearCaseScmDescriptor;
     
     @Before
-    public void setUp() throws Exception {
+        public void setUp() throws Exception {
         createWorkspace();
         classContext = new Mockery() {
-            {
-                setImposteriser(ClassImposteriser.INSTANCE);
-            }
-        };
+                {
+                    setImposteriser(ClassImposteriser.INSTANCE);
+                }
+            };
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
         launcher = classContext.mock(Launcher.class);
-	clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
-	context = new Mockery();
-	cleartool = context.mock(ClearTool.class);
-	clearToolLauncher = context.mock(ClearToolLauncher.class);
-	
+        clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
+        context = new Mockery();
+        cleartool = context.mock(ClearTool.class);
+        clearToolLauncher = context.mock(ClearToolLauncher.class);
+        
     }
     @After
-    public void tearDown() throws Exception {
+        public void tearDown() throws Exception {
         deleteWorkspace();
     }
     
     @Test
-    public void testCreateChangeLogParser() {
+        public void testCreateChangeLogParser() {
         AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false, false);
         assertNotNull("The change log parser is null", scm.createChangeLogParser());
         assertNotSame("The change log parser is re-used", scm.createChangeLogParser(), scm.createChangeLogParser());
     }
     
     @Test
-    public void testSnapshotBuildEnvVars() {
+        public void testSnapshotBuildEnvVars() {
         classContext.checking(new Expectations() {
-            {
-                ignoring(build).getParent(); will(returnValue(project));
-            }
-        });
+                {
+                    ignoring(build).getParent(); will(returnValue(project));
+                }
+            });
         AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
@@ -104,12 +104,12 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testDynamicBuildEnvVars() {
+        public void testDynamicBuildEnvVars() {
         classContext.checking(new Expectations() {
-            {
-                ignoring(build).getParent(); will(returnValue(project));
-            }
-        });
+                {
+                    ignoring(build).getParent(); will(returnValue(project));
+                }
+            });
         AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/views", null, false, false,false);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build, launcher);
@@ -119,12 +119,12 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testDynamicBuildEnvVarsNoViewDrive() {
+        public void testDynamicBuildEnvVarsNoViewDrive() {
         classContext.checking(new Expectations() {
-            {
-                ignoring(build).getParent(); will(returnValue(project));
-            }
-        });
+                {
+                    ignoring(build).getParent(); will(returnValue(project));
+                }
+            });
         AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, null, null, false, false,false);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build, launcher);
@@ -134,19 +134,19 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testGetBranch() {
+        public void testGetBranch() {
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
         assertEquals("The branch isnt correct", "branch", scm.getBranch());
     }
     
     @Test
-    public void testGetConfigSpec() {
+        public void testGetConfigSpec() {
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
         assertEquals("The config spec isnt correct", "configspec", scm.getConfigSpec());
     }
 
     @Test
-    public void testIsUseUpdate() {
+        public void testIsUseUpdate() {
         AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
         assertTrue("The isUpdate isnt correct", scm.isUseUpdate());
         
@@ -155,79 +155,79 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testIsDynamicView() {
+        public void testIsDynamicView() {
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "", null, false, false,false);
         assertTrue("The dynamic isnt correct", scm.isUseDynamicView());
         assertFalse("The use update isnt correct", scm.isUseUpdate());
     }
 
     @Test
-    public void testGetViewDrive() {
+        public void testGetViewDrive() {
         ClearCaseSCM scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
         assertEquals("The view drive isnt correct", "/tmp/c", scm.getViewDrive());
     }
 
     @Test
-    public void testGetBranchNames() {
+        public void testGetBranchNames() {
         AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
         assertArrayEquals("The branch name array is incorrect", new String[]{"branchone", "branchtwo"}, scm.getBranchNames());
     }
 
     @Test
-    public void assertEmptyBranchIsReturnedAsABranch() {
+        public void assertEmptyBranchIsReturnedAsABranch() {
         AbstractClearCaseScm scm = new ClearCaseSCM("", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
         assertArrayEquals("The branch name array is incorrect", new String[]{""}, scm.getBranchNames());
     }
 
     @Test
-    public void assertBranchWithSpaceWorks() {
+        public void assertBranchWithSpaceWorks() {
         AbstractClearCaseScm scm = new ClearCaseSCM("branch\\ one", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
         assertArrayEquals("The branch name array is incorrect", new String[]{"branch one"}, scm.getBranchNames());
     }
 
     @Test
-    public void testGetViewPaths() throws Exception {
+        public void testGetViewPaths() throws Exception {
         AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "load tmp", true, "", null, false, false,false);
         assertEquals("The view paths string is incorrect", "tmp", scm.getViewPaths()[0]);
     }
 
-//    @Test
-//    public void assertExtendedViewPathIsSetForDynamicViews() throws Exception {
-//        classContext.checking(new Expectations() {
-//            {
-//                ignoring(build).getParent(); will(returnValue(project));
-//            }
-//        });
-//        ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, "vob", true, "/view", null, false, false);
-//        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(null, null);
-//        assertEquals("The extended view path is incorrect", "/view/viewname", action.getExtendedViewPath());
-//    }
+    //    @Test
+    //    public void assertExtendedViewPathIsSetForDynamicViews() throws Exception {
+    //        classContext.checking(new Expectations() {
+    //            {
+    //                ignoring(build).getParent(); will(returnValue(project));
+    //            }
+    //        });
+    //        ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, "vob", true, "/view", null, false, false);
+    //        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(null, null);
+    //        assertEquals("The extended view path is incorrect", "/view/viewname", action.getExtendedViewPath());
+    //    }
 
     @Test
-    public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
+        public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
         classContext.checking(new Expectations() {
-            {
-                atLeast(2).of(build).getParent(); will(returnValue(project));
-                one(project).getName(); will(returnValue("ClearCase"));
-		atLeast(1).of(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
-	    }
-	    });
-	context.checking(new Expectations() {
-		{
-		    one(cleartool).pwv("viewname-ClearCase");
-		    will(returnValue("/view/viewname-ClearCase"));
-		}
-	    });
-	
+                {
+                    atLeast(2).of(build).getParent(); will(returnValue(project));
+                    one(project).getName(); will(returnValue("ClearCase"));
+                    atLeast(1).of(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
+                }
+            });
+        context.checking(new Expectations() {
+                {
+                    one(cleartool).pwv("viewname-ClearCase");
+                    will(returnValue("/view/viewname-ClearCase"));
+                }
+            });
+        
         ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob",
-						 true, "/view", null, false, false, false, null, null,
-						 cleartool, clearCaseScmDescriptor);
-	// Create actions
-	VariableResolver variableResolver = new BuildVariableResolver(build,
-								      launcher);
+                                                 true, "/view", null, false, false, false, null, null,
+                                                 cleartool, clearCaseScmDescriptor);
+        // Create actions
+        VariableResolver variableResolver = new BuildVariableResolver(build,
+                                                                      launcher);
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
-	classContext.assertIsSatisfied();
+        classContext.assertIsSatisfied();
     }
     
     private void assertObjectInArray(Object[] array, Object obj) {
@@ -241,5 +241,5 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
             fail(obj + " was not found in array " + Arrays.toString(array));
         }
     }
-	
+        
 }

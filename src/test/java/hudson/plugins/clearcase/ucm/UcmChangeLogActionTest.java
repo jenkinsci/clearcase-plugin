@@ -49,22 +49,22 @@ public class UcmChangeLogActionTest {
     private ClearTool cleartool;
 
     @Before
-    public void setUp() throws Exception {
+        public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
         
     }
 
     @Test
-    public void assertFormatContainsComment() throws Exception {
+        public void assertFormatContainsComment() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n")),
-                        with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                        with(any(String[].class)));                
-                will(returnValue(new StringReader("")));
-            }
-        });
+                {
+                    one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n")),
+                                             with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
+                                             with(any(String[].class)));                
+                    will(returnValue(new StringReader("")));
+                }
+            });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
         action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
@@ -72,20 +72,20 @@ public class UcmChangeLogActionTest {
     }
     
     @Test
-    public void assertDestroySubBranchEventIsIgnored() throws Exception {
+        public void assertDestroySubBranchEventIsIgnored() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
-                will(returnValue(new StringReader(
-                        "\"20080509.140451\" " +
-                        "\"vobs/projects/Server//config-admin-client\" " +
-                        "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
-                        "\"\" " +
-                        "\"destroy sub-branch \"esmalling_branch\" of branch\" " +
-                        "\"checkin\" \"username\" ")));
-            }
-        });
+                {
+                    one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
+                    will(returnValue(new StringReader(
+                                                      "\"20080509.140451\" " +
+                                                      "\"vobs/projects/Server//config-admin-client\" " +
+                                                      "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
+                                                      "\"\" " +
+                                                      "\"destroy sub-branch \"esmalling_branch\" of branch\" " +
+                                                      "\"checkin\" \"username\" ")));
+                }
+            });
         
         List<Filter> filters = new ArrayList<Filter>();
 
@@ -98,26 +98,26 @@ public class UcmChangeLogActionTest {
 
     
     @Test
-    public void assertParsingOfNonIntegrationActivity() throws Exception {
+        public void assertParsingOfNonIntegrationActivity() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
-                will(returnValue(new StringReader(
-                        "\"20080509.140451\" " +
-                        "\"vobs/projects/Server//config-admin-client\" " +
-                        "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
-                        "\"Release_3_3_jdk5.20080509.155359\" " +
-                        "\"create directory version\" " +
-                        "\"checkin\" \"username\" ")));
-                one(cleartool).lsactivity(
-                        with(equal("Release_3_3_jdk5.20080509.155359")), 
-                        with(aNonNull(String.class)),with(aNonNull(String.class)));
-                will(returnValue(new StringReader("\"Convert to Java 6\" " +
-                                "\"Release_3_3_jdk5\" " +
-                                "\"bob\" ")));
-            }
-        });
+                {
+                    one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
+                    will(returnValue(new StringReader(
+                                                      "\"20080509.140451\" " +
+                                                      "\"vobs/projects/Server//config-admin-client\" " +
+                                                      "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
+                                                      "\"Release_3_3_jdk5.20080509.155359\" " +
+                                                      "\"create directory version\" " +
+                                                      "\"checkin\" \"username\" ")));
+                    one(cleartool).lsactivity(
+                                              with(equal("Release_3_3_jdk5.20080509.155359")), 
+                                              with(aNonNull(String.class)),with(aNonNull(String.class)));
+                    will(returnValue(new StringReader("\"Convert to Java 6\" " +
+                                                      "\"Release_3_3_jdk5\" " +
+                                                      "\"bob\" ")));
+                }
+            });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
         List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
@@ -130,41 +130,41 @@ public class UcmChangeLogActionTest {
     }
     
     @Test
-    public void assertParsingOfIntegrationActivity() throws Exception {
+        public void assertParsingOfIntegrationActivity() throws Exception {
         context.checking(new Expectations() {
-            {
-                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
-                will(returnValue(new StringReader(
-                        "\"20080509.140451\" " +
-                        "\"vobs/projects/Server//config-admin-client\" " +
-                        "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
-                        "\"deliver.Release_3_3_jdk5.20080509.155359\" " +
-                        "\"create directory version\" " +
-                        "\"checkin\" \"username\" ")));
-                one(cleartool).lsactivity(
-                        with(equal("deliver.Release_3_3_jdk5.20080509.155359")), 
-                        with(aNonNull(String.class)),with(aNonNull(String.class)));
-                will(returnValue(new StringReader("\"Convert to Java 6\" " +
-                                "\"Release_3_3_jdk5\" " +
-                                "\"bob\" " +
-                                "\"maven2_Release_3_3.20080421.154619 maven2_Release_3_3.20080421.163355\" ")));
-                one(cleartool).lsactivity(
-                        with(equal("maven2_Release_3_3.20080421.154619")), 
-                        with(aNonNull(String.class)),with(aNonNull(String.class)));
-                will(returnValue(new StringReader("\"Deliver maven2\" " +
-                                "\"Release_3_3\" " +
-                                "\"doe\" " +
-                                "\"John Doe\" ")));
-                one(cleartool).lsactivity(
-                        with(equal("maven2_Release_3_3.20080421.163355")), 
-                        with(aNonNull(String.class)),with(aNonNull(String.class)));
-                will(returnValue(new StringReader("\"Deliver maven3\" " +
-                                "\"Release_3_3\" " +
-                                "\"doe\" " +
-                                "\"John Doe\" ")));
-            }
-        });
+                {
+                    one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
+                    will(returnValue(new StringReader(
+                                                      "\"20080509.140451\" " +
+                                                      "\"vobs/projects/Server//config-admin-client\" " +
+                                                      "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
+                                                      "\"deliver.Release_3_3_jdk5.20080509.155359\" " +
+                                                      "\"create directory version\" " +
+                                                      "\"checkin\" \"username\" ")));
+                    one(cleartool).lsactivity(
+                                              with(equal("deliver.Release_3_3_jdk5.20080509.155359")), 
+                                              with(aNonNull(String.class)),with(aNonNull(String.class)));
+                    will(returnValue(new StringReader("\"Convert to Java 6\" " +
+                                                      "\"Release_3_3_jdk5\" " +
+                                                      "\"bob\" " +
+                                                      "\"maven2_Release_3_3.20080421.154619 maven2_Release_3_3.20080421.163355\" ")));
+                    one(cleartool).lsactivity(
+                                              with(equal("maven2_Release_3_3.20080421.154619")), 
+                                              with(aNonNull(String.class)),with(aNonNull(String.class)));
+                    will(returnValue(new StringReader("\"Deliver maven2\" " +
+                                                      "\"Release_3_3\" " +
+                                                      "\"doe\" " +
+                                                      "\"John Doe\" ")));
+                    one(cleartool).lsactivity(
+                                              with(equal("maven2_Release_3_3.20080421.163355")), 
+                                              with(aNonNull(String.class)),with(aNonNull(String.class)));
+                    will(returnValue(new StringReader("\"Deliver maven3\" " +
+                                                      "\"Release_3_3\" " +
+                                                      "\"doe\" " +
+                                                      "\"John Doe\" ")));
+                }
+            });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
         List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
@@ -182,27 +182,27 @@ public class UcmChangeLogActionTest {
     }
 
     @Test(expected=IOException.class)
-    public void assertLshistoryReaderIsClosed() throws Exception {
+        public void assertLshistoryReaderIsClosed() throws Exception {
         final StringReader lshistoryReader = new StringReader(
-                "\"20080509.140451\" " +
-                "\"vobs/projects/Server//config-admin-client\" " +
-                "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
-                "\"Release_3_3_jdk5.20080509.155359\" " +
-                "\"create directory version\" " +
-                "\"checkin\" \"username\" ");
+                                                              "\"20080509.140451\" " +
+                                                              "\"vobs/projects/Server//config-admin-client\" " +
+                                                              "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
+                                                              "\"Release_3_3_jdk5.20080509.155359\" " +
+                                                              "\"create directory version\" " +
+                                                              "\"checkin\" \"username\" ");
         context.checking(new Expectations() {
-            {
-                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));
-                will(returnValue(lshistoryReader));
-                ignoring(cleartool).lsactivity(
-                        with(equal("Release_3_3_jdk5.20080509.155359")), 
-                        with(aNonNull(String.class)),with(aNonNull(String.class)));
-                will(returnValue(new StringReader("\"Convert to Java 6\" " +
-                        "\"Release_3_3_jdk5\" " +
-                        "\"bob\" ")));
-            }
-        });
+                {
+                    one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));
+                    will(returnValue(lshistoryReader));
+                    ignoring(cleartool).lsactivity(
+                                                   with(equal("Release_3_3_jdk5.20080509.155359")), 
+                                                   with(aNonNull(String.class)),with(aNonNull(String.class)));
+                    will(returnValue(new StringReader("\"Convert to Java 6\" " +
+                                                      "\"Release_3_3_jdk5\" " +
+                                                      "\"bob\" ")));
+                }
+            });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
         action.getChanges( null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
@@ -211,27 +211,27 @@ public class UcmChangeLogActionTest {
     }
 
     @Test(expected=IOException.class)
-    public void assertLsactivityReaderIsClosed() throws Exception {
+        public void assertLsactivityReaderIsClosed() throws Exception {
         final StringReader lsactivityReader = new StringReader("\"Convert to Java 6\" " +
-                "\"Release_3_3_jdk5\" " +
-                "\"bob\" ");
+                                                               "\"Release_3_3_jdk5\" " +
+                                                               "\"bob\" ");
         context.checking(new Expectations() {
-            {
-                one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                        with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));
-                will(returnValue(new StringReader(
-                        "\"20080509.140451\" " +
-                        "\"vobs/projects/Server//config-admin-client\" " +
-                        "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
-                        "\"Release_3_3_jdk5.20080509.155359\" " +
-                        "\"create directory version\" " +
-                        "\"checkin\" \"username\" ")));
-                ignoring(cleartool).lsactivity(
-                        with(equal("Release_3_3_jdk5.20080509.155359")), 
-                        with(aNonNull(String.class)),with(aNonNull(String.class)));
-                will(returnValue(lsactivityReader));
-            }
-        });
+                {
+                    one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));
+                    will(returnValue(new StringReader(
+                                                      "\"20080509.140451\" " +
+                                                      "\"vobs/projects/Server//config-admin-client\" " +
+                                                      "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " +
+                                                      "\"Release_3_3_jdk5.20080509.155359\" " +
+                                                      "\"create directory version\" " +
+                                                      "\"checkin\" \"username\" ")));
+                    ignoring(cleartool).lsactivity(
+                                                   with(equal("Release_3_3_jdk5.20080509.155359")), 
+                                                   with(aNonNull(String.class)),with(aNonNull(String.class)));
+                    will(returnValue(lsactivityReader));
+                }
+            });
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
         action.getChanges(null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        

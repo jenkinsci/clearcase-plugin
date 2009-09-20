@@ -58,282 +58,282 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     private Launcher launcher;
     
     @Before
-    public void setUp() throws Exception {
-	createWorkspace();
-	context = new Mockery();
-	
-	clearToolLauncher = context.mock(ClearToolLauncher.class);
-	listener = context.mock(TaskListener.class);
-	resolver = context.mock(VariableResolver.class);
-	clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher);
-	classContext = new Mockery() {
-		{
-		    setImposteriser(ClassImposteriser.INSTANCE);
-		}
-	    };
-	
-	launcher = classContext.mock(Launcher.class);
+        public void setUp() throws Exception {
+        createWorkspace();
+        context = new Mockery();
+        
+        clearToolLauncher = context.mock(ClearToolLauncher.class);
+        listener = context.mock(TaskListener.class);
+        resolver = context.mock(VariableResolver.class);
+        clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher);
+        classContext = new Mockery() {
+                {
+                    setImposteriser(ClassImposteriser.INSTANCE);
+                }
+            };
+        
+        launcher = classContext.mock(Launcher.class);
     }
     
     @After
-    public void tearDown() throws Exception {
-	deleteWorkspace();
+        public void tearDown() throws Exception {
+        deleteWorkspace();
     }
     
-    //	@Test
-    //	public void testSetcs() throws Exception {
-    //		context.checking(new Expectations() {
-    //			{
-    //				one(clearToolLauncher).getWorkspace();
-    //				will(returnValue(workspace));
-    //				one(clearToolLauncher).getLauncher();
-    //				will(re)
-    //				one(clearToolLauncher).run(with(Matchers.hasItemInArray("setcs")),
-    //						with(aNull(InputStream.class)),
-    //						with(aNull(OutputStream.class)),
-    //						with(aNonNull(FilePath.class)));
-    //				will(returnValue(Boolean.TRUE));
-    //			}
-    //		});
+    //  @Test
+    //  public void testSetcs() throws Exception {
+    //          context.checking(new Expectations() {
+    //                  {
+    //                          one(clearToolLauncher).getWorkspace();
+    //                          will(returnValue(workspace));
+    //                          one(clearToolLauncher).getLauncher();
+    //                          will(re)
+    //                          one(clearToolLauncher).run(with(Matchers.hasItemInArray("setcs")),
+    //                                          with(aNull(InputStream.class)),
+    //                                          with(aNull(OutputStream.class)),
+    //                                          with(aNonNull(FilePath.class)));
+    //                          will(returnValue(Boolean.TRUE));
+    //                  }
+    //          });
     //
-    //		clearToolExec.setcs("viewName", "configspec");
-    //		context.assertIsSatisfied();
-    //	}
+    //          clearToolExec.setcs("viewName", "configspec");
+    //          context.assertIsSatisfied();
+    //  }
     
     @Test
-    public void testRemoveView() throws Exception {
-	context.checking(new Expectations() {
-		{
-		    one(clearToolLauncher).getWorkspace();
-		    will(returnValue(workspace));
-		    one(clearToolLauncher).run(
-					       with(equal(new String[] { "rmview", "-force",
-									 "viewName" })), with(aNull(InputStream.class)),
-					       with(aNonNull(OutputStream.class)),
-					       with(aNull(FilePath.class)));
-		    will(returnValue(Boolean.TRUE));
-		}
-	    });
-	
-	clearToolExec.rmview("viewName");
-	context.assertIsSatisfied();
+        public void testRemoveView() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearToolLauncher).getWorkspace();
+                    will(returnValue(workspace));
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "rmview", "-force",
+                                                                         "viewName" })), with(aNull(InputStream.class)),
+                                               with(aNonNull(OutputStream.class)),
+                                               with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        
+        clearToolExec.rmview("viewName");
+        context.assertIsSatisfied();
     }
     
     @Test
-    public void testForcedRemoveView() throws Exception {
-	workspace.child("viewName").mkdirs();
-	
-	context.checking(new Expectations() {
-		{
-		    one(clearToolLauncher).getWorkspace();
-		    will(returnValue(workspace));
-		    one(clearToolLauncher).run(
-					       with(equal(new String[] { "rmview", "-force",
-									 "viewName" })), with(aNull(InputStream.class)),
-					       with(aNonNull(OutputStream.class)),
-					       with(aNull(FilePath.class)));
-		    will(returnValue(Boolean.TRUE));
-		    one(clearToolLauncher).getListener();
-		    will(returnValue(listener));
-		    one(listener).getLogger();
-		    will(returnValue(new PrintStream(new ByteArrayOutputStream())));
-		}
-	    });
-	
-	clearToolExec.rmview("viewName");
-	assertFalse("View folder still exists", workspace.child("viewName")
-		    .exists());
-	context.assertIsSatisfied();
+        public void testForcedRemoveView() throws Exception {
+        workspace.child("viewName").mkdirs();
+        
+        context.checking(new Expectations() {
+                {
+                    one(clearToolLauncher).getWorkspace();
+                    will(returnValue(workspace));
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "rmview", "-force",
+                                                                         "viewName" })), with(aNull(InputStream.class)),
+                                               with(aNonNull(OutputStream.class)),
+                                               with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                    one(clearToolLauncher).getListener();
+                    will(returnValue(listener));
+                    one(listener).getLogger();
+                    will(returnValue(new PrintStream(new ByteArrayOutputStream())));
+                }
+            });
+        
+        clearToolExec.rmview("viewName");
+        assertFalse("View folder still exists", workspace.child("viewName")
+                    .exists());
+        context.assertIsSatisfied();
     }
     
     @Test
-    public void testUpdate() throws Exception {
-	context.checking(new Expectations() {
-		{
-		    one(clearToolLauncher).run(
-					       with(equal(new String[] { "update", "-force", "-log",
-									 "NUL", "viewName" })),
-					       with(aNull(InputStream.class)),
-					       with(aNull(OutputStream.class)),
-					       with(aNull(FilePath.class)));
-		    will(returnValue(Boolean.TRUE));
-		}
-	    });
-	
-	clearToolExec.update("viewName", null);
-	context.assertIsSatisfied();
+        public void testUpdate() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "update", "-force", "-log",
+                                                                         "NUL", "viewName" })),
+                                               with(aNull(InputStream.class)),
+                                               with(aNull(OutputStream.class)),
+                                               with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        
+        clearToolExec.update("viewName", null);
+        context.assertIsSatisfied();
     }
     
     
     @Test
-    public void testUpdateWithLoadRules() throws Exception {
-	classContext.checking(new Expectations() {
-		{
-		    allowing(launcher).isUnix(); will(returnValue(true));
-		}
-	    });
-	
-	context.checking(new Expectations() {
-		{
-		    allowing(clearToolLauncher).getLauncher();
-		    will(returnValue(launcher));
-		    one(clearToolLauncher)
-			.run(
-			     with(equal(new String[] {
-					 "update",
-					 "-force",
-					 "-log",
-					 "NUL",
-					 "-add_loadrules",
-					 "viewName" + File.separator
-					 + "more_load_rules" })),
-			     with(aNull(InputStream.class)),
-			     with(aNull(OutputStream.class)),
-			     with(aNull(FilePath.class)));
-		    will(returnValue(Boolean.TRUE));
-		}
-	    });
-	
-	clearToolExec.update("viewName", File.separator + "more_load_rules");
-	context.assertIsSatisfied();
+        public void testUpdateWithLoadRules() throws Exception {
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(true));
+                }
+            });
+        
+        context.checking(new Expectations() {
+                {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
+                    one(clearToolLauncher)
+                        .run(
+                             with(equal(new String[] {
+                                         "update",
+                                         "-force",
+                                         "-log",
+                                         "NUL",
+                                         "-add_loadrules",
+                                         "viewName" + File.separator
+                                         + "more_load_rules" })),
+                             with(aNull(InputStream.class)),
+                             with(aNull(OutputStream.class)),
+                             with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        
+        clearToolExec.update("viewName", File.separator + "more_load_rules");
+        context.assertIsSatisfied();
     }
     
     @Test
-    public void testUpdateWithLoadRulesWithSpace() throws Exception {
-	classContext.checking(new Expectations() {
-		{
-		    allowing(launcher).isUnix(); will(returnValue(true));
-		}
-	    });
-	
-	context.checking(new Expectations() {
-		{
-		    allowing(clearToolLauncher).getLauncher();
-		    will(returnValue(launcher));
-		    one(clearToolLauncher)
-			.run(
-			     with(equal(new String[] {
-					 "update",
-					 "-force",
-					 "-log",
-					 "NUL",
-					 "-add_loadrules",
-					 "\"viewName" + File.separator
-					 + "more load_rules\"" })),
-			     with(aNull(InputStream.class)),
-			     with(aNull(OutputStream.class)),
-			     with(aNull(FilePath.class)));
-		    will(returnValue(Boolean.TRUE));
-		}
-	    });
-	
-	clearToolExec.update("viewName", File.separator + "more load_rules");
-	context.assertIsSatisfied();
+        public void testUpdateWithLoadRulesWithSpace() throws Exception {
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(true));
+                }
+            });
+        
+        context.checking(new Expectations() {
+                {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
+                    one(clearToolLauncher)
+                        .run(
+                             with(equal(new String[] {
+                                         "update",
+                                         "-force",
+                                         "-log",
+                                         "NUL",
+                                         "-add_loadrules",
+                                         "\"viewName" + File.separator
+                                         + "more load_rules\"" })),
+                             with(aNull(InputStream.class)),
+                             with(aNull(OutputStream.class)),
+                             with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        
+        clearToolExec.update("viewName", File.separator + "more load_rules");
+        context.assertIsSatisfied();
     }
     
     @Test
-    public void testCreateView() throws Exception {
-	context.checking(new Expectations() {
-		{
-		    one(clearToolLauncher).run(
-				      with(equal(new String[] { "mkview", "-snapshot",
-								"-tag", "viewName", "viewName" })),
-				      with(aNull(InputStream.class)),
-				      with(aNull(OutputStream.class)),
-				      with(aNull(FilePath.class)));
-		    will(returnValue(Boolean.TRUE));
-		}
-	    });
-	
-	clearToolExec.mkview("viewName", null);
-	context.assertIsSatisfied();
+        public void testCreateView() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "mkview", "-snapshot",
+                                                                         "-tag", "viewName", "viewName" })),
+                                               with(aNull(InputStream.class)),
+                                               with(aNull(OutputStream.class)),
+                                               with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        
+        clearToolExec.mkview("viewName", null);
+        context.assertIsSatisfied();
     }
     
-	@Test
-	public void testCreateViewWithStream() throws Exception {
-		context.checking(new Expectations() {
-			{
-				one(clearToolLauncher).run(
-						with(equal(new String[] { "mkview", "-snapshot",
-								"-stream", "streamSelector", "-tag",
-								"viewName", "viewName" })),
-						with(aNull(InputStream.class)),
-						with(aNull(OutputStream.class)),
-						with(aNull(FilePath.class)));
-				will(returnValue(Boolean.TRUE));
-			}
-		});
+    @Test
+        public void testCreateViewWithStream() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "mkview", "-snapshot",
+                                                                         "-stream", "streamSelector", "-tag",
+                                                                         "viewName", "viewName" })),
+                                               with(aNull(InputStream.class)),
+                                               with(aNull(OutputStream.class)),
+                                               with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
 
-		clearToolExec.mkview("viewName", "streamSelector");
-		context.assertIsSatisfied();
-	}
+        clearToolExec.mkview("viewName", "streamSelector");
+        context.assertIsSatisfied();
+    }
 
-	@Test
-	public void testCreateViewExtraParams() throws Exception {
-		context.checking(new Expectations() {
-			{
-				one(clearToolLauncher).run(
-						with(equal(new String[] { "mkview", "-snapshot",
-								"-tag", "viewName", "-anextraparam",
-								"-anotherparam", "viewName" })),
-						with(aNull(InputStream.class)),
-						with(aNull(OutputStream.class)),
-						with(aNull(FilePath.class)));
-				will(returnValue(Boolean.TRUE));
-			}
-		});
+    @Test
+        public void testCreateViewExtraParams() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "mkview", "-snapshot",
+                                                                         "-tag", "viewName", "-anextraparam",
+                                                                         "-anotherparam", "viewName" })),
+                                               with(aNull(InputStream.class)),
+                                               with(aNull(OutputStream.class)),
+                                               with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
 
-		clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
-				"-anextraparam -anotherparam");
-		clearToolExec.mkview("viewName", null);
-		context.assertIsSatisfied();
-	}
+        clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
+                                              "-anextraparam -anotherparam");
+        clearToolExec.mkview("viewName", null);
+        context.assertIsSatisfied();
+    }
 
-	@Test
-	public void testCreateUcmViewWithOptionalParams() throws Exception {
-		context.checking(new Expectations() {
-			{
-				one(clearToolLauncher).run(
-						with(equal(new String[] { "mkview", "-snapshot",
-								"-stream", "streamSelector", "-tag",
-								"viewName", "-anextraparam", "-anotherparam",
-								"viewName" })), with(aNull(InputStream.class)),
-						with(aNull(OutputStream.class)),
-						with(aNull(FilePath.class)));
-				will(returnValue(Boolean.TRUE));
-			}
-		});
+    @Test
+        public void testCreateUcmViewWithOptionalParams() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "mkview", "-snapshot",
+                                                                         "-stream", "streamSelector", "-tag",
+                                                                         "viewName", "-anextraparam", "-anotherparam",
+                                                                         "viewName" })), with(aNull(InputStream.class)),
+                                               with(aNull(OutputStream.class)),
+                                               with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
 
-		clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
-				"-anextraparam -anotherparam");
-		clearToolExec.mkview("viewName", "streamSelector");
-		context.assertIsSatisfied();
-	}
+        clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
+                                              "-anextraparam -anotherparam");
+        clearToolExec.mkview("viewName", "streamSelector");
+        context.assertIsSatisfied();
+    }
 
-	@Test
-	public void testCreateViewExtraParamsEvaluated() throws Exception {
-		context.checking(new Expectations() {
-			{
-				one(clearToolLauncher).run(
-						with(equal(new String[] { "mkview", "-snapshot",
-								"-tag", "viewName", "-anextraparam",
-								"Test", "viewName" })),
-						with(aNull(InputStream.class)),
-						with(aNull(OutputStream.class)),
-						with(aNull(FilePath.class)));
-				will(returnValue(Boolean.TRUE));
-			}
-		});
-		
-		context.checking(new Expectations() {
-			{
-				atLeast(1).of(resolver).resolve("COMPUTERNAME");
-				will(returnValue("Test"));
-			}
-		});
-		clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
-				"-anextraparam $COMPUTERNAME");
-		clearToolExec.mkview("viewName", null);
-		context.assertIsSatisfied();
-	}
+    @Test
+        public void testCreateViewExtraParamsEvaluated() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "mkview", "-snapshot",
+                                                                         "-tag", "viewName", "-anextraparam",
+                                                                         "Test", "viewName" })),
+                                               with(aNull(InputStream.class)),
+                                               with(aNull(OutputStream.class)),
+                                               with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+                
+        context.checking(new Expectations() {
+                {
+                    atLeast(1).of(resolver).resolve("COMPUTERNAME");
+                    will(returnValue("Test"));
+                }
+            });
+        clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
+                                              "-anextraparam $COMPUTERNAME");
+        clearToolExec.mkview("viewName", null);
+        context.assertIsSatisfied();
+    }
 }
