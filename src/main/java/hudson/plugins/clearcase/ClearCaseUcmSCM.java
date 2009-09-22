@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase;
 
 import static hudson.Util.fixEmpty;
+import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -69,11 +70,11 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     private final String stream;
 
     @DataBoundConstructor
-        public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
-                               boolean usedynamicview, String viewdrive,
-                               String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
-                               boolean useUpdate, boolean rmviewonrename,
-                               String excludedRegions, String multiSitePollBuffer) {
+    public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
+                           boolean usedynamicview, String viewdrive,
+                           String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
+                           boolean useUpdate, boolean rmviewonrename,
+                           String excludedRegions, String multiSitePollBuffer) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
               useUpdate, rmviewonrename, excludedRegions, usedynamicview, 
               viewdrive, loadrules, multiSitePollBuffer);
@@ -99,17 +100,17 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-        public ClearCaseUcmScmDescriptor getDescriptor() {
+    public ClearCaseUcmScmDescriptor getDescriptor() {
         return PluginImpl.UCM_DESCRIPTOR;
     }
 
     @Override
-        public ChangeLogParser createChangeLogParser() {
+    public ChangeLogParser createChangeLogParser() {
         return new UcmChangeLogParser();
     }
 
     @Override
-        public String[] getBranchNames() {
+    public String[] getBranchNames() {
         String branch = stream;
         if (stream.contains("@")) {
             branch = stream.substring(0, stream.indexOf("@"));
@@ -119,8 +120,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
 
     @Override
-        protected CheckOutAction createCheckOutAction(
-                                                      VariableResolver variableResolver, ClearToolLauncher launcher) {
+    protected CheckOutAction createCheckOutAction(
+                                                  VariableResolver variableResolver, ClearToolLauncher launcher) {
         CheckOutAction action;
         if (isUseDynamicView()) {
             action = new UcmDynamicCheckoutAction(createClearTool(
@@ -141,7 +142,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     //  }
 
     @Override
-        protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+    protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
         ClearTool ct = createClearTool(variableResolver, launcher);
         UcmHistoryAction action = new UcmHistoryAction(ct,configureFilters(launcher));
 
@@ -192,8 +193,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     //  }
 
     @Override
-        protected SaveChangeLogAction createSaveChangeLogAction(
-                                                                ClearToolLauncher launcher) {
+    protected SaveChangeLogAction createSaveChangeLogAction(
+                                                            ClearToolLauncher launcher) {
         return new UcmSaveChangeLogAction();
     }
 
@@ -219,26 +220,27 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
      * 
      * @author Erik Ramfelt
      */
+    @Extension
     public static class ClearCaseUcmScmDescriptor extends
                                                       SCMDescriptor<ClearCaseUcmSCM> implements ModelObject {
 
-        protected ClearCaseUcmScmDescriptor() {
+        public ClearCaseUcmScmDescriptor() {
             super(ClearCaseUcmSCM.class, null);
             load();
         }
 
         @Override
-            public String getDisplayName() {
+        public String getDisplayName() {
             return "UCM ClearCase";
         }
 
         @Override
-            public boolean configure(StaplerRequest req) {
+        public boolean configure(StaplerRequest req, JSONObject json) {
             return true;
         }
 
         @Override
-            public SCM newInstance(StaplerRequest req) throws FormException {
+        public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             ClearCaseUcmSCM scm = new ClearCaseUcmSCM(
                                                       req.getParameter("ucm.stream"),
                                                       req.getParameter("ucm.loadrules"),

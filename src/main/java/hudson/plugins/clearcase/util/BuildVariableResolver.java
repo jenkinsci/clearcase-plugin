@@ -28,15 +28,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 
-import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
+import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
 /**
@@ -63,42 +64,38 @@ public class BuildVariableResolver implements VariableResolver<String> {
     private static final Logger LOGGER = Logger
         .getLogger(BuildVariableResolver.class.getName());
 
-    private final Launcher launcher;
-
 
     private AbstractBuild<?, ?> build;
 
-    public BuildVariableResolver(final AbstractBuild<?, ?> build,
-                                 final Launcher launcher) {
+    public BuildVariableResolver(final AbstractBuild<?, ?> build) {
         this.build = build;
-        
-        this.launcher = launcher;
     }
 
     @Override
-        public String resolve(String key) {
+    public String resolve(String key) {
         try {
+            LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
             if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
                 return build.getProject().getName();
             }
             /*if ("COMPUTERNAME".equals(key)) {
-              return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
-              : launcher.getComputer().getName()));
+              return (Util.fixEmpty(StringUtils.isEmpty(Computer.currentComputer().getName()) ? "master"
+              : Computer.currentComputer().getName()));
               }*/
             if ("NODE_NAME".equals(key)) {
-                return (Util.fixEmpty(StringUtils.isEmpty(launcher.getComputer().getName()) ? "master"
-                                      : launcher.getComputer().getName()));
+                return (Util.fixEmpty(StringUtils.isEmpty(Computer.currentComputer().getName()) ? "master"
+                                      : Computer.currentComputer().getName()));
             }
 
             if ("USER_NAME".equals(key)) {
-                return (String) launcher.getComputer().getSystemProperties()
+                return (String) Computer.currentComputer().getSystemProperties()
                     .get("user.name");
             }
-            if (build.getEnvVars().containsKey(key)) {
-                return build.getEnvVars().get(key);
+            if (build.getEnvironment(ltl).containsKey(key)) {
+                return build.getEnvironment(ltl).get(key);
             }
-                
-                        
+            
+            
         } catch (Exception e) {
             LOGGER.warning("Variable name '" + key
                            + "' look up failed because of " + e);

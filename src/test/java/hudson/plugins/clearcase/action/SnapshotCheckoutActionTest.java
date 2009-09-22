@@ -44,7 +44,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     private Launcher launcher;
 
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         classContext = new Mockery() {
@@ -58,12 +58,12 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @After
-        public void teardown() throws Exception {
+    public void teardown() throws Exception {
         deleteWorkspace();
     }
     
     @Test
-        public void testFirstTimeNotOnUnix() throws Exception {
+    public void testFirstTimeNotOnUnix() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearTool).mkview("viewname", null);
@@ -84,7 +84,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testFirstTimeOnUnix() throws Exception {
+    public void testFirstTimeOnUnix() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearTool).mkview("viewname", null);
@@ -105,7 +105,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-        public void testFirstTimeUsingUpdate() throws Exception {
+    public void testFirstTimeUsingUpdate() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearTool).mkview("viewname", null);
@@ -126,7 +126,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testSecondTimeUsingUpdate() throws Exception {
+    public void testSecondTimeUsingUpdate() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
@@ -149,7 +149,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testSecondTimeNotUsingUpdate() throws Exception {
+    public void testSecondTimeNotUsingUpdate() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
@@ -173,7 +173,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-        public void testSecondTimeNewConfigSpec() throws Exception {
+    public void testSecondTimeNewConfigSpec() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {

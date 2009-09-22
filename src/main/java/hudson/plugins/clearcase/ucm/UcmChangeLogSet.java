@@ -57,7 +57,7 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
     }
 
     @Override
-        public boolean isEmptySet() {
+    public boolean isEmptySet() {
         return history.size() == 0;
     }
 
@@ -66,7 +66,7 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
     }
 
     @Exported
-        public List<UcmActivity> getLogs() {
+    public List<UcmActivity> getLogs() {
         return history;
     }
 

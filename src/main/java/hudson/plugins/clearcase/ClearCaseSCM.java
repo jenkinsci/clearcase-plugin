@@ -26,6 +26,7 @@ package hudson.plugins.clearcase;
 
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
+import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
@@ -50,8 +51,7 @@ import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
-import hudson.util.ByteBuffer;
-import hudson.util.FormFieldValidator;
+import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
@@ -70,10 +70,13 @@ import javax.servlet.ServletException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.json.JSONObject;
+
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-
+import org.kohsuke.stapler.framework.io.ByteBuffer;
 
 /**
  * Base ClearCase SCM.
@@ -82,6 +85,7 @@ import org.kohsuke.stapler.StaplerResponse;
  * 
  * @author Erik Ramfelt
  */
+
 public class ClearCaseSCM extends AbstractClearCaseScm {
 
     private String configSpec;
@@ -89,12 +93,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private boolean doNotUpdateConfigSpec;
 
     @DataBoundConstructor
-        public ClearCaseSCM(String branch, String configspec, String viewname,
-                            boolean useupdate, String loadRules, boolean usedynamicview,
-                            String viewdrive, String mkviewoptionalparam,
-                            boolean filterOutDestroySubBranchEvent,
-                            boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-                            String excludedRegions, String multiSitePollBuffer) {
+    public ClearCaseSCM(String branch, String configspec, String viewname,
+                        boolean useupdate, String loadRules, boolean usedynamicview,
+                        String viewdrive, String mkviewoptionalparam,
+                        boolean filterOutDestroySubBranchEvent,
+                        boolean doNotUpdateConfigSpec, boolean rmviewonrename,
+                        String excludedRegions, String multiSitePollBuffer) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
               (!usedynamicview) && useupdate, rmviewonrename,
               excludedRegions, usedynamicview, viewdrive, loadRules,
@@ -129,17 +133,17 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-        public ClearCaseScmDescriptor getDescriptor() {
+    public ClearCaseScmDescriptor getDescriptor() {
         return PluginImpl.BASE_DESCRIPTOR;
     }
 
     @Override
-        public ChangeLogParser createChangeLogParser() {
+    public ChangeLogParser createChangeLogParser() {
         return new ClearCaseChangeLogParser();
     }
 
     @Override
-        public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
+    public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
         super.buildEnvVars(build, env);
         if (isUseDynamicView()) {
             if (getViewDrive() != null) {
@@ -153,8 +157,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
 
     @Override
-        protected CheckOutAction createCheckOutAction(
-                                                      VariableResolver variableResolver, ClearToolLauncher launcher) {
+    protected CheckOutAction createCheckOutAction(
+                                                  VariableResolver variableResolver, ClearToolLauncher launcher) {
         CheckOutAction action;
         if (isUseDynamicView()) {
             action = new DynamicCheckoutAction(createClearTool(
@@ -169,8 +173,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-        protected HistoryAction createHistoryAction(
-                                                    VariableResolver variableResolver, ClearToolLauncher launcher) {
+    protected HistoryAction createHistoryAction(
+                                                VariableResolver variableResolver, ClearToolLauncher launcher) {
         ClearTool ct = createClearTool(variableResolver, launcher);
         BaseHistoryAction action = new BaseHistoryAction(ct, configureFilters(launcher),
                                                          getDescriptor().getLogMergeTimeWindow());
@@ -191,13 +195,13 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                                "Exception when running 'cleartool pwv'",
                                                                e);
         } 
-            
+        
         return action;
     }
 
     @Override
-        protected SaveChangeLogAction createSaveChangeLogAction(
-                                                                ClearToolLauncher launcher) {
+    protected SaveChangeLogAction createSaveChangeLogAction(
+                                                            ClearToolLauncher launcher) {
         return new BaseSaveChangeLogAction();
     }
 
@@ -209,7 +213,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
      * @return a string array (never empty)
      */
     @Override
-        public String[] getBranchNames() {
+    public String[] getBranchNames() {
         // split by whitespace, except "\ "
         String[] branchArray = branch.split("(?<!\\\\)[ \\r\\n]+");
         // now replace "\ " to " ".
@@ -219,8 +223,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-        protected ClearTool createClearTool(VariableResolver variableResolver,
-                                            ClearToolLauncher launcher) {
+    protected ClearTool createClearTool(VariableResolver variableResolver,
+                                        ClearToolLauncher launcher) {
         if (isUseDynamicView()) {
             return new ClearToolDynamic(variableResolver, launcher, getViewDrive());
         } else {
@@ -233,12 +237,13 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
      * 
      * @author Erik Ramfelt
      */
+    @Extension
     public static class ClearCaseScmDescriptor extends
                                                    SCMDescriptor<ClearCaseSCM> implements ModelObject {
         private String cleartoolExe;
         private int changeLogMergeTimeWindow = 5;
 
-        protected ClearCaseScmDescriptor() {
+        public ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
             load();
         }
@@ -256,12 +261,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         }
 
         @Override
-            public String getDisplayName() {
+        public String getDisplayName() {
             return "Base ClearCase";
         }
 
         @Override
-            public boolean configure(StaplerRequest req) {
+        public boolean configure(StaplerRequest req, JSONObject json) {
             cleartoolExe = fixEmpty(req.getParameter("clearcase.cleartoolExe")
                                     .trim());
             String mergeTimeWindow = fixEmpty(req
@@ -282,7 +287,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         }
 
         @Override
-            public SCM newInstance(StaplerRequest req) throws FormException {
+        public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             AbstractClearCaseScm scm = new ClearCaseSCM(
                                                         req.getParameter("cc.branch"),
                                                         req.getParameter("cc.configspec"),
@@ -304,83 +309,64 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         /**
          * Checks if cleartool executable exists.
          */
-        public void doCleartoolExeCheck(StaplerRequest req, StaplerResponse rsp)
+        public FormValidation doCleartoolExeCheck(@QueryParameter final String value)
             throws IOException, ServletException {
-            new FormFieldValidator.Executable(req, rsp).process();
+            return FormValidation.validateExecutable(value);
         }
-                
+        
         /**
          * Validates the excludedRegions Regex
          */
-        public void doExcludedRegionsCheck(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-            new FormFieldValidator(req,rsp,false) {
-                protected void check() throws IOException, ServletException {
-                    String v = fixEmptyAndTrim(request.getParameter("value"));
-                            
-                    if(v != null) {
-                        String[] regions = v.split("[\\r\\n]+");
-                        for (String region : regions) {
-                            try {
-                                Pattern.compile(region);
-                            }
-                            catch (PatternSyntaxException e) {
-                                error("Invalid regular expression. " + e.getMessage());
-                            }
-                        }
+        public FormValidation doExcludedRegionsCheck(@QueryParameter final String value)
+            throws IOException, ServletException {
+            String v = fixEmptyAndTrim(value);
+            
+            if(v != null) {
+                String[] regions = v.split("[\\r\\n]+");
+                for (String region : regions) {
+                    try {
+                        Pattern.compile(region);
                     }
-                    ok();
+                    catch (PatternSyntaxException e) {
+                        return FormValidation.error("Invalid regular expression. " + e.getMessage());
+                    }
                 }
-            }.process();
+            }
+            return FormValidation.ok();
         }
 
-        public void doConfigSpecCheck(StaplerRequest req, StaplerResponse rsp)
+        public FormValidation doConfigSpecCheck(@QueryParameter final String value)
             throws IOException, ServletException {
-            new FormFieldValidator(req, rsp, false) {
-                @Override
-                    protected void check() throws IOException, ServletException {
-
-                    String v = fixEmpty(request.getParameter("value"));
-                    if ((v == null) || (v.length() == 0)) {
-                        error("Config spec is mandatory");
-                        return;
-                    }
-                    for (String cSpecLine : v.split("[\\r\\n]+")) {
-                        if (cSpecLine.startsWith("load ")) {
-                            error("Config spec can not contain load rules");
-                            return;
-                        }
-                    }
-                    // all tests passed so far
-                    ok();
+            String v = fixEmpty(value);
+            if ((v == null) || (v.length() == 0)) {
+                return FormValidation.error("Config spec is mandatory");
+            }
+            for (String cSpecLine : v.split("[\\r\\n]+")) {
+                if (cSpecLine.startsWith("load ")) {
+                    return FormValidation.error("Config spec can not contain load rules");
                 }
-            }.process();
+            }
+            // all tests passed so far
+            return FormValidation.ok();
         }
 
         /**
          * Raises an error if the parameter value isnt set.
          * 
-         * @param req
-         *            containing the parameter value and the errorText to
-         *            display if the value isnt set
-         * @param rsp
          * @throws IOException
          * @throws ServletException
          */
-        public void doMandatoryCheck(StaplerRequest req, StaplerResponse rsp)
+        public FormValidation doMandatoryCheck(@QueryParameter final String value,
+                                               @QueryParameter final String errorText)
             throws IOException, ServletException {
-            new FormFieldValidator(req, rsp, false) {
-                @Override
-                    protected void check() throws IOException, ServletException {
-                    String v = fixEmpty(request.getParameter("value"));
-                    if (v == null) {
-                        error(fixEmpty(request.getParameter("errorText")));
-                        return;
-                    }
-                    // all tests passed so far
-                    ok();
-                }
-            }.process();
+            String v = fixEmpty(value);
+            if (v == null) {
+                return FormValidation.error(fixEmpty(errorText));
+            }
+            // all tests passed so far
+            return FormValidation.ok();
         }
+        
 
         /**
          * Displays "cleartool -version" for trouble shooting.
@@ -389,11 +375,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             throws IOException, ServletException, InterruptedException {
             ByteBuffer baos = new ByteBuffer();
             try {
-                Proc proc = Hudson.getInstance().createLauncher(
-                                                                TaskListener.NULL).launch(
-                                                                                          new String[] { getCleartoolExe(), "-version" },
-                                                                                          new String[0], baos, null);
-                proc.join();
+                Hudson.getInstance()
+                    .createLauncher(TaskListener.NULL)
+                    .launch().cmds(new String[] { getCleartoolExe(), "-version" })
+                    .stdout(baos)
+                    .join();
                 rsp.setContentType("text/plain");
                 baos.writeTo(rsp.getOutputStream());
             } catch (IOException e) {
@@ -405,11 +391,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         public void doListViews(StaplerRequest req, StaplerResponse rsp)
             throws IOException, ServletException, InterruptedException {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Proc proc = Hudson.getInstance().createLauncher(TaskListener.NULL)
-                .launch(
-                        new String[] { getCleartoolExe(), "lsview",
-                                       "-short" }, new String[0], baos, null);
-            proc.join();
+            Hudson.getInstance().createLauncher(TaskListener.NULL)
+                .launch().cmds(new String[] { getCleartoolExe(), "lsview", "-short" })
+                .stdout(baos)
+                .join();
+
             rsp.setContentType("text/plain");
             rsp.getOutputStream().println("ClearCase Views found:\n");
             baos.writeTo(rsp.getOutputStream());

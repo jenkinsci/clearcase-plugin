@@ -49,14 +49,14 @@ public class UcmChangeLogActionTest {
     private ClearTool cleartool;
 
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
         
     }
 
     @Test
-        public void assertFormatContainsComment() throws Exception {
+    public void assertFormatContainsComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n")),
@@ -72,7 +72,7 @@ public class UcmChangeLogActionTest {
     }
     
     @Test
-        public void assertDestroySubBranchEventIsIgnored() throws Exception {
+    public void assertDestroySubBranchEventIsIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
@@ -98,7 +98,7 @@ public class UcmChangeLogActionTest {
 
     
     @Test
-        public void assertParsingOfNonIntegrationActivity() throws Exception {
+    public void assertParsingOfNonIntegrationActivity() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
@@ -130,7 +130,7 @@ public class UcmChangeLogActionTest {
     }
     
     @Test
-        public void assertParsingOfIntegrationActivity() throws Exception {
+    public void assertParsingOfIntegrationActivity() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
@@ -182,7 +182,7 @@ public class UcmChangeLogActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertLshistoryReaderIsClosed() throws Exception {
+    public void assertLshistoryReaderIsClosed() throws Exception {
         final StringReader lshistoryReader = new StringReader(
                                                               "\"20080509.140451\" " +
                                                               "\"vobs/projects/Server//config-admin-client\" " +
@@ -211,7 +211,7 @@ public class UcmChangeLogActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertLsactivityReaderIsClosed() throws Exception {
+    public void assertLsactivityReaderIsClosed() throws Exception {
         final StringReader lsactivityReader = new StringReader("\"Convert to Java 6\" " +
                                                                "\"Release_3_3_jdk5\" " +
                                                                "\"bob\" ");

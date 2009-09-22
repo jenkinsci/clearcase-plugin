@@ -54,7 +54,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     }
     
     @Override
-        public boolean hasChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public boolean hasChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> entries = runLsHistory(time,viewName,branchNames,viewPaths); 
         List<HistoryEntry> filtered = filterEntries(entries);
 
@@ -63,7 +63,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     }
 
     @Override
-        public List<? extends Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public List<? extends Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> entries = runLsHistory(time,viewName,branchNames,viewPaths);
         List<HistoryEntry> filtered = filterEntries(entries);
 

@@ -45,12 +45,12 @@ public class ChangeLogEntryMergerTest {
     private ChangeLogEntryMerger changeLogEntryMerger;
 
     @Before
-        public void setup() {
+    public void setup() {
         list = new ArrayList<ClearCaseChangeLogEntry>();
     }
 
     @Test
-        public void testOneUserOneCommit() {
+    public void testOneUserOneCommit() {
         changeLogEntryMerger = new ChangeLogEntryMerger();
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user", "action", "comment", "file1", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user", "action", "comment", "file2", "version"));
@@ -61,7 +61,7 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
-        public void testOneUserOneCommitWithDelay() {
+    public void testOneUserOneCommitWithDelay() {
         changeLogEntryMerger = new ChangeLogEntryMerger(1000);
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user", "action", "comment", "file1", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 02), "user", "action", "comment", "file2", "version"));
@@ -71,7 +71,7 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
-        public void testOneUserTwoCommits() {
+    public void testOneUserTwoCommits() {
         changeLogEntryMerger = new ChangeLogEntryMerger();
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user", "action", "comment2", "file2", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 02), "user", "action", "comment1", "file1", "version"));
@@ -83,7 +83,7 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
-        public void testTwoUsersOneCommit() {
+    public void testTwoUsersOneCommit() {
         changeLogEntryMerger = new ChangeLogEntryMerger();
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user1", "action", "comment", "file1", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 01), "user2", "action", "comment", "file2", "version"));
@@ -94,7 +94,7 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
-        public void testLongTimeWindow() {
+    public void testLongTimeWindow() {
         changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 52), "user1", "action", "comment", "file2", "version"));
@@ -104,7 +104,7 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
-        public void testGrowingTimeWindow() {
+    public void testGrowingTimeWindow() {
         changeLogEntryMerger = new ChangeLogEntryMerger(5*1000);
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 25), "user1", "action", "comment", "file2", "version"));
@@ -129,7 +129,7 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
-        public void testReusedInstance() {
+    public void testReusedInstance() {
         changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 52), "user1", "action", "comment", "file2", "version"));
@@ -144,7 +144,7 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
-        public void testReturnDateForFirstEntry() {
+    public void testReturnDateForFirstEntry() {
         changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 32), "user1", "action", "comment", "file3", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user1", "action", "comment", "file1", "version"));
@@ -156,7 +156,7 @@ public class ChangeLogEntryMergerTest {
     }
 
     @Test
-        public void testSortWithOldestEntryFirst() {
+    public void testSortWithOldestEntryFirst() {
         changeLogEntryMerger = new ChangeLogEntryMerger(60*1000);
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 32), "user1", "action", "comment", "file3", "version"));
         list.add(new ClearCaseChangeLogEntry(createDate(10, 01, 22), "user2", "action", "comment", "file1", "version"));

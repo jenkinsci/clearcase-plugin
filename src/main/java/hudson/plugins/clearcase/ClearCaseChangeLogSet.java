@@ -61,7 +61,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
     }
 
     @Override
-        public boolean isEmptySet() {
+    public boolean isEmptySet() {
         return history.size() == 0;
     }
 

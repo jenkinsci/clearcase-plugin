@@ -50,7 +50,7 @@ public abstract class DefaultPollAction implements PollAction {
     }
 
     @Override
-        public boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         boolean hasChanges = false;
         ClearToolFormatHandler historyHandler = getHistoryFormatHandler();
 

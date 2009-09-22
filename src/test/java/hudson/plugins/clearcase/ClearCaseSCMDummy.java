@@ -49,19 +49,19 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     }
     
     @Override
-        protected ClearTool createClearTool(VariableResolver variableResolver,
-                                            ClearToolLauncher launcher) {
+    protected ClearTool createClearTool(VariableResolver variableResolver,
+                                        ClearToolLauncher launcher) {
         return cleartool;
     }
 
     @Override
-        public HistoryAction createHistoryAction(
-                                                 VariableResolver variableResolver, ClearToolLauncher launcher) {
+    public HistoryAction createHistoryAction(
+                                             VariableResolver variableResolver, ClearToolLauncher launcher) {
         return super.createHistoryAction(variableResolver, launcher);
     }
     
     @Override
-        public ClearCaseScmDescriptor getDescriptor() {
+    public ClearCaseScmDescriptor getDescriptor() {
         return clearCaseScmDescriptor;
     }
 }

@@ -39,7 +39,7 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
 
     private ClearTool cleartool;
     private String stream;
-        
+    
     public UcmDynamicCheckoutAction(ClearTool cleartool, String stream) {
         super();
         this.cleartool = cleartool;

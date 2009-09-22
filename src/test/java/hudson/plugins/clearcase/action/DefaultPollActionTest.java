@@ -50,14 +50,14 @@ public class DefaultPollActionTest {
     private EventRecordFilter filter;
 
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
         filter = new EventRecordFilter();
     }
 
     @Test
-        public void assertSeparateBranchCommands() throws Exception {
+    public void assertSeparateBranchCommands() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})));                
@@ -74,7 +74,7 @@ public class DefaultPollActionTest {
     }
 
     @Test
-        public void assertFirstFoundChangeStopsPolling() throws Exception {
+    public void assertFirstFoundChangeStopsPolling() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})));                
@@ -89,7 +89,7 @@ public class DefaultPollActionTest {
     }
 
     @Test
-        public void assertSuccessfulParse() throws Exception {
+    public void assertSuccessfulParse() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));                
@@ -106,7 +106,7 @@ public class DefaultPollActionTest {
     }
 
     @Test
-        public void assertIgnoringErrors() throws Exception {
+    public void assertIgnoringErrors() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));                
@@ -122,7 +122,7 @@ public class DefaultPollActionTest {
     }
 
     @Test
-        public void assertIgnoringVersionZero() throws Exception {
+    public void assertIgnoringVersionZero() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));                
@@ -138,7 +138,7 @@ public class DefaultPollActionTest {
     }
 
     @Test
-        public void assertIgnoringDestroySubBranchEvent() throws Exception {
+    public void assertIgnoringDestroySubBranchEvent() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));                
@@ -157,7 +157,7 @@ public class DefaultPollActionTest {
     }
     
     @Test
-        public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
+    public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));                
@@ -174,7 +174,7 @@ public class DefaultPollActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertReaderIsClosed() throws Exception {                
+    public void assertReaderIsClosed() throws Exception {                
         final StringReader reader = new StringReader("\"20071015.151822\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" ");
         context.checking(new Expectations() {
                 {

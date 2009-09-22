@@ -112,7 +112,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         if (builder.toString().contains("cleartool: Error")) {
             throw new IOException("Failed to remove view: " + builder.toString());
         }
-       
+        
         
         FilePath viewFilePath = launcher.getWorkspace().child(viewName);
         if (viewFilePath.exists()) {
@@ -170,11 +170,11 @@ public class ClearToolSnapshot extends ClearToolExec {
         if (builder.toString().contains("cleartool: Error")) {
             throw new IOException("Failed to remove view tag: " + builder.toString());
         }
-       
+        
     }
- 
+    
     @Override
-        protected FilePath getRootViewPath(ClearToolLauncher launcher) {
+    protected FilePath getRootViewPath(ClearToolLauncher launcher) {
         return launcher.getWorkspace();
     }
 

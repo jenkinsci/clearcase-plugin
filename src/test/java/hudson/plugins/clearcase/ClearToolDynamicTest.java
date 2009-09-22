@@ -48,7 +48,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
     private VariableResolver resolver;
 
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
 
@@ -58,12 +58,12 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
     }
 
     @After
-        public void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         deleteWorkspace();
     }
 
     @Test
-        public void testSetcs() throws Exception {
+    public void testSetcs() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(launcher).getWorkspace();
@@ -84,7 +84,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
     }
 
     @Test
-        public void testStartview() throws Exception {
+    public void testStartview() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(launcher).run(
