@@ -71,7 +71,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
     
     public BuildVariableResolver(final AbstractBuild<?, ?> build, final Computer computer) {
         this.build = build;
-	this.computer = computer;
+        this.computer = computer;
     }
 
     @Override
