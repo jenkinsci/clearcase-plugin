@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.model.Computer;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -267,6 +268,14 @@ public abstract class AbstractClearCaseScm extends SCM {
             return viewName;
         }
     }
+
+    /**
+     * Returns the current computer - used in constructor for BuildVariableResolver in place of
+     * direct call to Computer.currentComputer() so we can mock it in unit tests.
+     */
+    public Computer getCurrentComputer() {
+	return Computer.currentComputer();
+    }
     
     /**
      * Returns a normalized view name that will be used in cleartool commands.
@@ -280,7 +289,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return a string containing no invalid chars.
      */
     public String generateNormalizedViewName(AbstractBuild<?, ?> build) {
-        return generateNormalizedViewName(new BuildVariableResolver(build));
+        return generateNormalizedViewName(new BuildVariableResolver(build, getCurrentComputer()));
     }
 
     /**
@@ -355,7 +364,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                                                                       workspace, launcher);
 
         // Create actions
-        VariableResolver variableResolver = new BuildVariableResolver(build);
+        VariableResolver variableResolver = new BuildVariableResolver(build, getCurrentComputer());
         
         CheckOutAction checkoutAction = createCheckOutAction(variableResolver,
                                                              clearToolLauncher);
@@ -412,7 +421,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             buildTime = new Date(lastBuildMilliSecs - (1000 * 60 * getMultiSitePollBuffer()));
         }
 
-        VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild);
+        VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, getCurrentComputer());
 
         HistoryAction historyAction = createHistoryAction(variableResolver,
                                                           createClearToolLauncher(listener, workspace, launcher));
