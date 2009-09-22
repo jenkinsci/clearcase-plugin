@@ -144,7 +144,7 @@ public class UcmMakeBaseline extends Notifier {
 
     @Extension
     public static final class UcmMakeBaselineDescriptor extends BuildStepDescriptor {
-                                                            
+        
         public UcmMakeBaselineDescriptor() {
             super(UcmMakeBaseline.class);
         }
@@ -157,14 +157,14 @@ public class UcmMakeBaseline extends Notifier {
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             Notifier n = new UcmMakeBaseline(req
-					     .getParameter("mkbl.namepattern"), req
-					     .getParameter("mkbl.commentpattern"), req
-					     .getParameter("mkbl.lock") != null, req
-					     .getParameter("mkbl.recommend") != null, req
-					     .getParameter("mkbl.fullBaseline") != null, req
-					     .getParameter("mkbl.identical") != null, req
-					     .getParameter("mkbl.rebaseDynamicView") != null, req
-					     .getParameter("mkbl.dynamicViewName"));
+                                             .getParameter("mkbl.namepattern"), req
+                                             .getParameter("mkbl.commentpattern"), req
+                                             .getParameter("mkbl.lock") != null, req
+                                             .getParameter("mkbl.recommend") != null, req
+                                             .getParameter("mkbl.fullBaseline") != null, req
+                                             .getParameter("mkbl.identical") != null, req
+                                             .getParameter("mkbl.rebaseDynamicView") != null, req
+                                             .getParameter("mkbl.dynamicViewName"));
             return n;
         }
 
@@ -173,18 +173,18 @@ public class UcmMakeBaseline extends Notifier {
             return "/plugin/clearcase/ucm/mkbl/help.html";
         }
 
-	@Override
-	public boolean isApplicable(Class clazz) {
-	    return true;
-	}
+        @Override
+        public boolean isApplicable(Class clazz) {
+            return true;
+        }
     }
 
 
     public UcmMakeBaseline(final String namePattern,
-                            final String commentPattern, final boolean lock,
-                            final boolean recommend, final boolean fullBaseline,
-                            final boolean identical, final boolean rebaseDynamicView,
-                            final String dynamicViewName) {
+                           final String commentPattern, final boolean lock,
+                           final boolean recommend, final boolean fullBaseline,
+                           final boolean identical, final boolean rebaseDynamicView,
+                           final String dynamicViewName) {
         this.namePattern = namePattern;
         this.commentPattern = commentPattern;
         this.lockStream = lock;
@@ -427,7 +427,7 @@ public class UcmMakeBaseline extends Notifier {
         List<String> createdBaselinesList = new ArrayList<String>();
 
         ArgumentListBuilder cmd = new ArgumentListBuilder();
-	LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
+        LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
 
         String baselineName = Util
             .replaceMacro(namePattern, build.getEnvironment(ltl));

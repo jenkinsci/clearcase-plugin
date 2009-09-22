@@ -44,9 +44,9 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor) {
         this(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
-	     viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-	     rmviewonrename, excludedRegions, multiSitePollBuffer, cleartool,
-	     clearCaseScmDescriptor, null);
+             viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
+             rmviewonrename, excludedRegions, multiSitePollBuffer, cleartool,
+             clearCaseScmDescriptor, null);
     }
     
     public ClearCaseSCMDummy(String branch, String configspec, String viewname,
@@ -57,13 +57,13 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              String excludedRegions, String multiSitePollBuffer,
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor,
-			     Computer overrideComputer) {
+                             Computer overrideComputer) {
         super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
               rmviewonrename, excludedRegions, multiSitePollBuffer);
         this.cleartool = cleartool;
         this.clearCaseScmDescriptor = clearCaseScmDescriptor;
-	this.overrideComputer = overrideComputer;
+        this.overrideComputer = overrideComputer;
     }
     
     @Override
@@ -85,7 +85,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
 
     @Override
     public Computer getCurrentComputer() {
-	return overrideComputer;
+        return overrideComputer;
     }
 }
 
