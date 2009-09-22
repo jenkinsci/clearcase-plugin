@@ -24,10 +24,12 @@
  */
 package hudson.plugins.clearcase.ucm;
 
+import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.model.Executor;
@@ -36,18 +38,25 @@ import hudson.model.ParametersAction;
 import hudson.model.Result;
 import hudson.model.StringParameterValue;
 import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.BuildStepDescriptor;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.HudsonClearToolLauncher;
 import hudson.plugins.clearcase.PluginImpl;
+import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.LogTaskListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -64,9 +73,12 @@ import org.kohsuke.stapler.StaplerRequest;
  *         2009-03-22 'The createdBaselines' follow now the same model of the
  *         'latestBaselines' and 'readWriteComponents' fields.
  */
-public class UcmMakeBaseline extends Publisher {
+
+public class UcmMakeBaseline extends Notifier {
 
     private static final String ENV_CC_BASELINE_NAME = "CC_BASELINE_NAME";
+    private static final Logger LOGGER = Logger
+        .getLogger(UcmMakeBaseline.class.getName());
 
     private transient List<String> readWriteComponents = null;
 
@@ -74,7 +86,7 @@ public class UcmMakeBaseline extends Publisher {
 
     private transient List<String> createdBaselines = null;
 
-    public final static Descriptor<Publisher> DESCRIPTOR = new UcmMakeBaselineDescriptor();
+    public final static BuildStepDescriptor DESCRIPTOR = new UcmMakeBaselineDescriptor();
 
     private final String namePattern;
 
@@ -130,39 +142,45 @@ public class UcmMakeBaseline extends Publisher {
         return readWriteComponents;
     }
 
-    public static final class UcmMakeBaselineDescriptor extends
-                                                            Descriptor<Publisher> {
-
+    @Extension
+    public static final class UcmMakeBaselineDescriptor extends BuildStepDescriptor {
+                                                            
         public UcmMakeBaselineDescriptor() {
             super(UcmMakeBaseline.class);
         }
-
+        
         @Override
-            public String getDisplayName() {
+        public String getDisplayName() {
             return "ClearCase UCM Makebaseline";
         }
 
         @Override
-            public Publisher newInstance(StaplerRequest req) throws FormException {
-            Publisher p = new UcmMakeBaseline(req
-                                              .getParameter("mkbl.namepattern"), req
-                                              .getParameter("mkbl.commentpattern"), req
-                                              .getParameter("mkbl.lock") != null, req
-                                              .getParameter("mkbl.recommend") != null, req
-                                              .getParameter("mkbl.fullBaseline") != null, req
-                                              .getParameter("mkbl.identical") != null, req
-                                              .getParameter("mkbl.rebaseDynamicView") != null, req
-                                              .getParameter("mkbl.dynamicViewName"));
-            return p;
+        public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            Notifier n = new UcmMakeBaseline(req
+					     .getParameter("mkbl.namepattern"), req
+					     .getParameter("mkbl.commentpattern"), req
+					     .getParameter("mkbl.lock") != null, req
+					     .getParameter("mkbl.recommend") != null, req
+					     .getParameter("mkbl.fullBaseline") != null, req
+					     .getParameter("mkbl.identical") != null, req
+					     .getParameter("mkbl.rebaseDynamicView") != null, req
+					     .getParameter("mkbl.dynamicViewName"));
+            return n;
         }
 
         @Override
-            public String getHelpFile() {
+        public String getHelpFile() {
             return "/plugin/clearcase/ucm/mkbl/help.html";
         }
+
+	@Override
+	public boolean isApplicable(Class clazz) {
+	    return true;
+	}
     }
 
-    private UcmMakeBaseline(final String namePattern,
+
+    public UcmMakeBaseline(final String namePattern,
                             final String commentPattern, final boolean lock,
                             final boolean recommend, final boolean fullBaseline,
                             final boolean identical, final boolean rebaseDynamicView,
@@ -178,17 +196,17 @@ public class UcmMakeBaseline extends Publisher {
     }
 
     @Override
-        public boolean needsToRunAfterFinalized() {
+    public boolean needsToRunAfterFinalized() {
         return true;
     }
 
     @Override
-        public BuildStepMonitor getRequiredMonitorService() {
+    public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.BUILD;
     }
-        
+    
     @Override
-        public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
 
         ClearCaseUcmSCM scm = (ClearCaseUcmSCM) build.getProject().getScm();
 
@@ -197,9 +215,9 @@ public class UcmMakeBaseline extends Publisher {
         HudsonClearToolLauncher clearToolLauncher = getHudsonClearToolLauncher(
                                                                                build, listener, launcher);
 
-        FilePath filePath = build.getProject().getWorkspace().child(
-                                                                    scm.generateNormalizedViewName(build, launcher));
-
+        FilePath filePath = build.getWorkspace().child(
+                                                       scm.generateNormalizedViewName(build));
+        
         if (this.lockStream) {
             try {
                 this.streamSuccessfullyLocked = lockStream(scm.getStream(),
@@ -235,7 +253,7 @@ public class UcmMakeBaseline extends Publisher {
 
     private HudsonClearToolLauncher getHudsonClearToolLauncher(
                                                                AbstractBuild<?, ?> build, BuildListener listener, Launcher launcher) {
-        FilePath workspaceRoot = build.getProject().getWorkspace();
+        FilePath workspaceRoot = build.getWorkspace();
         HudsonClearToolLauncher clearToolLauncher = new HudsonClearToolLauncher(
                                                                                 PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(), getDescriptor()
                                                                                 .getDisplayName(), listener, workspaceRoot, launcher);
@@ -253,14 +271,14 @@ public class UcmMakeBaseline extends Publisher {
     }
 
     @SuppressWarnings("unchecked")
-        @Override
-        public boolean perform(AbstractBuild build, Launcher launcher,
-                               BuildListener listener) throws InterruptedException, IOException {
+    @Override
+    public boolean perform(AbstractBuild build, Launcher launcher,
+                           BuildListener listener) throws InterruptedException, IOException {
 
         if (build.getProject().getScm() instanceof ClearCaseUcmSCM) {
             ClearCaseUcmSCM scm = (ClearCaseUcmSCM) build.getProject().getScm();
-            FilePath filePath = build.getProject().getWorkspace().child(
-                                                                        scm.generateNormalizedViewName(build, launcher));
+            FilePath filePath = build.getWorkspace().child(
+                                                           scm.generateNormalizedViewName(build));
 
             HudsonClearToolLauncher clearToolLauncher = getHudsonClearToolLauncher(
                                                                                    build, listener, launcher);
@@ -324,7 +342,7 @@ public class UcmMakeBaseline extends Publisher {
     }
 
     @Override
-        public Descriptor<Publisher> getDescriptor() {
+    public BuildStepDescriptor getDescriptor() {
         return DESCRIPTOR;
     }
 
@@ -402,18 +420,18 @@ public class UcmMakeBaseline extends Publisher {
     }
 
     @SuppressWarnings("unchecked")
-        private List<String> makeBaseline(AbstractBuild build,
-                                          HudsonClearToolLauncher clearToolLauncher, ClearCaseUcmSCM scm,
-                                          FilePath filePath) throws Exception {
+    private List<String> makeBaseline(AbstractBuild build,
+                                      HudsonClearToolLauncher clearToolLauncher, ClearCaseUcmSCM scm,
+                                      FilePath filePath) throws Exception {
 
         List<String> createdBaselinesList = new ArrayList<String>();
 
         ArgumentListBuilder cmd = new ArgumentListBuilder();
+	LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
 
         String baselineName = Util
-            .replaceMacro(namePattern, build.getEnvVars());
-        String baselineComment = Util.replaceMacro(commentPattern, build
-                                                   .getEnvVars());
+            .replaceMacro(namePattern, build.getEnvironment(ltl));
+        String baselineComment = Util.replaceMacro(commentPattern, build.getEnvironment(ltl));
 
         cmd.add("mkbl");
         if (this.identical) {

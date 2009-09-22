@@ -136,7 +136,7 @@ public class HistoryEntry {
 
 
     @Override
-        public boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         if (obj == null) {
             return false;
         }
@@ -151,7 +151,7 @@ public class HistoryEntry {
     }
 
     @Override
-        public int hashCode() {
+    public int hashCode() {
         int hash = 5;
         hash = 17 * hash + (this.line != null ? this.line.hashCode() : 0);
         return hash;

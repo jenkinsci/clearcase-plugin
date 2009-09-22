@@ -37,7 +37,7 @@ import org.junit.Test;
 public class UcmChangeLogSetTest {
     
     @Test
-        public void assertSavedLogSetCanBeParsed() throws Exception {
+    public void assertSavedLogSetCanBeParsed() throws Exception {
         
         UcmActivity activity = new UcmActivity();
         activity.setHeadline("headline");

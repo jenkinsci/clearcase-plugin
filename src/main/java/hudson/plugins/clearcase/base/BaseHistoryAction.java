@@ -62,7 +62,7 @@ public class BaseHistoryAction extends AbstractHistoryAction{
     }
 
     @Override
-        protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) {
+    protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();
 
         for (HistoryEntry entry : entries) {
@@ -83,12 +83,12 @@ public class BaseHistoryAction extends AbstractHistoryAction{
     }
 
     @Override
-        protected ClearToolFormatHandler getHistoryFormatHandler() {
+    protected ClearToolFormatHandler getHistoryFormatHandler() {
         return historyHandler;
     }
 
     @Override
-        protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException{
+    protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException{
         // read values;
         HistoryEntry entry = new HistoryEntry();
         entry.setLine(line);

@@ -41,7 +41,7 @@ import org.xml.sax.SAXException;
 public class ClearCaseChangeLogSetTest {
 
     @Test
-        public void testParse() throws IOException, SAXException {
+    public void testParse() throws IOException, SAXException {
         ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
                                                                    .getResourceAsStream("changelog.xml"));
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
@@ -55,7 +55,7 @@ public class ClearCaseChangeLogSetTest {
           ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
           .getResourceAsStream("changelog-test.xml"));
           List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
-        
+          
           Assert.assertEquals("Number of logs is incorrect", 3, logs.size());
           Assert.assertEquals("The user is incorrect", "qhensam", logs.get(0).getUser());
           Assert.assertEquals("The date is incorrect", "Tue Aug 28 15:27:00 CEST 2007", logs.get(0).getDateStr());
@@ -65,7 +65,7 @@ public class ClearCaseChangeLogSetTest {
           }
     */    
     @Test
-        public void testParseMultipleEntries() throws IOException, SAXException {
+    public void testParseMultipleEntries() throws IOException, SAXException {
         ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
                                                                    .getResourceAsStream("changelog-multi.xml"));
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
@@ -84,7 +84,7 @@ public class ClearCaseChangeLogSetTest {
     }
     
     @Test
-        public void testGetParent() throws IOException, SAXException {
+    public void testGetParent() throws IOException, SAXException {
         ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
                                                                    .getResourceAsStream("changelog.xml"));
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
@@ -95,8 +95,8 @@ public class ClearCaseChangeLogSetTest {
     }
 
     @SuppressWarnings("deprecation")
-        @Test
-        public void testUnicodeXml() throws IOException, SAXException {
+    @Test
+    public void testUnicodeXml() throws IOException, SAXException {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
         entry.setUser("B\u00FClow");
         entry.setAction("action");
@@ -123,7 +123,7 @@ public class ClearCaseChangeLogSetTest {
     }
 
     @Test
-        public void testMultipleFilesInLogEntry() throws IOException, SAXException {
+    public void testMultipleFilesInLogEntry() throws IOException, SAXException {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
         entry.setUser("Anka");
         entry.setComment("comment");

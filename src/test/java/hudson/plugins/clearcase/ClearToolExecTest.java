@@ -54,7 +54,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     private BuildListener taskListener;
     private VariableResolver resolver;
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         launcher = context.mock(ClearToolLauncher.class);
@@ -63,12 +63,12 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         clearToolExec = new ClearToolImpl(launcher);
     }
     @After
-        public void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         deleteWorkspace();
     }
     
     @Test
-        public void testListViews() throws Exception {
+    public void testListViews() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(launcher).run(with(equal(new String[] { "lsview" })),
@@ -87,7 +87,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
     @Test
-        public void testListActiveDynamicViews() throws Exception {
+    public void testListActiveDynamicViews() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(launcher).run(with(equal(new String[] { "lsview" })),
@@ -103,7 +103,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
     @Test
-        public void testListVobs() throws Exception {
+    public void testListVobs() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(launcher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
@@ -123,7 +123,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
     @Test
-        public void testListVobsMounted() throws Exception {
+    public void testListVobsMounted() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(launcher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
@@ -142,7 +142,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     
 
     @Test
-        public void testLshistory() throws Exception {
+    public void testLshistory() throws Exception {
         workspace.child("viewName").mkdirs();
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.set(2007, 10, 18, 15, 05, 25);
@@ -171,7 +171,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     }
 
     @Test
-        public void testCatConfigSpec() throws Exception {
+    public void testCatConfigSpec() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(launcher).run(with(equal(new String[] { "catcs", "-tag", "viewname" })), (InputStream) with(anything()),
@@ -187,7 +187,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void assertLsactivityReturnsReader() throws Exception {
+    public void assertLsactivityReturnsReader() throws Exception {
         workspace.child("viewName").mkdirs();
         context.checking(new Expectations() {
                 {
@@ -245,7 +245,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         }
         
         @Override
-            protected FilePath getRootViewPath(ClearToolLauncher launcher) {
+        protected FilePath getRootViewPath(ClearToolLauncher launcher) {
             return launcher.getWorkspace();
         }
         public void update(String viewName, String loadRules) throws IOException, InterruptedException {

@@ -46,7 +46,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     private Launcher launcher;
 
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         classContext = new Mockery() {
@@ -60,12 +60,12 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @After
-        public void teardown() throws Exception {
+    public void teardown() throws Exception {
         deleteWorkspace();
     }
     
     @Test
-        public void testChangeInConfigSpecOnUnix() throws Exception {
+    public void testChangeInConfigSpecOnUnix() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearTool).startView("viewname");
@@ -88,7 +88,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testChangeInConfigSpec() throws Exception {
+    public void testChangeInConfigSpec() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearTool).startView("viewname");
@@ -111,7 +111,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testChangeInConfigSpecDoNotResetConfigSpecEnabled() throws Exception {
+    public void testChangeInConfigSpecDoNotResetConfigSpecEnabled() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearTool).startView("viewname");
@@ -133,7 +133,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-        public void testNoChangeInConfigSpec() throws Exception {
+    public void testNoChangeInConfigSpec() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearTool).startView("viewname");

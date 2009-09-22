@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
- 
+
 
 /**
  *
@@ -78,12 +78,12 @@ public class UcmHistoryAction extends AbstractHistoryAction {
 
     
     @Override
-        protected ClearToolFormatHandler getHistoryFormatHandler() {
+    protected ClearToolFormatHandler getHistoryFormatHandler() {
         return historyHandler;
     }
 
     @Override
-        protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException {
+    protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException {
         // read values;
         HistoryEntry entry = new HistoryEntry();
         entry.setLine(line);
@@ -99,7 +99,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-        protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) throws IOException, InterruptedException {
+    protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) throws IOException, InterruptedException {
         List<UcmActivity> result = new ArrayList<UcmActivity>();
         Map<String,UcmActivity> activityMap = new HashMap<String, UcmActivity>();
 

@@ -49,7 +49,7 @@ public class UcmHistoryActionTest {
     private ClearTool cleartool;
 
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
         
@@ -60,7 +60,7 @@ public class UcmHistoryActionTest {
      */
 
     @Test
-        public void assertSeparateBranchCommands() throws Exception {
+    public void assertSeparateBranchCommands() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})));
@@ -92,7 +92,7 @@ public class UcmHistoryActionTest {
     //    }
 
     @Test
-        public void assertSuccessfulParse() throws Exception {
+    public void assertSuccessfulParse() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -109,7 +109,7 @@ public class UcmHistoryActionTest {
     }
 
     @Test
-        public void assertIgnoringErrors() throws Exception {
+    public void assertIgnoringErrors() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -125,7 +125,7 @@ public class UcmHistoryActionTest {
     }
 
     @Test
-        public void assertIgnoringVersionZero() throws Exception {
+    public void assertIgnoringVersionZero() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -141,7 +141,7 @@ public class UcmHistoryActionTest {
     }
 
     @Test
-        public void assertIgnoringDestroySubBranchEvent() throws Exception {
+    public void assertIgnoringDestroySubBranchEvent() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -160,7 +160,7 @@ public class UcmHistoryActionTest {
     }
 
     @Test
-        public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
+    public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -177,7 +177,7 @@ public class UcmHistoryActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertReaderIsClosed() throws Exception {
+    public void assertReaderIsClosed() throws Exception {
         final StringReader reader = new StringReader("\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" \"activity\" ");
         context.checking(new Expectations() {
                 {
@@ -197,7 +197,7 @@ public class UcmHistoryActionTest {
      * Below are taken from UcmBaseChangelogActionTest
      */
     @Test
-        public void assertFormatContainsComment() throws Exception {
+    public void assertFormatContainsComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\\"%[activity]p\\\" \\n%c\\n")),
@@ -213,7 +213,7 @@ public class UcmHistoryActionTest {
     }
     
     @Test
-        public void assertDestroySubBranchEventIsIgnored() throws Exception {
+    public void assertDestroySubBranchEventIsIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
@@ -234,12 +234,12 @@ public class UcmHistoryActionTest {
         
         UcmHistoryAction action = new UcmHistoryAction(cleartool,filters);
         @SuppressWarnings("unchecked")
-            List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 0 activity", 0, activities.size());
     }
 
     @Test
-        public void assertExcludedRegionsAreIgnored() throws Exception {
+    public void assertExcludedRegionsAreIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
@@ -281,13 +281,13 @@ public class UcmHistoryActionTest {
         filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "Server"));
         UcmHistoryAction action = new UcmHistoryAction(cleartool,filters);
         @SuppressWarnings("unchecked")
-            List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
     }
 
     
     @Test
-        public void assertParsingOfNonIntegrationActivity() throws Exception {
+    public void assertParsingOfNonIntegrationActivity() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
@@ -320,7 +320,7 @@ public class UcmHistoryActionTest {
     }
     
     @Test
-        public void assertParsingOfIntegrationActivity() throws Exception {
+    public void assertParsingOfIntegrationActivity() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
@@ -373,7 +373,7 @@ public class UcmHistoryActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertLshistoryReaderIsClosed() throws Exception {
+    public void assertLshistoryReaderIsClosed() throws Exception {
         final StringReader lshistoryReader = new StringReader(
                                                               "\"20080509.140451\" " +
                                                               "\"username\" " +
@@ -403,7 +403,7 @@ public class UcmHistoryActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertLsactivityReaderIsClosed() throws Exception {
+    public void assertLsactivityReaderIsClosed() throws Exception {
         final StringReader lsactivityReader = new StringReader("\"Convert to Java 6\" " +
                                                                "\"Release_3_3_jdk5\" " +
                                                                "\"bob\" ");

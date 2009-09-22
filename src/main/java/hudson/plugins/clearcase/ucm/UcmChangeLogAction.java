@@ -83,9 +83,9 @@ public class UcmChangeLogAction implements ChangeLogAction {
     }
 
     @Override
-        public List<UcmActivity> getChanges(Date time, String viewName,
-                                            String[] branchNames, String[] viewPaths) throws IOException,
-                                                                                             InterruptedException {
+    public List<UcmActivity> getChanges(Date time, String viewName,
+                                        String[] branchNames, String[] viewPaths) throws IOException,
+                                                                                         InterruptedException {
         // ISSUE-3097
         // Patched since this command must allow paths that do not contain
         // the specified branch name (happens, for instance, if changes has

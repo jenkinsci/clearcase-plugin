@@ -76,7 +76,7 @@ public class BaseHistoryActionTest {
     private ClearTool cleartool;
     
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
@@ -96,7 +96,7 @@ public class BaseHistoryActionTest {
      */
 
     @Test
-        public void assertSeparateBranchCommands() throws Exception {
+    public void assertSeparateBranchCommands() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})));
@@ -128,7 +128,7 @@ public class BaseHistoryActionTest {
     //    }
 
     @Test
-        public void assertSuccessfulParse() throws Exception {
+    public void assertSuccessfulParse() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -145,7 +145,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void assertIgnoringErrors() throws Exception {
+    public void assertIgnoringErrors() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -161,7 +161,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void assertIgnoringVersionZero() throws Exception {
+    public void assertIgnoringVersionZero() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -177,7 +177,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void assertIgnoringDestroySubBranchEvent() throws Exception {
+    public void assertIgnoringDestroySubBranchEvent() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -196,7 +196,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
+    public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
@@ -213,7 +213,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertReaderIsClosed() throws Exception {
+    public void assertReaderIsClosed() throws Exception {
         final StringReader reader = new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" ");
         context.checking(new Expectations() {
                 {
@@ -234,7 +234,7 @@ public class BaseHistoryActionTest {
      */
 
     @Test
-        public void assertFormatContainsComment() throws Exception {
+    public void assertFormatContainsComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
@@ -250,7 +250,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void assertDestroySubBranchEventIsIgnored() throws Exception {
+    public void assertDestroySubBranchEventIsIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
@@ -260,7 +260,7 @@ public class BaseHistoryActionTest {
                                                       "\"20070906.091701\"   \"egsperi\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"destroy sub-branch \"esmalling_branch\" of branch\"   \"mkelem\"\n")));
                 }
             });
-                
+        
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DestroySubBranchFilter());
 
@@ -271,7 +271,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void assertExcludedRegionsAreIgnored() throws Exception {
+    public void assertExcludedRegionsAreIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
@@ -283,7 +283,7 @@ public class BaseHistoryActionTest {
 
                 }
             });
-                
+        
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DefaultFilter());
         filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "Customer"));
@@ -295,7 +295,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void assertMergedLogEntries() throws Exception {
+    public void assertMergedLogEntries() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
@@ -314,7 +314,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertReaderIsClosed2() throws Exception {
+    public void assertReaderIsClosed2() throws Exception {
         final StringReader reader = new StringReader("\"20070906.091701\"   \"egsperi\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"create version\"  \"mkelem\"\n");
         context.checking(new Expectations() {
                 {
@@ -332,7 +332,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testSorted() throws Exception {
+    public void testSorted() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
@@ -355,7 +355,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testMultiline() throws Exception {
+    public void testMultiline() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
@@ -372,7 +372,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testErrorOutput() throws Exception {
+    public void testErrorOutput() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -392,7 +392,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testUserOutput() throws Exception {
+    public void testUserOutput() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -408,7 +408,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testOperation() throws Exception {
+    public void testOperation() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -426,7 +426,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testParseNoComment() throws Exception {
+    public void testParseNoComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -451,7 +451,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testEmptyComment() throws Exception {
+    public void testEmptyComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -469,7 +469,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testCommentWithEmptyLine() throws Exception {
+    public void testCommentWithEmptyLine() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -488,7 +488,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testParseWithComment() throws Exception {
+    public void testParseWithComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -512,7 +512,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testParseWithTwoLineComment() throws Exception {
+    public void testParseWithTwoLineComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -536,7 +536,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void testParseWithLongAction() throws Exception {
+    public void testParseWithLongAction() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -554,7 +554,7 @@ public class BaseHistoryActionTest {
     }
 
     @Test
-        public void assertViewPathIsRemovedFromFilePaths() throws Exception {
+    public void assertViewPathIsRemovedFromFilePaths() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -585,8 +585,8 @@ public class BaseHistoryActionTest {
      * output of pwv, which will have consistent case usage regardless of what we do.
      */
     @Bug(3666)
-        @Test
-        public void testCaseSensitivityInViewName() throws Exception {
+    @Test
+    public void testCaseSensitivityInViewName() throws Exception {
         classContext.checking(new Expectations() {
                 {
                     allowing(build).getParent(); will(returnValue(project));
@@ -612,7 +612,7 @@ public class BaseHistoryActionTest {
                                                       "Y:\\", "", false, false, false, "", "",
                                                       cleartool, clearCaseScmDescriptor);
 
-        VariableResolver variableResolver = new BuildVariableResolver(build, launcher);
+        VariableResolver variableResolver = new BuildVariableResolver(build);
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
         /*      assertEquals("The extended view path is incorrect.",
@@ -634,8 +634,8 @@ public class BaseHistoryActionTest {
      * an lshistory item for a path *not* specified in the load rules doesn't get included in the changelog.
      */
     @Bug(4430)
-        @Test
-        public void testCaseSensitivityInExtendedViewPath() throws Exception {
+    @Test
+    public void testCaseSensitivityInExtendedViewPath() throws Exception {
         classContext.checking(new Expectations() {
                 {
                     allowing(build).getParent(); will(returnValue(project));
@@ -674,7 +674,7 @@ public class BaseHistoryActionTest {
                                                       "", "", false, false, false, "", "",
                                                       cleartool, clearCaseScmDescriptor);
 
-        VariableResolver variableResolver = new BuildVariableResolver(build, launcher);
+        VariableResolver variableResolver = new BuildVariableResolver(build);
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
 

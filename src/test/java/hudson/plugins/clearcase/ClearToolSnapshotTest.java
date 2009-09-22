@@ -58,7 +58,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     private Launcher launcher;
     
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         createWorkspace();
         context = new Mockery();
         
@@ -76,7 +76,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
     
     @After
-        public void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         deleteWorkspace();
     }
     
@@ -101,7 +101,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     //  }
     
     @Test
-        public void testRemoveView() throws Exception {
+    public void testRemoveView() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).getWorkspace();
@@ -120,7 +120,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testForcedRemoveView() throws Exception {
+    public void testForcedRemoveView() throws Exception {
         workspace.child("viewName").mkdirs();
         
         context.checking(new Expectations() {
@@ -147,7 +147,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testUpdate() throws Exception {
+    public void testUpdate() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).run(
@@ -166,7 +166,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     
     
     @Test
-        public void testUpdateWithLoadRules() throws Exception {
+    public void testUpdateWithLoadRules() throws Exception {
         classContext.checking(new Expectations() {
                 {
                     allowing(launcher).isUnix(); will(returnValue(true));
@@ -199,7 +199,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testUpdateWithLoadRulesWithSpace() throws Exception {
+    public void testUpdateWithLoadRulesWithSpace() throws Exception {
         classContext.checking(new Expectations() {
                 {
                     allowing(launcher).isUnix(); will(returnValue(true));
@@ -232,7 +232,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testCreateView() throws Exception {
+    public void testCreateView() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).run(
@@ -250,7 +250,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
     
     @Test
-        public void testCreateViewWithStream() throws Exception {
+    public void testCreateViewWithStream() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).run(
@@ -269,7 +269,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
 
     @Test
-        public void testCreateViewExtraParams() throws Exception {
+    public void testCreateViewExtraParams() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).run(
@@ -290,7 +290,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
 
     @Test
-        public void testCreateUcmViewWithOptionalParams() throws Exception {
+    public void testCreateUcmViewWithOptionalParams() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).run(
@@ -311,7 +311,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     }
 
     @Test
-        public void testCreateViewExtraParamsEvaluated() throws Exception {
+    public void testCreateViewExtraParamsEvaluated() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).run(
@@ -324,7 +324,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     will(returnValue(Boolean.TRUE));
                 }
             });
-                
+        
         context.checking(new Expectations() {
                 {
                     atLeast(1).of(resolver).resolve("COMPUTERNAME");

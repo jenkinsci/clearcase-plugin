@@ -133,7 +133,7 @@ public interface ClearTool {
      * @return the return from "cleartool pwv"
      */
     String pwv(String viewName) throws IOException, InterruptedException;
-     
+    
     /**
      * Retrives the config spec for the specified viewname
      * @param viewName the name of the view

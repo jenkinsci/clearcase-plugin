@@ -36,7 +36,7 @@ public interface OutputFormat {
     public static final String REGEX_GROUP = "\"(.*)\"\\s*";
     public static final String LINEEND = "\\n";
     public static final String PLACEHOLDER = "\\\" \\\" ";
-   
+    
     
     //Comment
     public static final String COMMENT="%c";
@@ -57,7 +57,7 @@ public interface OutputFormat {
     //Event
     public static final String OPERATION ="%o";
     
-       
+    
     //User
     public static final String USER_ID = "%u";
     public static final String USER_FULLNAME = "%Fu";
