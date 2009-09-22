@@ -92,29 +92,14 @@ public class PathUtilTest {
         
         private boolean unix;
         
-        @Override
+	@Override
         public void kill(Map<String, String> arg0) throws IOException,
                                                           InterruptedException {
             // TODO Auto-generated method stub
             
         }
-        
-        @Override
-        public Proc launch(String[] arg0, String[] arg1, InputStream arg2,
-                           OutputStream arg3, FilePath arg4) throws IOException {
-            // TODO Auto-generated method stub
-            return null;
-        }
-        
-        @Override
-        public Proc launch(String[] arg0, boolean[] arg1, String[] arg2,
-                           InputStream arg3, OutputStream arg4, FilePath arg5)
-            throws IOException {
-            // TODO Auto-generated method stub
-            return null;
-        }
-        
-        @Override
+
+	@Override
         public Channel launchChannel(String[] arg0, OutputStream arg1,
                                      FilePath arg2, Map<String, String> arg3) throws IOException,
                                                                                      InterruptedException {
@@ -127,7 +112,7 @@ public class PathUtilTest {
             // TODO Auto-generated method stub
             throw new UnsupportedOperationException();
         }
-        
+
         @Override
         public boolean isUnix() {
             return this.unix;

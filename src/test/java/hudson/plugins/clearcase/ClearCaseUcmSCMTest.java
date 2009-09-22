@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.model.Computer;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
@@ -54,7 +55,8 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     private Build build;
     private Launcher launcher;
     private ClearToolLauncher clearToolLauncher;
-
+    private Computer computer;
+    
     @Before
     public void setUp() throws Exception {
         createWorkspace();
@@ -66,7 +68,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
         launcher = classContext.mock(Launcher.class);
-
+	computer = classContext.mock(Computer.class);
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
@@ -184,7 +186,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCMDummy("stream:mystream", "somefile", "viewname-${JOB_NAME}", true, "/view",
                                                        null, true, false, false, null, null);
         // Create actions
-        VariableResolver variableResolver = new BuildVariableResolver(build);
+        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
         UcmHistoryAction action = (UcmHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
         classContext.assertIsSatisfied();
@@ -207,6 +209,11 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
                                             ClearToolLauncher launcher) {
             return cleartool;
         }
+
+	@Override
+	public Computer getCurrentComputer() {
+	    return computer;
+	}
 
     }
 
