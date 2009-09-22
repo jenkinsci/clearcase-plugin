@@ -195,14 +195,14 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 {
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Hudson"));
-		    
-		    //		    allowing(launcher).getComputer(); will(returnValue(computer));
+                    
+                    //              allowing(launcher).getComputer(); will(returnValue(computer));
                     //allowing(computer).currentComputer(); will(returnValue(computer));
                     allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                 }
             });
-	//        String username = (String)Computer.currentComputer().getSystemProperties().get("user.name");
-	String username = System.getProperty("user.name");
+        //        String username = (String)Computer.currentComputer().getSystemProperties().get("user.name");
+        String username = System.getProperty("user.name");
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("${JOB_NAME}-${USER_NAME}-view", "vob", "", true);
         assertEquals("The macros were not replaced in the normalized view name", "Hudson-" + username + "-view", scm.generateNormalizedViewName(build));
         classContext.assertIsSatisfied();
@@ -823,11 +823,11 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         }
 
 
-	@Override
-	public Computer getCurrentComputer() {
-	    return computer;
-	}
-	
+        @Override
+        public Computer getCurrentComputer() {
+            return computer;
+        }
+        
         @Override
         public SCMDescriptor<?> getDescriptor() {
             throw new IllegalStateException("GetDescriptor() can not be used in tests");

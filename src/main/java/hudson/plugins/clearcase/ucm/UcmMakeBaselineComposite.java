@@ -108,12 +108,12 @@ public class UcmMakeBaselineComposite extends Notifier {
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             Notifier p = new UcmMakeBaselineComposite(
-                                                       req.getParameter("mkbl.compositenamepattern"),
-                                                       req.getParameter("mkbl.compositestreamselector"),
-                                                       req.getParameter("mkbl.compositecomponentname"),
-                                                       req.getParameter("mkbl.extractinfofile")!=null,
-                                                       req.getParameter("mkbl.filename")
-                                                       );
+                                                      req.getParameter("mkbl.compositenamepattern"),
+                                                      req.getParameter("mkbl.compositestreamselector"),
+                                                      req.getParameter("mkbl.compositecomponentname"),
+                                                      req.getParameter("mkbl.extractinfofile")!=null,
+                                                      req.getParameter("mkbl.filename")
+                                                      );
             return p;
         }
 
@@ -122,10 +122,10 @@ public class UcmMakeBaselineComposite extends Notifier {
             return "/plugin/clearcase/ucm/mkbl/composite/help.html";
         }
 
-	@Override
-	public boolean isApplicable(Class clazz) {
-	    return true;
-	}
+        @Override
+        public boolean isApplicable(Class clazz) {
+            return true;
+        }
     }
 
     private UcmMakeBaselineComposite(
@@ -170,7 +170,7 @@ public class UcmMakeBaselineComposite extends Notifier {
         if (build.getProject().getScm() instanceof ClearCaseUcmSCM) {
             ClearCaseUcmSCM scm = (ClearCaseUcmSCM) build.getProject().getScm();
             FilePath filePath = build.getWorkspace().child(
-							   scm.getViewName());
+                                                           scm.getViewName());
 
             HudsonClearToolLauncher clearToolLauncher = new HudsonClearToolLauncher(
                                                                                     PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(),
@@ -180,7 +180,7 @@ public class UcmMakeBaselineComposite extends Notifier {
             if (build.getResult().equals(Result.SUCCESS)) {
 
                 try{
-		    LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
+                    LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
 
                     String compositeBaselineName = Util.replaceMacro(this.compositeNamePattern, build.getEnvironment(ltl));
 

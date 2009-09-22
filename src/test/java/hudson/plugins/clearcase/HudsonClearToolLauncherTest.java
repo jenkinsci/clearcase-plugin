@@ -91,7 +91,7 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             });
         classContext.checking(new Expectations() {
                 {
-		    allowing(proc).join();
+                    allowing(proc).join();
                 }
             });
 
@@ -111,12 +111,12 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
                     will(returnValue(mockedStream));
                 }
             });
-	classContext.checking(new Expectations() {
+        classContext.checking(new Expectations() {
                 {
-		    allowing(proc).join();
+                    allowing(proc).join();
                 }
             });
-	
+        
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null);
         classContext.assertIsSatisfied();
@@ -135,7 +135,7 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             });
         classContext.checking(new Expectations() {
                 {
-		    one(proc).join(); will(returnValue(1));
+                    one(proc).join(); will(returnValue(1));
                 }
             });
 
@@ -158,7 +158,7 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             });
         classContext.checking(new Expectations() {
                 {
-		    allowing(proc).join();
+                    allowing(proc).join();
                 }
             });
 
@@ -170,15 +170,15 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
 
 
     public class HudsonClearToolLauncherDummy extends HudsonClearToolLauncher {
-	public HudsonClearToolLauncherDummy(String executable, String scmName, TaskListener listener,
-					    FilePath workspace, Launcher launcher) {
-	    super(executable, scmName, listener, workspace, launcher);
-	}
+        public HudsonClearToolLauncherDummy(String executable, String scmName, TaskListener listener,
+                                            FilePath workspace, Launcher launcher) {
+            super(executable, scmName, listener, workspace, launcher);
+        }
 
-	@Override
-	public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out,
-				    FilePath path) throws IOException {
-	    return proc;
-	}
+        @Override
+        public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out,
+                                    FilePath path) throws IOException {
+            return proc;
+        }
     }
 }

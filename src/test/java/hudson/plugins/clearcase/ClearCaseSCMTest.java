@@ -70,7 +70,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
         launcher = classContext.mock(Launcher.class);
-	computer = classContext.mock(Computer.class);
+        computer = classContext.mock(Computer.class);
         clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
@@ -97,8 +97,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 }
             });
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", false, "",
-							 null, false, false,false, "", "", cleartool,
-							 clearCaseScmDescriptor, computer);
+                                                         null, false, false,false, "", "", cleartool,
+                                                         clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
         scm.generateNormalizedViewName(build);
@@ -115,8 +115,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 }
             });
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", true, "/views",
-							 null, false, false,false, "", "", cleartool,
-							 clearCaseScmDescriptor, computer);
+                                                         null, false, false,false, "", "", cleartool,
+                                                         clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build);
         scm.buildEnvVars(build, env);
@@ -132,8 +132,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 }
             });
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", true, null,
-							 null, false, false,false, "", "", cleartool,
-							 clearCaseScmDescriptor, computer);
+                                                         null, false, false,false, "", "", cleartool,
+                                                         clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build);
         scm.buildEnvVars(build, env);
@@ -232,7 +232,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                                                  cleartool, clearCaseScmDescriptor, computer);
         // Create actions
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
-                                                        
+        
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
         classContext.assertIsSatisfied();

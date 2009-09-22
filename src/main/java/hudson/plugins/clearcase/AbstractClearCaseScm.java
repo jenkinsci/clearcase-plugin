@@ -274,7 +274,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * direct call to Computer.currentComputer() so we can mock it in unit tests.
      */
     public Computer getCurrentComputer() {
-	return Computer.currentComputer();
+        return Computer.currentComputer();
     }
     
     /**
@@ -462,13 +462,13 @@ public abstract class AbstractClearCaseScm extends SCM {
         
         @Override
         public void onRenamed(Item item, String oldName, String newName) {
-	    AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
-	    if (project.getScm() instanceof AbstractClearCaseScm)  {
-		if (((AbstractClearCaseScm) project.getScm()).isRemoveViewOnRename()) {
-		    onDeleted(item);
-		}
-	    }
-	}
+            AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
+            if (project.getScm() instanceof AbstractClearCaseScm)  {
+                if (((AbstractClearCaseScm) project.getScm()).isRemoveViewOnRename()) {
+                    onDeleted(item);
+                }
+            }
+        }
         
         @Override
         public void onDeleted(Item item) {
@@ -482,17 +482,17 @@ public abstract class AbstractClearCaseScm extends SCM {
             if (item instanceof AbstractProject) {
                 AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
                 if (project.getScm() instanceof AbstractClearCaseScm) {
-		    AbstractClearCaseScm ccScm = (AbstractClearCaseScm) project.getScm();
+                    AbstractClearCaseScm ccScm = (AbstractClearCaseScm) project.getScm();
                     StreamTaskListener listener = new StreamTaskListener(
                                                                          System.out);
                     Launcher launcher = Hudson.getInstance()
                         .createLauncher(listener);
                     ClearTool ct = ccScm.createClearTool(null,
-					 ccScm.createClearToolLauncher(listener,
-								 project.getSomeWorkspace().getParent()
-								 .getParent(), launcher));
+                                                         ccScm.createClearToolLauncher(listener,
+                                                                                       project.getSomeWorkspace().getParent()
+                                                                                       .getParent(), launcher));
                     try {
-                        ct.rmviewtag(ccScm.generateNormalizedViewName(project.getLastBuild()));						
+                        ct.rmviewtag(ccScm.generateNormalizedViewName(project.getLastBuild()));                                         
                     } catch (Exception e) {
                         Logger.getLogger(
                                          AbstractClearCaseScm.class.getName()).log(
@@ -513,7 +513,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                                                                      .getParent(), launcher));
         try {
             ct.rmview(generateNormalizedViewName(project.getLastBuild()));
-                              
+            
         } catch (Exception e) {
             Logger.getLogger(
                              AbstractClearCaseScm.class.getName()).log(

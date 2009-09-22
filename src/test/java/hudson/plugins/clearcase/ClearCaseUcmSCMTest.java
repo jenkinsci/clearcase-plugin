@@ -68,7 +68,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
         launcher = classContext.mock(Launcher.class);
-	computer = classContext.mock(Computer.class);
+        computer = classContext.mock(Computer.class);
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
@@ -210,10 +210,10 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
             return cleartool;
         }
 
-	@Override
-	public Computer getCurrentComputer() {
-	    return computer;
-	}
+        @Override
+        public Computer getCurrentComputer() {
+            return computer;
+        }
 
     }
 
