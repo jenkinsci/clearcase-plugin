@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase; 
 
+import hudson.model.Computer;
 import hudson.util.VariableResolver;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 
@@ -32,6 +33,7 @@ import hudson.plugins.clearcase.history.HistoryAction;
 public class ClearCaseSCMDummy extends ClearCaseSCM {
     private ClearTool cleartool;
     private ClearCaseScmDescriptor clearCaseScmDescriptor;
+    private Computer overrideComputer;
     
     public ClearCaseSCMDummy(String branch, String configspec, String viewname,
                              boolean useupdate, String loadRules, boolean usedynamicview,
@@ -41,11 +43,27 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              String excludedRegions, String multiSitePollBuffer,
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor) {
+        this(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
+	     viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
+	     rmviewonrename, excludedRegions, multiSitePollBuffer, cleartool,
+	     clearCaseScmDescriptor, null);
+    }
+    
+    public ClearCaseSCMDummy(String branch, String configspec, String viewname,
+                             boolean useupdate, String loadRules, boolean usedynamicview,
+                             String viewdrive, String mkviewoptionalparam,
+                             boolean filterOutDestroySubBranchEvent,
+                             boolean doNotUpdateConfigSpec, boolean rmviewonrename,
+                             String excludedRegions, String multiSitePollBuffer,
+                             ClearTool cleartool,
+                             ClearCaseScmDescriptor clearCaseScmDescriptor,
+			     Computer overrideComputer) {
         super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
               rmviewonrename, excludedRegions, multiSitePollBuffer);
         this.cleartool = cleartool;
         this.clearCaseScmDescriptor = clearCaseScmDescriptor;
+	this.overrideComputer = overrideComputer;
     }
     
     @Override
@@ -63,6 +81,11 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     @Override
     public ClearCaseScmDescriptor getDescriptor() {
         return clearCaseScmDescriptor;
+    }
+
+    @Override
+    public Computer getCurrentComputer() {
+	return overrideComputer;
     }
 }
 

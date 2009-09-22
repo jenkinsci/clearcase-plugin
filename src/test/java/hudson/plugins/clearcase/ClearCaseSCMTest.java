@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase; 
 
+import hudson.model.Computer;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
@@ -57,7 +58,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     private Launcher launcher;
     private ClearToolLauncher clearToolLauncher;
     private ClearCaseSCM.ClearCaseScmDescriptor clearCaseScmDescriptor;
-    
+    private Computer computer;
     @Before
     public void setUp() throws Exception {
         createWorkspace();
@@ -69,6 +70,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
         launcher = classContext.mock(Launcher.class);
+	computer = classContext.mock(Computer.class);
         clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
@@ -94,7 +96,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                     ignoring(build).getParent(); will(returnValue(project));
                 }
             });
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", false, "", null, false, false,false);
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", false, "",
+							 null, false, false,false, "", "", cleartool,
+							 clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
         scm.generateNormalizedViewName(build);
@@ -110,7 +114,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                     ignoring(build).getParent(); will(returnValue(project));
                 }
             });
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, "/views", null, false, false,false);
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", true, "/views",
+							 null, false, false,false, "", "", cleartool,
+							 clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build);
         scm.buildEnvVars(build, env);
@@ -125,7 +131,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                     ignoring(build).getParent(); will(returnValue(project));
                 }
             });
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "configspec", "viewname", true, "", true, null, null, false, false,false);
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", true, null,
+							 null, false, false,false, "", "", cleartool,
+							 clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build);
         scm.buildEnvVars(build, env);
@@ -221,9 +229,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         
         ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob",
                                                  true, "/view", null, false, false, false, null, null,
-                                                 cleartool, clearCaseScmDescriptor);
+                                                 cleartool, clearCaseScmDescriptor, computer);
         // Create actions
-        VariableResolver variableResolver = new BuildVariableResolver(build);
+        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
                                                         
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());

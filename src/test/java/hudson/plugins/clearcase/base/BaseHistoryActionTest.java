@@ -612,7 +612,7 @@ public class BaseHistoryActionTest {
                                                       "Y:\\", "", false, false, false, "", "",
                                                       cleartool, clearCaseScmDescriptor);
 
-        VariableResolver variableResolver = new BuildVariableResolver(build);
+        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
         /*      assertEquals("The extended view path is incorrect.",
@@ -674,7 +674,7 @@ public class BaseHistoryActionTest {
                                                       "", "", false, false, false, "", "",
                                                       cleartool, clearCaseScmDescriptor);
 
-        VariableResolver variableResolver = new BuildVariableResolver(build);
+        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
 
