@@ -53,7 +53,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         boolean updateView = useUpdate;        
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();
         String jobConfigSpec = PathUtil.convertPathForOS(configSpec, launcher);
-            
+        
         if (localViewPathExists) {
             if (updateView) {
                 String currentConfigSpec = getLoadRuleFreeConfigSpec(cleartool.catcs(viewName).trim());

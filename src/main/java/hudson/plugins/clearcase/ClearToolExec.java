@@ -68,7 +68,7 @@ public abstract class ClearToolExec implements ClearTool {
                                                                       InterruptedException {
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-            
+        
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lshistory");
         cmd.add("-all");
@@ -79,9 +79,9 @@ public abstract class ClearToolExec implements ClearTool {
             cmd.add("-branch", "brtype:" + branch);
         }
         cmd.add("-nco");
-            
+        
         FilePath viewPath = getRootViewPath(launcher).child(viewName);
-            
+        
         for (String path : viewPaths) {
             path = path.replace("\n","").replace("\r","");
             if (path.matches(".*\\s.*")) {
@@ -98,7 +98,7 @@ public abstract class ClearToolExec implements ClearTool {
                                                                           .toByteArray()));
         }
         baos.close();
-            
+        
         return returnReader;
     }
 
@@ -108,10 +108,10 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("lsactivity");
         cmd.add("-fmt", commandFormat);
         cmd.add(activity);
-                
+        
         // changed the path from workspace to getRootViewPath to make Dynamic UCM work
         FilePath viewPath = getRootViewPath(launcher).child(viewname);
-                
+        
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, viewPath);
         InputStreamReader reader = new InputStreamReader(
@@ -178,7 +178,7 @@ public abstract class ClearToolExec implements ClearTool {
         return retString;
     }
 
-        
+    
     public String catcs(String viewName) throws IOException,
                                                 InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -206,7 +206,7 @@ public abstract class ClearToolExec implements ClearTool {
         return retString;
     }
     
- 
+    
 
     private List<String> parseListOutput(Reader consoleReader,
                                          boolean onlyStarMarked) throws IOException {

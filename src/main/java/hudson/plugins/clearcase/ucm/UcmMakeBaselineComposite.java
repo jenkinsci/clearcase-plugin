@@ -24,19 +24,23 @@
  */
 package hudson.plugins.clearcase.ucm;
 
+import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.model.Result;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.HudsonClearToolLauncher;
 import hudson.plugins.clearcase.PluginImpl;
+import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
+import hudson.tasks.Notifier;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.LogTaskListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -46,6 +50,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -55,17 +63,19 @@ import org.kohsuke.stapler.StaplerRequest;
  * 
  * @author Gregory BOISSINOT - Zenika
  */
-public class UcmMakeBaselineComposite extends Publisher {
+public class UcmMakeBaselineComposite extends Notifier {
 
 
-    public final static Descriptor<Publisher> DESCRIPTOR = new UcmMakeBaselineDescriptor();
+    public final static BuildStepDescriptor DESCRIPTOR = new UcmMakeBaselineDescriptor();
+    private static final Logger LOGGER = Logger
+        .getLogger(UcmMakeBaselineComposite.class.getName());
 
     private final String compositeNamePattern;    
     private final String compositeStreamSelector;
     private final String compositeComponentName;
     private final boolean extractInfoFile;
     private final String fileName;
-        
+    
 
     public String getCompositeNamePattern(){
         return compositeNamePattern;
@@ -82,23 +92,22 @@ public class UcmMakeBaselineComposite extends Publisher {
     public String getFileName() {
         return this.fileName;
     }   
-        
     
-    public static final class UcmMakeBaselineDescriptor extends
-                                                            Descriptor<Publisher> {
+    @Extension
+    public static final class UcmMakeBaselineDescriptor extends BuildStepDescriptor {
 
         public UcmMakeBaselineDescriptor() {
             super(UcmMakeBaselineComposite.class);
         }
 
         @Override
-            public String getDisplayName() {
+        public String getDisplayName() {
             return "ClearCase UCM Makebaseline Composite";
         }
 
         @Override
-            public Publisher newInstance(StaplerRequest req) throws FormException {
-            Publisher p = new UcmMakeBaselineComposite(
+        public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            Notifier p = new UcmMakeBaselineComposite(
                                                        req.getParameter("mkbl.compositenamepattern"),
                                                        req.getParameter("mkbl.compositestreamselector"),
                                                        req.getParameter("mkbl.compositecomponentname"),
@@ -109,9 +118,14 @@ public class UcmMakeBaselineComposite extends Publisher {
         }
 
         @Override
-            public String getHelpFile() {
+        public String getHelpFile() {
             return "/plugin/clearcase/ucm/mkbl/composite/help.html";
         }
+
+	@Override
+	public boolean isApplicable(Class clazz) {
+	    return true;
+	}
     }
 
     private UcmMakeBaselineComposite(
@@ -130,33 +144,33 @@ public class UcmMakeBaselineComposite extends Publisher {
     }
 
     @Override
-        public boolean needsToRunAfterFinalized() {
+    public boolean needsToRunAfterFinalized() {
         return true;
     }
 
 
     @Override
-        public BuildStepMonitor getRequiredMonitorService() {
+    public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.BUILD;
     }
     
     
     @Override
-        public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
 
         return true;
     }
-        
+    
 
     @SuppressWarnings("unchecked")
-        @Override
-        public boolean perform(AbstractBuild build, Launcher launcher,
-                               BuildListener listener) throws InterruptedException, IOException {
+    @Override
+    public boolean perform(AbstractBuild build, Launcher launcher,
+                           BuildListener listener) throws InterruptedException, IOException {
 
         if (build.getProject().getScm() instanceof ClearCaseUcmSCM) {
             ClearCaseUcmSCM scm = (ClearCaseUcmSCM) build.getProject().getScm();
-            FilePath filePath = build.getProject().getWorkspace().child(
-                                                                        scm.getViewName());
+            FilePath filePath = build.getWorkspace().child(
+							   scm.getViewName());
 
             HudsonClearToolLauncher clearToolLauncher = new HudsonClearToolLauncher(
                                                                                     PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(),
@@ -166,23 +180,24 @@ public class UcmMakeBaselineComposite extends Publisher {
             if (build.getResult().equals(Result.SUCCESS)) {
 
                 try{
-                                        
-                    String compositeBaselineName = Util.replaceMacro(this.compositeNamePattern, build.getEnvVars());
+		    LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
+
+                    String compositeBaselineName = Util.replaceMacro(this.compositeNamePattern, build.getEnvironment(ltl));
 
                     String pvob = compositeStreamSelector;
                     if (compositeStreamSelector.contains("@"+ File.separator)) {
                         pvob = compositeStreamSelector.substring(compositeStreamSelector.indexOf("@" + File.separator)+2, compositeStreamSelector.length());
                     }                                   
-                                
+                    
                     this.makeCompositeBaseline(compositeBaselineName, this.compositeStreamSelector, this.compositeComponentName, pvob, clearToolLauncher, filePath);
 
-                                
+                    
                     this.promoteCompositeBaselineToBuiltLevel(compositeBaselineName, pvob, clearToolLauncher, filePath);
-                                
+                    
                     if (extractInfoFile){
                         processExtractInfoFile(this.compositeComponentName,pvob,compositeBaselineName, this.fileName, clearToolLauncher, filePath);
                     }
-                                        
+                    
                 }
                 catch (Exception ex){
                     listener.getLogger().println("Failed to create baseline: " + ex);
@@ -192,13 +207,13 @@ public class UcmMakeBaselineComposite extends Publisher {
                 listener.getLogger().println(
                                              "Not a UCM clearcase SCM, cannot create baseline composite");
             }
-                        
+            
         }
         return true;
     }
 
 
-    public Descriptor<Publisher> getDescriptor() {
+    public BuildStepDescriptor getDescriptor() {
         return DESCRIPTOR;
     }
 
@@ -234,7 +249,7 @@ public class UcmMakeBaselineComposite extends Publisher {
         for (String c:comp){
             result.add(c.split("component:")[1]);
         }
-                
+        
         return result;
     }
     
@@ -291,10 +306,10 @@ public class UcmMakeBaselineComposite extends Publisher {
         
         //Get a view containing the composite component
         String compositeView = getOneViewFromStream(this.compositeStreamSelector,clearToolLauncher,filePath);
-                
+        
         //Get the component list (with pvob suffix) for the stream
         List<String> componentList = getComponentList(this.compositeStreamSelector,clearToolLauncher,filePath);
-                        
+        
         //Make baseline composite
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkbl");       
@@ -317,7 +332,7 @@ public class UcmMakeBaselineComposite extends Publisher {
         
         cmd.add("-adepends_on");
         cmd.add(sb.toString());
- 
+        
         cmd.add(compositeBaselineName);
         
         
@@ -384,12 +399,12 @@ public class UcmMakeBaselineComposite extends Publisher {
         String cleartoolResult = baos.toString();
         if (cleartoolResult.contains("cleartool: Error")) 
             throw new Exception("Failed to make baseline, reason: "+ cleartoolResult);
-                        
+        
         return cleartoolResult; 
     }  
 
 
-   
+    
     /**
      * Extract Composite baseline information in an external file
      * @param compositeComponnentName

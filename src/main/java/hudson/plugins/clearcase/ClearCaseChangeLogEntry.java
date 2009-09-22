@@ -77,7 +77,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
     
     @Exported
-        public List<FileElement> getElements() {
+    public List<FileElement> getElements() {
         return files;
     }
     
@@ -90,7 +90,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Exported
-        public String getDateStr() {
+    public String getDateStr() {
         if (date == null) {
             return dateStr;
         } else {
@@ -107,7 +107,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Exported
-        public Date getDate() {
+    public Date getDate() {
         return (Date) date.clone();
     }
 
@@ -116,7 +116,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Exported
-        public String getUser() {
+    public String getUser() {
         return user;
     }
 
@@ -125,7 +125,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Deprecated
-        public void setFile(String file) {
+    public void setFile(String file) {
         if ((files == null) || (files.size() == 0))
             addElement(new FileElement(file, "", "", ""));
         else
@@ -133,7 +133,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Deprecated
-        public void setVersion(String version) {
+    public void setVersion(String version) {
         if ((files == null) || (files.size() == 0))
             addElement(new FileElement("", version, "", ""));
         else
@@ -141,7 +141,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Deprecated
-        public void setAction(String action) {
+    public void setAction(String action) {
         if ((files == null) || (files.size() == 0))
             addElement(new FileElement("", "", action, ""));
         else
@@ -149,13 +149,13 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Override
-        @Exported
-        public User getAuthor() {
+    @Exported
+    public User getAuthor() {
         return User.get(user);
     }
 
     @Override
-        public Collection<String> getAffectedPaths() {
+    public Collection<String> getAffectedPaths() {
         Collection<String> paths = new ArrayList<String>(files.size());
         for (FileElement file : files) {
             paths.add(file.getFile());
@@ -164,8 +164,8 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Override
-        @Exported
-        public String getMsg() {
+    @Exported
+    public String getMsg() {
         return comment;
     }
 
@@ -173,73 +173,73 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
      * Overrides the setParent() method so the ClearCaseChangeLogSet can access it.
      */
     @Override
-        public void setParent(ChangeLogSet parent) {
+    public void setParent(ChangeLogSet parent) {
         super.setParent(parent);
     }
 
     @ExportedBean(defaultVisibility=999)
-        public static class FileElement {
-            private String name = "";
-            private String version = "";
-            private String action = "";
-            private String operation = "";
+    public static class FileElement {
+        private String name = "";
+        private String version = "";
+        private String action = "";
+        private String operation = "";
         
-            public FileElement() {
-            }
-        
-            public FileElement(String fileName, String version, String action, String operation) {
-                this.name = fileName;
-                this.version = version;
-                this.action = action;
-                this.operation = operation;
-            }
-        
-            @Exported
-                public String getFile() {
-                return name;
-            }
-        
-            public void setFile(String fileName) {
-                this.name = fileName;
-            }
-
-            @Exported
-                public String getVersion() {
-                return version;
-            }
-
-            public void setVersion(String version) {
-                this.version = version;
-            }
-
-            @Exported
-                public String getAction() {
-                return action;
-            }
-
-            public void setAction(String action) {
-                this.action = action;
-            }
-
-            @Exported        
-                public String getOperation() {
-                return operation;
-            }
-
-            public void setOperation(String status) {
-                this.operation = status;
-            }
-
-            @Exported
-                public EditType getEditType() {
-                if (operation.equalsIgnoreCase("mkelem")) {
-                    return EditType.ADD;
-                } else if (operation.equalsIgnoreCase("rmelem")) {
-                    return EditType.DELETE;
-                } else if (operation.equalsIgnoreCase("checkin")) {
-                    return EditType.EDIT;
-                }
-                return null;
-            }
+        public FileElement() {
         }
+        
+        public FileElement(String fileName, String version, String action, String operation) {
+            this.name = fileName;
+            this.version = version;
+            this.action = action;
+            this.operation = operation;
+        }
+        
+        @Exported
+        public String getFile() {
+            return name;
+        }
+        
+        public void setFile(String fileName) {
+            this.name = fileName;
+        }
+
+        @Exported
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
+
+        @Exported
+        public String getAction() {
+            return action;
+        }
+
+        public void setAction(String action) {
+            this.action = action;
+        }
+
+        @Exported        
+            public String getOperation() {
+            return operation;
+        }
+
+        public void setOperation(String status) {
+            this.operation = status;
+        }
+
+        @Exported
+        public EditType getEditType() {
+            if (operation.equalsIgnoreCase("mkelem")) {
+                return EditType.ADD;
+            } else if (operation.equalsIgnoreCase("rmelem")) {
+                return EditType.DELETE;
+            } else if (operation.equalsIgnoreCase("checkin")) {
+                return EditType.EDIT;
+            }
+            return null;
+        }
+    }
 }

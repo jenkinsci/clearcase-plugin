@@ -54,13 +54,13 @@ public class BaseChangeLogActionTest {
     private ClearTool cleartool;
     
     @Before
-        public void setUp() throws Exception {
+    public void setUp() throws Exception {
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
     }
 
     @Test
-        public void assertFormatContainsComment() throws Exception {
+    public void assertFormatContainsComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%o\\\" \\n%c\\n")), 
@@ -76,7 +76,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void assertDestroySubBranchEventIsIgnored() throws Exception {
+    public void assertDestroySubBranchEventIsIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), 
@@ -86,7 +86,7 @@ public class BaseChangeLogActionTest {
                                                       "\"20070906.091701\"   \"egsperi\"    \"destroy sub-branch \"esmalling_branch\" of branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n")));
                 }
             });
-                
+        
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DestroySubBranchFilter());
 
@@ -97,7 +97,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void assertExcludedRegionsAreIgnored() throws Exception {
+    public void assertExcludedRegionsAreIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), 
@@ -106,7 +106,7 @@ public class BaseChangeLogActionTest {
                     will(returnValue(new StringReader("\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n")));
                 }
             });
-                
+        
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, ".*Application.*"));
 
@@ -117,7 +117,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void assertMergedLogEntries() throws Exception {
+    public void assertMergedLogEntries() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), 
@@ -136,7 +136,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test(expected=IOException.class)
-        public void assertReaderIsClosed() throws Exception {
+    public void assertReaderIsClosed() throws Exception {
         final StringReader reader = new StringReader("\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n");                
         context.checking(new Expectations() {
                 {
@@ -153,7 +153,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testSorted() throws Exception {
+    public void testSorted() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -175,7 +175,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testExcludedRegionsRegexp() throws Exception {
+    public void testExcludedRegionsRegexp() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -200,7 +200,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testMultiline() throws Exception {
+    public void testMultiline() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -216,7 +216,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testErrorOutput() throws Exception {
+    public void testErrorOutput() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -236,7 +236,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testUserOutput() throws Exception {
+    public void testUserOutput() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -252,7 +252,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testOperation() throws Exception {
+    public void testOperation() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -270,7 +270,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testParseNoComment() throws Exception {
+    public void testParseNoComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -295,7 +295,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testEmptyComment() throws Exception {
+    public void testEmptyComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -313,7 +313,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testCommentWithEmptyLine() throws Exception {
+    public void testCommentWithEmptyLine() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -332,7 +332,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testParseWithComment() throws Exception {
+    public void testParseWithComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -356,7 +356,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testParseWithTwoLineComment() throws Exception {
+    public void testParseWithTwoLineComment() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -380,7 +380,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void testParseWithLongAction() throws Exception {
+    public void testParseWithLongAction() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -398,7 +398,7 @@ public class BaseChangeLogActionTest {
     }
 
     @Test
-        public void assertViewPathIsRemovedFromFilePaths() throws Exception {
+    public void assertViewPathIsRemovedFromFilePaths() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 

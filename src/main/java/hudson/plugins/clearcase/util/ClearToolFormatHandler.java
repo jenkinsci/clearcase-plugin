@@ -41,7 +41,7 @@ public class ClearToolFormatHandler {
     public ClearToolFormatHandler(String... elements) {
         setPattern(elements);
     }    
-   
+    
     public void setPattern(String... elements) {
         StringBuilder formatBuilder = new StringBuilder();
         StringBuilder patternBuilder = new StringBuilder();
@@ -65,10 +65,10 @@ public class ClearToolFormatHandler {
     public String getPattern() {
         return patternStr;
     }
-   
+    
     public Matcher checkLine(String line) {
         Matcher matcher = pattern.matcher(line);
-       
+        
         if (matcher.find() && matcher.groupCount() == groupCount) {
             return matcher;
         } 

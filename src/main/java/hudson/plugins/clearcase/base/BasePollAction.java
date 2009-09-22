@@ -63,12 +63,12 @@ public class BasePollAction extends DefaultPollAction {
 
 
     @Override
-        protected ClearToolFormatHandler getHistoryFormatHandler() {
+    protected ClearToolFormatHandler getHistoryFormatHandler() {
         return historyHandler;
 
     }
     @Override
-        protected HistoryEntry parseLine(String line) throws ParseException {
+    protected HistoryEntry parseLine(String line) throws ParseException {
         if (line.startsWith("cleartool: Error:")) {
             return null;
         }
