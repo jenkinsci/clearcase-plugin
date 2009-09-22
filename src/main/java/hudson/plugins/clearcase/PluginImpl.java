@@ -24,11 +24,8 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.Extension;
 import hudson.Plugin;
-import hudson.plugins.clearcase.ucm.UcmMakeBaseline;
-import hudson.plugins.clearcase.ucm.UcmMakeBaselineComposite;
-import hudson.scm.SCMS;
-import hudson.tasks.Publisher;
 
 /**
  * ClearCase plugin.
@@ -37,18 +34,12 @@ import hudson.tasks.Publisher;
  */
 public class PluginImpl extends Plugin {
 
+    @Extension
     public static final ClearCaseSCM.ClearCaseScmDescriptor BASE_DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
-    public static final ClearCaseUcmSCM.ClearCaseUcmScmDescriptor  UCM_DESCRIPTOR = new ClearCaseUcmSCM.ClearCaseUcmScmDescriptor();
+    @Extension
+    public static final ClearCaseUcmSCM.ClearCaseUcmScmDescriptor UCM_DESCRIPTOR = new ClearCaseUcmSCM.ClearCaseUcmScmDescriptor();
     
     public static ClearCaseSCM.ClearCaseScmDescriptor getDescriptor() {
         return BASE_DESCRIPTOR;
-    }
-
-    /**
-     * Registers ClearCase SCM.
-     */
-    @Override
-    public void start() throws Exception {
-        super.start();
     }
 }

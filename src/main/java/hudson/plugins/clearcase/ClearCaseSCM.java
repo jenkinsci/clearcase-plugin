@@ -27,25 +27,16 @@ package hudson.plugins.clearcase;
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
 import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Proc;
-import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
 import hudson.plugins.clearcase.action.CheckOutAction;
-import hudson.plugins.clearcase.action.DefaultPollAction;
 import hudson.plugins.clearcase.action.DynamicCheckoutAction;
-import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
-import hudson.plugins.clearcase.base.BaseChangeLogAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
-import hudson.plugins.clearcase.base.BasePollAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
-import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
@@ -56,12 +47,9 @@ import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -237,7 +225,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
      * 
      * @author Erik Ramfelt
      */
-    @Extension
     public static class ClearCaseScmDescriptor extends
                                                    SCMDescriptor<ClearCaseSCM> implements ModelObject {
         private String cleartoolExe;
@@ -377,7 +364,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             try {
                 Hudson.getInstance()
                     .createLauncher(TaskListener.NULL)
-                    .launch().cmds(new String[] { getCleartoolExe(), "-version" })
+                    .launch().cmds(getCleartoolExe(), "-version")
                     .stdout(baos)
                     .join();
                 rsp.setContentType("text/plain");
@@ -392,7 +379,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             throws IOException, ServletException, InterruptedException {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             Hudson.getInstance().createLauncher(TaskListener.NULL)
-                .launch().cmds(new String[] { getCleartoolExe(), "lsview", "-short" })
+                .launch().cmds(getCleartoolExe(), "lsview", "-short")
                 .stdout(baos)
                 .join();
 
