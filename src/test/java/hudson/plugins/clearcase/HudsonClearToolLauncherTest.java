@@ -25,16 +25,25 @@
 package hudson.plugins.clearcase;
 
 import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Launcher.ProcStarter;
 import hudson.Proc;
+import hudson.Util;
 import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 import hudson.util.ForkOutputStream;
+import hudson.util.ArgumentListBuilder;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -50,7 +59,6 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
     private BuildListener taskListener;
     private Launcher launcher;
     private Proc proc;
-    private ProcStarter procStarter;
     
     @Before
     public void setUp() throws Exception {
@@ -63,7 +71,6 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             };
         launcher = classContext.mock(Launcher.class);
         proc = classContext.mock(Proc.class);
-        procStarter = classContext.mock(ProcStarter.class);
         taskListener = context.mock(BuildListener.class);
     }
 
@@ -84,13 +91,11 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             });
         classContext.checking(new Expectations() {
                 {
-                    one(launcher).launch()
-			.cmds(with(any(String[].class))).envs(with(any(String[].class)))
-			.stdin(with(aNull(InputStream.class))).stdout(with(same(mockedStream))).pwd(with(any(FilePath.class)));
+		    allowing(proc).join();
                 }
             });
 
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("exec", "ccscm", taskListener, workspace, launcher);
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, null, null);
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();
@@ -106,14 +111,13 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
                     will(returnValue(mockedStream));
                 }
             });
-        classContext.checking(new Expectations() {
+	classContext.checking(new Expectations() {
                 {
-                    one(launcher).launch().cmds(with(any(String[].class))).envs(with(any(String[].class)))
-			.stdin(with(aNull(InputStream.class))).stdout(with(any(ForkOutputStream.class))).pwd(with(any(FilePath.class)));
+		    allowing(proc).join();
                 }
             });
-
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("exec", "ccscm", taskListener, workspace, launcher);
+	
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null);
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();
@@ -131,14 +135,11 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             });
         classContext.checking(new Expectations() {
                 {
-                    one(launcher).launch().cmds(with(any(String[].class))).envs(with(any(String[].class)))
-			.stdin(with(aNull(InputStream.class))).stdout(with(any(ForkOutputStream.class))).pwd(with(any(FilePath.class)));
-                    will(returnValue(proc));
-                    one(proc).join(); will(returnValue(1));
+		    one(proc).join(); will(returnValue(1));
                 }
             });
 
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("exec", "ccscm", taskListener, workspace, launcher);
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a", "b" }, null, new ByteArrayOutputStream(), null);
     }
 
@@ -157,14 +158,27 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
             });
         classContext.checking(new Expectations() {
                 {
-                    one(launcher).launch().cmds(with(equal(new String[]{"exec", "command"}))).envs(with(any(String[].class)))
-			.stdin(with(aNull(InputStream.class))).stdout(with(same(mockedStream))).pwd(with(any(FilePath.class)));
+		    allowing(proc).join();
                 }
             });
 
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncher("exec", "ccscm", taskListener, workspace, launcher);
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "command" }, null, null, null);
         classContext.assertIsSatisfied();
         context.assertIsSatisfied();
+    }
+
+
+    public class HudsonClearToolLauncherDummy extends HudsonClearToolLauncher {
+	public HudsonClearToolLauncherDummy(String executable, String scmName, TaskListener listener,
+					    FilePath workspace, Launcher launcher) {
+	    super(executable, scmName, listener, workspace, launcher);
+	}
+
+	@Override
+	public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out,
+				    FilePath path) throws IOException {
+	    return proc;
+	}
     }
 }

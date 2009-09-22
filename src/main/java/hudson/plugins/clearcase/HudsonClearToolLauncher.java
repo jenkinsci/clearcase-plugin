@@ -26,6 +26,7 @@ package hudson.plugins.clearcase;
 
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Proc;
 import hudson.model.TaskListener;
 import hudson.util.ForkOutputStream;
 
@@ -87,7 +88,7 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
             cmdWithExec[i + 1] = cmd[i];
         }
 
-        int r = launcher.launch().cmds(cmdWithExec).envs(env).stdin(inputStream).stdout(out).pwd(path).join();
+        int r = getLaunchedProc(cmdWithExec, env, inputStream, out, path).join();
         if (r != 0) {
             StringBuilder builder = new StringBuilder();
             for (String cmdParam : cmd) {
@@ -103,11 +104,17 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
         return true;
     }
     
-    /* 
+    
+    /** 
      * {@inheritDoc}
      * @see hudson.plugins.clearcase.ClearToolLauncher#getLauncher()
      */
     public Launcher getLauncher() {
         return this.launcher;
+    }
+
+    public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out,
+				FilePath path) throws IOException {
+	return getLauncher().launch().cmds(cmdWithExec).envs(env).stdin(inputStream).stdout(out).pwd(path).start();
     }
 }

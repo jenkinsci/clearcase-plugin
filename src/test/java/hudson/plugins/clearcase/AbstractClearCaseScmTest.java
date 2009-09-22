@@ -196,7 +196,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Hudson"));
 		    
-		    allowing(launcher).getComputer(); will(returnValue(computer));
+		    //		    allowing(launcher).getComputer(); will(returnValue(computer));
                     //allowing(computer).currentComputer(); will(returnValue(computer));
                     allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                 }
