@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 
+import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -66,9 +67,11 @@ public class BuildVariableResolver implements VariableResolver<String> {
 
 
     private AbstractBuild<?, ?> build;
-
-    public BuildVariableResolver(final AbstractBuild<?, ?> build) {
+    private Computer computer;
+    
+    public BuildVariableResolver(final AbstractBuild<?, ?> build, final Computer computer) {
         this.build = build;
+	this.computer = computer;
     }
 
     @Override
@@ -79,16 +82,16 @@ public class BuildVariableResolver implements VariableResolver<String> {
                 return build.getProject().getName();
             }
             /*if ("COMPUTERNAME".equals(key)) {
-              return (Util.fixEmpty(StringUtils.isEmpty(Computer.currentComputer().getName()) ? "master"
-              : Computer.currentComputer().getName()));
+              return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master"
+              : computer.getName()));
               }*/
             if ("NODE_NAME".equals(key)) {
-                return (Util.fixEmpty(StringUtils.isEmpty(Computer.currentComputer().getName()) ? "master"
-                                      : Computer.currentComputer().getName()));
+                return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master"
+                                      : computer.getName()));
             }
 
             if ("USER_NAME".equals(key)) {
-                return (String) Computer.currentComputer().getSystemProperties()
+                return (String) computer.getSystemProperties()
                     .get("user.name");
             }
             if (build.getEnvironment(ltl).containsKey(key)) {
