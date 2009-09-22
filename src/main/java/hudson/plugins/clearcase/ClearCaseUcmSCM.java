@@ -26,23 +26,14 @@ package hudson.plugins.clearcase;
 
 import static hudson.Util.fixEmpty;
 import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.AbstractBuild;
 import hudson.model.ModelObject;
-import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.action.CheckOutAction;
-import hudson.plugins.clearcase.action.DefaultPollAction;
-import hudson.plugins.clearcase.action.PollAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.UcmDynamicCheckoutAction;
 import hudson.plugins.clearcase.action.UcmSnapshotCheckoutAction;
-import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryAction;
-import hudson.plugins.clearcase.ucm.UcmChangeLogAction;
 import hudson.plugins.clearcase.ucm.UcmChangeLogParser;
 import hudson.plugins.clearcase.ucm.UcmHistoryAction;
-import hudson.plugins.clearcase.ucm.UcmPollAction;
 import hudson.plugins.clearcase.ucm.UcmSaveChangeLogAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
@@ -50,14 +41,11 @@ import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.util.VariableResolver;
 
-import java.io.IOException;
-import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import java.util.List;
-import net.sf.json.JSONObject;
 
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -198,6 +186,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return new UcmSaveChangeLogAction();
     }
 
+    @Override
     protected ClearTool createClearTool(VariableResolver variableResolver,
                                         ClearToolLauncher launcher) {
         if (isUseDynamicView()) {
@@ -220,7 +209,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
      * 
      * @author Erik Ramfelt
      */
-    @Extension
     public static class ClearCaseUcmScmDescriptor extends
                                                       SCMDescriptor<ClearCaseUcmSCM> implements ModelObject {
 

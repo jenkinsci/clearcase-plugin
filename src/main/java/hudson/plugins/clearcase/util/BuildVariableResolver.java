@@ -24,19 +24,14 @@
  */
 package hudson.plugins.clearcase.util;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 
-import hudson.Launcher;
+import hudson.EnvVars;
 import hudson.Util;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
@@ -94,8 +89,9 @@ public class BuildVariableResolver implements VariableResolver<String> {
                 return (String) computer.getSystemProperties()
                     .get("user.name");
             }
-            if (build.getEnvironment(ltl).containsKey(key)) {
-                return build.getEnvironment(ltl).get(key);
+            EnvVars env = build.getEnvironment(ltl);
+            if (env.containsKey(key)) {
+                return env.get(key);
             }
             
             
