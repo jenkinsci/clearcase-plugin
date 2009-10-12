@@ -56,17 +56,43 @@ public class ClearToolSnapshot extends ClearToolExec {
      */
     public void setcs(String viewName, String configSpec) throws IOException,
                                                                  InterruptedException {
+        if (configSpec==null) {
+            configSpec = "";
+        }
+        
         FilePath workspace = launcher.getWorkspace();
         FilePath configSpecFile = workspace.createTextTempFile("configspec", ".txt", configSpec);
-        String csLocation = ".." + File.separatorChar + configSpecFile.getName();
-        csLocation = PathUtil.convertPathForOS(csLocation, launcher.getLauncher());
+        String csLocation = "";
+        
+        if (!configSpec.equals("")) {
+            csLocation = ".." + File.separatorChar + configSpecFile.getName();
+            csLocation = PathUtil.convertPathForOS(csLocation, launcher.getLauncher());
+        }
         
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
-        cmd.add(csLocation);
+        if (!csLocation.equals("")) {
+            cmd.add(csLocation);
+        }
+        else {
+            cmd.add("-current");
+        }
         launcher.run(cmd.toCommandArray(), null, null, workspace.child(viewName));
 
         configSpecFile.delete();
+    }
+
+    /**
+     * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
+     * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
+     */
+    public void setcsCurrent(String viewName) throws IOException,
+                                                     InterruptedException {
+        FilePath workspace = launcher.getWorkspace();
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("setcs");
+        cmd.add("-current");
+        launcher.run(cmd.toCommandArray(), null, null, workspace.child(viewName));
     }
 
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {

@@ -73,7 +73,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         }
         
         if (updateView) {
-            cleartool.update(viewName, null);
+            cleartool.setcs(viewName, null);
         }
         else {
             String newConfigSpec = jobConfigSpec + "\n";
