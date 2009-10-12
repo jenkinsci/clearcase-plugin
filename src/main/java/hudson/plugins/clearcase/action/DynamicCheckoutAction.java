@@ -53,8 +53,13 @@ public class DynamicCheckoutAction implements CheckOutAction {
         cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
         String tempConfigSpec = PathUtil.convertPathForOS(configSpec, launcher);
-        if (!doNotUpdateConfigSpec && !tempConfigSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
-            cleartool.setcs(viewName, tempConfigSpec);
+        if (!doNotUpdateConfigSpec) {
+            if (!tempConfigSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
+                cleartool.setcs(viewName, tempConfigSpec);
+            }
+            else {
+                cleartool.setcs(viewName, null);
+            }
         }
         return true;
     }

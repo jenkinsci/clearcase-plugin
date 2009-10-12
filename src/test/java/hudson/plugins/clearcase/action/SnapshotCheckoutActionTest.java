@@ -132,7 +132,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
                 {
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
-                    one(clearTool).update("viewname", null);
+                    one(clearTool).setcs("viewname", null);
                 }
             });
         classContext.checking(new Expectations() {
