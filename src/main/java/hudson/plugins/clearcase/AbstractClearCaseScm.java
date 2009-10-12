@@ -512,7 +512,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                                                                      project.getSomeWorkspace().getParent()
                                                                      .getParent(), launcher));
         try {
-            ct.rmview(generateNormalizedViewName(project.getLastBuild()));
+            ct.rmviewtag(generateNormalizedViewName(project.getLastBuild()));
             
         } catch (Exception e) {
             Logger.getLogger(
