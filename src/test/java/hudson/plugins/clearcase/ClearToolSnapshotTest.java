@@ -163,7 +163,26 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         clearToolExec.update("viewName", null);
         context.assertIsSatisfied();
     }
-    
+
+    @Test
+    public void testSetcsCurrent() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    allowing(clearToolLauncher).getWorkspace();
+                    will(returnValue(workspace));
+                    one(clearToolLauncher).run(
+                                               with(equal(new String[] { "setcs", "-current" })),
+                                               with(aNull(InputStream.class)),
+                                               with(aNull(OutputStream.class)),
+                                               with(aNonNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        
+        clearToolExec.setcs("viewName", null);
+        context.assertIsSatisfied();
+    }
+
     
     @Test
     public void testUpdateWithLoadRules() throws Exception {

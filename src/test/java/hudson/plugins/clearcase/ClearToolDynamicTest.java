@@ -83,6 +83,32 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
 
+    /**
+     * Make sure that if we call setcs with a null or empty string for the config spec,
+     * we get a call to cleartool setcs -current.
+     */
+    @Test
+    public void testSetcsCurrent() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(launcher).getWorkspace();
+                    will(returnValue(workspace));
+                    one(launcher).run(
+                                      with(allOf(hasItemInArray("setcs"),
+                                                 hasItemInArray("-tag"),
+                                                 hasItemInArray("viewName"),
+                                                 hasItemInArray("-current"))),
+                                      with(aNull(InputStream.class)),
+                                      with(aNull(OutputStream.class)),
+                                      with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+
+        clearToolExec.setcs("viewName", null);
+        context.assertIsSatisfied();
+    }
+
     @Test
     public void testStartview() throws Exception {
         context.checking(new Expectations() {

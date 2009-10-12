@@ -52,13 +52,26 @@ public class ClearToolDynamic extends ClearToolExec {
      */
     public void setcs(String viewName, String configSpec) throws IOException,
                                                                  InterruptedException {
+        if (configSpec==null) {
+            configSpec = "";
+        }
+        
         FilePath configSpecFile = launcher.getWorkspace().createTextTempFile("configspec", ".txt", configSpec);
-
+        String csLocation = "";
+        if (!configSpec.equals("")) {
+            csLocation = configSpecFile.getName();
+        }
+        
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
         cmd.add("-tag");
         cmd.add(viewName);
-        cmd.add(configSpecFile.getName());
+        if (!csLocation.equals("")) {
+            cmd.add(csLocation);
+        }
+        else {
+            cmd.add("-current");
+        }
         launcher.run(cmd.toCommandArray(), null, null, null);
 
         configSpecFile.delete();
