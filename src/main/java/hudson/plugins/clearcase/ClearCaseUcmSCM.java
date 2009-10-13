@@ -56,26 +56,34 @@ import org.kohsuke.stapler.StaplerRequest;
 public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
     private final String stream;
-
+    private final String overrideBranchName;
+    
     @DataBoundConstructor
     public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
                            boolean usedynamicview, String viewdrive,
                            String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
                            boolean useUpdate, boolean rmviewonrename,
-                           String excludedRegions, String multiSitePollBuffer) {
+                           String excludedRegions, String multiSitePollBuffer,
+                           String overrideBranchName) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
               useUpdate, rmviewonrename, excludedRegions, usedynamicview, 
               viewdrive, loadrules, multiSitePollBuffer);
         this.stream = shortenStreamName(stream);
-
+        if ((overrideBranchName!=null) && (!overrideBranchName.equals(""))) {
+            this.overrideBranchName = overrideBranchName;
+        }
+        else {
+            this.overrideBranchName = "";
+        }
     }
 
+    @Deprecated
     public ClearCaseUcmSCM(String stream, String loadrules, String viewname,
                            boolean usedynamicview, String viewdrive,
                            String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
                            boolean useUpdate, boolean rmviewonrename) {
         this(stream, loadrules, viewname, usedynamicview, viewdrive, mkviewoptionalparam,
-             filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "", null);
+             filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "", null, "");
     }
 
     /**
@@ -85,6 +93,16 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
      */
     public String getStream() {
         return stream;
+    }
+
+    /**
+     * Return the branch type used for changelog and polling. By default this will be the empty string, and the stream
+     * will be split to get the branch.
+     * 
+     * @return string containing the branch type.
+     */
+    public String getOverrideBranchName() {
+        return overrideBranchName;
     }
 
     @Override
@@ -99,11 +117,16 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
     @Override
     public String[] getBranchNames() {
-        String branch = stream;
-        if (stream.contains("@")) {
-            branch = stream.substring(0, stream.indexOf("@"));
+        if (!overrideBranchName.equals("")) {
+            return new String[] { overrideBranchName };
         }
-        return new String[] { branch };
+        else {
+            String branch = stream;
+            if (stream.contains("@")) {
+                branch = stream.substring(0, stream.indexOf("@"));
+            }
+            return new String[] { branch };
+        }
     }
 
 
@@ -240,7 +263,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                                                       req.getParameter("ucm.useupdate") != null,
                                                       req.getParameter("ucm.rmviewonrename") != null,
                                                       req.getParameter("ucm.excludedRegions"),
-                                                      fixEmpty(req.getParameter("ucm.multiSitePollBuffer"))
+                                                      fixEmpty(req.getParameter("ucm.multiSitePollBuffer")),
+                                                      req.getParameter("ucm.overrideBranchName")
                                                       );
             return scm;
         }
