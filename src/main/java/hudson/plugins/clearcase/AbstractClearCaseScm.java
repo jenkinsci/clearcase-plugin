@@ -555,24 +555,35 @@ public abstract class AbstractClearCaseScm extends SCM {
             }
         }
 
-        // Note - the logic here to do ORing to match against *any* of the load rules is, quite frankly,
-        // hackishly ugly. I'm embarassed by it. But it's what I've got for right now.
-        String[] loadRules = getViewPaths();
-        String tempFilterRules = "";
+        String filterRegexp = getViewPathsRegexp(getViewPaths());
 
-        for (String loadRule : loadRules) {
-            if (!loadRule.equals("")) {
-                tempFilterRules += Pattern.quote(loadRule) + "\n";
-            }
-        }
-
-        if (!tempFilterRules.equals("")) {
-            filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, "^(" + tempFilterRules.trim().replaceAll("\\n", "|") + ")"));
+        if (!filterRegexp.equals("")) {
+            filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, filterRegexp));
         }
         
         if (isFilteringOutDestroySubBranchEvent()) {
             filters.add(new DestroySubBranchFilter());
         }
         return filters;
+    }
+
+    public static String getViewPathsRegexp(String[] loadRules) {
+        // Note - the logic here to do ORing to match against *any* of the load rules is, quite frankly,
+        // hackishly ugly. I'm embarassed by it. But it's what I've got for right now.
+        String tempFilterRules = "";
+        String filterRegexp = "";
+        
+        for (String loadRule : loadRules) {
+            if (!loadRule.equals("")) {
+                tempFilterRules += Pattern.quote(loadRule) + "\n";
+            }
+        }
+        
+        // Adding tweak for ignoring leading slashes or Windows drives in case of strange situations using setview.
+        if (!tempFilterRules.equals("")) {
+            filterRegexp = "^(?:\\W?|\\w\\:\\\\)(" + tempFilterRules.trim().replaceAll("\\n", "|") + ")";
+        }
+
+        return filterRegexp;
     }
 }
