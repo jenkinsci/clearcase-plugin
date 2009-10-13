@@ -140,7 +140,7 @@ public abstract class ClearToolExec implements ClearTool {
         return new ArrayList<String>();
     }
 
-    public List<String> lsvob(boolean onlyMOunted) throws IOException,
+    public List<String> lsvob(boolean onlyMounted) throws IOException,
                                                           InterruptedException {
         viewListPattern = getListPattern();
         ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -149,7 +149,7 @@ public abstract class ClearToolExec implements ClearTool {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
             return parseListOutput(new InputStreamReader(
-                                                         new ByteArrayInputStream(baos.toByteArray())), onlyMOunted);
+                                                         new ByteArrayInputStream(baos.toByteArray())), onlyMounted);
         }
         return new ArrayList<String>();
     }

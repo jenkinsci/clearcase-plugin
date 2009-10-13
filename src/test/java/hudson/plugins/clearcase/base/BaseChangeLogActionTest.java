@@ -43,6 +43,7 @@ import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.Before;
@@ -196,6 +197,44 @@ public class BaseChangeLogActionTest {
         assertEquals("Number of history entries are incorrect", 2, changes.size());
         assertEquals("First entry is incorrect", "inttest2", changes.get(0).getUser());
         assertEquals("First entry is incorrect", "inttest3", changes.get(1).getUser());
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testIssue3666() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                    will(returnValue(new StringReader(
+                                                      "\"20091013.080912\" \"picker\" \"create version\" \"/vobs/inf/Messages/src/ServiceException.cc\" \"/main/test/dev/0\" \"mkbranch\"\n\n"
+                                                      + "\"20091013.080912\" \"picker\" \"create branch\" \"/vobs/inf/Messages/src/ServiceException.cc\" \"/main/test/dev\" \"mkbranch\"\n\n"
+                                                      + "\"20091013.074330\" \"picker\" \"destroy sub-branch \"DR_1234\" of branch\" \"/vobs/inf/MessageServiceClient/.classpath\" \"/main/test/dev/\" \"rmbranch\"\n"
+                                                      + "Destroyed branch \"\\main\\test\\dev\\DR_1234\".\nAutomatic removal of empty branch via trigger \\\\L5\\vobstore\\triggers\\rm_empty_branch.pl\n\n"
+                                                      + "\"20091012.165918\" \"callow\" \"create version\" \"/vobs/test/ConnectionTest/src/test/connectiontest/busRuleLoader.java\" \"/main/test/dev/1\" \"checkin\"\n"
+                                                      + "Changed to make work after merge\n\n"
+                                                      + "\"20091012.163839\" \"callow\" \"create version\" \"c:\\vobs/test/ConnectionTest/src/test/connectiontest/busRuleLoader.java\" \"/main/test/dev/0\" \"mkbranch\"\n\n")));
+
+                }
+            });
+        
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DestroySubBranchFilter());
+        String tempFilterRules = "";
+        String[] loadRules = new String[]{"vobs/com", "vobs/inf", "vobs/sm", "vobs/acc", "vobs/test"};
+        
+        String regexpStr = AbstractClearCaseScm.getViewPathsRegexp(loadRules);
+
+        if (!regexpStr.equals("")) {
+            filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, regexpStr));
+        }
+
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,filters);
+
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"dev"}, loadRules);
+        assertEquals("Number of history entries are incorrect", 3, changes.size());
+        assertEquals("First entry is incorrect", "picker", changes.get(0).getUser());
+        assertEquals("Third entry is incorrect", "callow", changes.get(2).getUser());
         context.assertIsSatisfied();
     }
 

@@ -171,7 +171,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     allowing(clearToolLauncher).getWorkspace();
                     will(returnValue(workspace));
                     one(clearToolLauncher).run(
-                                               with(equal(new String[] { "setcs", "-current" })),
+                                               with(equal(new String[] { "setcs", "-current", "-overwrite" })),
                                                with(aNull(InputStream.class)),
                                                with(aNull(OutputStream.class)),
                                                with(aNonNull(FilePath.class)));
