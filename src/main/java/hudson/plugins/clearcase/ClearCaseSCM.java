@@ -79,14 +79,16 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private String configSpec;
     private final String branch;
     private boolean doNotUpdateConfigSpec;
-
+    private boolean useTimeRule;
+    
     @DataBoundConstructor
     public ClearCaseSCM(String branch, String configspec, String viewname,
                         boolean useupdate, String loadRules, boolean usedynamicview,
                         String viewdrive, String mkviewoptionalparam,
                         boolean filterOutDestroySubBranchEvent,
                         boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-                        String excludedRegions, String multiSitePollBuffer) {
+                        String excludedRegions, String multiSitePollBuffer,
+                        boolean useTimeRule) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
               (!usedynamicview) && useupdate, rmviewonrename,
               excludedRegions, usedynamicview, viewdrive, loadRules,
@@ -94,7 +96,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         this.branch = branch;
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
-
+        this.useTimeRule = useTimeRule;
     }
 
     public ClearCaseSCM(String branch, String configspec, String viewname,
@@ -104,7 +106,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                         boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
         this(branch, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive,
              mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, 
-             rmviewonrename, "", null);
+             rmviewonrename, "", null, false);
     }
 
 
@@ -118,6 +120,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     public boolean isDoNotUpdateConfigSpec() {
         return doNotUpdateConfigSpec;
+    }
+
+    public boolean isUseTimeRule() {
+        return useTimeRule;
     }
 
     @Override
@@ -151,7 +157,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         if (isUseDynamicView()) {
             action = new DynamicCheckoutAction(createClearTool(
                                                                variableResolver, launcher), configSpec,
-                                               doNotUpdateConfigSpec);
+                                               doNotUpdateConfigSpec, useTimeRule);
         } else {
             action = new SnapshotCheckoutAction(createClearTool(
                                                                 variableResolver, launcher), 
@@ -288,8 +294,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.doNotUpdateConfigSpec") != null,
                                                         req.getParameter("cc.rmviewonrename") != null,
                                                         req.getParameter("cc.excludedRegions"),
-                                                        fixEmpty(req.getParameter("cc.multiSitePollBuffer"))
-                                                        );                      
+                                                        fixEmpty(req.getParameter("cc.multiSitePollBuffer")),
+                                                        req.getParameter("cc.useTimeRule") != null
+                                                        );
             return scm;
         }
 
