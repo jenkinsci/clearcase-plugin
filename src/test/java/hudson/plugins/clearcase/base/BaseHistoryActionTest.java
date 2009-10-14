@@ -610,7 +610,7 @@ public class BaseHistoryActionTest {
         ClearCaseSCMDummy scm = new ClearCaseSCMDummy("", "configspec", "Hudson.SAP.ICI.7.6.Quick",
                                                       false, "load /sapiciadapter", true,
                                                       "Y:\\", "", false, false, false, "", "",
-                                                      cleartool, clearCaseScmDescriptor);
+                                                      false, cleartool, clearCaseScmDescriptor);
 
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
 
@@ -672,7 +672,7 @@ public class BaseHistoryActionTest {
                                                       "load \\ecs3cop\\projects\\components\n" +
                                                       "load \\ecs3cop\\projects\\test\n", false,
                                                       "", "", false, false, false, "", "",
-                                                      cleartool, clearCaseScmDescriptor);
+                                                      false, cleartool, clearCaseScmDescriptor);
 
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
 
