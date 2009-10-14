@@ -127,6 +127,14 @@ public interface ClearTool {
     List<String> lsvob(boolean onlyMOunted) throws IOException, InterruptedException;
 
     /**
+     * Checks whether the given view tag already exists in the ClearCase region.
+     *
+     * @param viewName the view tag to check
+     * @return true if the view tag exists, false otherwise.
+     */
+    boolean doesViewExist(String viewName) throws IOException, InterruptedException;
+    
+    /**
      * Retrieves the canonical working directory for a given view.
      *
      * @param viewName the view to use

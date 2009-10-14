@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase.action;
 
 import hudson.Launcher;
+import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
 
@@ -34,12 +35,14 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.assertFalse;
 
 public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
     private Mockery classContext;
     private Mockery context;
 
+    private BuildListener taskListener;
     private ClearTool clearTool;
     private Launcher launcher;
 
@@ -55,6 +58,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         launcher = classContext.mock(Launcher.class);
         clearTool = context.mock(ClearTool.class);
+        taskListener = context.mock(BuildListener.class);
     }
 
     @After
@@ -68,6 +72,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 {
                     one(clearTool).mkview("viewname", null);
                     one(clearTool).setcs("viewname", "config\r\nspec\r\nload \\foo\r\n");
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                 }
             });
         classContext.checking(new Expectations() {
@@ -89,6 +94,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 {
                     one(clearTool).mkview("viewname", null);
                     one(clearTool).setcs("viewname", "config\nspec\nload /foo\n");
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                 }
             });
         classContext.checking(new Expectations() {
@@ -105,11 +111,34 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testFirstTimeViewTagExists() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
+                    atLeast(1).of(taskListener).fatalError(with(any(String.class)));
+                }
+            });
+        classContext.checking(new Expectations() {
+                {
+                    atLeast(1).of(launcher).isUnix(); will(returnValue(true));
+                    atLeast(1).of(launcher).getListener(); will(returnValue(taskListener));
+                }
+            });
+
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, "config\r\nspec", new String[]{"foo"}, false);
+        boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
+        assertFalse("Build should fail due to view tag already existing.", checkoutResult);
+        context.assertIsSatisfied();
+        classContext.assertIsSatisfied();
+    }
+
+    @Test
     public void testFirstTimeUsingUpdate() throws Exception {
         context.checking(new Expectations() {
                 {
                     one(clearTool).mkview("viewname", null);
                     one(clearTool).setcs("viewname", "configspec\nload /foo\n");
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                 }
             });
         classContext.checking(new Expectations() {
@@ -133,6 +162,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 {
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
                     one(clearTool).setcs("viewname", null);
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                 }
             });
         classContext.checking(new Expectations() {
@@ -157,6 +187,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).rmview("viewname");
                     one(clearTool).mkview("viewname", null);
                     one(clearTool).setcs("viewname", "configspec\nload /foo\n");
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                 }
             });
         classContext.checking(new Expectations() {
@@ -180,6 +211,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 {
                     one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
                     one(clearTool).setcs("viewname", "configspec\nload /foo\n");
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                 }
             });
         classContext.checking(new Expectations() {

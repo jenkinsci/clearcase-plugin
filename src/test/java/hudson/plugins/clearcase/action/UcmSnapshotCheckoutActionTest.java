@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase.action;
 
 import hudson.Launcher;
+import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
 
@@ -34,6 +35,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.assertFalse;
 
 public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
@@ -42,6 +44,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
     private ClearTool clearTool;
 
+    private BuildListener taskListener;
     private Launcher launcher;
 
     @Before
@@ -56,6 +59,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
             };
 
         launcher = classContext.mock(Launcher.class);
+        taskListener = context.mock(BuildListener.class);
     }
 
     @After
@@ -67,6 +71,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     public void testFirstTime() throws Exception {
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                     one(clearTool).mkview("viewname", "stream");
                     one(clearTool).update("viewname", "/loadrule");
                 }
@@ -84,11 +89,33 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testFirstTimeViewTagExists() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
+                    atLeast(1).of(taskListener).fatalError(with(any(String.class)));
+                }
+            });
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(true));
+                    atLeast(1).of(launcher).getListener(); will(returnValue(taskListener));
+                }
+            });
+        CheckOutAction action = new UcmSnapshotCheckoutAction(clearTool,
+                                                              "stream", new String[]{"loadrule"}, true);
+        action.checkout(launcher, workspace, "viewname");
+
+        context.assertIsSatisfied();
+    }
+
+    @Test
     public void testSecondTime() throws Exception {
         workspace.child("viewname").mkdirs();
 
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     atLeast(1).of(clearTool).catcs("viewname"); will(returnValue("ucm configspec"));
                     one(clearTool).setcs("viewname", "ucm configspec\nload /loadrule\n");
                 }
@@ -116,6 +143,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).catcs(viewName);
                     will(returnValue("load " + loadRules));
                     one(clearTool).update(viewName, loadRules);
@@ -144,6 +172,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).catcs(viewName);
                     will(returnValue("load abc/\nload abcd"));
                     one(clearTool).update(viewName, "/abc/");
@@ -172,6 +201,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).catcs(viewName); will(returnValue("ucm configspec\nload abc/\n"));
                     one(clearTool).setcs(viewName, "ucm configspec\nload /abc/\nload /abcd\n");
                 }
@@ -194,6 +224,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     public void testMultipleLoadRules() throws Exception {
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                     one(clearTool).mkview("viewname", "stream");
                     one(clearTool).update("viewname", "/loadrule");
                     one(clearTool).update("viewname", "/another\t loadrule");
@@ -231,6 +262,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).catcs(viewName);
                     will(returnValue(catcsOutput));
                     one(clearTool).update(viewName, "/vobs/base");
@@ -254,6 +286,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     public void testMultipleWindowsLoadRules() throws Exception {
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                     one(clearTool).mkview("viewname", "stream");
                     one(clearTool).update("viewname", "\\ \\Windows");
                     one(clearTool).update("viewname", "\\\\C:\\System32");
@@ -278,6 +311,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     public void testFirstTimeWithNoUpdate() throws Exception {
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                     one(clearTool).mkview("viewname", "stream");
                     atLeast(1).of(clearTool).update(with(any(String.class)), with(any(String.class)));
                 }
@@ -301,6 +335,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).rmview("viewname");
                     one(clearTool).mkview("viewname", "stream");
                     atLeast(1).of(clearTool).update(with(any(String.class)), with(any(String.class)));
@@ -347,6 +382,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {
+                    one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).catcs("viewname");
                     will(returnValue(catcsOutput));
                     one(clearTool).update("viewname", "\\PRODUCT");

@@ -480,7 +480,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {   
-                    one(checkOutAction).checkout(launcher, workspace, "viewname");
+                    one(checkOutAction).checkout(launcher, workspace, "viewname"); will(returnValue(true));
                     one(historyAction).getChanges(with(equal(mockedCalendar.getTime())),
                                                   with(equal("viewname")), 
                                                   with(equal(new String[] {"branchone", "branchtwo"})), 

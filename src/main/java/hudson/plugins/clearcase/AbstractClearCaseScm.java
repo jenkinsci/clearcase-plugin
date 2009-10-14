@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase;
 
 import hudson.model.Computer;
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -374,31 +375,37 @@ public abstract class AbstractClearCaseScm extends SCM {
 
         // Checkout code
         String normalizedViewName = generateNormalizedViewName(build);
-        checkoutAction.checkout(launcher, workspace, normalizedViewName);
-
-        // Gather change log
-        List<? extends ChangeLogSet.Entry> changelogEntries = null;
-        if (build.getPreviousBuild() != null) {
-            Run prevBuild = build.getPreviousBuild();
-            Date lastBuildTime = prevBuild.getTimestamp()
-                .getTime();
-
-            if (getMultiSitePollBuffer()!=0) {
-                long lastBuildMilliSecs = prevBuild.getTimestamp().getTimeInMillis();
-                lastBuildTime = new Date(lastBuildMilliSecs - (1000 * 60 * getMultiSitePollBuffer()));
+        
+        if (checkoutAction.checkout(launcher, workspace, normalizedViewName)) {
+            
+            // Gather change log
+            List<? extends ChangeLogSet.Entry> changelogEntries = null;
+            if (build.getPreviousBuild() != null) {
+                Run prevBuild = build.getPreviousBuild();
+                Date lastBuildTime = prevBuild.getTimestamp()
+                    .getTime();
+                
+                if (getMultiSitePollBuffer()!=0) {
+                    long lastBuildMilliSecs = prevBuild.getTimestamp().getTimeInMillis();
+                    lastBuildTime = new Date(lastBuildMilliSecs - (1000 * 60 * getMultiSitePollBuffer()));
+                }
+                
+                changelogEntries = historyAction.getChanges(lastBuildTime,
+                                                            normalizedViewName, getBranchNames(),
+                                                            getViewPaths());
             }
             
-            changelogEntries = historyAction.getChanges(lastBuildTime,
-                                                        normalizedViewName, getBranchNames(),
-                                                        getViewPaths());
+            // Save change log
+            if ((changelogEntries == null) || (changelogEntries.isEmpty())) {
+                // no changes
+                return createEmptyChangeLog(changelogFile, listener, "changelog");
+            } else {
+                saveChangeLogAction.saveChangeLog(changelogFile, changelogEntries);
+            }
+            
         }
-
-        // Save change log
-        if ((changelogEntries == null) || (changelogEntries.isEmpty())) {
-            // no changes
-            return createEmptyChangeLog(changelogFile, listener, "changelog");
-        } else {
-            saveChangeLogAction.saveChangeLog(changelogFile, changelogEntries);
+        else {
+            throw new AbortException();
         }
 
         return true;

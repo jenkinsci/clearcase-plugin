@@ -53,6 +53,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         boolean updateView = useUpdate;        
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();
         String jobConfigSpec = PathUtil.convertPathForOS(configSpec, launcher);
+        boolean viewTagExists = cleartool.doesViewExist(viewName);
         
         if (localViewPathExists) {
             if (updateView) {
@@ -64,12 +65,20 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
             else {
                 cleartool.rmview(viewName);
                 localViewPathExists = false;
+                viewTagExists = false;
             }                
         }
 
         if (!localViewPathExists) {
-            cleartool.mkview(viewName, null);
-            updateView = false;
+            if (viewTagExists) {
+                launcher.getListener().fatalError("View path for " + viewName + " does not exist, but the view tag does.\n"
+                                                  + "View cannot be created - build aborting.");
+                return false;
+            }
+            else {
+                cleartool.mkview(viewName, null);
+                updateView = false;
+            }
         }
         
         if (updateView) {
