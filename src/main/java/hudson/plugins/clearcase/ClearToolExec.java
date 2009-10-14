@@ -140,6 +140,32 @@ public abstract class ClearToolExec implements ClearTool {
         return new ArrayList<String>();
     }
 
+    public boolean doesViewExist(String viewName)
+        throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("lsview");
+        cmd.add("-short");
+        cmd.add(viewName);
+
+        String retString = "";
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                                                                             new ByteArrayInputStream(baos.toByteArray())));
+            retString = reader.readLine();
+            
+            reader.close();
+        }
+        baos.close();
+        
+        if ((!retString.equals("")) && (retString.startsWith(viewName))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    
     public List<String> lsvob(boolean onlyMounted) throws IOException,
                                                           InterruptedException {
         viewListPattern = getListPattern();
