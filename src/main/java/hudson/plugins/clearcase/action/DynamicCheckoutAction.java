@@ -30,6 +30,10 @@ import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.util.PathUtil;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Check out action for dynamic views.
@@ -42,17 +46,28 @@ public class DynamicCheckoutAction implements CheckOutAction {
     private ClearTool cleartool;
     private String configSpec;
     private boolean doNotUpdateConfigSpec;
-
-    public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec) {
+    private boolean useTimeRule;
+    
+    public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec, boolean useTimeRule) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
+        this.useTimeRule = useTimeRule;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException { 
         cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
-        String tempConfigSpec = PathUtil.convertPathForOS(configSpec, launcher);
+        String tempConfigSpec;
+
+        if (useTimeRule) {
+            tempConfigSpec = PathUtil.convertPathForOS("time " + getTimeRule() + "\n" + configSpec + "\nend time\n",
+                                                       launcher);
+        }
+        else {
+            tempConfigSpec = PathUtil.convertPathForOS(configSpec, launcher);
+        }
+        
         if (!doNotUpdateConfigSpec) {
             if (!tempConfigSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
                 cleartool.setcs(viewName, tempConfigSpec);
@@ -64,5 +79,14 @@ public class DynamicCheckoutAction implements CheckOutAction {
         return true;
     }
 
+    public String getTimeRule() {
+        return getTimeRule(new Date());
+    }
 
+    public String getTimeRule(Date nowDate) {
+        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        return formatter.format(nowDate).toLowerCase();
+    }
 }

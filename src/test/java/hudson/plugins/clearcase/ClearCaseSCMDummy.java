@@ -41,11 +41,12 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              boolean filterOutDestroySubBranchEvent,
                              boolean doNotUpdateConfigSpec, boolean rmviewonrename,
                              String excludedRegions, String multiSitePollBuffer,
+                             boolean useTimeRule,
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor) {
         this(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
              viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-             rmviewonrename, excludedRegions, multiSitePollBuffer, cleartool,
+             rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, cleartool,
              clearCaseScmDescriptor, null);
     }
     
@@ -55,12 +56,12 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              boolean filterOutDestroySubBranchEvent,
                              boolean doNotUpdateConfigSpec, boolean rmviewonrename,
                              String excludedRegions, String multiSitePollBuffer,
-                             ClearTool cleartool,
+                             boolean useTimeRule, ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor,
                              Computer overrideComputer) {
         super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-              rmviewonrename, excludedRegions, multiSitePollBuffer);
+              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule);
         this.cleartool = cleartool;
         this.clearCaseScmDescriptor = clearCaseScmDescriptor;
         this.overrideComputer = overrideComputer;

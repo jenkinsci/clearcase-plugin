@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase.action;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.containsString;
 import hudson.Launcher;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
@@ -79,7 +80,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -102,7 +103,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -124,7 +125,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -147,11 +148,35 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
         context.assertIsSatisfied();
         classContext.assertIsSatisfied();
     }
+
+    @Test
+    public void testUseTimeRule() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(clearTool).startView("viewname");
+                    one(clearTool).catcs("viewname"); will(returnValue("config\nspec"));
+                    one(clearTool).setcs(with(equal("viewname")), with(containsString("time ")));
+                }
+            });
+        classContext.checking(new Expectations() {
+                {
+                    ignoring(launcher).isUnix(); will(returnValue(false));
+                }
+            });
+
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, true);
+        boolean success = action.checkout(launcher, workspace, "viewname");
+        assertTrue("Checkout method did not return true.", success);
+
+        context.assertIsSatisfied();
+        classContext.assertIsSatisfied();
+    }
+
 }
