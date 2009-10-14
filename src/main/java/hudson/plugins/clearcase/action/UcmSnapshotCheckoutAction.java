@@ -61,6 +61,7 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
         
         boolean localViewPathExists = new FilePath(workspace, viewName)
             .exists();
+        boolean viewTagExists = cleartool.doesViewExist(viewName);
         
         boolean updateLoadRules = true;
         
@@ -88,7 +89,14 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
             }
             
         } else {
-            cleartool.mkview(viewName, stream);
+            if (viewTagExists) {
+                launcher.getListener().fatalError("View path for " + viewName + " does not exist, but the view tag does.\n"
+                                                  + "View cannot be created - build aborting.");
+                return false;
+            }
+            else {
+                cleartool.mkview(viewName, stream);
+            }
         }
         if (updateLoadRules) {
             for (String loadRule : loadRules) {
