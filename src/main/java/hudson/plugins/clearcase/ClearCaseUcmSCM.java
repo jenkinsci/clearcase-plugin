@@ -240,6 +240,10 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             load();
         }
 
+        public String getDefaultViewName() {
+            return PluginImpl.BASE_DESCRIPTOR.getDefaultViewName();
+        }
+        
         @Override
         public String getDisplayName() {
             return "UCM ClearCase";
