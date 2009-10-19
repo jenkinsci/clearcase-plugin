@@ -235,7 +235,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                    SCMDescriptor<ClearCaseSCM> implements ModelObject {
         private String cleartoolExe;
         private int changeLogMergeTimeWindow = 5;
-
+        private String defaultViewName;
+        
         public ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
             load();
@@ -253,6 +254,14 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             }
         }
 
+        public String getDefaultViewName() {
+            if (defaultViewName == null) {
+                return "";
+            } else {
+                return defaultViewName;
+            }
+        }
+        
         @Override
         public String getDisplayName() {
             return "Base ClearCase";
@@ -261,6 +270,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) {
             cleartoolExe = fixEmpty(req.getParameter("clearcase.cleartoolExe")
+                                    .trim());
+            defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName")
                                     .trim());
             String mergeTimeWindow = fixEmpty(req
                                               .getParameter("clearcase.logmergetimewindow"));

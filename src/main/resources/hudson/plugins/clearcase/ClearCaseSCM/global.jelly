@@ -25,23 +25,26 @@
 
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-	<f:section title="ClearCase">
-		<f:description>
-			<div align="right">
-				<a href="${rootURL}/scm/ClearCaseSCM/version">Check cleartool version</a>
-  			</div>
-    	</f:description>
-    	
-    	<f:entry title="Cleartool executable"  help="/plugin/clearcase/cleartoolexe.html">
-	    	<f:textbox name="clearcase.cleartoolExe" value="${descriptor.cleartoolExe}"
-	    		checkUrl="'${rootURL}/scm/ClearCaseSCM/cleartoolExeCheck?value='+escape(this.value)"/>
-	  	</f:entry>
- 	 </f:section>
-
-	<f:advanced>
-      <f:entry title="Time window for merging event records" help="/plugin/clearcase/eventrecordtimewindow.html">
-        <f:textbox name="clearcase.logmergetimewindow" value="${descriptor.logMergeTimeWindow}"
-			checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Entering a merge time window is mandatory')+'&amp;value='+escape(this.value)" />
-      </f:entry>
-	</f:advanced>
+  <f:section title="ClearCase">
+    <f:description>
+      <div align="right">
+        <a href="${rootURL}/scm/ClearCaseSCM/version">Check cleartool version</a>
+      </div>
+    </f:description>
+    
+    <f:entry title="Cleartool executable"  help="/plugin/clearcase/cleartoolexe.html">
+      <f:textbox name="clearcase.cleartoolExe" value="${descriptor.cleartoolExe}"
+                 checkUrl="'${rootURL}/scm/ClearCaseSCM/cleartoolExeCheck?value='+escape(this.value)"/>
+    </f:entry>
+  </f:section>
+  
+  <f:advanced>
+    <f:entry title="Standard view name pattern" help="/plugin/clearcase/standardViewName.html">
+      <f:textbox name="clearcase.defaultViewName" value="${descriptor.defaultViewName}" />
+    </f:entry>
+    <f:entry title="Time window for merging event records" help="/plugin/clearcase/eventrecordtimewindow.html">
+      <f:textbox name="clearcase.logmergetimewindow" value="${descriptor.logMergeTimeWindow}"
+                 checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Entering a merge time window is mandatory')+'&amp;value='+escape(this.value)" />
+    </f:entry>
+  </f:advanced>
 </j:jelly>

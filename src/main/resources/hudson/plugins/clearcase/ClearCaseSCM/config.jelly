@@ -25,11 +25,18 @@
 
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  
-  <f:entry title="View name" help="/plugin/clearcase/localdir.html">
-    <f:textbox name="cc.viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}"
-               checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Entering a view name is mandatory')+'&amp;value='+escape(this.value)" />     
-  </f:entry>
+
+  <j:choose>
+    <j:when test="${descriptor.defaultViewName!=''}">
+      <input name="cc.viewname" type="hidden" value="${descriptor.defaultViewName}" />
+    </j:when>
+    <j:otherwise>
+      <f:entry title="View name" help="/plugin/clearcase/localdir.html">
+        <f:textbox name="cc.viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}"
+                   checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Entering a view name is mandatory')+'&amp;value='+escape(this.value)" />     
+      </f:entry>
+    </j:otherwise>
+  </j:choose>
   
   <f:entry title="Config spec" help="/plugin/clearcase/configspec.html">
     <f:textarea name="cc.configspec" value="${scm.configSpec}"
