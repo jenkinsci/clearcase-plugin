@@ -33,11 +33,17 @@
       <a href="${rootURL}/scm/ClearCaseSCM/listViews">List clearcase views</a>
     </div>
   </f:description>
-  <f:entry title="View name" help="/plugin/clearcase/localdir.html">
-    <f:textbox name="ucm.viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}" 
-               checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('View name is mandatory')+'&amp;value='+escape(this.value)" />
-  </f:entry>
-  
+  <j:choose>
+    <j:when test="${descriptor.defaultViewName!=''}">
+      <input name="ucm.viewname" type="hidden" value="${descriptor.defaultViewName}" />
+    </j:when>
+    <j:otherwise>
+      <f:entry title="View name" help="/plugin/clearcase/localdir.html">
+        <f:textbox name="ucm.viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}" 
+                   checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('View name is mandatory')+'&amp;value='+escape(this.value)" />
+      </f:entry>
+    </j:otherwise>
+  </j:choose>
   <f:entry title="Stream selector" help="/plugin/clearcase/stream.html">
     <f:textbox name="ucm.stream" value="${scm.stream}" 
                checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Stream selector is mandatory')+'&amp;value='+escape(this.value)" />

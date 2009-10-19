@@ -80,6 +80,9 @@ public class BuildVariableResolver implements VariableResolver<String> {
               return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master"
               : computer.getName()));
               }*/
+            if ("OS".equals(key)) {
+                return System.getProperty("os.name");
+            }
             if ("NODE_NAME".equals(key)) {
                 return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master"
                                       : computer.getName()));
