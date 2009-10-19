@@ -170,7 +170,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     protected HistoryAction createHistoryAction(
                                                 VariableResolver variableResolver, ClearToolLauncher launcher) {
         ClearTool ct = createClearTool(variableResolver, launcher);
-        BaseHistoryAction action = new BaseHistoryAction(ct, configureFilters(launcher),
+        BaseHistoryAction action = new BaseHistoryAction(ct,
+                                                         isUseDynamicView(),
+                                                         configureFilters(launcher),
                                                          getDescriptor().getLogMergeTimeWindow());
 
         try {

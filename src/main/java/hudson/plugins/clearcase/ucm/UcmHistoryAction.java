@@ -72,8 +72,8 @@ public class UcmHistoryAction extends AbstractHistoryAction {
 
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
 
-    public UcmHistoryAction(ClearTool cleartool, List<Filter> filters) {
-        super(cleartool, filters);
+    public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, List<Filter> filters) {
+        super(cleartool, useDynamicView, filters);
     }
 
     

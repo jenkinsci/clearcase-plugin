@@ -157,6 +157,12 @@ public interface ClearTool {
     void startView(String viewTags) throws IOException, InterruptedException;
     
     /**
+     * Mounts all VOBs.
+     * 
+     */
+    void mountVobs() throws IOException, InterruptedException;
+    
+    /**
      * Syncronizes the Dynamic UCM view with the streams recomended baseline
      * 
      * @param viewName

@@ -224,6 +224,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 {
                     one(cleartool).pwv("viewname-ClearCase");
                     will(returnValue("/view/viewname-ClearCase"));
+                    allowing(cleartool).startView("viewname-ClearCase");
+                    allowing(cleartool).mountVobs();
                 }
             });
         
