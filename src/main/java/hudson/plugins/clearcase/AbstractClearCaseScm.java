@@ -154,6 +154,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * checkout() method.
      *
      * @param variableResolver
+     * @param useDynamicView
      * @param launcher
      *            the command line launcher
      * @return an action that can poll if there are any changes a ClearCase

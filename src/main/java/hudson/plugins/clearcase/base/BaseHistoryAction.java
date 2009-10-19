@@ -56,8 +56,8 @@ public class BaseHistoryAction extends AbstractHistoryAction{
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
     private int maxTimeDifferenceMillis;
 
-    public BaseHistoryAction(ClearTool cleartool, List<Filter> filters,int maxTimeDifferenceMillis) {
-        super(cleartool, filters);
+    public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, List<Filter> filters,int maxTimeDifferenceMillis) {
+        super(cleartool, useDynamicView, filters);
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
     }
 
