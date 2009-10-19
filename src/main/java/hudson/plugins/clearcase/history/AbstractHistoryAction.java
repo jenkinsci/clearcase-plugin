@@ -46,11 +46,12 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     protected ClearTool cleartool;
     protected List<Filter> filters;
     protected String extendedViewPath;
-
-    public AbstractHistoryAction(ClearTool cleartool, List<Filter> filters) {
+    protected boolean isDynamicView;
+    
+    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, List<Filter> filters) {
         this.cleartool = cleartool;
         this.filters = filters!=null ? filters : new ArrayList<Filter>();
-
+        this.isDynamicView = isDynamicView;
     }
     
     @Override
@@ -73,6 +74,11 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
 
     protected List<HistoryEntry> runLsHistory(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        if (isDynamicView) {
+            cleartool.startView(viewName);
+            cleartool.mountVobs();
+        }
+        
         ClearToolFormatHandler historyHandler = getHistoryFormatHandler();
         List<HistoryEntry> fullList = new ArrayList<HistoryEntry>();
 

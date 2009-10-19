@@ -265,4 +265,12 @@ public abstract class ClearToolExec implements ClearTool {
         }
         return viewListPattern;
     }
+
+    public void mountVobs()  throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("mount");
+        cmd.add("-avob");
+        launcher.run(cmd.toCommandArray(), null, null, null);
+    }
+
 }

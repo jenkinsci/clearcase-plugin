@@ -155,7 +155,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     @Override
     protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
         ClearTool ct = createClearTool(variableResolver, launcher);
-        UcmHistoryAction action = new UcmHistoryAction(ct,configureFilters(launcher));
+        UcmHistoryAction action = new UcmHistoryAction(ct,isUseDynamicView(),configureFilters(launcher));
 
         try {
             String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
