@@ -64,10 +64,10 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                            String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
                            boolean useUpdate, boolean rmviewonrename,
                            String excludedRegions, String multiSitePollBuffer,
-                           String overrideBranchName) {
+                           String overrideBranchName, boolean createDynView) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
               useUpdate, rmviewonrename, excludedRegions, usedynamicview, 
-              viewdrive, loadrules, multiSitePollBuffer);
+              viewdrive, loadrules, multiSitePollBuffer, createDynView);
         this.stream = shortenStreamName(stream);
         if ((overrideBranchName!=null) && (!overrideBranchName.equals(""))) {
             this.overrideBranchName = overrideBranchName;
@@ -83,7 +83,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                            String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
                            boolean useUpdate, boolean rmviewonrename) {
         this(stream, loadrules, viewname, usedynamicview, viewdrive, mkviewoptionalparam,
-             filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "", null, "");
+             filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "", null, "", false);
     }
 
     /**
@@ -136,7 +136,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         CheckOutAction action;
         if (isUseDynamicView()) {
             action = new UcmDynamicCheckoutAction(createClearTool(
-                                                                  variableResolver, launcher), getStream());
+                                                                  variableResolver, launcher),
+                                                  getStream(),
+                                                  isCreateDynView());
         } else {
             action = new UcmSnapshotCheckoutAction(createClearTool(
                                                                    variableResolver, launcher), getStream(), getViewPaths(),
@@ -214,7 +216,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                                         ClearToolLauncher launcher) {
         if (isUseDynamicView()) {
             return new ClearToolDynamicUCM(variableResolver, launcher,
-                                           getViewDrive());
+                                           getViewDrive(), getMkviewOptionalParam());
         } else {
             return super.createClearTool(variableResolver, launcher);
         }
@@ -268,7 +270,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                                                       req.getParameter("ucm.rmviewonrename") != null,
                                                       req.getParameter("ucm.excludedRegions"),
                                                       fixEmpty(req.getParameter("ucm.multiSitePollBuffer")),
-                                                      req.getParameter("ucm.overrideBranchName")
+                                                      req.getParameter("ucm.overrideBranchName"),
+                                                      req.getParameter("ucm.createDynView") != null
                                                       );
             return scm;
         }

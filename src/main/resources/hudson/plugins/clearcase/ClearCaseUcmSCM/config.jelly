@@ -103,7 +103,11 @@
               </j:otherwise>
             </j:choose>
           </f:entry>
-          
+          <f:entry title="Create Dynamic View">
+            <f:checkbox name="ucm.createDynView" checked="${scm.createDynView}"/>
+            If checked, Hudson will create the dynamic view, rather than use an existing one.
+          </f:entry>
+
         </f:optionalBlock>
       </table>
     </f:block>

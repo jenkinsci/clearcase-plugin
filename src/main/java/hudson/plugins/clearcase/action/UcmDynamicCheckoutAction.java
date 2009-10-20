@@ -39,14 +39,33 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
 
     private ClearTool cleartool;
     private String stream;
+    private boolean createDynView;
     
-    public UcmDynamicCheckoutAction(ClearTool cleartool, String stream) {
+    public UcmDynamicCheckoutAction(ClearTool cleartool, String stream, boolean createDynView) {
         super();
         this.cleartool = cleartool;
         this.stream = stream;
+        this.createDynView = createDynView;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {        
+        if (createDynView) {
+            // Clean out the workspace first - deleting the files will probably be faster than 
+            workspace.deleteContents();
+            // Mount all VOBs before we get started.
+            cleartool.mountVobs();
+            // Get the view UUID.
+            String uuid = cleartool.getViewUuid(viewName);
+            // If we don't find a UUID, then the view tag must not exist, in which case we don't
+            // have to delete it anyway.
+            if (!uuid.equals("")) {
+                cleartool.rmviewUuid(uuid);
+                cleartool.unregisterView(uuid);
+                cleartool.rmviewtag(viewName);
+            }
+            // Now, make the view.
+            cleartool.mkview(viewName, stream);
+        }
         cleartool.startView(viewName);
         cleartool.syncronizeViewWithStream(viewName, stream);
         

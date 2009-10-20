@@ -80,7 +80,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -103,7 +103,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false, false);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false, false, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -125,7 +125,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true, false);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true, false, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -148,7 +148,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -171,7 +171,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, true);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, true, false);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
