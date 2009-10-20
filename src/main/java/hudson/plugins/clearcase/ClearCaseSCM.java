@@ -88,11 +88,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                         boolean filterOutDestroySubBranchEvent,
                         boolean doNotUpdateConfigSpec, boolean rmviewonrename,
                         String excludedRegions, String multiSitePollBuffer,
-                        boolean useTimeRule) {
+                        boolean useTimeRule, boolean createDynView) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
               (!usedynamicview) && useupdate, rmviewonrename,
               excludedRegions, usedynamicview, viewdrive, loadRules,
-              multiSitePollBuffer);
+              multiSitePollBuffer, createDynView);
         this.branch = branch;
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
@@ -106,7 +106,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                         boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
         this(branch, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive,
              mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, 
-             rmviewonrename, "", null, false);
+             rmviewonrename, "", null, false, false);
     }
 
 
@@ -157,7 +157,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         if (isUseDynamicView()) {
             action = new DynamicCheckoutAction(createClearTool(
                                                                variableResolver, launcher), configSpec,
-                                               doNotUpdateConfigSpec, useTimeRule);
+                                               doNotUpdateConfigSpec, useTimeRule,
+                                               isCreateDynView());
         } else {
             action = new SnapshotCheckoutAction(createClearTool(
                                                                 variableResolver, launcher), 
@@ -222,7 +223,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     protected ClearTool createClearTool(VariableResolver variableResolver,
                                         ClearToolLauncher launcher) {
         if (isUseDynamicView()) {
-            return new ClearToolDynamic(variableResolver, launcher, getViewDrive());
+            return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
         } else {
             return super.createClearTool(variableResolver, launcher);
         }
@@ -308,7 +309,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.rmviewonrename") != null,
                                                         req.getParameter("cc.excludedRegions"),
                                                         fixEmpty(req.getParameter("cc.multiSitePollBuffer")),
-                                                        req.getParameter("cc.useTimeRule") != null
+                                                        req.getParameter("cc.useTimeRule") != null,
+                                                        req.getParameter("cc.createDynView") != null
                                                         );
             return scm;
         }

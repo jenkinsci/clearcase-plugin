@@ -273,4 +273,116 @@ public abstract class ClearToolExec implements ClearTool {
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
 
+    public String getViewUuid(String viewName) throws IOException,
+                                                InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("lsview");
+        cmd.add("-l", viewName);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        String retString = "";
+
+        Pattern uuidPattern = Pattern.compile("View uuid: (.*)");
+        
+        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                                                                             new ByteArrayInputStream(baos.toByteArray())));
+            String line = reader.readLine();
+
+            while (line != null) {
+                Matcher matcher = uuidPattern.matcher(line);
+                if (matcher.find() && matcher.groupCount() == 1) {
+                    retString = matcher.group(1);
+                }
+                line = reader.readLine();
+            }
+            reader.close();
+        }
+        baos.close();
+        return retString;
+    }
+
+    public void rmviewtag(String viewName) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("rmtag");
+        cmd.add("-view");
+        cmd.add(viewName);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Error")) {
+            throw new IOException("Failed to remove view tag: " + builder.toString());
+        }
+        
+    }
+
+    public void unregisterView(String viewName) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("unregister");
+        cmd.add("-view");
+        cmd.add(viewName);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Error")) {
+            throw new IOException("Failed to unregister view: " + builder.toString());
+        }
+        
+    }
+
+    public void rmviewUuid(String viewUuid) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("rmview");
+        cmd.add("-force");
+        cmd.add("-avobs");
+        cmd.add("-uuid");
+        cmd.add(viewUuid);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Error")) {
+            throw new IOException("Failed to remove view: " + builder.toString());
+        }
+        
+    }
+
 }

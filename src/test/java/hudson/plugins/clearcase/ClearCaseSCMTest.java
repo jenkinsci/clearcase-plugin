@@ -97,7 +97,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 }
             });
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", false, "",
-                                                         null, false, false,false, "", "", false, cleartool,
+                                                         null, false, false,false, "", "", false, false, cleartool,
                                                          clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
@@ -115,7 +115,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 }
             });
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", true, "/views",
-                                                         null, false, false,false, "", "", false, cleartool,
+                                                         null, false, false,false, "", "", false, false, cleartool,
                                                          clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build);
@@ -132,7 +132,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 }
             });
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "configspec", "viewname", true, "", true, null,
-                                                         null, false, false,false, "", "", false, cleartool,
+                                                         null, false, false,false, "", "", false, false, cleartool,
                                                          clearCaseScmDescriptor, computer);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build);
@@ -231,7 +231,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         
         ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "configspec", "viewname-${JOB_NAME}", true, "vob",
                                                  true, "/view", null, false, false, false, null, null,
-                                                 false, cleartool, clearCaseScmDescriptor, computer);
+                                                 false, false, cleartool, clearCaseScmDescriptor, computer);
         // Create actions
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
         

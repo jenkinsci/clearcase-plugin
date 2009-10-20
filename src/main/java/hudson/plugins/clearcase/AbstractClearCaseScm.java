@@ -87,6 +87,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean useDynamicView;
     private final String viewDrive;
     private int multiSitePollBuffer;
+    private boolean createDynView;
     
     protected void setNormalizedViewName(String normalizedViewName) {
         this.normalizedViewName = normalizedViewName;
@@ -105,7 +106,8 @@ public abstract class AbstractClearCaseScm extends SCM {
                                 final boolean useDynamicView,
                                 final String viewDrive,
                                 final String loadRules,
-                                final String multiSitePollBuffer) {
+                                final String multiSitePollBuffer,
+                                final boolean createDynView) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
@@ -126,6 +128,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         } else {
             this.multiSitePollBuffer = 0;
         }
+        this.createDynView = createDynView;
     }
     
     /**
@@ -239,6 +242,10 @@ public abstract class AbstractClearCaseScm extends SCM {
         return loadRules;
     }
 
+    public boolean isCreateDynView() {
+        return createDynView;
+    }
+    
     @Override
     public boolean supportsPolling() {
         return true;
@@ -500,6 +507,10 @@ public abstract class AbstractClearCaseScm extends SCM {
                                                                                        project.getSomeWorkspace().getParent()
                                                                                        .getParent(), launcher));
                     try {
+                        // Get the view UUID.
+                        String uuid = ct.getViewUuid(ccScm.generateNormalizedViewName(project.getLastBuild()));
+                        ct.rmviewUuid(uuid);
+                        ct.unregisterView(uuid);
                         ct.rmviewtag(ccScm.generateNormalizedViewName(project.getLastBuild()));                                         
                     } catch (Exception e) {
                         Logger.getLogger(
@@ -520,6 +531,10 @@ public abstract class AbstractClearCaseScm extends SCM {
                                                                      project.getSomeWorkspace().getParent()
                                                                      .getParent(), launcher));
         try {
+            // Get the view UUID.
+            String uuid = ct.getViewUuid(generateNormalizedViewName(project.getLastBuild()));
+            ct.rmviewUuid(uuid);
+            ct.unregisterView(uuid);
             ct.rmviewtag(generateNormalizedViewName(project.getLastBuild()));
             
         } catch (Exception e) {

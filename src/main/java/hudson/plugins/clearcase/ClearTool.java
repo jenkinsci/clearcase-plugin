@@ -54,6 +54,20 @@ public interface ClearTool {
     void rmview(String viewName) throws IOException, InterruptedException;
 
     /**
+     * Unregisters the view tag for a given UUID.
+     * 
+     * @param viewUuid the unique identifier for the view.
+     */
+    void unregisterView(String viewUuid) throws IOException, InterruptedException;
+
+    /**
+     * Removes the view (as identified by UUID) from all VOBs
+     * 
+     * @param viewUuid the unique identifier for the view
+     */
+    void rmviewUuid(String viewUuid) throws IOException, InterruptedException;
+
+    /**
      * Removes the view tag from the ClearCase registry - used when the view storage in 
      *   the workspace has already been deleted.
      * 
@@ -171,4 +185,14 @@ public interface ClearTool {
      * @throws InterruptedException
      */
     void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException;
+
+    /**
+     * Gets the view UUID, for thorough view deletion.
+     *
+     * @param viewName
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    String getViewUuid(String viewName) throws IOException, InterruptedException;
+
 }
