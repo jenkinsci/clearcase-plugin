@@ -81,7 +81,7 @@
     <f:block>
       <table>
         
-        <f:optionalBlock name="cc.usedynamicview" title="Use existing dynamic view"
+        <f:optionalBlock name="cc.usedynamicview" title="Use dynamic view"
                          checked="${scm.useDynamicView}" help="/plugin/clearcase/dynamicview.html">
           
           <f:entry title="View root" help="/plugin/clearcase/viewdrive.html">
