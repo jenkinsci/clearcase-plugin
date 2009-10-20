@@ -47,15 +47,36 @@ public class DynamicCheckoutAction implements CheckOutAction {
     private String configSpec;
     private boolean doNotUpdateConfigSpec;
     private boolean useTimeRule;
-    
-    public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec, boolean useTimeRule) {
+    private boolean createDynView;
+
+    public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec, boolean useTimeRule,
+                                 boolean createDynView) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
+        this.createDynView = createDynView;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException { 
+        if (createDynView) {
+            // Clean out the workspace first - deleting the files will probably be faster than 
+            workspace.deleteContents();
+            // Mount all VOBs before we get started.
+            cleartool.mountVobs();
+            // Get the view UUID.
+            String uuid = cleartool.getViewUuid(viewName);
+            // If we don't find a UUID, then the view tag must not exist, in which case we don't
+            // have to delete it anyway.
+            if (!uuid.equals("")) {
+                cleartool.rmviewUuid(uuid);
+                cleartool.unregisterView(uuid);
+                cleartool.rmviewtag(viewName);
+            }
+            // Now, make the view.
+            cleartool.mkview(viewName, null);
+        }
+        
         cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
         String tempConfigSpec;

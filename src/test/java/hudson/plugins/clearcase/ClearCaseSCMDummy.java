@@ -41,12 +41,13 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              boolean filterOutDestroySubBranchEvent,
                              boolean doNotUpdateConfigSpec, boolean rmviewonrename,
                              String excludedRegions, String multiSitePollBuffer,
-                             boolean useTimeRule,
+                             boolean useTimeRule, boolean createDynView,
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor) {
         this(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
              viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-             rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, cleartool,
+             rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule,
+             createDynView, cleartool,
              clearCaseScmDescriptor, null);
     }
     
@@ -56,12 +57,13 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              boolean filterOutDestroySubBranchEvent,
                              boolean doNotUpdateConfigSpec, boolean rmviewonrename,
                              String excludedRegions, String multiSitePollBuffer,
-                             boolean useTimeRule, ClearTool cleartool,
+                             boolean useTimeRule, boolean createDynView,
+                             ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor,
                              Computer overrideComputer) {
         super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule);
+              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView);
         this.cleartool = cleartool;
         this.clearCaseScmDescriptor = clearCaseScmDescriptor;
         this.overrideComputer = overrideComputer;

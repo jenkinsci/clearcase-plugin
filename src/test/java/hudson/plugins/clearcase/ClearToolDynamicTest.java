@@ -54,7 +54,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
 
         launcher = context.mock(ClearToolLauncher.class);
         resolver = context.mock(VariableResolver.class);
-        clearToolExec = new ClearToolDynamic(resolver, launcher, "/cc/drives");
+        clearToolExec = new ClearToolDynamic(resolver, launcher, "/cc/drives", "");
     }
 
     @After

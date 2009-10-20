@@ -25,18 +25,25 @@
 package hudson.plugins.clearcase;
 
 import hudson.FilePath;
+import hudson.Util;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 
 public class ClearToolDynamic extends ClearToolExec {
 
     private transient String viewDrive;
+    private String optionalMkviewParameters;
 
-    public ClearToolDynamic(VariableResolver variableResolver, ClearToolLauncher launcher, String viewDrive) {
+    public ClearToolDynamic(VariableResolver variableResolver, ClearToolLauncher launcher, String viewDrive, String optionalMkviewParameters) {
         super(variableResolver, launcher);
         this.viewDrive = viewDrive;
+        this.optionalMkviewParameters = optionalMkviewParameters;
     }
 
     @Override
@@ -78,16 +85,54 @@ public class ClearToolDynamic extends ClearToolExec {
     }
 
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
-        launcher.getListener().fatalError("Dynamic view does not support mkview");        
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("mkview");
+        if (streamSelector != null) {
+            cmd.add("-stream");
+            cmd.add(streamSelector);
+        }
+        cmd.add("-tag");
+        cmd.add(viewName);
+        
+        if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
+            String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
+            cmd.addTokenized(variabledResolvedParams);
+        }
+        launcher.run(cmd.toCommandArray(), null, null, null);
     }
+
 
     public void rmview(String viewName) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic view does not support rmview");
     }
 
     public void rmviewtag(String viewName) throws IOException, InterruptedException {
-        launcher.getListener().fatalError("Dynamic view does not support rmviewtag");
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("rmtag");
+        cmd.add("-view");
+        cmd.add(viewName);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Error")) {
+            throw new IOException("Failed to remove view tag: " + builder.toString());
+        }
+        
     }
+
 
     public void update(String viewName, String loadRules) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic view does not support update");
