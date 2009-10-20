@@ -267,10 +267,21 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     public void mountVobs()  throws IOException, InterruptedException {
-        ArgumentListBuilder cmd = new ArgumentListBuilder();
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    	ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mount");
-        cmd.add("-avob");
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        cmd.add("-all");
+        
+        try {
+        	launcher.run(cmd.toCommandArray(), null, baos, null);	
+        }
+        catch (IOException ex) {		
+        	if (! getOutputString(baos).contains("already mounted"))
+        		throw ex;
+        }
+        finally {
+        	baos.close();
+        }
     }
 
     public String getViewUuid(String viewName) throws IOException,
@@ -283,22 +294,33 @@ public abstract class ClearToolExec implements ClearTool {
         String retString = "";
 
         Pattern uuidPattern = Pattern.compile("View uuid: (.*)");
+        boolean res = true;
+        IOException exception = null;
         
-        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                                                                             new ByteArrayInputStream(baos.toByteArray())));
-            String line = reader.readLine();
-
-            while (line != null) {
+        try {        	
+        	res = launcher.run(cmd.toCommandArray(), null, baos, null);
+        }
+        catch (IOException ex) {
+        	exception = ex;
+        }
+        
+        // handle the use case in which view doesn't exist and therefore error is thrown
+        String output = getOutputString(baos);
+        baos.close();
+        if (exception != null && ! output.contains("No matching entries found for view"))
+        	throw exception;        
+        
+        if (res && exception == null) {
+        	String [] lines = output.split("\n");
+        	for (String line :lines) {
                 Matcher matcher = uuidPattern.matcher(line);
                 if (matcher.find() && matcher.groupCount() == 1) {
                     retString = matcher.group(1);
-                }
-                line = reader.readLine();
-            }
-            reader.close();
+                    break;
+                }        		
+        	}
         }
-        baos.close();
+
         return retString;
     }
 
@@ -384,5 +406,20 @@ public abstract class ClearToolExec implements ClearTool {
         }
         
     }
-
+    
+    private String getOutputString(ByteArrayOutputStream baos) throws IOException {       	
+    	BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new ByteArrayInputStream(baos.toByteArray())));
+    	StringBuilder builder = new StringBuilder();
+    	String line;
+    	while ((line = reader.readLine()) != null) { 
+    		if (builder.length() > 0)
+    			builder.append("\n");
+    		
+    		builder.append(line);
+    	}
+		reader.close();
+    	
+    	return builder.toString();
+    }
 }

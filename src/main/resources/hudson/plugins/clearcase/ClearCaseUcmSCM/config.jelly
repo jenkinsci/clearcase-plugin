@@ -90,7 +90,7 @@
     <f:block>
       <table>
         
-        <f:optionalBlock name="ucm.usedynamicview" title="Use existing UCM dynamic view"
+        <f:optionalBlock name="ucm.usedynamicview" title="Use UCM dynamic view"
                          checked="${scm.useDynamicView}" help="/plugin/clearcase/dynamicview.html">
           
           <f:entry title="View root" help="/plugin/clearcase/viewdrive.html">
