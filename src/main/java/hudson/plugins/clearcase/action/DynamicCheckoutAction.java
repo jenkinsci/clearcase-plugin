@@ -29,6 +29,7 @@ import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.util.PathUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -48,14 +49,16 @@ public class DynamicCheckoutAction implements CheckOutAction {
     private boolean doNotUpdateConfigSpec;
     private boolean useTimeRule;
     private boolean createDynView;
+    private String defaultWinDynStorageDir;
 
     public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec, boolean useTimeRule,
-                                 boolean createDynView) {
+                                 boolean createDynView, String defaultWinDynStorageDir) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
         this.createDynView = createDynView;
+        this.defaultWinDynStorageDir = defaultWinDynStorageDir;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException { 
@@ -74,7 +77,7 @@ public class DynamicCheckoutAction implements CheckOutAction {
                 cleartool.rmviewtag(viewName);
             }
             // Now, make the view.
-            cleartool.mkview(viewName, null);
+            cleartool.mkview(viewName, null, defaultWinDynStorageDir);
         }
         
         cleartool.startView(viewName);

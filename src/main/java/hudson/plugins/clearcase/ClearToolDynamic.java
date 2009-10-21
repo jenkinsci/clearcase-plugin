@@ -34,6 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.Random;
 
 public class ClearToolDynamic extends ClearToolExec {
 
@@ -82,10 +83,12 @@ public class ClearToolDynamic extends ClearToolExec {
         launcher.run(cmd.toCommandArray(), null, null, null);
 
         configSpecFile.delete();
-    }
+    }    
 
-    public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
-        ArgumentListBuilder cmd = new ArgumentListBuilder();
+    public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
+        boolean isOptionalParamContainsHost = false;
+    	
+    	ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkview");
         if (streamSelector != null) {
             cmd.add("-stream");
@@ -96,12 +99,27 @@ public class ClearToolDynamic extends ClearToolExec {
         
         if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
             String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
-            cmd.addTokenized(variabledResolvedParams);
+            cmd.addTokenized(variabledResolvedParams);            
+            isOptionalParamContainsHost = optionalMkviewParameters.contains("-host");
         }
+       
+        // add the default storage directory only if gpath/hpath are not set (only for windows)
+        if (! launcher.getLauncher().isUnix() && 
+        	! isOptionalParamContainsHost && 
+        	defaultStorageDir != null && 
+        	defaultStorageDir.length() > 0) {
+        	Integer rndNum = new Random().nextInt();
+        	String viewStorageDir = defaultStorageDir + "\\" + viewName + "." + rndNum.toString();
+        	cmd.add(viewStorageDir);
+        }
+        
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
 
-
+    public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
+    	launcher.getListener().fatalError("Dynamic view does not support mkview (String, String)");
+    }
+    
     public void rmview(String viewName) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic view does not support rmview");
     }

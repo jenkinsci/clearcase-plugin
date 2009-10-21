@@ -114,6 +114,10 @@ public class ClearToolSnapshot extends ClearToolExec {
         cmd.add(viewName);
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
+    
+    public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
+    	launcher.getListener().fatalError("Snapshot view does not support mkview (String, String)");
+    }
 
     public void rmview(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
