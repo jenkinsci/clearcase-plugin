@@ -48,6 +48,8 @@ import hudson.util.VariableResolver;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Map;
@@ -76,7 +78,7 @@ import org.kohsuke.stapler.framework.io.ByteBuffer;
 
 public class ClearCaseSCM extends AbstractClearCaseScm {
 
-	private static final String DEFAULT_VALUE_WIN_DYN_STORAGE_DIR = "\\\\views\\dynamic";	
+	private static final String DEFAULT_VALUE_WIN_DYN_STORAGE_DIR = "\\views\\dynamic";	
 	
     private String configSpec;
     private final String branch;
@@ -271,8 +273,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         
         
         public String getDefaultWinDynStorageDir() {
-            if (defaultWinDynStorageDir == null) {
-                return DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
+            if (defaultWinDynStorageDir == null) {            	
+                try {
+					return "\\\\" + InetAddress.getLocalHost().getHostName() + DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
+				} catch (UnknownHostException e) {
+					return "";		
+				}
             } else {
             	return defaultWinDynStorageDir;
             }        				

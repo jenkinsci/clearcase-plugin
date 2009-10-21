@@ -42,7 +42,7 @@
     <f:entry title="Standard view name pattern" help="/plugin/clearcase/standardViewName.html">
       <f:textbox name="clearcase.defaultViewName" value="${descriptor.defaultViewName}" />
     </f:entry>
-    <f:entry title="Default dynamic storage directory" help="/plugin/clearcase/standardViewName.html">
+    <f:entry title="Default dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
       <f:textbox name="clearcase.defaultWinDynStorageDir" value="${descriptor.defaultWinDynStorageDir}" />
     </f:entry>
     <f:entry title="Time window for merging event records" help="/plugin/clearcase/eventrecordtimewindow.html">
