@@ -349,13 +349,14 @@ public abstract class ClearToolExec implements ClearTool {
             throw new IOException("Failed to remove view tag: " + builder.toString());
         }
         
-    }
+    }    
 
-    public void unregisterView(String viewName) throws IOException, InterruptedException {
+    public void unregisterView(String uuid) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("unregister");
         cmd.add("-view");
-        cmd.add(viewName);
+        cmd.add("-uuid");
+        cmd.add(uuid);
         
         ByteArrayOutputStream baos = new ByteArrayOutputStream();  
         launcher.run(cmd.toCommandArray(), null, baos, null);

@@ -76,6 +76,8 @@ import org.kohsuke.stapler.framework.io.ByteBuffer;
 
 public class ClearCaseSCM extends AbstractClearCaseScm {
 
+	private static final String DEFAULT_VALUE_WIN_DYN_STORAGE_DIR = "\\\\views\\dynamic";	
+	
     private String configSpec;
     private final String branch;
     private boolean doNotUpdateConfigSpec;
@@ -158,7 +160,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             action = new DynamicCheckoutAction(createClearTool(
                                                                variableResolver, launcher), configSpec,
                                                doNotUpdateConfigSpec, useTimeRule,
-                                               isCreateDynView());
+                                               isCreateDynView(), this.getDescriptor().getDefaultWinDynStorageDir());
         } else {
             action = new SnapshotCheckoutAction(createClearTool(
                                                                 variableResolver, launcher), 
@@ -239,6 +241,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         private String cleartoolExe;
         private int changeLogMergeTimeWindow = 5;
         private String defaultViewName;
+        private String defaultWinDynStorageDir;
+        
         
         public ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
@@ -263,9 +267,18 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             } else {
                 return defaultViewName;
             }
-        }
+        }  
         
-        @Override
+        
+        public String getDefaultWinDynStorageDir() {
+            if (defaultWinDynStorageDir == null) {
+                return DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
+            } else {
+            	return defaultWinDynStorageDir;
+            }        				
+		}
+
+		@Override
         public String getDisplayName() {
             return "Base ClearCase";
         }
@@ -276,6 +289,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                     .trim());
             defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName")
                                     .trim());
+            defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir")
+                    .trim());
+            
             String mergeTimeWindow = fixEmpty(req
                                               .getParameter("clearcase.logmergetimewindow"));
             if (mergeTimeWindow != null) {

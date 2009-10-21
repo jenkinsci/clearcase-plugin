@@ -74,6 +74,15 @@ public interface ClearTool {
      * @param viewName the name of the view
      */
     void rmviewtag(String viewName) throws IOException, InterruptedException;
+    
+    /**
+     * Creates and registers a view
+     * 
+     * @param launcher launcher for launching the command
+     * @param viewName the name of the view
+     * @param streamSelector optional stream selector, null if not used.
+     */
+    void mkview(String viewName, String streamSelector) throws IOException, InterruptedException;    
 
     /**
      * Creates and registers a view
@@ -82,7 +91,7 @@ public interface ClearTool {
      * @param viewName the name of the view
      * @param streamSelector optional stream selector, null if not used.
      */
-    void mkview(String viewName, String streamSelector) throws IOException, InterruptedException;
+    void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException;
 
     /**
      * Sets the config spec of the view
