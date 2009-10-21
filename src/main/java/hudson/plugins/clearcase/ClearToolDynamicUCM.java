@@ -115,6 +115,10 @@ public class ClearToolDynamicUCM extends ClearToolExec {
         }
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
+    
+    public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
+    	launcher.getListener().fatalError("Dynamic UCM view does not support mkview (String, String, String)");
+    }
 
     public void rmview(String viewName) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic UCM view does not support rmview");
