@@ -224,6 +224,9 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
+        public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
+            throw new IllegalStateException("Not implemented");
+        }
         public void rmview(String viewName) throws IOException, InterruptedException {
             throw new IllegalStateException("Not implemented");
         }
