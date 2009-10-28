@@ -90,16 +90,9 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
 
         int r = getLaunchedProc(cmdWithExec, env, inputStream, out, path).join();
         if (r != 0) {
-            StringBuilder builder = new StringBuilder();
-            for (String cmdParam : cmd) {
-                if (builder.length() > 0) {
-                    builder.append(" ");
-                }
-                builder.append(cmdParam);
-            }
             listener.fatalError(scmName + " failed. exit code=" + r);
             throw new IOException("cleartool did not return the expected exit code. Command line=\""
-                                  + builder.toString() + "\", actual exit code=" + r);
+                                  + getCmdString(cmd) + "\", actual exit code=" + r);
         }
         return true;
     }
@@ -116,5 +109,17 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out,
                                 FilePath path) throws IOException {
         return getLauncher().launch().cmds(cmdWithExec).envs(env).stdin(inputStream).stdout(out).pwd(path).start();
+    }
+    
+    public String getCmdString(String [] cmd) {
+        StringBuilder builder = new StringBuilder();
+        for (String cmdParam : cmd) {
+            if (builder.length() > 0) {
+                builder.append(" ");
+            }
+            builder.append(cmdParam);
+        }
+        
+        return builder.toString();
     }
 }

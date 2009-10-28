@@ -67,7 +67,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                            String overrideBranchName, boolean createDynView) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
               useUpdate, rmviewonrename, excludedRegions, usedynamicview, 
-              viewdrive, loadrules, multiSitePollBuffer, createDynView);
+              viewdrive, loadrules, multiSitePollBuffer, createDynView, "", "");
         this.stream = shortenStreamName(stream);
         if ((overrideBranchName!=null) && (!overrideBranchName.equals(""))) {
             this.overrideBranchName = overrideBranchName;

@@ -42,9 +42,12 @@
     <f:entry title="Standard view name pattern" help="/plugin/clearcase/standardViewName.html">
       <f:textbox name="clearcase.defaultViewName" value="${descriptor.defaultViewName}" />
     </f:entry>
-    <f:entry title="Default dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
+    <f:entry title="Windows default dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
       <f:textbox name="clearcase.defaultWinDynStorageDir" value="${descriptor.defaultWinDynStorageDir}" />
     </f:entry>
+    <f:entry title="Unix default dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
+      <f:textbox name="clearcase.defaultUnixDynStorageDir" value="${descriptor.defaultUnixDynStorageDir}" />
+    </f:entry>    
     <f:entry title="Time window for merging event records" help="/plugin/clearcase/eventrecordtimewindow.html">
       <f:textbox name="clearcase.logmergetimewindow" value="${descriptor.logMergeTimeWindow}"
                  checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Entering a merge time window is mandatory')+'&amp;value='+escape(this.value)" />
