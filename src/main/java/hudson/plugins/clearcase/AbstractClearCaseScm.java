@@ -88,6 +88,8 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final String viewDrive;
     private int multiSitePollBuffer;
     private boolean createDynView;
+    private String winDynStorageDir;
+    private String unixDynStorageDir;
     
     protected void setNormalizedViewName(String normalizedViewName) {
         this.normalizedViewName = normalizedViewName;
@@ -107,7 +109,9 @@ public abstract class AbstractClearCaseScm extends SCM {
                                 final String viewDrive,
                                 final String loadRules,
                                 final String multiSitePollBuffer,
-                                final boolean createDynView) {
+                                final boolean createDynView,
+                                final String winDynStorageDir,
+                                final String unixDynStorageDir) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
@@ -129,6 +133,8 @@ public abstract class AbstractClearCaseScm extends SCM {
             this.multiSitePollBuffer = 0;
         }
         this.createDynView = createDynView;
+        this.winDynStorageDir = winDynStorageDir;
+        this.unixDynStorageDir = unixDynStorageDir;
     }
     
     /**
@@ -245,8 +251,8 @@ public abstract class AbstractClearCaseScm extends SCM {
     public boolean isCreateDynView() {
         return createDynView;
     }
-    
-    @Override
+
+	@Override
     public boolean supportsPolling() {
         return true;
     }
@@ -277,6 +283,24 @@ public abstract class AbstractClearCaseScm extends SCM {
             return viewName;
         }
     }
+    
+	public String getWinDynStorageDir() {
+		return winDynStorageDir;
+	}
+	
+	public String getNormalizedWinDynStorageDir(VariableResolver variableResolver) {
+        String res = Util.replaceMacro(getWinDynStorageDir(), variableResolver);        
+        return res;		
+	}
+
+	public String getUnixDynStorageDir() {
+		return unixDynStorageDir;
+	}    
+	
+	public String getNormalizedUnixDynStorageDir(VariableResolver variableResolver) {
+        String res = Util.replaceMacro(getUnixDynStorageDir(), variableResolver);        
+        return res;	
+	}    
 
     /**
      * Returns the current computer - used in constructor for BuildVariableResolver in place of
@@ -371,7 +395,6 @@ public abstract class AbstractClearCaseScm extends SCM {
         throws IOException, InterruptedException {
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener,
                                                                       workspace, launcher);
-
         // Create actions
         VariableResolver variableResolver = new BuildVariableResolver(build, getCurrentComputer());
         
@@ -497,16 +520,17 @@ public abstract class AbstractClearCaseScm extends SCM {
             if (item instanceof AbstractProject) {
                 AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
                 if (project.getScm() instanceof AbstractClearCaseScm) {
-                    AbstractClearCaseScm ccScm = (AbstractClearCaseScm) project.getScm();
-                    StreamTaskListener listener = new StreamTaskListener(
-                                                                         System.out);
-                    Launcher launcher = Hudson.getInstance()
-                        .createLauncher(listener);
-                    ClearTool ct = ccScm.createClearTool(null,
-                                                         ccScm.createClearToolLauncher(listener,
-                                                                                       project.getSomeWorkspace().getParent()
-                                                                                       .getParent(), launcher));
-                    try {
+                	try {
+	                	AbstractClearCaseScm ccScm = (AbstractClearCaseScm) project.getScm();
+	                    StreamTaskListener listener = new StreamTaskListener(
+	                                                                         System.out);
+	                    Launcher launcher = Hudson.getInstance()
+	                        .createLauncher(listener);
+	                    ClearTool ct = ccScm.createClearTool(null,
+	                                                         ccScm.createClearToolLauncher(listener,
+	                                                                                       project.getSomeWorkspace().getParent()
+	                                                                                       .getParent(), launcher));
+                    
                         // Get the view UUID.
                         String uuid = ct.getViewUuid(ccScm.generateNormalizedViewName(project.getLastBuild()));
                         ct.rmviewUuid(uuid);

@@ -203,5 +203,8 @@ public interface ClearTool {
      * @throws InterruptedException
      */
     String getViewUuid(String viewName) throws IOException, InterruptedException;
+    
+    void logRedundantCleartoolError(String [] cmd, Exception ex);
+    
 
 }

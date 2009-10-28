@@ -76,4 +76,6 @@ public interface ClearToolLauncher {
      * @return the Hudsonlauncher
      */
     Launcher getLauncher();
+    
+    String getCmdString(String [] cmd);
 }

@@ -76,13 +76,15 @@ public class BuildVariableResolver implements VariableResolver<String> {
             if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
                 return build.getProject().getName();
             }
-            /*if ("COMPUTERNAME".equals(key)) {
-              return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master"
-              : computer.getName()));
-              }*/
+            
+            if ("HOST".equals(key)) {
+              return (Util.fixEmpty(computer.getHostName()));
+            }
+            
             if ("OS".equals(key)) {
                 return System.getProperty("os.name");
             }
+            
             if ("NODE_NAME".equals(key)) {
                 return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master"
                                       : computer.getName()));
@@ -92,12 +94,11 @@ public class BuildVariableResolver implements VariableResolver<String> {
                 return (String) computer.getSystemProperties()
                     .get("user.name");
             }
+            
             EnvVars env = build.getEnvironment(ltl);
             if (env.containsKey(key)) {
                 return env.get(key);
             }
-            
-            
         } catch (Exception e) {
             LOGGER.warning("Variable name '" + key
                            + "' look up failed because of " + e);
