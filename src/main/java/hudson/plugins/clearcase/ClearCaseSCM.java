@@ -27,6 +27,7 @@ package hudson.plugins.clearcase;
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.model.ModelObject;
@@ -92,11 +93,13 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                         boolean filterOutDestroySubBranchEvent,
                         boolean doNotUpdateConfigSpec, boolean rmviewonrename,
                         String excludedRegions, String multiSitePollBuffer,
-                        boolean useTimeRule, boolean createDynView) {
+                        boolean useTimeRule, boolean createDynView, 
+                        String winDynStorageDir, String unixDynStorageDir) {
         super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
               (!usedynamicview) && useupdate, rmviewonrename,
               excludedRegions, usedynamicview, viewdrive, loadRules,
-              multiSitePollBuffer, createDynView);
+              multiSitePollBuffer, createDynView,
+              winDynStorageDir, unixDynStorageDir);
         this.branch = branch;
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
@@ -110,9 +113,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                         boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
         this(branch, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive,
              mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, 
-             rmviewonrename, "", null, false, false);
+             rmviewonrename, "", null, false, false, "", "");
     }
-
 
     public String getBranch() {
         return branch;
@@ -162,7 +164,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             action = new DynamicCheckoutAction(createClearTool(
                                                                variableResolver, launcher), configSpec,
                                                doNotUpdateConfigSpec, useTimeRule,
-                                               isCreateDynView(), this.getDescriptor().getDefaultWinDynStorageDir());
+                                               isCreateDynView(), 
+                                               getNormalizedWinDynStorageDir(variableResolver), 
+                                               getNormalizedUnixDynStorageDir(variableResolver));
         } else {
             action = new SnapshotCheckoutAction(createClearTool(
                                                                 variableResolver, launcher), 
@@ -244,7 +248,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         private int changeLogMergeTimeWindow = 5;
         private String defaultViewName;
         private String defaultWinDynStorageDir;
-        
+        private String defaultUnixDynStorageDir;
         
         public ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
@@ -284,6 +288,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             }        				
 		}
 
+		public String getDefaultUnixDynStorageDir() {
+			return defaultUnixDynStorageDir;
+		}
+
 		@Override
         public String getDisplayName() {
             return "Base ClearCase";
@@ -297,6 +305,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                     .trim());
             defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir")
                     .trim());
+            
+            defaultUnixDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultUnixDynStorageDir")
+                    .trim());            
             
             String mergeTimeWindow = fixEmpty(req
                                               .getParameter("clearcase.logmergetimewindow"));
@@ -332,7 +343,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.excludedRegions"),
                                                         fixEmpty(req.getParameter("cc.multiSitePollBuffer")),
                                                         req.getParameter("cc.useTimeRule") != null,
-                                                        req.getParameter("cc.createDynView") != null
+                                                        req.getParameter("cc.createDynView") != null,
+                                                        req.getParameter("cc.winDynStorageDir"),
+                                                        req.getParameter("cc.unixDynStorageDir")
                                                         );
             return scm;
         }

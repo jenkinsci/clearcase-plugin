@@ -26,6 +26,8 @@ package hudson.plugins.clearcase;
 
 import hudson.FilePath;
 import hudson.Util;
+import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 
@@ -67,7 +69,7 @@ public class ClearToolDynamic extends ClearToolExec {
         FilePath configSpecFile = launcher.getWorkspace().createTextTempFile("configspec", ".txt", configSpec);
         String csLocation = "";
         if (!configSpec.equals("")) {
-            csLocation = configSpecFile.getName();
+            csLocation = configSpecFile.getRemote();
         }
         
         ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -86,8 +88,9 @@ public class ClearToolDynamic extends ClearToolExec {
     }    
 
     public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
-        boolean isOptionalParamContainsHost = false;
     	
+    	boolean isOptionalParamContainsHost = false;
+   	
     	ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkview");
         if (streamSelector != null) {
@@ -104,12 +107,10 @@ public class ClearToolDynamic extends ClearToolExec {
         }
        
         // add the default storage directory only if gpath/hpath are not set (only for windows)
-        if (! launcher.getLauncher().isUnix() && 
-        	! isOptionalParamContainsHost && 
-        	defaultStorageDir != null && 
-        	defaultStorageDir.length() > 0) {
+        if (! isOptionalParamContainsHost && defaultStorageDir != null && defaultStorageDir.length() > 0) {
         	Integer rndNum = new Random().nextInt();
-        	String viewStorageDir = defaultStorageDir + "\\" + viewName + "." + rndNum.toString();
+        	String seperator = PathUtil.fileSepForOS(getLauncher().getLauncher().isUnix());
+        	String viewStorageDir = defaultStorageDir + seperator + viewName + "." + rndNum.toString();
         	cmd.add(viewStorageDir);
         }
         

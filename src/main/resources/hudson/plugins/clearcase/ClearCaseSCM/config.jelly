@@ -25,7 +25,7 @@
 
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-
+	 
   <j:choose>
     <j:when test="${descriptor.defaultViewName!=''}">
       <input name="cc.viewname" type="hidden" value="${descriptor.defaultViewName}" />
@@ -95,10 +95,25 @@
             </j:choose>
           </f:entry>
           
-          <f:entry title="Create Dynamic View">
-            <f:checkbox name="cc.createDynView" checked="${scm.createDynView}"/>
-            If checked, Hudson will create the dynamic view, rather than use an existing one.
-          </f:entry>
+          <f:block>
+      	  	<table>
+	          <f:optionalBlock name="cc.createDynView" title="Create Dynamic View"
+	                         checked="${scm.createDynView}" help="/plugin/clearcase/dynamicview.html">
+			    
+			    <f:entry title="Windows dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
+			      <f:textbox name="cc.winDynStorageDir" value="${h.defaulted(scm.winDynStorageDir, descriptor.defaultWinDynStorageDir)}" />
+			    </f:entry>  
+			    
+			    <f:entry title="Unix dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
+			      <f:textbox name="cc.unixDynStorageDir" value="${h.defaulted(scm.unixDynStorageDir, descriptor.defaultUnixDynStorageDir)}" />
+			    </f:entry>    
+
+					                         
+			  </f:optionalBlock>
+		  	</table>
+		  </f:block>
+		  	                         
+
           <f:entry title="Use time rule in config spec">
             <f:checkbox name="cc.useTimeRule" checked="${scm.useTimeRule}"/>
             If checked, Hudson will use a time rule in the dynamic view's config spec,

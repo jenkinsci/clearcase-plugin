@@ -276,8 +276,7 @@ public abstract class ClearToolExec implements ClearTool {
         	launcher.run(cmd.toCommandArray(), null, baos, null);	
         }
         catch (IOException ex) {		
-        	if (! getOutputString(baos).contains("already mounted"))
-        		throw ex;
+        	logRedundantCleartoolError(cmd.toCommandArray(), ex);
         }
         finally {
         	baos.close();
@@ -422,5 +421,14 @@ public abstract class ClearToolExec implements ClearTool {
 		reader.close();
     	
     	return builder.toString();
+    }
+    
+    public void logRedundantCleartoolError(String [] cmd, Exception ex) {
+    	getLauncher().getListener().getLogger().println("Redundant Cleartool Error ");
+    	
+    	if (cmd != null) 
+    		getLauncher().getListener().getLogger().println("command: " + getLauncher().getCmdString(cmd));
+       	
+    	getLauncher().getListener().getLogger().println(ex.getMessage());
     }
 }

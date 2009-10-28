@@ -49,16 +49,18 @@ public class DynamicCheckoutAction implements CheckOutAction {
     private boolean doNotUpdateConfigSpec;
     private boolean useTimeRule;
     private boolean createDynView;
-    private String defaultWinDynStorageDir;
+    private String winDynStorageDir;
+    private String unixDynStorageDir;
 
     public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec, boolean useTimeRule,
-                                 boolean createDynView, String defaultWinDynStorageDir) {
+                                 boolean createDynView, String winDynStorageDir,String unixDynStorageDir) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
         this.createDynView = createDynView;
-        this.defaultWinDynStorageDir = defaultWinDynStorageDir;
+        this.winDynStorageDir = winDynStorageDir;
+        this.unixDynStorageDir = unixDynStorageDir;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException { 
@@ -72,12 +74,25 @@ public class DynamicCheckoutAction implements CheckOutAction {
             // If we don't find a UUID, then the view tag must not exist, in which case we don't
             // have to delete it anyway.
             if (!uuid.equals("")) {
-                cleartool.rmviewUuid(uuid);
-                cleartool.unregisterView(uuid);
+            	try {
+            		cleartool.rmviewUuid(uuid);	
+            	}
+            	catch (Exception ex) {
+            		cleartool.logRedundantCleartoolError(null, ex);
+            	}
+            	
+            	try {
+            		cleartool.unregisterView(uuid);	
+            	}
+            	catch (Exception ex) {
+            		cleartool.logRedundantCleartoolError(null, ex);
+            	}            	               
+                
                 cleartool.rmviewtag(viewName);
             }
             // Now, make the view.
-            cleartool.mkview(viewName, null, defaultWinDynStorageDir);
+            String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixDynStorageDir : winDynStorageDir; 
+            cleartool.mkview(viewName, null, dynStorageDir);
         }
         
         cleartool.startView(viewName);
