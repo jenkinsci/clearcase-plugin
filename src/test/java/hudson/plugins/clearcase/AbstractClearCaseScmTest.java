@@ -827,7 +827,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                                          String multiSitePollBuffer,
                                          boolean createDynView) {
             super(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename,
-                  excludedRegions, useDynamicView, viewDrive, loadRules, multiSitePollBuffer, createDynView);
+                  excludedRegions, useDynamicView, viewDrive, loadRules, multiSitePollBuffer, createDynView, "", "");
         }
 
 
