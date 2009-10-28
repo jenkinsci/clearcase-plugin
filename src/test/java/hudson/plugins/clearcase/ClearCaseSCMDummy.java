@@ -63,7 +63,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              Computer overrideComputer) {
         super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView);
+              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, "", "");
         this.cleartool = cleartool;
         this.clearCaseScmDescriptor = clearCaseScmDescriptor;
         this.overrideComputer = overrideComputer;
