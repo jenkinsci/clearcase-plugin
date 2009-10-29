@@ -185,6 +185,38 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 
     
     @Test
+    public void testUpdateWithLoadRulesWindows() throws Exception {
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(false));
+                }
+            });
+        
+        context.checking(new Expectations() {
+                {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
+                    one(clearToolLauncher)
+                        .run(
+                             with(equal(new String[] {
+                                         "update",
+                                         "-force",
+                                         "-log",
+                                         "NUL",
+                                         "-add_loadrules",
+                                         "viewName\\more_load_rules" })),
+                             with(aNull(InputStream.class)),
+                             with(aNull(OutputStream.class)),
+                             with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        
+        clearToolExec.update("viewName", "\\more_load_rules");
+        context.assertIsSatisfied();
+    }
+
+        @Test
     public void testUpdateWithLoadRules() throws Exception {
         classContext.checking(new Expectations() {
                 {
@@ -204,8 +236,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
-                                         "viewName" + File.separator
-                                         + "more_load_rules" })),
+                                         "viewName/more_load_rules" })),
                              with(aNull(InputStream.class)),
                              with(aNull(OutputStream.class)),
                              with(aNull(FilePath.class)));
@@ -213,10 +244,10 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 }
             });
         
-        clearToolExec.update("viewName", File.separator + "more_load_rules");
+        clearToolExec.update("viewName", "/more_load_rules");
         context.assertIsSatisfied();
     }
-    
+
     @Test
     public void testUpdateWithLoadRulesWithSpace() throws Exception {
         classContext.checking(new Expectations() {
@@ -237,8 +268,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
-                                         "\"viewName" + File.separator
-                                         + "more load_rules\"" })),
+                                         "\"viewName/more load_rules\"" })),
                              with(aNull(InputStream.class)),
                              with(aNull(OutputStream.class)),
                              with(aNull(FilePath.class)));
@@ -246,7 +276,39 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 }
             });
         
-        clearToolExec.update("viewName", File.separator + "more load_rules");
+        clearToolExec.update("viewName", "/more load_rules");
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testUpdateWithLoadRulesWithSpaceWin() throws Exception {
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(false));
+                }
+            });
+        
+        context.checking(new Expectations() {
+                {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
+                    one(clearToolLauncher)
+                        .run(
+                             with(equal(new String[] {
+                                         "update",
+                                         "-force",
+                                         "-log",
+                                         "NUL",
+                                         "-add_loadrules",
+                                         "\"viewName\\more load_rules\"" })),
+                             with(aNull(InputStream.class)),
+                             with(aNull(OutputStream.class)),
+                             with(aNull(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        
+        clearToolExec.update("viewName", "\\more load_rules");
         context.assertIsSatisfied();
     }
     
