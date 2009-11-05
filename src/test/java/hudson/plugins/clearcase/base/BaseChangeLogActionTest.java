@@ -223,7 +223,7 @@ public class BaseChangeLogActionTest {
         String tempFilterRules = "";
         String[] loadRules = new String[]{"vobs/com", "vobs/inf", "vobs/sm", "vobs/acc", "vobs/test"};
         
-        String regexpStr = AbstractClearCaseScm.getViewPathsRegexp(loadRules);
+        String regexpStr = AbstractClearCaseScm.getViewPathsRegexp(loadRules, true);
 
         if (!regexpStr.equals("")) {
             filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, regexpStr));

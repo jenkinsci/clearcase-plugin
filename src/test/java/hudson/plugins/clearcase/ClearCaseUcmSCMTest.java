@@ -197,10 +197,13 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
                 {
                     atLeast(2).of(build).getParent(); will(returnValue(project));
                     one(project).getName(); will(returnValue("ClearCase"));
+                    allowing(launcher).isUnix(); will(returnValue(true));
                 }
             });
         context.checking(new Expectations() {
                 {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
                     one(cleartool).pwv("viewname-ClearCase");
                     will(returnValue("/view/viewname-ClearCase"));
                 }
