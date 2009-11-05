@@ -602,7 +602,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             }
         }
 
-        String filterRegexp = getViewPathsRegexp(getViewPaths());
+        String filterRegexp = getViewPathsRegexp(getViewPaths(),ctLauncher.getLauncher().isUnix());
 
         if (!filterRegexp.equals("")) {
             filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, filterRegexp));
@@ -614,7 +614,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         return filters;
     }
 
-    public static String getViewPathsRegexp(String[] loadRules) {
+    public static String getViewPathsRegexp(String[] loadRules, boolean isUnix) {
         // Note - the logic here to do ORing to match against *any* of the load rules is, quite frankly,
         // hackishly ugly. I'm embarassed by it. But it's what I've got for right now.
         String tempFilterRules = "";
@@ -622,7 +622,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         
         for (String loadRule : loadRules) {
             if (!loadRule.equals("")) {
-                tempFilterRules += Pattern.quote(loadRule) + "\n";
+                tempFilterRules += Pattern.quote(PathUtil.convertPathForOS(loadRule, isUnix)) + "\n";
             }
         }
         

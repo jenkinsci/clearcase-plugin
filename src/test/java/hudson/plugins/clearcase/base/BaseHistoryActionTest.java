@@ -592,10 +592,13 @@ public class BaseHistoryActionTest {
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Issue3666"));
                     allowing(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
+                    allowing(launcher).isUnix(); will(returnValue(false));
                 }});
         
         context.checking(new Expectations() {
                 {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
                     allowing(cleartool).pwv(with(any(String.class)));
                     will(returnValue("Y:\\Hudson.SAP.ICI.7.6.Quick"));
                     allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -643,10 +646,13 @@ public class BaseHistoryActionTest {
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Issue4430"));
                     allowing(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
+                    allowing(launcher).isUnix(); will(returnValue(false));
                 }});
         
         context.checking(new Expectations() {
                 {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
                     allowing(cleartool).pwv(with(any(String.class)));
                     will(returnValue("D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot"));
                     allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
@@ -688,6 +694,63 @@ public class BaseHistoryActionTest {
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "ecs3cop\\projects\\apps\\esa\\ecl\\sot\\sot_impl\\src\\main\\java\\com\\ascom\\ecs3\\ecl\\sot\\nodeoperationstate\\OperationStateManagerImpl.java", entry.getElements().get(0).getFile());
+    }
+
+
+
+    /**
+     * Making sure that load rules using "/" are handled properly on Windows.
+     */
+    @Bug(4781)
+    @Test
+    public void testUnixSlashesInWindowsLoadRules() throws Exception {
+        classContext.checking(new Expectations() {
+                {
+                    allowing(build).getParent(); will(returnValue(project));
+                    allowing(project).getName(); will(returnValue("Issue4781"));
+                    allowing(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
+                    allowing(launcher).isUnix(); will(returnValue(false));
+                }});
+        
+        context.checking(new Expectations() {
+                {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
+                    allowing(cleartool).pwv(with(any(String.class)));
+                    will(returnValue("D:\\hudson\\jobs\\somejob\\workspace\\someview"));
+                    allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
+                                                  with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                    will(returnValue(new StringReader(
+                                                      "\"20090909.124752\" \"erustt\" " +
+                                                      "\"D:\\hudson\\jobs\\somejob\\workspace\\someview\\some_vob\\path\\to\\file.java\" " +
+                                                      "\"\\main\\some_branch\\2\" \"create version\" \"checkin\"\n\n" +
+                                                      "\"20090909.091004\" \"eruegr\" " +
+                                                      "\"D:\\hudson\\jobs\\somejob\\workspace\\someview\\some_vob\\another\\path\\to\\anotherFile.java\" " +
+                                                      "\"\\main\\some_branch\\16\" \"create version\" \"checkin\"\n\n"
+                                                      )));
+                    
+                }
+            });
+
+        ClearCaseSCMDummy scm = new ClearCaseSCMDummy("some_branch", "configspec",
+                                                      "someview",
+                                                      true, "load /some_vob/path\n" +
+                                                      "load /some_vob/another\n",
+                                                      false, "", "", false, false, false, "", "",
+                                                      false, false, cleartool, clearCaseScmDescriptor);
+
+        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
+
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
+
+        List<ClearCaseChangeLogEntry> entries =
+            (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
+                                                              scm.generateNormalizedViewName((BuildVariableResolver)variableResolver),
+                                                              scm.getBranchNames(),
+                                                              scm.getViewPaths());
+        assertEquals("Number of history entries are incorrect", 2, entries.size());
+        ClearCaseChangeLogEntry entry = entries.get(0);
+        assertEquals("File path is incorrect", "some_vob\\path\\to\\file.java", entry.getElements().get(0).getFile());
     }
 
 
