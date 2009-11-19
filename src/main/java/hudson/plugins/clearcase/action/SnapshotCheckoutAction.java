@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase.action;
 
 import java.io.IOException;
+import java.util.Set;
 
 import hudson.FilePath;
 import hudson.Launcher;
@@ -59,6 +60,10 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
             if (updateView) {
                 String currentConfigSpec = getLoadRuleFreeConfigSpec(cleartool.catcs(viewName).trim());
                 if (!jobConfigSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
+                    updateView = false;
+                }
+                Set<String> configSpecLoadRules = extractLoadRules(cleartool.catcs(viewName).trim());
+                if (loadRulesNeedUpdating(configSpecLoadRules)) {
                     updateView = false;
                 }
             }
@@ -109,6 +114,20 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         }
 
         return true;
+    }
+
+    private boolean loadRulesNeedUpdating(Set<String> configSpecLoadRules) {
+        boolean recreate = false;
+        for (String loadRule : loadRules) {
+            if (!configSpecLoadRules.contains(loadRule)) {
+                System.out
+                    .println("Load rule: "
+                             + loadRule
+                             + " not found in current config spec, resetting config spec or recreating view");
+                recreate = true;
+            }
+        }
+        return recreate;
     }
 
 }
