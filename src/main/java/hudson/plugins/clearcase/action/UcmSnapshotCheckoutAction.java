@@ -80,7 +80,12 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
 
                         newConfigSpec += "load " + loadRule.trim() + "\n";
                     }
-                    cleartool.setcs(viewName, PathUtil.convertPathForOS(newConfigSpec, launcher));
+                    try {
+                        cleartool.setcs(viewName, PathUtil.convertPathForOS(newConfigSpec, launcher));
+                    } catch (IOException e) {
+                        launcher.getListener().fatalError(e.toString());
+                        return false;
+                    }
                     updateLoadRules = false;
                 }
             } else {
@@ -104,8 +109,13 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
                 if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
                     loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;
                 }
-                
-                cleartool.update(viewName, loadRule.trim());
+
+                try {
+                    cleartool.update(viewName, loadRule.trim());
+                } catch (IOException e) {
+                    launcher.getListener().fatalError(e.toString());
+                    return false;
+                }
             }
         }
         return true;

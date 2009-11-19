@@ -78,9 +78,26 @@ public class ClearToolSnapshot extends ClearToolExec {
             cmd.add("-current");
             cmd.add("-overwrite");
         }
-        launcher.run(cmd.toCommandArray(), null, null, workspace.child(viewName));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewName));
 
         configSpecFile.delete();
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+        if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
+            throw new IOException("View update failed: " + builder.toString());
+        }
     }
 
     /**
@@ -93,7 +110,24 @@ public class ClearToolSnapshot extends ClearToolExec {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
         cmd.add("-current");
-        launcher.run(cmd.toCommandArray(), null, null, workspace.child(viewName));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewName));
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
+            throw new IOException("View update failed: " + builder.toString());
+        }
     }
 
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
@@ -173,7 +207,24 @@ public class ClearToolSnapshot extends ClearToolExec {
                 cmd.add(loadRulesLocation);
             }
         }
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
+            throw new IOException("View update failed: " + builder.toString());
+        }
     }
 
 
