@@ -82,7 +82,12 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         }
         
         if (updateView) {
-            cleartool.setcs(viewName, null);
+            try {
+                cleartool.setcs(viewName, null);
+            } catch (IOException e) {
+                launcher.getListener().fatalError(e.toString());
+                return false;
+            }
         }
         else {
             String newConfigSpec = jobConfigSpec + "\n";
@@ -95,7 +100,12 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
                 newConfigSpec += "load " + loadRule.trim() + "\n";
             }
             newConfigSpec = PathUtil.convertPathForOS(newConfigSpec, launcher);
-            cleartool.setcs(viewName, PathUtil.convertPathForOS(newConfigSpec, launcher));
+            try {
+                cleartool.setcs(viewName, PathUtil.convertPathForOS(newConfigSpec, launcher));
+            } catch (IOException e) {
+                launcher.getListener().fatalError(e.toString());
+                return false;
+            }
         }
 
         return true;
