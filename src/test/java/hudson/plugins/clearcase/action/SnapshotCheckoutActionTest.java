@@ -160,7 +160,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {
-                    one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
+                    allowing(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
                     one(clearTool).setcs("viewname", null);
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                 }
@@ -209,7 +209,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
                 {
-                    one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
+                    allowing(clearTool).catcs("viewname"); will(returnValue("other configspec"));
                     one(clearTool).setcs("viewname", "configspec\nload /foo\n");
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                 }
