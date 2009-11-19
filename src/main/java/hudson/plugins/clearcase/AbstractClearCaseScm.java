@@ -521,7 +521,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                 AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
                 if (project.getScm() instanceof AbstractClearCaseScm) {
                 	try {
-	                	AbstractClearCaseScm ccScm = (AbstractClearCaseScm) project.getScm();
+                            AbstractClearCaseScm ccScm = (AbstractClearCaseScm) project.getScm();
 	                    StreamTaskListener listener = new StreamTaskListener(
 	                                                                         System.out);
 	                    Launcher launcher = Hudson.getInstance()
@@ -530,12 +530,17 @@ public abstract class AbstractClearCaseScm extends SCM {
 	                                                         ccScm.createClearToolLauncher(listener,
 	                                                                                       project.getSomeWorkspace().getParent()
 	                                                                                       .getParent(), launcher));
-                    
-                        // Get the view UUID.
-                        String uuid = ct.getViewUuid(ccScm.generateNormalizedViewName(project.getLastBuild()));
-                        ct.rmviewUuid(uuid);
-                        ct.unregisterView(uuid);
-                        ct.rmviewtag(ccScm.generateNormalizedViewName(project.getLastBuild()));                                         
+
+                            // Adding checks to avoid NPE in HUDSON-4869
+                            if (project.getLastBuild()!=null) {
+                                // Get the view UUID.
+                                String uuid = ct.getViewUuid(ccScm.generateNormalizedViewName(project.getLastBuild()));
+                                if ((uuid!=null) && (!uuid.equals(""))) {
+                                    ct.rmviewUuid(uuid);
+                                    ct.unregisterView(uuid);
+                                    ct.rmviewtag(ccScm.generateNormalizedViewName(project.getLastBuild()));
+                                }
+                            }
                     } catch (Exception e) {
                         Logger.getLogger(
                                          AbstractClearCaseScm.class.getName()).log(
