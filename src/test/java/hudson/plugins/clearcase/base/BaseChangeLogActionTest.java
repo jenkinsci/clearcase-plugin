@@ -238,6 +238,43 @@ public class BaseChangeLogActionTest {
         context.assertIsSatisfied();
     }
 
+    /**
+     * Issue 5012 - the load rules matching in the history filter was picking up "/vobs/inf_foo/etc" when "/vobs/inf" was given as a load rule.
+     */
+    @Test
+    public void testLoadRulesMatchTooGreedy() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                    will(returnValue(new StringReader(
+                                                      "\"20091013.080912\" \"picker\" \"create version\" \"/vobs/inf/Messages/src/ServiceException.cc\" \"/main/test/dev/0\" \"mkbranch\"\n\n"
+                                                      + "\"20091013.082113\" \"picker\" \"create directory version\" \"/vobs/inf\" \"/main/test/dev/7\" \"mkelem\"\n\n"
+                                                      + "\"20091013.084013\" \"picker\" \"create directory version\" \"/vobs/inf\" \"/main/test/dev/8\" \"mkelem\"\n\n"
+                                                      + "\"20091012.163839\" \"callow\" \"create version\" \"/vobs/inf_foo/SomeFile.java\" \"/main/test/dev/0\" \"mkbranch\"\n\n")));
+
+                }
+            });
+        
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new DestroySubBranchFilter());
+        String tempFilterRules = "";
+        String[] loadRules = new String[]{"vobs/inf"};
+        
+        String regexpStr = AbstractClearCaseScm.getViewPathsRegexp(loadRules, true);
+
+        if (!regexpStr.equals("")) {
+            filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, regexpStr));
+        }
+
+        BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,filters);
+
+        List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"dev"}, loadRules);
+        assertEquals("Number of history entries are incorrect", 3, changes.size());
+        assertEquals("First entry is incorrect", "picker", changes.get(0).getUser());
+        context.assertIsSatisfied();
+    }
+
     @Test
     public void testMultiline() throws Exception {
         context.checking(new Expectations() {
