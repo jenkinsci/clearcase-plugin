@@ -627,7 +627,8 @@ public abstract class AbstractClearCaseScm extends SCM {
         
         for (String loadRule : loadRules) {
             if (!loadRule.equals("")) {
-                tempFilterRules += Pattern.quote(PathUtil.convertPathForOS(loadRule, isUnix)) + "\n";
+                tempFilterRules += Pattern.quote(PathUtil.convertPathForOS(loadRule + "/", isUnix)) + "\n";
+                tempFilterRules += Pattern.quote(PathUtil.convertPathForOS(loadRule, isUnix)) + "$\n";
             }
         }
         
