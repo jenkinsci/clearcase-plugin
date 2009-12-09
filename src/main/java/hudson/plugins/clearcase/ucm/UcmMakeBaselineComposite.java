@@ -39,6 +39,7 @@ import hudson.plugins.clearcase.PluginImpl;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
+import hudson.tasks.Publisher;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.LogTaskListener;
 
@@ -66,7 +67,6 @@ import org.kohsuke.stapler.StaplerRequest;
 public class UcmMakeBaselineComposite extends Notifier {
 
 
-    public final static BuildStepDescriptor DESCRIPTOR = new UcmMakeBaselineDescriptor();
     private static final Logger LOGGER = Logger
         .getLogger(UcmMakeBaselineComposite.class.getName());
 
@@ -92,11 +92,18 @@ public class UcmMakeBaselineComposite extends Notifier {
     public String getFileName() {
         return this.fileName;
     }   
-    
-    @Extension
-    public static final class UcmMakeBaselineDescriptor extends BuildStepDescriptor {
 
-        public UcmMakeBaselineDescriptor() {
+    
+    @Override
+    public DescriptorImpl getDescriptor() {
+        // see Descriptor javadoc for more about what a descriptor is.
+        return (DescriptorImpl) super.getDescriptor();
+    }
+
+    @Extension
+    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+
+        public DescriptorImpl() {
             super(UcmMakeBaselineComposite.class);
         }
 
@@ -210,11 +217,6 @@ public class UcmMakeBaselineComposite extends Notifier {
             
         }
         return true;
-    }
-
-
-    public BuildStepDescriptor getDescriptor() {
-        return DESCRIPTOR;
     }
 
 

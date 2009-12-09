@@ -86,8 +86,6 @@ public class UcmMakeBaseline extends Notifier {
 
     private transient List<String> createdBaselines = null;
 
-    public final static BuildStepDescriptor DESCRIPTOR = new UcmMakeBaselineDescriptor();
-
     private final String namePattern;
 
     private final String commentPattern;
@@ -142,10 +140,17 @@ public class UcmMakeBaseline extends Notifier {
         return readWriteComponents;
     }
 
+
+    @Override
+    public DescriptorImpl getDescriptor() {
+        // see Descriptor javadoc for more about what a descriptor is.
+        return (DescriptorImpl) super.getDescriptor();
+    }
+
     @Extension
-    public static final class UcmMakeBaselineDescriptor extends BuildStepDescriptor {
+    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         
-        public UcmMakeBaselineDescriptor() {
+        public DescriptorImpl() {
             super(UcmMakeBaseline.class);
         }
         
@@ -339,11 +344,6 @@ public class UcmMakeBaseline extends Notifier {
                                          "Not a UCM clearcase SCM, cannot create baseline");
         }
         return true;
-    }
-
-    @Override
-    public BuildStepDescriptor getDescriptor() {
-        return DESCRIPTOR;
     }
 
     private void rebaseDynamicView(HudsonClearToolLauncher clearToolLauncher,
