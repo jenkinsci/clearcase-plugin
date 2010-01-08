@@ -309,6 +309,13 @@ public abstract class AbstractClearCaseScm extends SCM {
     public Computer getCurrentComputer() {
         return Computer.currentComputer();
     }
+
+    /**
+     * Returns the computer a given build ran on. We wrap this here for mocking purposes.
+     */
+    public Computer getBuildComputer(AbstractBuild<?,?> build) {
+        return build.getBuiltOn().toComputer();
+    }
     
     /**
      * Returns a normalized view name that will be used in cleartool commands.
@@ -459,7 +466,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             buildTime = new Date(lastBuildMilliSecs - (1000 * 60 * getMultiSitePollBuffer()));
         }
 
-        VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, getCurrentComputer());
+        VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, getBuildComputer((AbstractBuild<?,?>) lastBuild));
 
         HistoryAction historyAction = createHistoryAction(variableResolver,
                                                           createClearToolLauncher(listener, workspace, launcher));
