@@ -172,7 +172,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     allowing(clearToolLauncher).getWorkspace();
                     will(returnValue(workspace));
                     one(clearToolLauncher).run(
-                                               with(equal(new String[] { "setcs", "-current", "-overwrite" })),
+                                               with(equal(new String[] { "setcs", "-current" })),
                                                with(aNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
                                                with(aNonNull(FilePath.class)));
@@ -210,7 +210,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     allowing(clearToolLauncher).getWorkspace();
                     will(returnValue(workspace));
                     one(clearToolLauncher).run(
-                                               with(equal(new String[] { "setcs", "-current", "-overwrite" })),
+                                               with(equal(new String[] { "setcs", "-current" })),
                                                with(aNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
                                                with(aNonNull(FilePath.class)));

@@ -76,7 +76,6 @@ public class ClearToolSnapshot extends ClearToolExec {
         }
         else {
             cmd.add("-current");
-            cmd.add("-overwrite");
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();  
         launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewName));
