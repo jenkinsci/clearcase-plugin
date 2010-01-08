@@ -100,8 +100,8 @@ public class BuildVariableResolver implements VariableResolver<String> {
                 return env.get(key);
             }
         } catch (Exception e) {
-            LOGGER.warning("Variable name '" + key
-                           + "' look up failed because of " + e);
+            LOGGER.log(Level.WARNING, "Variable name '" + key
+                       + "' look up failed", e);
         }
         return null;
     }
