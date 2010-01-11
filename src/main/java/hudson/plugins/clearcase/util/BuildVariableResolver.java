@@ -95,14 +95,14 @@ public class BuildVariableResolver implements VariableResolver<String> {
                     .get("user.name");
             }
             
-            EnvVars env = build.getEnvironment(ltl);
-            if (env.containsKey(key)) {
-                return env.get(key);
-            }
-
             EnvVars compEnv = computer.getEnvironment();
             if (compEnv.containsKey(key)) {
                 return compEnv.get(key);
+            }
+
+            EnvVars env = build.getEnvironment(ltl);
+            if (env.containsKey(key)) {
+                return env.get(key);
             }
 
         } catch (Exception e) {
