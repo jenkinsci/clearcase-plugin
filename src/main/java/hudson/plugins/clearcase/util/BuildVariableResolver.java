@@ -99,6 +99,12 @@ public class BuildVariableResolver implements VariableResolver<String> {
             if (env.containsKey(key)) {
                 return env.get(key);
             }
+
+            EnvVars compEnv = computer.getEnvironment();
+            if (compEnv.containsKey(key)) {
+                return compEnv.get(key);
+            }
+
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Variable name '" + key
                        + "' look up failed", e);
