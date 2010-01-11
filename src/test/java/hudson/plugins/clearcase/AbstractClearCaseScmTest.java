@@ -30,6 +30,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.matrix.MatrixBuild;
@@ -46,6 +47,7 @@ import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCMDescriptor;
+import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
 import java.io.File;
@@ -72,6 +74,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     private AbstractProject project;
     private Build build;
     private Computer computer;
+    private EnvVars envVars;
     
     private EventRecordFilter filter;
     
@@ -103,6 +106,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         project = classContext.mock(AbstractProject.class);
         build = classContext.mock(Build.class);
         computer = classContext.mock(Computer.class);
+        envVars = classContext.mock(EnvVars.class);
         Map systemProperties = new HashMap();
         systemProperties.put("user.name", "henrik");
         resolver = context.mock(VariableResolver.class);
@@ -215,6 +219,30 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         String username = System.getProperty("user.name");
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("${JOB_NAME}-${USER_NAME}-${NODE_NAME}-view", "vob", "", true);
         assertEquals("The macros were not replaced in the normalized view name", "Hudson-" + username + "-test-node-view", scm.generateNormalizedViewName(build));
+        classContext.assertIsSatisfied();
+    }
+
+    
+    @Test
+    public void testViewNameMacrosUsingComputerEnv() throws IOException,InterruptedException{
+        classContext.checking(new Expectations() {
+                {
+                    allowing(build).getParent(); will(returnValue(project));
+                    allowing(project).getName(); will(returnValue("Hudson"));
+                    allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars()));
+                    //              allowing(launcher).getComputer(); will(returnValue(computer));
+                    //allowing(computer).currentComputer(); will(returnValue(computer));
+                    allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                    allowing(computer).getName(); will(returnValue("test-node"));
+                    allowing(computer).getEnvironment(); will(returnValue(envVars));
+                    allowing(envVars).containsKey("TEST_VARIABLE"); will(returnValue(true));
+                    allowing(envVars).get("TEST_VARIABLE"); will(returnValue("result-of-test"));
+                }
+            });
+        //        String username = (String)Computer.currentComputer().getSystemProperties().get("user.name");
+        String username = System.getProperty("user.name");
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("${JOB_NAME}-${TEST_VARIABLE}-view", "vob", "", true);
+        assertEquals("The macros were not replaced in the normalized view name", "Hudson-result-of-test-view", scm.generateNormalizedViewName(build));
         classContext.assertIsSatisfied();
     }
 
