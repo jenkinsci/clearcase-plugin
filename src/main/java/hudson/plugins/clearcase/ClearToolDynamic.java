@@ -36,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.File;
 import java.util.Random;
 
 public class ClearToolDynamic extends ClearToolExec {
@@ -82,7 +83,7 @@ public class ClearToolDynamic extends ClearToolExec {
         else {
             cmd.add("-current");
         }
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        launcher.run(cmd.toCommandArray(), null, null, getRootViewPath(launcher).child(viewName));
 
         configSpecFile.delete();
     }    

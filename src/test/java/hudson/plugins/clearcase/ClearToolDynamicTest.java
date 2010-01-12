@@ -66,7 +66,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
     public void testSetcs() throws Exception {
         context.checking(new Expectations() {
                 {
-                    one(launcher).getWorkspace();
+                    allowing(launcher).getWorkspace();
                     will(returnValue(workspace));
                     one(launcher).run(
                                       with(allOf(hasItemInArray("setcs"),
@@ -74,8 +74,9 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
                                                  hasItemInArray("viewName"))),
                                       with(aNull(InputStream.class)),
                                       with(aNull(OutputStream.class)),
-                                      with(aNull(FilePath.class)));
+                                      with(any(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
+                    
                 }
             });
 
@@ -91,7 +92,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
     public void testSetcsCurrent() throws Exception {
         context.checking(new Expectations() {
                 {
-                    one(launcher).getWorkspace();
+                    allowing(launcher).getWorkspace();
                     will(returnValue(workspace));
                     one(launcher).run(
                                       with(allOf(hasItemInArray("setcs"),
@@ -100,7 +101,7 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
                                                  hasItemInArray("-current"))),
                                       with(aNull(InputStream.class)),
                                       with(aNull(OutputStream.class)),
-                                      with(aNull(FilePath.class)));
+                                      with(any(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                 }
             });

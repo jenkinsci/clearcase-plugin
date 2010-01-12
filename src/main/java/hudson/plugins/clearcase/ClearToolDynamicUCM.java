@@ -96,7 +96,7 @@ public class ClearToolDynamicUCM extends ClearToolExec {
         cmd.add("-tag");
         cmd.add(viewName);
         cmd.add("-stream");
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        launcher.run(cmd.toCommandArray(), null, null, getRootViewPath(launcher).child(viewName));
     }
 
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
