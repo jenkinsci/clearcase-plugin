@@ -117,7 +117,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
     @Override
     public String[] getBranchNames() {
-        if (!overrideBranchName.equals("")) {
+        if ((overrideBranchName!=null) && (!overrideBranchName.equals(""))) {
             return new String[] { overrideBranchName };
         }
         else {
