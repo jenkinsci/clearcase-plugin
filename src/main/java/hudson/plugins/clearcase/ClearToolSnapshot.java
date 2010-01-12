@@ -190,6 +190,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("update");
         cmd.add("-force");
+        cmd.add("-overwrite");
         cmd.add("-log", "NUL");
         if (loadRules == null) {
             cmd.add(viewName);
