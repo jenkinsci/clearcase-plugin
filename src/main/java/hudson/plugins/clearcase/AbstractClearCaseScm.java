@@ -79,7 +79,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final String viewName;
     private final String mkviewOptionalParam;
     private final boolean filteringOutDestroySubBranchEvent;
-    private transient String normalizedViewName;
+    private transient ThreadLocal<String> normalizedViewName;
     private final boolean useUpdate;
     private final boolean removeViewOnRename;
     private String excludedRegions;
@@ -91,12 +91,20 @@ public abstract class AbstractClearCaseScm extends SCM {
     private String winDynStorageDir;
     private String unixDynStorageDir;
     
+    private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
+    	if (null == this.normalizedViewName) {
+            this.normalizedViewName = new ThreadLocal<String>();
+    	}
+    	
+    	return this.normalizedViewName;
+    }
+    
     protected void setNormalizedViewName(String normalizedViewName) {
-        this.normalizedViewName = normalizedViewName;
+        getNormalizedViewNameThreadLocalWrapper().set(normalizedViewName);
     }
     
     protected String getNormalizedViewName() {
-        return normalizedViewName;
+        return getNormalizedViewNameThreadLocalWrapper().get();
     }
     
     public AbstractClearCaseScm(final String viewName,
@@ -349,7 +357,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         
         generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
                                                                              "[\\s\\\\\\/:\\?\\*\\|]+", "_");
-        this.normalizedViewName = generatedNormalizedViewName;
+        setNormalizedViewName(generatedNormalizedViewName);
         return generatedNormalizedViewName;
     }
     
@@ -412,9 +420,9 @@ public abstract class AbstractClearCaseScm extends SCM {
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
 
         // Checkout code
-        String normalizedViewName = generateNormalizedViewName(build);
+        String coNormalizedViewName = generateNormalizedViewName(build);
         
-        if (checkoutAction.checkout(launcher, workspace, normalizedViewName)) {
+        if (checkoutAction.checkout(launcher, workspace, coNormalizedViewName)) {
             
             // Gather change log
             List<? extends ChangeLogSet.Entry> changelogEntries = null;
@@ -429,7 +437,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                 }
                 
                 changelogEntries = historyAction.getChanges(lastBuildTime,
-                                                            normalizedViewName, getBranchNames(),
+                                                            coNormalizedViewName, getBranchNames(),
                                                             getViewPaths());
             }
             
@@ -471,10 +479,10 @@ public abstract class AbstractClearCaseScm extends SCM {
         HistoryAction historyAction = createHistoryAction(variableResolver,
                                                           createClearToolLauncher(listener, workspace, launcher));
 
-        String normalizedViewName = generateNormalizedViewName(
-                                                               (AbstractBuild) lastBuild);
+        String poNormalizedViewName = generateNormalizedViewName(
+                                                                 (AbstractBuild) lastBuild);
 
-        return historyAction.hasChanges(buildTime, normalizedViewName,
+        return historyAction.hasChanges(buildTime, poNormalizedViewName,
                                         getBranchNames(), getViewPaths());
     }
 
