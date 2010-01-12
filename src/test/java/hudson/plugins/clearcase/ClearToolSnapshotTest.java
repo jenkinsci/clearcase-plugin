@@ -152,7 +152,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).run(
-                                               with(equal(new String[] { "update", "-force", "-log",
+                                               with(equal(new String[] { "update", "-force", "-overwrite", "-log",
                                                                          "NUL", "viewName" })),
                                                with(aNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
@@ -189,7 +189,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
                 {
                     one(clearToolLauncher).run(
-                                               with(equal(new String[] { "update", "-force", "-log",
+                                               with(equal(new String[] { "update", "-force", "-overwrite", "-log",
                                                                          "NUL", "viewName" })),
                                                with(aNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
@@ -242,6 +242,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                              with(equal(new String[] {
                                          "update",
                                          "-force",
+                                         "-overwrite",
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
@@ -274,6 +275,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                              with(equal(new String[] {
                                          "update",
                                          "-force",
+                                         "-overwrite",
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
@@ -306,6 +308,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                              with(equal(new String[] {
                                          "update",
                                          "-force",
+                                         "-overwrite",
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
@@ -338,6 +341,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                              with(equal(new String[] {
                                          "update",
                                          "-force",
+                                         "-overwrite",
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
