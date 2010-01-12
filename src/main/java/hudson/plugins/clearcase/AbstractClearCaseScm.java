@@ -479,8 +479,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         HistoryAction historyAction = createHistoryAction(variableResolver,
                                                           createClearToolLauncher(listener, workspace, launcher));
 
-        String poNormalizedViewName = generateNormalizedViewName(
-                                                                 (AbstractBuild) lastBuild);
+        String poNormalizedViewName = generateNormalizedViewName((BuildVariableResolver) variableResolver);
 
         return historyAction.hasChanges(buildTime, poNormalizedViewName,
                                         getBranchNames(), getViewPaths());
