@@ -36,7 +36,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.File;
 import java.util.Random;
 
 public class ClearToolDynamic extends ClearToolExec {

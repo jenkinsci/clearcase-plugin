@@ -273,7 +273,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     @Override
     public FilePath getModuleRoot(FilePath workspace) {
         if (useDynamicView) {
-            return new FilePath(workspace.getChannel(), viewDrive + File.separator + getNormalizedViewName());
+            return new FilePath(workspace.getChannel(), viewDrive).child(getNormalizedViewName());
         }
         else {
             if (getNormalizedViewName() == null) {
