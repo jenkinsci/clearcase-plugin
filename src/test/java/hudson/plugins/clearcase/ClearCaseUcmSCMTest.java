@@ -56,6 +56,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     private Launcher launcher;
     private ClearToolLauncher clearToolLauncher;
     private Computer computer;
+    private ClearCaseUcmSCM.ClearCaseUcmScmDescriptor clearCaseUcmScmDescriptor;
     
     @Before
     public void setUp() throws Exception {
@@ -69,6 +70,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         build = classContext.mock(Build.class);
         launcher = classContext.mock(Launcher.class);
         computer = classContext.mock(Computer.class);
+        clearCaseUcmScmDescriptor = classContext.mock(ClearCaseUcmSCM.ClearCaseUcmScmDescriptor.class);
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
@@ -210,38 +212,12 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
             });
         
         ClearCaseUcmSCM scm = new ClearCaseUcmSCMDummy("stream:mystream", "somefile", "viewname-${JOB_NAME}", true, "/view",
-                                                       null, true, false, false, null, null, null, false);
+                                                       null, true, false, false, null, null, null, false, cleartool,
+                                                       clearCaseUcmScmDescriptor);
         // Create actions
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
         UcmHistoryAction action = (UcmHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
         classContext.assertIsSatisfied();
     }
-
-
-    private class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
-        public ClearCaseUcmSCMDummy(String stream, String loadrules, String viewname,
-                                    boolean usedynamicview, String viewdrive,
-                                    String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent,
-                                    boolean useUpdate, boolean rmviewonrename,
-                                    String excludedRegions, String multiSitePollBuffer,
-                                    String overrideBranchName, boolean createDynView) {
-            super(stream, loadrules, viewname, usedynamicview,
-                  viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate,
-                  rmviewonrename, excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView);
-        }
-        
-        @Override
-        protected ClearTool createClearTool(VariableResolver variableResolver,
-                                            ClearToolLauncher launcher) {
-            return cleartool;
-        }
-
-        @Override
-        public Computer getCurrentComputer() {
-            return computer;
-        }
-
-    }
-
 }

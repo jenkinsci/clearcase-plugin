@@ -607,7 +607,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     
-    protected List<Filter> configureFilters(ClearToolLauncher ctLauncher) {
+    public List<Filter> configureFilters(ClearToolLauncher ctLauncher) {
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DefaultFilter());
         
@@ -641,6 +641,13 @@ public abstract class AbstractClearCaseScm extends SCM {
         
         for (String loadRule : loadRules) {
             if (!loadRule.equals("")) {
+                if (loadRule.endsWith("/")) {
+                    loadRule = loadRule.substring(0, loadRule.lastIndexOf("/"));
+                }
+                if (loadRule.endsWith("\\")) {
+                    loadRule = loadRule.substring(0, loadRule.lastIndexOf("\\"));
+                }
+                
                 tempFilterRules += Pattern.quote(PathUtil.convertPathForOS(loadRule + "/", isUnix)) + "\n";
                 tempFilterRules += Pattern.quote(PathUtil.convertPathForOS(loadRule, isUnix)) + "$\n";
             }
