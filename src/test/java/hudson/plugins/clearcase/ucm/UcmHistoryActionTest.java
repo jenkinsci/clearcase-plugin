@@ -31,14 +31,22 @@ import java.io.StringReader;
 import java.util.Date;
 import java.util.List;
 
+import hudson.Launcher;
+import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.history.DefaultFilter;
 import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.Filter;
 
+import hudson.plugins.clearcase.ClearCaseUcmSCMDummy;
+
+import org.jvnet.hudson.test.Bug;
+
 import java.util.ArrayList;
 import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Mockery;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,12 +54,24 @@ import org.junit.Test;
 public class UcmHistoryActionTest {
 
     private Mockery context;
+    private Mockery classContext;
     private ClearTool cleartool;
+    private ClearToolLauncher clearToolLauncher;
+    private Launcher launcher;
+    private ClearCaseUcmSCM.ClearCaseUcmScmDescriptor clearCaseUcmScmDescriptor;
 
     @Before
     public void setUp() throws Exception {
+        classContext = new Mockery() {
+                {
+                    setImposteriser(ClassImposteriser.INSTANCE);
+                }
+            };
+        launcher = classContext.mock(Launcher.class);
+        clearCaseUcmScmDescriptor = classContext.mock(ClearCaseUcmSCM.ClearCaseUcmScmDescriptor.class);
         context = new Mockery();
         cleartool = context.mock(ClearTool.class);
+        clearToolLauncher = context.mock(ClearToolLauncher.class);
         
     }
 
@@ -431,4 +451,43 @@ public class UcmHistoryActionTest {
         context.assertIsSatisfied();
         lsactivityReader.ready();
     }
+
+    @Bug(5342)
+    @Test
+    public void testUCMTrailingSlashesInLoadRules() throws Exception {
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCMDummy("jcp_v13.1_be_int@\\june2008_recover", "\\be_rec\\config\\\r\n\\be_rec\\access\\\r\n"
+                                                       + "\\be_rec\\admins\\\r\n\\be_rec\\be\\\r\n\\be_rec\\buildservices\\\r\n"
+                                                       + "\\be_rec\\uf\\\r\n\\be_rec\\sef\\\r\n\\be_rec\\jwash\\", "stromp_be_builc", false, "M:\\",
+                                                       null, true, true, false, null, null, null, false,
+                                                       cleartool, clearCaseUcmScmDescriptor);
+
+        classContext.checking(new Expectations() {
+                {
+                    allowing(launcher).isUnix(); will(returnValue(false));
+                }
+            });
+        context.checking(new Expectations() {
+                {
+                    allowing(clearToolLauncher).getLauncher();
+                    will(returnValue(launcher));
+                    one(cleartool).lshistory(with(aNonNull(String.class)),
+                                             with(aNull(Date.class)),
+                                             with(equal("stromp_be_builc")),
+                                             with(equal("jcp_v13.1_be_int")),
+                                             with(any(String[].class)));
+                    will(returnValue(new StringReader(
+                                                      "\"20100120.114845\" \"lmiguet\" "
+                                                      + "\"D:\\java\\hudson\\jobs\\stromp_be_test\\workspace\\stromp_be_builc\\be_rec\\be\\airshopper\\legacy\\src\\main\\java\\com\\amadeus\\ocg\\standard\\business\\farecommon\\entity\\PricingCommandOutput.java\" "
+                                                      + "\"\\main\\jcp_v13.1_be_int\\4\" \"create version\" \"checkin\" \"PTR3693254_WWW_AeRE_V131_INTCR_3313592-_Code_Review\" ")));
+                }
+            });
+
+
+        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,scm.configureFilters(clearToolLauncher));
+        action.setExtendedViewPath("D:\\java\\hudson\\jobs\\stromp_be_test\\workspace\\stromp_be_builc\\");
+        boolean hasChange = action.hasChanges(null, "stromp_be_builc", new String[]{"jcp_v13.1_be_int"}, scm.getViewPaths());
+        assertTrue("The hasChanges() method did not report a change", hasChange);
+        context.assertIsSatisfied();
+    }
+        
 }
