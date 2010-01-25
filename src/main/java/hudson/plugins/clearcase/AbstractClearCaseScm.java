@@ -545,14 +545,17 @@ public abstract class AbstractClearCaseScm extends SCM {
 	                                                                                       project.getSomeWorkspace().getParent()
 	                                                                                       .getParent(), launcher));
 
+
                             // Adding checks to avoid NPE in HUDSON-4869
                             if (project.getLastBuild()!=null) {
+                                // Create a variable resolver using the last build's computer - HUDSON-5364
+                                BuildVariableResolver variableResolver = new BuildVariableResolver(project.getLastBuild(), getBuildComputer(project.getLastBuild()));
                                 // Get the view UUID.
-                                String uuid = ct.getViewUuid(ccScm.generateNormalizedViewName(project.getLastBuild()));
+                                String uuid = ct.getViewUuid(ccScm.generateNormalizedViewName(variableResolver));
                                 if ((uuid!=null) && (!uuid.equals(""))) {
                                     ct.rmviewUuid(uuid);
                                     ct.unregisterView(uuid);
-                                    ct.rmviewtag(ccScm.generateNormalizedViewName(project.getLastBuild()));
+                                    ct.rmviewtag(ccScm.generateNormalizedViewName(variableResolver));
                                 }
                             }
                     } catch (Exception e) {
