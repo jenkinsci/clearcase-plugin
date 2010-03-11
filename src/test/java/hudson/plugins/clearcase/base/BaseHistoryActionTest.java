@@ -619,7 +619,7 @@ public class BaseHistoryActionTest {
 
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
         /*      assertEquals("The extended view path is incorrect.",
                 "Y:\\Hudson.SAP.ICI.7.6.Quick\\",
                 action.getExtendedViewPath());
@@ -684,7 +684,7 @@ public class BaseHistoryActionTest {
 
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
 
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
@@ -741,7 +741,7 @@ public class BaseHistoryActionTest {
 
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
 
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),

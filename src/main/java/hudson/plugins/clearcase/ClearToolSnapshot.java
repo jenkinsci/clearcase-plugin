@@ -130,7 +130,8 @@ public class ClearToolSnapshot extends ClearToolExec {
     }
 
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
-        ArgumentListBuilder cmd = new ArgumentListBuilder();
+    	boolean isOptionalParamContainsHost = false;
+    	ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkview");
         cmd.add("-snapshot");
         if (streamSelector != null) {
@@ -143,8 +144,12 @@ public class ClearToolSnapshot extends ClearToolExec {
         if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
             String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
             cmd.addTokenized(variabledResolvedParams);
+            isOptionalParamContainsHost = optionalMkviewParameters.contains("-host");
         }
-        cmd.add(viewName);
+        
+        if (! isOptionalParamContainsHost)
+        	cmd.add(viewName);
+        
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
     

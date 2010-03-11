@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 public interface ClearTool {
 
@@ -45,6 +46,13 @@ public interface ClearTool {
      * @param loadRules optional load rules, null if not used.
      */
     void update(String viewName, String loadRules) throws IOException, InterruptedException;
+    
+    /**
+     * Ends the view 
+     * 
+     * @param viewName the name of the view
+     */    
+    void endView(String viewName) throws IOException, InterruptedException;
     
     /**
      * Removes the view from a VOB
@@ -202,7 +210,7 @@ public interface ClearTool {
      * @throws IOException
      * @throws InterruptedException
      */
-    String getViewUuid(String viewName) throws IOException, InterruptedException;
+    Properties getViewData(String viewName) throws IOException, InterruptedException;
     
     void logRedundantCleartoolError(String [] cmd, Exception ex);
     

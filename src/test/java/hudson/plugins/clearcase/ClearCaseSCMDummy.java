@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase; 
 
+import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.util.VariableResolver;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
@@ -77,8 +78,9 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
 
     @Override
     public HistoryAction createHistoryAction(
-                                             VariableResolver variableResolver, ClearToolLauncher launcher) {
-        return super.createHistoryAction(variableResolver, launcher);
+                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) {   
+
+        return super.createHistoryAction(variableResolver, launcher, null);
     }
     
     @Override

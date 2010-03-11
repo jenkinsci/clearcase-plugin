@@ -97,8 +97,8 @@
           
           <f:block>
       	  	<table>
-	          <f:optionalBlock name="cc.createDynView" title="Create Dynamic View"
-	                         checked="${scm.createDynView}" help="/plugin/clearcase/dynamicview.html">
+	          <f:optionalBlock name="cc.createDynView" title="Create view if view doesn't exist"
+	                         checked="${scm.createDynView}">
 			    
 			    <f:entry title="Windows dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
 			      <f:textbox name="cc.winDynStorageDir" value="${h.defaulted(scm.winDynStorageDir, descriptor.defaultWinDynStorageDir)}" />

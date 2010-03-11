@@ -63,6 +63,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -76,7 +77,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
     public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
     
-    private final String viewName;
+    private String viewName;
     private final String mkviewOptionalParam;
     private final boolean filteringOutDestroySubBranchEvent;
     private transient ThreadLocal<String> normalizedViewName;
@@ -87,9 +88,11 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean useDynamicView;
     private final String viewDrive;
     private int multiSitePollBuffer;
-    private boolean createDynView;
-    private String winDynStorageDir;
-    private String unixDynStorageDir;
+    private final boolean createDynView;
+    private final String winDynStorageDir;
+    private final String unixDynStorageDir;
+    private final boolean freezeCode;
+    private final boolean recreateView;
     
     private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
     	if (null == this.normalizedViewName) {
@@ -119,7 +122,9 @@ public abstract class AbstractClearCaseScm extends SCM {
                                 final String multiSitePollBuffer,
                                 final boolean createDynView,
                                 final String winDynStorageDir,
-                                final String unixDynStorageDir) {
+                                final String unixDynStorageDir,
+                                final boolean freezeCode,
+                                final boolean recreateView) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
@@ -143,6 +148,8 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.createDynView = createDynView;
         this.winDynStorageDir = winDynStorageDir;
         this.unixDynStorageDir = unixDynStorageDir;
+        this.freezeCode = freezeCode;
+        this.recreateView = recreateView;
     }
     
     /**
@@ -153,7 +160,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return an action that can check out code from a ClearCase repository.
      */
     protected abstract CheckOutAction createCheckOutAction(
-                                                           VariableResolver variableResolver, ClearToolLauncher launcher);
+                                                           VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build);
     
     // /**
     // * Create a PollAction that will be used by the pollChanges() method.
@@ -179,7 +186,8 @@ public abstract class AbstractClearCaseScm extends SCM {
      */
     protected abstract HistoryAction createHistoryAction(
                                                          VariableResolver variableResolver,
-                                                         ClearToolLauncher launcher);
+                                                         ClearToolLauncher launcher, 
+                                                         AbstractBuild build);
     
     /**
      * Create a SaveChangeLog action that is used to save a change log
@@ -221,6 +229,9 @@ public abstract class AbstractClearCaseScm extends SCM {
      *         constructing the config spec, etc.
      */
     public String[] getViewPaths() {
+    	if (getLoadRules().trim().length() == 0)
+    		return null;
+    	
         String[] rules = getLoadRules().split("[\\r\\n]+");
         for (int i = 0; i < rules.length; i++) {
             String rule = rules[i];
@@ -291,7 +302,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             return viewName;
         }
     }
-    
+
 	public String getWinDynStorageDir() {
 		return winDynStorageDir;
 	}
@@ -308,9 +319,17 @@ public abstract class AbstractClearCaseScm extends SCM {
 	public String getNormalizedUnixDynStorageDir(VariableResolver variableResolver) {
         String res = Util.replaceMacro(getUnixDynStorageDir(), variableResolver);        
         return res;	
-	}    
+	}	
 
-    /**
+    public boolean isFreezeCode() {
+		return freezeCode;
+	}
+
+	public boolean isRecreateView() {
+		return recreateView;
+	}
+
+	/**
      * Returns the current computer - used in constructor for BuildVariableResolver in place of
      * direct call to Computer.currentComputer() so we can mock it in unit tests.
      */
@@ -339,6 +358,27 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String generateNormalizedViewName(AbstractBuild<?, ?> build) {
         return generateNormalizedViewName(new BuildVariableResolver(build, getCurrentComputer()));
     }
+    
+    /**
+     * Returns a normalized view name that will be used in cleartool commands.
+     * It will replace ${JOB_NAME} with the name of the job, * ${USER_NAME} with
+     * the name of the user. This way it will be easier to add new jobs without
+     * trying to find an unique view name. It will also replace invalid chars
+     * from a view name.
+     * 
+     * @param build
+     *            the project to get the name from
+     * @return a string containing no invalid chars.
+     */   
+    public String generateNormalizedViewName(BuildVariableResolver variableResolver, String modViewName) {
+        String generatedNormalizedViewName = Util.replaceMacro(modViewName, variableResolver);
+        
+        generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
+                                                                             "[\\s\\\\\\/:\\?\\*\\|]+", "_");
+        
+        setNormalizedViewName(generatedNormalizedViewName);
+        return generatedNormalizedViewName;
+    }    
 
     /**
      * Returns a normalized view name that will be used in cleartool commands.
@@ -353,12 +393,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      */
     
     public String generateNormalizedViewName(BuildVariableResolver variableResolver) {
-        String generatedNormalizedViewName = Util.replaceMacro(viewName, variableResolver);
-        
-        generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(
-                                                                             "[\\s\\\\\\/:\\?\\*\\|]+", "_");
-        setNormalizedViewName(generatedNormalizedViewName);
-        return generatedNormalizedViewName;
+    	return generateNormalizedViewName(variableResolver, viewName);
     }
     
     /**
@@ -414,13 +449,19 @@ public abstract class AbstractClearCaseScm extends SCM {
         VariableResolver variableResolver = new BuildVariableResolver(build, getCurrentComputer());
         
         CheckOutAction checkoutAction = createCheckOutAction(variableResolver,
-                                                             clearToolLauncher);
+                                                             clearToolLauncher,
+                                                             build);
         HistoryAction historyAction = createHistoryAction(variableResolver,
-                                                          clearToolLauncher);
+                                                          clearToolLauncher,
+                                                          build);
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
-
+        
         // Checkout code
         String coNormalizedViewName = generateNormalizedViewName(build);
+        
+        // add ClearCaseDataAction - helper to save scm data such as cspec, baselines
+        ClearCaseDataAction dataAction = new ClearCaseDataAction();        
+        build.addAction(dataAction);
         
         if (checkoutAction.checkout(launcher, workspace, coNormalizedViewName)) {
             
@@ -477,7 +518,8 @@ public abstract class AbstractClearCaseScm extends SCM {
         VariableResolver variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild, getBuildComputer((AbstractBuild<?,?>) lastBuild));
 
         HistoryAction historyAction = createHistoryAction(variableResolver,
-                                                          createClearToolLauncher(listener, workspace, launcher));
+                                                          createClearToolLauncher(listener, workspace, launcher),
+                                                          (AbstractBuild)lastBuild);
 
         String poNormalizedViewName = generateNormalizedViewName((BuildVariableResolver) variableResolver);
 
@@ -551,7 +593,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                                 // Create a variable resolver using the last build's computer - HUDSON-5364
                                 BuildVariableResolver variableResolver = new BuildVariableResolver(project.getLastBuild(), ccScm.getBuildComputer(project.getLastBuild()));
                                 // Get the view UUID.
-                                String uuid = ct.getViewUuid(ccScm.generateNormalizedViewName(variableResolver));
+                                String uuid = ct.getViewData(ccScm.generateNormalizedViewName(variableResolver)).getProperty("UUID");
                                 if ((uuid!=null) && (!uuid.equals(""))) {
                                     ct.rmviewUuid(uuid);
                                     ct.unregisterView(uuid);
@@ -578,7 +620,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                                                                      .getParent(), launcher));
         try {
             // Get the view UUID.
-            String uuid = ct.getViewUuid(generateNormalizedViewName(project.getLastBuild()));
+            String uuid = ct.getViewData(generateNormalizedViewName(project.getLastBuild())).getProperty("UUID");
             ct.rmviewUuid(uuid);
             ct.unregisterView(uuid);
             ct.rmviewtag(generateNormalizedViewName(project.getLastBuild()));
@@ -624,7 +666,9 @@ public abstract class AbstractClearCaseScm extends SCM {
             }
         }
 
-        String filterRegexp = getViewPathsRegexp(getViewPaths(),ctLauncher.getLauncher().isUnix());
+        String filterRegexp = "";
+        if (getViewPaths() != null)	
+        	filterRegexp = getViewPathsRegexp(getViewPaths(),ctLauncher.getLauncher().isUnix());
 
         if (!filterRegexp.equals("")) {
             filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, filterRegexp));
