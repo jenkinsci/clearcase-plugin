@@ -1,0 +1,77 @@
+<!--
+
+    The MIT License
+
+    Copyright (c) 2007-2009, Sun Microsystems, Inc., Yosi Kalmanson
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+
+-->
+
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <l:layout>
+        <st:include it="${it.owner}" page="sidepanel.jelly" />
+        <l:main-panel>
+					<h2>ClearCase Information</h2>
+					<j:choose>
+						<j:when test="${it.cspec}">
+							<h3>Config Spec.</h3>
+							
+							<table class="pane">
+								<tbody>
+									<tr>
+										<td class="pane">
+											${it.configSpecHtml}
+										</td>
+									</tr>
+								</tbody>
+							</table>						
+						</j:when>
+						<j:otherwise>
+							<h3>Stream: ${it.stream}</h3>
+							
+							<j:choose>
+								<j:when test="${it.baselineInfo}">
+									<h3>Baseline list:</h3>							
+									<table class="pane">
+										<tbody>
+											<tr>
+												<td class="pane-header">Component</td>
+												<td class="pane-header">Baseline</td>
+											</tr>							
+											<j:forEach var="i" items="${it.baselines}">
+												<tr>
+													<td class="pane">
+														${i.componentName}
+													</td>
+													<td class="pane">
+														${i.baselineName}											
+													</td>											
+												</tr>							
+											</j:forEach>
+										</tbody>
+									</table>
+								</j:when>
+							</j:choose>								
+						</j:otherwise>
+					</j:choose>							
+       </l:main-panel>
+    </l:layout>
+</j:jelly>

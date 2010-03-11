@@ -99,7 +99,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
               (!usedynamicview) && useupdate, rmviewonrename,
               excludedRegions, usedynamicview, viewdrive, loadRules,
               multiSitePollBuffer, createDynView,
-              winDynStorageDir, unixDynStorageDir);
+              winDynStorageDir, unixDynStorageDir, false, false);
         this.branch = branch;
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
@@ -158,7 +158,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @Override
     protected CheckOutAction createCheckOutAction(
-                                                  VariableResolver variableResolver, ClearToolLauncher launcher) {
+                                                  VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) {
         CheckOutAction action;
         if (isUseDynamicView()) {
             action = new DynamicCheckoutAction(createClearTool(
@@ -166,7 +166,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                doNotUpdateConfigSpec, useTimeRule,
                                                isCreateDynView(), 
                                                getNormalizedWinDynStorageDir(variableResolver), 
-                                               getNormalizedUnixDynStorageDir(variableResolver));
+                                               getNormalizedUnixDynStorageDir(variableResolver), 
+                                               build);
         } else {
             action = new SnapshotCheckoutAction(createClearTool(
                                                                 variableResolver, launcher), 
@@ -177,7 +178,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @Override
     protected HistoryAction createHistoryAction(
-                                                VariableResolver variableResolver, ClearToolLauncher launcher) {
+                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) {
         ClearTool ct = createClearTool(variableResolver, launcher);
         BaseHistoryAction action = new BaseHistoryAction(ct,
                                                          isUseDynamicView(),
@@ -445,4 +446,5 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             baos.writeTo(rsp.getOutputStream());
         }
     }
+
 }

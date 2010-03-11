@@ -65,9 +65,18 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     public boolean run(String[] cmd,FilePath filePath) throws IOException, InterruptedException {
         return run(cmd,null,null,filePath);
     }
+    
+    public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, 
+    		FilePath filePath) throws IOException, InterruptedException {
+    	return run(cmd, inputStream, outputStream, filePath, false);
+    }
 
-    public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, FilePath filePath) throws IOException,
-                                                                                                                   InterruptedException {
+    public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, 
+    		FilePath filePath, boolean logCommand) throws IOException, InterruptedException { 
+    	String ccVerbose = System.getenv("HUDSON_CLEARCASE_VERBOSE");
+    	ccVerbose = (ccVerbose != null) ? ccVerbose : "";
+    	logCommand = logCommand || ccVerbose.equals("1");   
+    	
         OutputStream out = outputStream;
         FilePath path = filePath;
         String[] env = new String[0];
@@ -82,6 +91,11 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
             out = new ForkOutputStream(out, listener.getLogger());
         }
         
+        if (logCommand) {
+        	String logStr = "\nRunning ClearCase command: " + getCmdString(cmd) + "\n\n";
+        	listener.getLogger().write(logStr.getBytes());
+        }
+        
         String[] cmdWithExec = new String[cmd.length + 1];
         cmdWithExec[0] = executable;
         for (int i = 0; i < cmd.length; i++) {
@@ -89,11 +103,17 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
         }
 
         int r = getLaunchedProc(cmdWithExec, env, inputStream, out, path).join();
-        if (r != 0) {
+        if (r != 0) {        	
             listener.fatalError(scmName + " failed. exit code=" + r);
             throw new IOException("cleartool did not return the expected exit code. Command line=\""
                                   + getCmdString(cmd) + "\", actual exit code=" + r);
         }
+        
+        if (logCommand) {
+        	String logStr = "\n=============================================================== \n";
+        	listener.getLogger().write(logStr.getBytes());
+        }        
+        
         return true;
     }
     

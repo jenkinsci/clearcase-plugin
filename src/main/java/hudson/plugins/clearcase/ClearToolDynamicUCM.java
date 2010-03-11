@@ -26,6 +26,7 @@ package hudson.plugins.clearcase;
 
 import hudson.FilePath;
 import hudson.Util;
+import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 
@@ -34,13 +35,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.Random;
 
 public class ClearToolDynamicUCM extends ClearToolExec {
 
     private transient String viewDrive;
     private String optionalMkviewParameters;
 
-    public ClearToolDynamicUCM(VariableResolver variableResolver, ClearToolLauncher launcher, String viewDrive, String optionalMkviewParameters) {
+    public ClearToolDynamicUCM(VariableResolver variableResolver, 
+    		ClearToolLauncher launcher, 
+    		String viewDrive, 
+    		String optionalMkviewParameters) {
         super(variableResolver, launcher);
         this.viewDrive = viewDrive;
         this.optionalMkviewParameters = optionalMkviewParameters;
@@ -99,8 +104,10 @@ public class ClearToolDynamicUCM extends ClearToolExec {
         launcher.run(cmd.toCommandArray(), null, null, getRootViewPath(launcher).child(viewName));
     }
 
-    public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
+    public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
+        boolean isOptionalParamContainsHost = false;
+        
         cmd.add("mkview");
         if (streamSelector != null) {
             cmd.add("-stream");
@@ -112,12 +119,22 @@ public class ClearToolDynamicUCM extends ClearToolExec {
         if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
             String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
             cmd.addTokenized(variabledResolvedParams);
-        }
+            isOptionalParamContainsHost = optionalMkviewParameters.contains("-host");
+        }        
+        
+        // add the default storage directory only if gpath/hpath are not set (only for windows)
+        if (! isOptionalParamContainsHost && defaultStorageDir != null && defaultStorageDir.length() > 0) {
+        	Integer rndNum = new Random().nextInt();
+        	String seperator = PathUtil.fileSepForOS(getLauncher().getLauncher().isUnix());
+        	String viewStorageDir = defaultStorageDir + seperator + viewName + "." + rndNum.toString();
+        	cmd.add(viewStorageDir);
+        }        
+        
         launcher.run(cmd.toCommandArray(), null, null, null);
-    }
+    }    
     
-    public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
-    	launcher.getListener().fatalError("Dynamic UCM view does not support mkview (String, String, String)");
+    public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
+    	launcher.getListener().fatalError("Dynamic UCM view does not support mkview (String, String)");
     }
 
     public void rmview(String viewName) throws IOException, InterruptedException {
