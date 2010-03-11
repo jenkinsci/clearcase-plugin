@@ -57,6 +57,19 @@ public interface ClearToolLauncher {
      */
     boolean run(String[] cmd, InputStream in, OutputStream out, FilePath execPath) throws IOException,
                                                                                           InterruptedException;
+    
+    /**
+     * Launches a cleartool command with arguments. 
+     * 
+     * @param cmd the command to launch using the clear tool executable
+     * @param in optional, if the command should be able to receive input
+     * @param out optional, can be used to gather the output stream
+     * @param execPath optional, the path where the command should be launched
+     * @param logCommand optional, log the command itself
+     * @return true if the command was successful, false otherwise
+     */
+    boolean run(String[] cmd, InputStream in, OutputStream out, FilePath execPath, boolean logCommand) throws IOException,
+    InterruptedException;    
 
     /**
      * Returns a task listener for a hudson job

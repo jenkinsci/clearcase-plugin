@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase; 
 
+import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.util.VariableResolver;
 import hudson.plugins.clearcase.ucm.UcmHistoryAction;
@@ -61,7 +62,7 @@ public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
                                 Computer overrideComputer) {
         super(stream, loadrules, viewname, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate,
-              rmviewonrename, excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView);
+              rmviewonrename, excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView, overrideBranchName, overrideBranchName, true, true, true);
         this.cleartool = cleartool;
         this.clearCaseUcmScmDescriptor = clearCaseUcmScmDescriptor;
         this.overrideComputer = overrideComputer;
@@ -80,8 +81,8 @@ public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
     
     @Override
     public HistoryAction createHistoryAction(
-                                             VariableResolver variableResolver, ClearToolLauncher launcher) {
-        return super.createHistoryAction(variableResolver, launcher);
+                                             VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) {
+        return super.createHistoryAction(variableResolver, launcher, null);
     }
     
     @Override

@@ -34,6 +34,7 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.matrix.MatrixBuild;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Build; 
 import hudson.model.AbstractBuild; 
@@ -863,7 +864,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                                          String multiSitePollBuffer,
                                          boolean createDynView) {
             super(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename,
-                  excludedRegions, useDynamicView, viewDrive, loadRules, multiSitePollBuffer, createDynView, "", "");
+                  excludedRegions, useDynamicView, viewDrive, loadRules, multiSitePollBuffer, createDynView, "", "", createDynView, createDynView);
         }
 
 
@@ -885,11 +886,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         @Override
         protected ClearToolLauncher createClearToolLauncher(TaskListener listener, FilePath workspace, Launcher launcher) {
             return null;
-        }
-
-        @Override
-        protected CheckOutAction createCheckOutAction(VariableResolver resolver,ClearToolLauncher launcher) {
-            return checkOutAction;
         }
         
         //        @Override
@@ -919,8 +915,17 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         }
 
         @Override
-        protected HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher) {
+		protected HistoryAction createHistoryAction(
+				VariableResolver variableResolver, ClearToolLauncher launcher,
+				AbstractBuild build) {
             return historyAction;
         }
+
+		@Override
+		protected CheckOutAction createCheckOutAction(
+				VariableResolver variableResolver, ClearToolLauncher launcher,
+				AbstractBuild build) {
+			return checkOutAction;
+		}
     }    
 }

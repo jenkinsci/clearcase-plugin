@@ -26,6 +26,8 @@ package hudson.plugins.clearcase.action;
 
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.AbstractBuild;
+import hudson.plugins.clearcase.ClearCaseDataAction;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.util.PathUtil;
 
@@ -34,6 +36,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.TimeZone;
 
 /**
@@ -51,9 +54,11 @@ public class DynamicCheckoutAction implements CheckOutAction {
     private boolean createDynView;
     private String winDynStorageDir;
     private String unixDynStorageDir;
+    private AbstractBuild build;
 
     public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec, boolean useTimeRule,
-                                 boolean createDynView, String winDynStorageDir,String unixDynStorageDir) {
+                                 boolean createDynView, String winDynStorageDir,String unixDynStorageDir,
+                                 AbstractBuild build) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
@@ -61,19 +66,29 @@ public class DynamicCheckoutAction implements CheckOutAction {
         this.createDynView = createDynView;
         this.winDynStorageDir = winDynStorageDir;
         this.unixDynStorageDir = unixDynStorageDir;
+        this.build = build;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException { 
         if (createDynView) {
-            // Clean out the workspace first - deleting the files will probably be faster than 
-            workspace.deleteContents();
             // Mount all VOBs before we get started.
             cleartool.mountVobs();
-            // Get the view UUID.
-            String uuid = cleartool.getViewUuid(viewName);
+
+            // Get the view UUID and storage directory
+        	Properties viewDataPrp = cleartool.getViewData(viewName);
+            String uuid = viewDataPrp.getProperty("UUID");
+            String storageDir = viewDataPrp.getProperty("STORAGE_DIR");
+
             // If we don't find a UUID, then the view tag must not exist, in which case we don't
             // have to delete it anyway.
-            if (!uuid.equals("")) {
+            if (uuid != null && !uuid.equals("")) {
+            	try {
+            		cleartool.endView(viewName);	
+            	}
+            	catch (Exception ex) {
+            		cleartool.logRedundantCleartoolError(null, ex);
+            	}        	
+            	
             	try {
             		cleartool.rmviewUuid(uuid);	
             	}
@@ -86,9 +101,21 @@ public class DynamicCheckoutAction implements CheckOutAction {
             	}
             	catch (Exception ex) {
             		cleartool.logRedundantCleartoolError(null, ex);
-            	}            	               
-                
-                cleartool.rmviewtag(viewName);
+            	}
+            	
+                try {
+                    cleartool.rmviewtag(viewName);
+        		} catch (Exception ex) {
+        			cleartool.logRedundantCleartoolError(null, ex);
+        		}             	
+            	
+            	// remove storage directory
+            	try {
+    				FilePath storageDirFile = new FilePath(build.getWorkspace().getChannel(), storageDir);
+    				storageDirFile.deleteRecursive();
+    			} catch (Exception ex) {
+    				cleartool.logRedundantCleartoolError(null, ex);
+    			} 
             }
             // Now, make the view.
             String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixDynStorageDir : winDynStorageDir; 
@@ -98,6 +125,7 @@ public class DynamicCheckoutAction implements CheckOutAction {
         cleartool.startView(viewName);
         String currentConfigSpec = cleartool.catcs(viewName).trim();
         String tempConfigSpec;
+        String effectiveConfigSpec = "";
 
         if (useTimeRule) {
             tempConfigSpec = PathUtil.convertPathForOS("time " + getTimeRule() + "\n" + configSpec + "\nend time\n",
@@ -110,11 +138,21 @@ public class DynamicCheckoutAction implements CheckOutAction {
         if (!doNotUpdateConfigSpec) {
             if (!tempConfigSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
                 cleartool.setcs(viewName, tempConfigSpec);
+                effectiveConfigSpec = tempConfigSpec;
             }
             else {
                 cleartool.setcs(viewName, null);
             }
         }
+        else {
+        	effectiveConfigSpec = currentConfigSpec;
+        }
+        
+        // add config spec to dataAction
+        ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
+        if (dataAction != null)
+        	dataAction.setCspec(effectiveConfigSpec);
+        
         return true;
     }
 

@@ -50,8 +50,7 @@
   </f:entry>
   
   <f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
-    <f:textarea name="ucm.loadrules" value="${scm.loadRules}" 
-                checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules are mandatory')+'&amp;value='+escape(this.value)" />
+    <f:textarea name="ucm.loadrules" value="${scm.loadRules}" />
   </f:entry>
   
   <f:advanced>
@@ -103,11 +102,36 @@
               </j:otherwise>
             </j:choose>
           </f:entry>
-          <f:entry title="Create Dynamic View">
-            <f:checkbox name="ucm.createDynView" checked="${scm.createDynView}"/>
-            If checked, Hudson will create the dynamic view, rather than use an existing one.
-          </f:entry>
+          
+          <f:entry title="Freeze code">
+				<f:checkbox name="ucm.freezeCode" checked="${scm.freezeCode}"/>
+				If checked, Hudson will create a child stream under the configured stream and will use it for the build. 
+				When a build starts, Hudson will rebase the build stream with the latest baselines found on the configured stream.				  
+          </f:entry>          
 
+          <f:optionalBlock name="ucm.createDynView" title="Create view if view doesn't exist"
+                         checked="${scm.createDynView}">
+	          	        
+		      <f:entry title="Remove and recreate view on each build">
+						<f:checkbox name="ucm.recreateView" checked="${scm.recreateView}"/>
+						If checked, Hudson will remove the view and recreate it in order to allow clean build.
+		      </f:entry>	
+		      
+		      <f:entry title="Dynamically allocate view name">
+						<f:checkbox name="ucm.allocateViewName" checked="${scm.allocateViewName}"/>
+						If checked, Hudson will assign unique view name overriding the view name set in the configuration. 
+						This is necessary for running concurrent builds on different streams (using STREAM parameter).
+		      </f:entry>		                               
+			    
+			  <f:entry title="Windows dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
+			     <f:textbox name="ucm.winDynStorageDir" value="${h.defaulted(scm.winDynStorageDir, descriptor.defaultWinDynStorageDir)}" />
+			  </f:entry>  
+			    
+			  <f:entry title="Unix dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
+			     <f:textbox name="ucm.unixDynStorageDir" value="${h.defaulted(scm.unixDynStorageDir, descriptor.defaultUnixDynStorageDir)}" />
+			  </f:entry>
+
+        	</f:optionalBlock>
         </f:optionalBlock>
       </table>
     </f:block>

@@ -40,6 +40,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.TimeZone;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -270,8 +271,9 @@ public abstract class ClearToolExec implements ClearTool {
         }
     }
 
-    public String getViewUuid(String viewName) throws IOException,
+    public Properties getViewData(String viewName) throws IOException,
                                                 InterruptedException {
+    	Properties resPrp = new Properties();
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsview");
         cmd.add("-l", viewName);
@@ -280,6 +282,7 @@ public abstract class ClearToolExec implements ClearTool {
         String retString = "";
 
         Pattern uuidPattern = Pattern.compile("View uuid: (.*)");
+        Pattern globalPathPattern = Pattern.compile("View server access path: (.*)");
         boolean res = true;
         IOException exception = null;
         
@@ -300,14 +303,41 @@ public abstract class ClearToolExec implements ClearTool {
         	String [] lines = output.split("\n");
         	for (String line :lines) {
                 Matcher matcher = uuidPattern.matcher(line);
-                if (matcher.find() && matcher.groupCount() == 1) {
-                    retString = matcher.group(1);
-                    break;
-                }        		
+                if (matcher.find() && matcher.groupCount() == 1) 
+                	resPrp.put("UUID", matcher.group(1));		
+                
+                matcher = globalPathPattern.matcher(line);
+                if (matcher.find() && matcher.groupCount() == 1) 
+                	resPrp.put("STORAGE_DIR", matcher.group(1));                
         	}
         }
 
-        return retString;
+        return resPrp;
+    }
+    
+    public void endView(String viewName) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("endview");
+        cmd.add(viewName);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (builder.toString().contains("cleartool: Error")) {
+            throw new IOException("Failed to end view tag: " + builder.toString());
+        }    	
     }
 
     public void rmviewtag(String viewName) throws IOException, InterruptedException {
