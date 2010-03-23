@@ -153,9 +153,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             return new String[] { overrideBranchName };
         }
         else {
-            String branch = stream;
-            if (stream.contains("@")) {
-                branch = stream.substring(0, stream.indexOf("@"));
+            String branch = getStream();
+            if (getStream().contains("@")) {
+                branch = getStream().substring(0, getStream().indexOf("@"));
             }
             return new String[] { branch };
         }
@@ -207,7 +207,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         ClearTool ct = createClearTool(variableResolver, launcher);
         //String viewName, String stream, String unixDynStorageDir, String winDynStorageDir, String viewDrive
         UcmHistoryAction action = new UcmHistoryAction(ct,isUseDynamicView(),configureFilters(launcher), 
-        		stream, getViewDrive(), build, isFreezeCode());
+        		getStream(), getViewDrive(), build, isFreezeCode());
 
         try {
             String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
