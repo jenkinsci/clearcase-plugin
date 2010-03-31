@@ -143,14 +143,16 @@ public abstract class ClearToolExec implements ClearTool {
 
     public boolean doesViewExist(String viewName)
         throws IOException, InterruptedException {
-        List<String> views = lsview(false);
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("lsview");
+        cmd.add(viewName);
 
-        for (String v : views) {
-            if (v.equals(viewName))
-                return true;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+        	return launcher.run(cmd.toCommandArray(), null, baos, null);
+        } catch (IOException e) {
+        	return false;
         }
-
-        return false;
     }
 
     
