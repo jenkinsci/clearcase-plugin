@@ -35,17 +35,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
 
 public class ClearToolExecTest extends AbstractWorkspaceTest {
     private Mockery context;
@@ -146,7 +146,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         workspace.child("viewName").mkdirs();
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.set(2007, 10, 18, 15, 05, 25);
-        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'+0000");
+        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'+0000", Locale.US);
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
         final String formattedDate = formatter.format(mockedCalendar.getTime()).toLowerCase();
         context.checking(new Expectations() {
