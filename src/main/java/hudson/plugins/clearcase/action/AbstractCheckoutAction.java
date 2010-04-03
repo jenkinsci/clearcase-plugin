@@ -24,7 +24,6 @@
  */
 package hudson.plugins.clearcase.action;
 
-
 import hudson.FilePath;
 import hudson.Launcher;
 import java.io.IOException;
@@ -33,9 +32,9 @@ import java.util.Set;
 
 public abstract class AbstractCheckoutAction implements CheckOutAction {
     public AbstractCheckoutAction() {
-        
+
     }
-    
+
     public abstract boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException;
 
     protected Set<String> extractLoadRules(String configSpec) {
@@ -54,8 +53,7 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
         }
         return rules;
     }
-    
-    
+
     protected String getLoadRuleFreeConfigSpec(String configSpec) {
         String lrFreeCS = "";
 

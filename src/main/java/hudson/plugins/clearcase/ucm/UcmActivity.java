@@ -40,7 +40,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * Changelog entry for UCM ClearCase
- *
+ * 
  * @author Henrik L. Hansen
  */
 public class UcmActivity extends ChangeLogSet.Entry {
@@ -59,13 +59,14 @@ public class UcmActivity extends ChangeLogSet.Entry {
 
     /**
      * Copy contructor
+     * 
      * @param other the activity to copy
      */
     public UcmActivity(UcmActivity other) {
-        this.name=other.name;
-        this.headline=other.headline;
-        this.stream=other.stream;
-        this.user=other.user;
+        this.name = other.name;
+        this.headline = other.headline;
+        this.stream = other.stream;
+        this.user = other.user;
         this.setParent(other.getParent());
 
         for (UcmActivity subAct : other.getSubActivities()) {
@@ -121,7 +122,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
             return true;
         } else {
             return false;
-        }        
+        }
     }
 
     public void addFile(File file) {
@@ -157,7 +158,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
 
     @Exported
     public boolean hasSubActivities() {
-        return subActivities.size() >0;
+        return subActivities.size() > 0;
     }
 
     /**
@@ -189,17 +190,17 @@ public class UcmActivity extends ChangeLogSet.Entry {
 
     @Override
     public String toString() {
-        return name+": "+headline;
+        return name + ": " + headline;
     }
-    
-    @ExportedBean(defaultVisibility=999)
+
+    @ExportedBean(defaultVisibility = 999)
     public static class File {
 
         private Date date;
         private String name;
         private String version;
         private String operation;
-        private String event; // can maybe be dumbed       
+        private String event; // can maybe be dumbed
 
         private String comment;
 
@@ -208,7 +209,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
         }
 
         public File(File other) {
-            this.date= other.date;
+            this.date = other.date;
             this.name = other.name;
             this.version = other.version;
             this.operation = other.operation;
@@ -250,10 +251,10 @@ public class UcmActivity extends ChangeLogSet.Entry {
         public void setVersion(String version) {
             this.version = version;
         }
-        
+
         @Exported
         public String getShortVersion() {
-            return version.substring(version.lastIndexOf("/")+1);
+            return version.substring(version.lastIndexOf("/") + 1);
         }
 
         @Exported
@@ -286,7 +287,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
             try {
                 this.date = DATE_FORMATTER.parse(date);
             } catch (ParseException e) {
-                //TODO: error handling
+                // TODO: error handling
             }
         }
 
@@ -300,11 +301,11 @@ public class UcmActivity extends ChangeLogSet.Entry {
                 return EditType.EDIT;
             }
             return null;
-        }        
+        }
 
         @Override
         public String toString() {
             return name;
-        }               
+        }
     }
 }

@@ -48,15 +48,9 @@ import hudson.plugins.clearcase.util.ClearToolFormatHandler;
  */
 public class BaseChangeLogAction implements ChangeLogAction {
 
-    private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
-                                                    USER_ID,
-                                                    EVENT,
-                                                    NAME_ELEMENTNAME,
-                                                    NAME_VERSIONID,
-                                                    OPERATION
-    };
+    private static final String[] HISTORY_FORMAT = { DATE_NUMERIC, USER_ID, EVENT, NAME_ELEMENTNAME, NAME_VERSIONID, OPERATION };
 
-    private ClearTool cleartool;    
+    private ClearTool cleartool;
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
 
@@ -67,7 +61,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
      */
     private String extendedViewPath;
 
-    public BaseChangeLogAction(ClearTool cleartool, int maxTimeDifferenceMillis,List<Filter> filters) {
+    public BaseChangeLogAction(ClearTool cleartool, int maxTimeDifferenceMillis, List<Filter> filters) {
         this.cleartool = cleartool;
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
         this.filters = filters;
@@ -75,13 +69,15 @@ public class BaseChangeLogAction implements ChangeLogAction {
             this.filters = new ArrayList<Filter>();
         }
     }
-    
+
     @Override
-    public List<ClearCaseChangeLogEntry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public List<ClearCaseChangeLogEntry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException,
+            InterruptedException {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();
         try {
             for (String branchName : branchNames) {
-                BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
+                BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName,
+                        viewPaths));
                 fullList.addAll(parseEntries(reader));
                 reader.close();
             }
@@ -92,18 +88,16 @@ public class BaseChangeLogAction implements ChangeLogAction {
         return entryMerger.getMergedList(fullList);
     }
 
-    private List<ClearCaseChangeLogEntry> parseEntries(BufferedReader reader) 
-        throws IOException, InterruptedException, ParseException {
-        
-        List<ClearCaseChangeLogEntry> entries = new ArrayList<ClearCaseChangeLogEntry>();        
-        
+    private List<ClearCaseChangeLogEntry> parseEntries(BufferedReader reader) throws IOException, InterruptedException, ParseException {
+
+        List<ClearCaseChangeLogEntry> entries = new ArrayList<ClearCaseChangeLogEntry>();
+
         StringBuilder commentBuilder = new StringBuilder();
         String line = reader.readLine();
 
         ClearCaseChangeLogEntry currentEntry = null;
-        outer:
-        while (line != null) {
-            //TODO: better error handling
+        outer: while (line != null) {
+            // TODO: better error handling
             if (line.startsWith("cleartool: Error:")) {
                 line = reader.readLine();
                 continue;
@@ -118,7 +112,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
                 }
                 commentBuilder = new StringBuilder();
                 currentEntry = new ClearCaseChangeLogEntry();
-                
+
                 // read values;
                 Date date = dateFormatter.parse(matcher.group(1));
                 currentEntry.setDate(date);
@@ -129,10 +123,10 @@ public class BaseChangeLogAction implements ChangeLogAction {
                         fileName = fileName.substring(extendedViewPath.length());
                     }
                 }
-                ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(
-                                                                                                      fileName, matcher.group(5).trim(), matcher.group(3).trim(), matcher.group(6).trim());
+                ClearCaseChangeLogEntry.FileElement element = new ClearCaseChangeLogEntry.FileElement(fileName, matcher.group(5).trim(), matcher.group(3)
+                        .trim(), matcher.group(6).trim());
                 currentEntry.addElement(element);
-                
+
                 HistoryEntry entry = new HistoryEntry();
                 entry.setLine(line);
                 entry.setDateText(matcher.group(1).trim());
@@ -143,14 +137,14 @@ public class BaseChangeLogAction implements ChangeLogAction {
                 entry.setOperation(matcher.group(6).trim());
 
                 for (Filter filter : filters) {
-                    if (!filter.accept(entry))  {
+                    if (!filter.accept(entry)) {
                         line = reader.readLine();
                         continue outer;
                     }
                 }
-                
+
                 entries.add(currentEntry);
-                
+
             } else {
                 if (commentBuilder.length() > 0) {
                     commentBuilder.append("\n");
@@ -162,15 +156,15 @@ public class BaseChangeLogAction implements ChangeLogAction {
         if (currentEntry != null) {
             currentEntry.setComment(commentBuilder.toString());
         }
-        
+
         return entries;
     }
 
     /**
-     * Sets the extended view path.
-     * The extended view path will be removed from file paths in the event.
-     * The extended view path is for example the view root + view name; and this
-     * path shows up in the history and can be conusing for users.
+     * Sets the extended view path. The extended view path will be removed from file paths in the event. The extended
+     * view path is for example the view root + view name; and this path shows up in the history and can be conusing for
+     * users.
+     * 
      * @param path the new extended view path.
      */
     public void setExtendedViewPath(String path) {

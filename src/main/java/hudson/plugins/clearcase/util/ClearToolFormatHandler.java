@@ -28,20 +28,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
  * @author hlyh
  */
 public class ClearToolFormatHandler {
-    
+
     private String format;
     private String patternStr;
     private int groupCount;
     private Pattern pattern;
-    
+
     public ClearToolFormatHandler(String... elements) {
         setPattern(elements);
-    }    
-    
+    }
+
     public void setPattern(String... elements) {
         StringBuilder formatBuilder = new StringBuilder();
         StringBuilder patternBuilder = new StringBuilder();
@@ -52,7 +51,7 @@ public class ClearToolFormatHandler {
             patternBuilder.append(OutputFormat.REGEX_GROUP);
         }
         formatBuilder.append(OutputFormat.LINEEND);
-        groupCount =elements.length;
+        groupCount = elements.length;
         format = formatBuilder.toString();
         patternStr = patternBuilder.toString();
         pattern = Pattern.compile(patternStr);
@@ -65,13 +64,13 @@ public class ClearToolFormatHandler {
     public String getPattern() {
         return patternStr;
     }
-    
+
     public Matcher checkLine(String line) {
         Matcher matcher = pattern.matcher(line);
-        
+
         if (matcher.find() && matcher.groupCount() == groupCount) {
             return matcher;
-        } 
-        return null;       
-    }       
+        }
+        return null;
+    }
 }

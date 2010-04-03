@@ -26,8 +26,6 @@ package hudson.plugins.clearcase;
 
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
-import hudson.Extension;
-import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.model.ModelObject;
@@ -54,12 +52,12 @@ import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import javax.servlet.ServletException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 
@@ -70,50 +68,36 @@ import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.framework.io.ByteBuffer;
 
 /**
- * Base ClearCase SCM.
- * 
- * This SCM is for base ClearCase repositories.
+ * Base ClearCase SCM. This SCM is for base ClearCase repositories.
  * 
  * @author Erik Ramfelt
  */
 
 public class ClearCaseSCM extends AbstractClearCaseScm {
 
-	private static final String DEFAULT_VALUE_WIN_DYN_STORAGE_DIR = "\\views\\dynamic";	
-	
+    private static final String DEFAULT_VALUE_WIN_DYN_STORAGE_DIR = "\\views\\dynamic";
+
     private String configSpec;
     private final String branch;
     private boolean doNotUpdateConfigSpec;
     private boolean useTimeRule;
-    
+
     @DataBoundConstructor
-    public ClearCaseSCM(String branch, String configspec, String viewname,
-                        boolean useupdate, String loadRules, boolean usedynamicview,
-                        String viewdrive, String mkviewoptionalparam,
-                        boolean filterOutDestroySubBranchEvent,
-                        boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-                        String excludedRegions, String multiSitePollBuffer,
-                        boolean useTimeRule, boolean createDynView, 
-                        String winDynStorageDir, String unixDynStorageDir) {
-        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-              (!usedynamicview) && useupdate, rmviewonrename,
-              excludedRegions, usedynamicview, viewdrive, loadRules,
-              multiSitePollBuffer, createDynView,
-              winDynStorageDir, unixDynStorageDir, false, false);
+    public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
+            String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
+            String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir) {
+        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
+                viewdrive, loadRules, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false);
         this.branch = branch;
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
     }
 
-    public ClearCaseSCM(String branch, String configspec, String viewname,
-                        boolean useupdate, String loadRules, boolean usedynamicview,
-                        String viewdrive, String mkviewoptionalparam,
-                        boolean filterOutDestroySubBranchEvent,
-                        boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
-        this(branch, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive,
-             mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, 
-             rmviewonrename, "", null, false, false, "", "");
+    public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
+            String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
+        this(branch, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+                doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "");
     }
 
     public String getBranch() {
@@ -147,75 +131,56 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         super.buildEnvVars(build, env);
         if (isUseDynamicView()) {
             if (getViewDrive() != null) {
-                env.put(CLEARCASE_VIEWPATH_ENVSTR, getViewDrive() + File.separator
-                        + getNormalizedViewName());
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, getViewDrive() + File.separator + getNormalizedViewName());
             } else {
                 env.remove(CLEARCASE_VIEWPATH_ENVSTR);
             }
         }
     }
 
-
     @Override
-    protected CheckOutAction createCheckOutAction(
-                                                  VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) {
+    protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
         CheckOutAction action;
         if (isUseDynamicView()) {
-            action = new DynamicCheckoutAction(createClearTool(
-                                                               variableResolver, launcher), configSpec,
-                                               doNotUpdateConfigSpec, useTimeRule,
-                                               isCreateDynView(), 
-                                               getNormalizedWinDynStorageDir(variableResolver), 
-                                               getNormalizedUnixDynStorageDir(variableResolver), 
-                                               build);
+            action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), configSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
+                    getNormalizedWinDynStorageDir(variableResolver), getNormalizedUnixDynStorageDir(variableResolver), build);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(
-                                                                variableResolver, launcher), 
-                                                configSpec, getViewPaths(), isUseUpdate());
+            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher), configSpec, getViewPaths(), isUseUpdate());
         }
         return action;
     }
 
     @Override
-    protected HistoryAction createHistoryAction(
-                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) {
+    protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
         ClearTool ct = createClearTool(variableResolver, launcher);
-        BaseHistoryAction action = new BaseHistoryAction(ct,
-                                                         isUseDynamicView(),
-                                                         configureFilters(launcher),
-                                                         getDescriptor().getLogMergeTimeWindow());
+        BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(launcher), getDescriptor().getLogMergeTimeWindow());
 
         try {
             String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
             if (pwv != null) {
                 if (pwv.contains("/")) {
                     pwv += "/";
-                }
-                else {
+                } else {
                     pwv += "\\";
                 }
                 action.setExtendedViewPath(pwv);
             }
         } catch (Exception e) {
-            Logger.getLogger(ClearCaseSCM.class.getName()).log(Level.WARNING,
-                                                               "Exception when running 'cleartool pwv'",
-                                                               e);
-        } 
-        
+            Logger.getLogger(ClearCaseSCM.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
+        }
+
         return action;
     }
 
     @Override
-    protected SaveChangeLogAction createSaveChangeLogAction(
-                                                            ClearToolLauncher launcher) {
+    protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
         return new BaseSaveChangeLogAction();
     }
 
     /**
      * Split the branch names into a string array.
      * 
-     * @param branchString
-     *            string containing none or several branches
+     * @param branchString string containing none or several branches
      * @return a string array (never empty)
      */
     @Override
@@ -229,8 +194,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected ClearTool createClearTool(VariableResolver variableResolver,
-                                        ClearToolLauncher launcher) {
+    protected ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
         if (isUseDynamicView()) {
             return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
         } else {
@@ -243,14 +207,13 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
      * 
      * @author Erik Ramfelt
      */
-    public static class ClearCaseScmDescriptor extends
-                                                   SCMDescriptor<ClearCaseSCM> implements ModelObject {
+    public static class ClearCaseScmDescriptor extends SCMDescriptor<ClearCaseSCM> implements ModelObject {
         private String cleartoolExe;
         private int changeLogMergeTimeWindow = 5;
         private String defaultViewName;
         private String defaultWinDynStorageDir;
         private String defaultUnixDynStorageDir;
-        
+
         public ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
             load();
@@ -274,49 +237,41 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             } else {
                 return defaultViewName;
             }
-        }  
-        
-        
+        }
+
         public String getDefaultWinDynStorageDir() {
-            if (defaultWinDynStorageDir == null) {            	
+            if (defaultWinDynStorageDir == null) {
                 try {
-					return "\\\\" + InetAddress.getLocalHost().getHostName() + DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
-				} catch (UnknownHostException e) {
-					return "";		
-				}
+                    return "\\\\" + InetAddress.getLocalHost().getHostName() + DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
+                } catch (UnknownHostException e) {
+                    return "";
+                }
             } else {
-            	return defaultWinDynStorageDir;
-            }        				
-		}
+                return defaultWinDynStorageDir;
+            }
+        }
 
-		public String getDefaultUnixDynStorageDir() {
-			return defaultUnixDynStorageDir;
-		}
+        public String getDefaultUnixDynStorageDir() {
+            return defaultUnixDynStorageDir;
+        }
 
-		@Override
+        @Override
         public String getDisplayName() {
             return "Base ClearCase";
         }
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) {
-            cleartoolExe = fixEmpty(req.getParameter("clearcase.cleartoolExe")
-                                    .trim());
-            defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName")
-                                    .trim());
-            defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir")
-                    .trim());
-            
-            defaultUnixDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultUnixDynStorageDir")
-                    .trim());            
-            
-            String mergeTimeWindow = fixEmpty(req
-                                              .getParameter("clearcase.logmergetimewindow"));
+            cleartoolExe = fixEmpty(req.getParameter("clearcase.cleartoolExe").trim());
+            defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName").trim());
+            defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir").trim());
+
+            defaultUnixDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultUnixDynStorageDir").trim());
+
+            String mergeTimeWindow = fixEmpty(req.getParameter("clearcase.logmergetimewindow"));
             if (mergeTimeWindow != null) {
                 try {
-                    changeLogMergeTimeWindow = DecimalFormat
-                        .getIntegerInstance().parse(mergeTimeWindow)
-                        .intValue();
+                    changeLogMergeTimeWindow = DecimalFormat.getIntegerInstance().parse(mergeTimeWindow).intValue();
                 } catch (ParseException e) {
                     changeLogMergeTimeWindow = 5;
                 }
@@ -354,25 +309,22 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         /**
          * Checks if cleartool executable exists.
          */
-        public FormValidation doCleartoolExeCheck(@QueryParameter final String value)
-            throws IOException, ServletException {
+        public FormValidation doCleartoolExeCheck(@QueryParameter final String value) throws IOException, ServletException {
             return FormValidation.validateExecutable(value);
         }
-        
+
         /**
          * Validates the excludedRegions Regex
          */
-        public FormValidation doExcludedRegionsCheck(@QueryParameter final String value)
-            throws IOException, ServletException {
+        public FormValidation doExcludedRegionsCheck(@QueryParameter final String value) throws IOException, ServletException {
             String v = fixEmptyAndTrim(value);
-            
-            if(v != null) {
+
+            if (v != null) {
                 String[] regions = v.split("[\\r\\n]+");
                 for (String region : regions) {
                     try {
                         Pattern.compile(region);
-                    }
-                    catch (PatternSyntaxException e) {
+                    } catch (PatternSyntaxException e) {
                         return FormValidation.error("Invalid regular expression. " + e.getMessage());
                     }
                 }
@@ -380,8 +332,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             return FormValidation.ok();
         }
 
-        public FormValidation doConfigSpecCheck(@QueryParameter final String value)
-            throws IOException, ServletException {
+        public FormValidation doConfigSpecCheck(@QueryParameter final String value) throws IOException, ServletException {
             String v = fixEmpty(value);
             if ((v == null) || (v.length() == 0)) {
                 return FormValidation.error("Config spec is mandatory");
@@ -401,9 +352,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
          * @throws IOException
          * @throws ServletException
          */
-        public FormValidation doMandatoryCheck(@QueryParameter final String value,
-                                               @QueryParameter final String errorText)
-            throws IOException, ServletException {
+        public FormValidation doMandatoryCheck(@QueryParameter final String value, @QueryParameter final String errorText) throws IOException, ServletException {
             String v = fixEmpty(value);
             if (v == null) {
                 return FormValidation.error(fixEmpty(errorText));
@@ -411,20 +360,14 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             // all tests passed so far
             return FormValidation.ok();
         }
-        
 
         /**
          * Displays "cleartool -version" for trouble shooting.
          */
-        public void doVersion(StaplerRequest req, StaplerResponse rsp)
-            throws IOException, ServletException, InterruptedException {
+        public void doVersion(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException, InterruptedException {
             ByteBuffer baos = new ByteBuffer();
             try {
-                Hudson.getInstance()
-                    .createLauncher(TaskListener.NULL)
-                    .launch().cmds(getCleartoolExe(), "-version")
-                    .stdout(baos)
-                    .join();
+                Hudson.getInstance().createLauncher(TaskListener.NULL).launch().cmds(getCleartoolExe(), "-version").stdout(baos).join();
                 rsp.setContentType("text/plain");
                 baos.writeTo(rsp.getOutputStream());
             } catch (IOException e) {
@@ -433,13 +376,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             }
         }
 
-        public void doListViews(StaplerRequest req, StaplerResponse rsp)
-            throws IOException, ServletException, InterruptedException {
+        public void doListViews(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException, InterruptedException {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Hudson.getInstance().createLauncher(TaskListener.NULL)
-                .launch().cmds(getCleartoolExe(), "lsview", "-short")
-                .stdout(baos)
-                .join();
+            Hudson.getInstance().createLauncher(TaskListener.NULL).launch().cmds(getCleartoolExe(), "lsview", "-short").stdout(baos).join();
 
             rsp.setContentType("text/plain");
             rsp.getOutputStream().println("ClearCase Views found:\n");
