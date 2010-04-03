@@ -24,24 +24,21 @@
  */
 package hudson.plugins.clearcase;
 
-import hudson.model.Computer;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
-import hudson.util.VariableResolver;
-import hudson.plugins.clearcase.ucm.UcmChangeLogAction;
+import hudson.model.Computer;
 import hudson.plugins.clearcase.ucm.UcmHistoryAction;
-import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
-
-import static org.junit.Assert.*;
+import hudson.util.VariableResolver;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-
-import java.io.IOException;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -215,7 +212,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
                                                        null, true, false, false, null, null, null, false, cleartool,
                                                        clearCaseUcmScmDescriptor);
         // Create actions
-        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
         UcmHistoryAction action = (UcmHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
         classContext.assertIsSatisfied();

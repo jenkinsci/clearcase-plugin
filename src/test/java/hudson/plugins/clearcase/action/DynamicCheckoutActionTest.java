@@ -24,10 +24,12 @@
  */
 package hudson.plugins.clearcase.action;
 
-import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertTrue;
 import hudson.Launcher;
+import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
+import hudson.plugins.clearcase.ClearCaseDataAction;
 import hudson.plugins.clearcase.ClearTool;
 
 import org.jmock.Expectations;
@@ -45,6 +47,8 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
 
     private ClearTool clearTool;
     private Launcher launcher;
+    private AbstractBuild<?, ?> abstractBuild;
+    private ClearCaseDataAction clearCaseDataAction;
 
     @Before
     public void setUp() throws Exception {
@@ -58,6 +62,8 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
 
         launcher = classContext.mock(Launcher.class);
         clearTool = context.mock(ClearTool.class);
+        abstractBuild = classContext.mock(AbstractBuild.class);
+        clearCaseDataAction = classContext.mock(ClearCaseDataAction.class);
     }
 
     @After
@@ -75,12 +81,15 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
         classContext.checking(new Expectations() {
+
                 {
                     ignoring(launcher).isUnix(); will(returnValue(true));
+                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
+                    ignoring(clearCaseDataAction).setCspec("config\nspec");
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false, null, null, null);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false, null, null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -100,10 +109,12 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         classContext.checking(new Expectations() {
                 {
                     ignoring(launcher).isUnix(); will(returnValue(false));
+                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
+                    ignoring(clearCaseDataAction).setCspec("config\r\nspec");
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false, false, false, null, null, null);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false, false, false, null, null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -122,10 +133,12 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         classContext.checking(new Expectations() {
                 {
                     ignoring(launcher).isUnix(); will(returnValue(false));
+                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
+                    ignoring(clearCaseDataAction).setCspec("other configspec");
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true, false, false, null, null, null);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true, false, false, null, null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -145,10 +158,12 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         classContext.checking(new Expectations() {
                 {
                     ignoring(launcher).isUnix(); will(returnValue(false));
+                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
+                    ignoring(clearCaseDataAction).setCspec("config\nspec");
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false, null, null, null);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false, null, null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
@@ -168,10 +183,12 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         classContext.checking(new Expectations() {
                 {
                     ignoring(launcher).isUnix(); will(returnValue(false));
+                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
+                    ignoring(clearCaseDataAction).setCspec(with(containsString("time ")));
                 }
             });
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, true, false, null, null, null);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, true, false, null, null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
 
