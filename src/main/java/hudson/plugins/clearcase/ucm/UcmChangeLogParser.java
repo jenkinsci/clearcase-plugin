@@ -66,7 +66,7 @@ public class UcmChangeLogParser extends ChangeLogParser {
      * @param changeLogStream input stream containing the change log
      * @return the change log set
      */
-    UcmChangeLogSet parse(AbstractBuild build, InputStream changeLogStream) throws IOException, SAXException {
+    UcmChangeLogSet parse(AbstractBuild<?, ?> build, InputStream changeLogStream) throws IOException, SAXException {
 
         ArrayList<UcmActivity> history = new ArrayList<UcmActivity>();
 
@@ -87,7 +87,7 @@ public class UcmChangeLogParser extends ChangeLogParser {
         digester.addBeanPropertySetter("*/subactivity/stream");
         digester.addBeanPropertySetter("*/subactivity/user");
         digester.addSetNext("*/subactivity", "addSubActivity");
-        
+
         digester.addObjectCreate("*/entry/file", UcmActivity.File.class);
         digester.addBeanPropertySetter("*/entry/file/name");
         digester.addBeanPropertySetter("*/entry/file/date", "dateStr");

@@ -40,29 +40,22 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 /**
- *
  * @author hlyh
  */
-public class BaseHistoryAction extends AbstractHistoryAction{
+public class BaseHistoryAction extends AbstractHistoryAction {
 
-    private static final String[] HISTORY_FORMAT = {DATE_NUMERIC,
-                                                    USER_ID,        
-                                                    NAME_ELEMENTNAME,
-                                                    NAME_VERSIONID,
-                                                    EVENT,
-                                                    OPERATION
-    };
+    private static final String[] HISTORY_FORMAT = { DATE_NUMERIC, USER_ID, NAME_ELEMENTNAME, NAME_VERSIONID, EVENT, OPERATION };
 
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
     private int maxTimeDifferenceMillis;
 
-    public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, List<Filter> filters,int maxTimeDifferenceMillis) {
+    public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, List<Filter> filters, int maxTimeDifferenceMillis) {
         super(cleartool, useDynamicView, filters);
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
     }
 
     @Override
-    protected List<? extends Entry> buildChangelog(String viewName,List<HistoryEntry> entries) {
+    protected List<? extends Entry> buildChangelog(String viewName, List<HistoryEntry> entries) {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();
 
         for (HistoryEntry entry : entries) {
@@ -72,8 +65,8 @@ public class BaseHistoryAction extends AbstractHistoryAction{
             changelogEntry.setUser(entry.getUser());
             changelogEntry.setComment(entry.getComment());
 
-            ClearCaseChangeLogEntry.FileElement fileElement = new ClearCaseChangeLogEntry.FileElement(
-                                                                                                      entry.getElement(), entry.getVersionId(), entry.getEvent(), entry.getOperation());
+            ClearCaseChangeLogEntry.FileElement fileElement = new ClearCaseChangeLogEntry.FileElement(entry.getElement(), entry.getVersionId(), entry
+                    .getEvent(), entry.getOperation());
 
             changelogEntry.addElement(fileElement);
             fullList.add(changelogEntry);
@@ -88,7 +81,7 @@ public class BaseHistoryAction extends AbstractHistoryAction{
     }
 
     @Override
-    protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException{
+    protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException {
         // read values;
         HistoryEntry entry = new HistoryEntry();
         entry.setLine(line);

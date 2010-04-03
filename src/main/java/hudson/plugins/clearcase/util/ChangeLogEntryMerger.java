@@ -70,10 +70,10 @@ public class ChangeLogEntryMerger {
         }
         List<ClearCaseChangeLogEntry> list = getList();
         Collections.sort(list, new Comparator<ClearCaseChangeLogEntry>() {
-                public int compare(ClearCaseChangeLogEntry o1, ClearCaseChangeLogEntry o2) {
-                    return o2.getDate().compareTo(o1.getDate());
-                }
-            });
+            public int compare(ClearCaseChangeLogEntry o1, ClearCaseChangeLogEntry o2) {
+                return o2.getDate().compareTo(o1.getDate());
+            }
+        });
         return list;
     }
 
@@ -106,18 +106,18 @@ public class ChangeLogEntryMerger {
         }
         return false;
     }
-    
+
     private class MergedLogEntry {
         private ClearCaseChangeLogEntry entry;
         private Date oldest;
         private Date newest;
-        
+
         public MergedLogEntry(ClearCaseChangeLogEntry entry) {
             this.entry = entry;
             oldest = entry.getDate();
             newest = entry.getDate();
         }
-        
+
         public void merge(ClearCaseChangeLogEntry newEntry) {
             Date date = newEntry.getDate();
             if (date.after(newest)) {

@@ -29,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- *
  * @author Henrik L. Hansen (henrik.lynggaard@gmail.com)
  */
 public class HistoryEntry {
@@ -53,7 +52,7 @@ public class HistoryEntry {
     public void setComment(String comment) {
         this.comment = comment;
     }
-    
+
     public String getActivityHeadline() {
         return activityHeadline;
     }
@@ -69,7 +68,6 @@ public class HistoryEntry {
     public void setActivityName(String activityName) {
         this.activityName = activityName;
     }
-    
 
     public String getDateText() {
         return dateText;
@@ -132,8 +130,6 @@ public class HistoryEntry {
     public void setUser(String user) {
         this.user = user;
     }
-
-
 
     @Override
     public boolean equals(Object obj) {

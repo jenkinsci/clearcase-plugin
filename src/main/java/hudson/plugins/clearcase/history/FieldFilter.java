@@ -33,16 +33,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
  * @author hlyh
  */
-public abstract class FieldFilter implements Filter{
+public abstract class FieldFilter implements Filter {
     private Type type;
     private String patternText;
     private Pattern pattern;
 
-
-    public FieldFilter(FieldFilter.Type type,String patternText) {
+    public FieldFilter(FieldFilter.Type type, String patternText) {
         this.type = type;
         switch (this.type) {
         case Equals:
@@ -52,9 +50,9 @@ public abstract class FieldFilter implements Filter{
         case StartsWith:
         case EndsWith:
             this.patternText = patternText;
-            this.pattern =null;
+            this.pattern = null;
             break;
-            
+
         case EqualsIgnoreCase:
         case NotEqualsIgnoreCase:
         case ContainsIgnoreCase:
@@ -62,7 +60,7 @@ public abstract class FieldFilter implements Filter{
         case StartsWithIgnoreCase:
         case EndsWithIgnoreCase:
             this.patternText = patternText.toLowerCase();
-            this.pattern =null;
+            this.pattern = null;
             break;
 
         case ContainsRegxp:
@@ -72,9 +70,9 @@ public abstract class FieldFilter implements Filter{
             break;
         }
     }
-    
+
     public boolean accept(String value) {
-        
+
         switch (type) {
         case Equals:
             return value.equals(patternText);
@@ -99,7 +97,7 @@ public abstract class FieldFilter implements Filter{
         case DoesNotContain:
             return !(value.contains(patternText));
         case DoesNotContainIgnoreCase:
-            System.out.println(value.toLowerCase()+" <>" +patternText);
+            System.out.println(value.toLowerCase() + " <>" + patternText);
             return !(value.toLowerCase().contains(patternText));
         case ContainsRegxp:
             Matcher m = pattern.matcher(value);
@@ -111,22 +109,8 @@ public abstract class FieldFilter implements Filter{
         return true;
     }
 
-
     public enum Type {
-        Equals,
-            EqualsIgnoreCase,
-            NotEquals,
-            NotEqualsIgnoreCase,
-            StartsWith,
-            StartsWithIgnoreCase,
-            EndsWith,
-            EndsWithIgnoreCase,
-            Contains,
-            ContainsIgnoreCase,
-            DoesNotContain,
-            DoesNotContainIgnoreCase,
-            ContainsRegxp,
-            DoesNotContainRegxp
-            }
+        Equals, EqualsIgnoreCase, NotEquals, NotEqualsIgnoreCase, StartsWith, StartsWithIgnoreCase, EndsWith, EndsWithIgnoreCase, Contains, ContainsIgnoreCase, DoesNotContain, DoesNotContainIgnoreCase, ContainsRegxp, DoesNotContainRegxp
+    }
 
 }

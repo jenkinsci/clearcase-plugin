@@ -25,7 +25,6 @@
 package hudson.plugins.clearcase.history;
 
 /**
- *
  * @author Henrik L. Hansen (henrik.lynggaard@gmail.com)
  */
 public class DefaultFilter implements Filter {
@@ -37,7 +36,7 @@ public class DefaultFilter implements Filter {
 
         if (entry.getVersionId().endsWith("\\0"))
             return false;
-        if  (entry.getEvent().equalsIgnoreCase("create branch"))
+        if (entry.getEvent().equalsIgnoreCase("create branch"))
             return false;
 
         return true;

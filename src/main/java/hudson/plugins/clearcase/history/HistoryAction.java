@@ -35,13 +35,13 @@ import java.util.Date;
 import java.util.List;
 
 /**
- *
  * @author hlyh
  */
 public interface HistoryAction {
 
     /**
      * Returns if the repository has any changes since the specified time
+     * 
      * @param eventFilter TODO
      * @param time check for changes since this time
      * @param viewName the name of the view
@@ -53,6 +53,7 @@ public interface HistoryAction {
 
     /**
      * Returns if the repository has any changes since the specified time
+     * 
      * @param eventFilter TODO
      * @param time check for changes since this time
      * @param viewName the name of the view
@@ -60,6 +61,7 @@ public interface HistoryAction {
      * @param viewPaths optional vob paths
      * @return List of changes
      */
-    public List<? extends ChangeLogSet.Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException,InterruptedException;
+    public List<? extends ChangeLogSet.Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException,
+            InterruptedException;
 
 }
