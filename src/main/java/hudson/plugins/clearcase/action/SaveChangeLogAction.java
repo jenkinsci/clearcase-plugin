@@ -36,8 +36,9 @@ import java.util.List;
 public interface SaveChangeLogAction {
     /**
      * Store the change log into the specified file.
+     * 
      * @param changeLogFile file to write the change log to (as XML)
      * @param entries the entries in the change log
      */
-    void saveChangeLog(File changeLogFile, List<? extends Entry> entries) throws IOException, InterruptedException;        
+    void saveChangeLog(File changeLogFile, List<? extends Entry> entries) throws IOException, InterruptedException;
 }

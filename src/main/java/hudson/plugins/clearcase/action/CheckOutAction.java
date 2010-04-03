@@ -33,6 +33,6 @@ import java.io.IOException;
  * Action for performing check outs from ClearCase.
  */
 public interface CheckOutAction {
-    
+
     boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException;
 }

@@ -24,13 +24,13 @@
  */
 package hudson.plugins.clearcase.action;
 
-import java.io.IOException;
-import java.util.Set;
-
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.util.PathUtil;
+
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * Check out action that will check out files into a snapshot view.
@@ -46,16 +46,16 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         this.cleartool = clearTool;
         this.configSpec = configSpec;
         this.loadRules = loadRules;
-        this.useUpdate = useUpdate;        
+        this.useUpdate = useUpdate;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
 
-        boolean updateView = useUpdate;        
+        boolean updateView = useUpdate;
         boolean localViewPathExists = new FilePath(workspace, viewName).exists();
         String jobConfigSpec = PathUtil.convertPathForOS(configSpec, launcher);
         boolean viewTagExists = cleartool.doesViewExist(viewName);
-        
+
         if (localViewPathExists) {
             if (updateView) {
                 String currentConfigSpec = getLoadRuleFreeConfigSpec(cleartool.catcs(viewName).trim());
@@ -66,26 +66,24 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
                 if (loadRulesNeedUpdating(configSpecLoadRules)) {
                     updateView = false;
                 }
-            }
-            else {
+            } else {
                 cleartool.rmview(viewName);
                 localViewPathExists = false;
                 viewTagExists = false;
-            }                
+            }
         }
 
         if (!localViewPathExists) {
             if (viewTagExists) {
-                launcher.getListener().fatalError("View path for " + viewName + " does not exist, but the view tag does.\n"
-                                                  + "View cannot be created - build aborting.");
+                launcher.getListener().fatalError(
+                        "View path for " + viewName + " does not exist, but the view tag does.\n" + "View cannot be created - build aborting.");
                 return false;
-            }
-            else {
+            } else {
                 cleartool.mkview(viewName, null);
                 updateView = false;
             }
         }
-        
+
         if (updateView) {
             try {
                 cleartool.setcs(viewName, null);
@@ -93,15 +91,14 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
                 launcher.getListener().fatalError(e.toString());
                 return false;
             }
-        }
-        else {
+        } else {
             String newConfigSpec = jobConfigSpec + "\n";
             for (String loadRule : loadRules) {
                 // Make sure the load rule starts with \ or /, as appropriate
                 if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
                     loadRule = PathUtil.fileSepForOS(launcher.isUnix()) + loadRule;
                 }
-                
+
                 newConfigSpec += "load " + loadRule.trim() + "\n";
             }
             newConfigSpec = PathUtil.convertPathForOS(newConfigSpec, launcher);
@@ -120,10 +117,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         boolean recreate = false;
         for (String loadRule : loadRules) {
             if (!configSpecLoadRules.contains(loadRule)) {
-                System.out
-                    .println("Load rule: "
-                             + loadRule
-                             + " not found in current config spec, resetting config spec or recreating view");
+                System.out.println("Load rule: " + loadRule + " not found in current config spec, resetting config spec or recreating view");
                 recreate = true;
             }
         }

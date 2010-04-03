@@ -24,9 +24,6 @@
  */
 package hudson.plugins.clearcase.action;
 
-
-import hudson.plugins.clearcase.util.EventRecordFilter;
-
 import java.io.IOException;
 import java.util.Date;
 
@@ -36,6 +33,7 @@ import java.util.Date;
 public interface PollAction {
     /**
      * Returns if the repository has any changes since the specified time
+     * 
      * @param eventFilter TODO
      * @param time check for changes since this time
      * @param viewName the name of the view

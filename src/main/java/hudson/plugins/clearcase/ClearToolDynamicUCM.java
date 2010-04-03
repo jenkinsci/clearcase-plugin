@@ -33,8 +33,8 @@ import hudson.util.VariableResolver;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Random;
 
 public class ClearToolDynamicUCM extends ClearToolExec {
@@ -42,10 +42,7 @@ public class ClearToolDynamicUCM extends ClearToolExec {
     private transient String viewDrive;
     private String optionalMkviewParameters;
 
-    public ClearToolDynamicUCM(VariableResolver variableResolver, 
-    		ClearToolLauncher launcher, 
-    		String viewDrive, 
-    		String optionalMkviewParameters) {
+    public ClearToolDynamicUCM(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String viewDrive, String optionalMkviewParameters) {
         super(variableResolver, launcher);
         this.viewDrive = viewDrive;
         this.optionalMkviewParameters = optionalMkviewParameters;
@@ -59,39 +56,19 @@ public class ClearToolDynamicUCM extends ClearToolExec {
     public void setcs(String viewName, String configSpec) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic UCM view does not support setcs with a config spec");
     }
-    
+
     /**
-     * Syncronize the dynamic view with the latest recomended baseline for the stream.
-     * 1. Set the config spec on the view
-     * (Removed call to chstream - based on http://www.nabble.com/-clearcase-plugin--Use-of-chstream--generate-is-not-necessary-td25118511.html
+     * Synchronize the dynamic view with the latest recommended baseline for the stream. 1. Set the config spec on the
+     * view (Removed call to chstream - based on
+     * http://www.nabble.com/-clearcase-plugin--Use-of-chstream--generate-is-not-necessary-td25118511.html
      */
     public void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException {
         setcs(viewName);
     }
-    
+
     /**
-     * The config spec of the Dynamic UCM must be updated if a new baseline is recomended.
-     * Therefore chstream is executed to regenerate the config spec it must then be set on
-     * the view
-     * 
-     * @see http://www.ipnom.com/ClearCase-Commands/chstream.html
-     */
-    private void chstream(String viewName, String stream) throws IOException, InterruptedException {
-        ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add("chstream");
-        cmd.add("-generate");
-        cmd.add("stream:" + stream);
-        
-        FilePath viewPath = getRootViewPath(launcher).child(viewName);
-        launcher.run(cmd.toCommandArray(), null, null, viewPath);
-    }
-    
-    /**
-     * The view tag does need not be active.
-     * However, it is possible to set the config spec of a dynamic UCM view from within a snapshot view
-     * using "-tag view-tag -stream"
-     * 
-     * This will only have an effect if chstream is executed first
+     * The view tag does need not be active. However, it is possible to set the config spec of a dynamic UCM view from
+     * within a snapshot view using "-tag view-tag -stream" This will only have an effect if chstream is executed first
      * 
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
@@ -107,7 +84,7 @@ public class ClearToolDynamicUCM extends ClearToolExec {
     public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         boolean isOptionalParamContainsHost = false;
-        
+
         cmd.add("mkview");
         if (streamSelector != null) {
             cmd.add("-stream");
@@ -115,26 +92,26 @@ public class ClearToolDynamicUCM extends ClearToolExec {
         }
         cmd.add("-tag");
         cmd.add(viewName);
-        
+
         if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
             String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
             cmd.addTokenized(variabledResolvedParams);
             isOptionalParamContainsHost = optionalMkviewParameters.contains("-host");
-        }        
-        
+        }
+
         // add the default storage directory only if gpath/hpath are not set (only for windows)
-        if (! isOptionalParamContainsHost && defaultStorageDir != null && defaultStorageDir.length() > 0) {
-        	Integer rndNum = new Random().nextInt();
-        	String seperator = PathUtil.fileSepForOS(getLauncher().getLauncher().isUnix());
-        	String viewStorageDir = defaultStorageDir + seperator + viewName + "." + rndNum.toString();
-        	cmd.add(viewStorageDir);
-        }        
-        
+        if (!isOptionalParamContainsHost && defaultStorageDir != null && defaultStorageDir.length() > 0) {
+            Integer rndNum = new Random().nextInt();
+            String seperator = PathUtil.fileSepForOS(getLauncher().getLauncher().isUnix());
+            String viewStorageDir = defaultStorageDir + seperator + viewName + "." + rndNum.toString();
+            cmd.add(viewStorageDir);
+        }
+
         launcher.run(cmd.toCommandArray(), null, null, null);
-    }    
-    
+    }
+
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
-    	launcher.getListener().fatalError("Dynamic UCM view does not support mkview (String, String)");
+        launcher.getListener().fatalError("Dynamic UCM view does not support mkview (String, String)");
     }
 
     public void rmview(String viewName) throws IOException, InterruptedException {
@@ -146,10 +123,10 @@ public class ClearToolDynamicUCM extends ClearToolExec {
         cmd.add("rmtag");
         cmd.add("-view");
         cmd.add(viewName);
-        
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, null);
-        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
         baos.close();
         String line = reader.readLine();
         StringBuilder builder = new StringBuilder();
@@ -161,18 +138,18 @@ public class ClearToolDynamicUCM extends ClearToolExec {
             line = reader.readLine();
         }
         reader.close();
-        
+
         if (builder.toString().contains("cleartool: Error")) {
             throw new IOException("Failed to remove view tag: " + builder.toString());
         }
-        
+
     }
 
     public void update(String viewName, String loadRules) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic UCM view does not support update");
     }
 
-    public void startView(String viewTags)  throws IOException, InterruptedException {
+    public void startView(String viewTags) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("startview");
         cmd.addTokenized(viewTags);

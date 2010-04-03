@@ -27,13 +27,12 @@ package hudson.plugins.clearcase.util;
 import hudson.Launcher;
 
 public abstract class PathUtil {
-    
+
     public static String convertPathForOS(String path, Launcher launcher) {
         return convertPathForOS(path, launcher.isUnix());
     }
 
-    public static String convertPathForOS(String path,
-                                          boolean isUnix) {
+    public static String convertPathForOS(String path, boolean isUnix) {
         String tempPath = path;
         if (isUnix) {
             tempPath = tempPath.replaceAll("\r\n", "\n");
@@ -48,12 +47,11 @@ public abstract class PathUtil {
         }
         return tempPath;
     }
-    
+
     public static String fileSepForOS(boolean isUnix) {
         if (isUnix) {
             return "/";
-        }
-        else {
+        } else {
             return "\\";
         }
     }

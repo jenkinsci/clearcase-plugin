@@ -42,28 +42,22 @@ import hudson.util.VariableResolver;
  * The build variable resolver will resolve the following:
  * <ul>
  * <li>JOB_NAME - The name of the job</li>
- * <li>USER_NAME - The system property "user.name" on the Node that the Launcher
- * is being executed on (slave or master)</li>
+ * <li>USER_NAME - The system property "user.name" on the Node that the Launcher is being executed on (slave or master)</li>
  * <li>NODE_NAME - The name of the node that the Launcher is being executed on</li>
- * <li>Any environment variable that is set on the Node that the Launcher is
- * being executed on (slave or master)</li>
+ * <li>Any environment variable that is set on the Node that the Launcher is being executed on (slave or master)</li>
  * </ul>
- * 
- * Implementation note: This class is modelled after Erik Ramfelt's work in the
- * Team Foundation Server Plugin. Maybe they should be merged and moved to the
- * hudson core
+ * Implementation note: This class is modelled after Erik Ramfelt's work in the Team Foundation Server Plugin. Maybe
+ * they should be merged and moved to the hudson core
  * 
  * @author Henrik Lynggaard Hansen
  */
 public class BuildVariableResolver implements VariableResolver<String> {
 
-    private static final Logger LOGGER = Logger
-        .getLogger(BuildVariableResolver.class.getName());
-
+    private static final Logger LOGGER = Logger.getLogger(BuildVariableResolver.class.getName());
 
     private AbstractBuild<?, ?> build;
     private Computer computer;
-    
+
     public BuildVariableResolver(final AbstractBuild<?, ?> build, final Computer computer) {
         this.build = build;
         this.computer = computer;
@@ -76,25 +70,23 @@ public class BuildVariableResolver implements VariableResolver<String> {
             if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
                 return build.getProject().getName();
             }
-            
+
             if ("HOST".equals(key)) {
-              return (Util.fixEmpty(computer.getHostName()));
+                return (Util.fixEmpty(computer.getHostName()));
             }
-            
+
             if ("OS".equals(key)) {
                 return System.getProperty("os.name");
             }
-            
+
             if ("NODE_NAME".equals(key)) {
-                return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master"
-                                      : computer.getName()));
+                return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master" : computer.getName()));
             }
 
             if ("USER_NAME".equals(key)) {
-                return (String) computer.getSystemProperties()
-                    .get("user.name");
+                return (String) computer.getSystemProperties().get("user.name");
             }
-            
+
             EnvVars compEnv = computer.getEnvironment();
             if (compEnv.containsKey(key)) {
                 return compEnv.get(key);
@@ -106,8 +98,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
             }
 
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Variable name '" + key
-                       + "' look up failed", e);
+            LOGGER.log(Level.WARNING, "Variable name '" + key + "' look up failed", e);
         }
         return null;
     }

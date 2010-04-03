@@ -44,8 +44,8 @@ import hudson.scm.ChangeLogSet;
  */
 public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
 
-    static final String[] ACTIVITY_TAGS = new String[]{"name", "headline", "stream", "user"};
-    static final String[] FILE_TAGS = new String[]{"name", "date", "comment", "version", "event", "operation"};
+    static final String[] ACTIVITY_TAGS = new String[] { "name", "headline", "stream", "user" };
+    static final String[] FILE_TAGS = new String[] { "name", "date", "comment", "version", "event", "operation" };
     private List<UcmActivity> history = null;
 
     public UcmChangeLogSet(AbstractBuild<?, ?> build, List<UcmActivity> logs) {
@@ -77,8 +77,7 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
      * @param history the history objects to store
      * @throws IOException
      */
-    public static void saveToChangeLog(OutputStream outputStream, List<UcmActivity> history)
-        throws IOException {
+    public static void saveToChangeLog(OutputStream outputStream, List<UcmActivity> history) throws IOException {
         PrintStream stream = new PrintStream(outputStream, false, "UTF-8");
 
         stream.println("<?xml version='1.0' encoding='UTF-8'?>");
@@ -96,8 +95,8 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
                 stream.println('>');
             }
             for (UcmActivity subActivity : entry.getSubActivities()) {
-                writeSubActivity(stream,subActivity);
-            }            
+                writeSubActivity(stream, subActivity);
+            }
             for (UcmActivity.File file : entry.getFiles()) {
                 stream.println("\t\t<file>");
                 String[] fileValues = getFileAsStrings(file);
@@ -138,7 +137,7 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
         array[5] = entry.getOperation();
         return array;
     }
-    
+
     private static void writeSubActivity(PrintStream stream, UcmActivity activity) {
         stream.println("<subactivity>");
         String[] activityValues = getEntryAsStrings(activity);
@@ -152,10 +151,10 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
             stream.println('>');
         }
         for (UcmActivity subActivity : activity.getSubActivities()) {
-            writeSubActivity(stream,subActivity);
+            writeSubActivity(stream, subActivity);
         }
         stream.println("</subactivity>");
-        
+
     }
-    
+
 }

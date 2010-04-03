@@ -80,7 +80,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
      * @param changeLogFile the change log file
      * @return the change log set
      */
-    public static ClearCaseChangeLogSet parse(AbstractBuild build, File changeLogFile) throws IOException, SAXException {
+    public static ClearCaseChangeLogSet parse(AbstractBuild<?, ?> build, File changeLogFile) throws IOException, SAXException {
         FileInputStream fileInputStream = new FileInputStream(changeLogFile);
         ClearCaseChangeLogSet logSet = parse(build, fileInputStream);
         fileInputStream.close();
@@ -94,8 +94,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
      * @param changeLogStream input stream containing the change log
      * @return the change log set
      */
-    static ClearCaseChangeLogSet parse(AbstractBuild build, InputStream changeLogStream) throws IOException,
-        SAXException {
+    static ClearCaseChangeLogSet parse(AbstractBuild<?, ?> build, InputStream changeLogStream) throws IOException, SAXException {
 
         ArrayList<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
 
@@ -111,14 +110,14 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
         digester.addBeanPropertySetter("*/entry/file");
         digester.addBeanPropertySetter("*/entry/action");
         digester.addBeanPropertySetter("*/entry/version");
-        
+
         digester.addObjectCreate("*/entry/element", ClearCaseChangeLogEntry.FileElement.class);
         digester.addBeanPropertySetter("*/entry/element/file");
         digester.addBeanPropertySetter("*/entry/element/version");
         digester.addBeanPropertySetter("*/entry/element/action");
         digester.addBeanPropertySetter("*/entry/element/operation");
-        digester.addSetNext("*/entry/element","addElement");
-        
+        digester.addSetNext("*/entry/element", "addElement");
+
         digester.addSetNext("*/entry", "add");
         digester.parse(changeLogStream);
 
@@ -132,8 +131,7 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
      * @param history the history objects to store
      * @throws IOException
      */
-    public static void saveToChangeLog(OutputStream outputStream, List<ClearCaseChangeLogEntry> history)
-        throws IOException {
+    public static void saveToChangeLog(OutputStream outputStream, List<ClearCaseChangeLogEntry> history) throws IOException {
         PrintStream stream = new PrintStream(outputStream, false, "UTF-8");
 
         int tagcount = ClearCaseChangeLogSet.TAGS.length;

@@ -75,12 +75,12 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     public void addElements(Collection<FileElement> files) {
         this.files.addAll(files);
     }
-    
+
     @Exported
     public List<FileElement> getElements() {
         return files;
     }
-    
+
     public String getComment() {
         return comment;
     }
@@ -177,28 +177,28 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
         super.setParent(parent);
     }
 
-    @ExportedBean(defaultVisibility=999)
+    @ExportedBean(defaultVisibility = 999)
     public static class FileElement {
         private String name = "";
         private String version = "";
         private String action = "";
         private String operation = "";
-        
+
         public FileElement() {
         }
-        
+
         public FileElement(String fileName, String version, String action, String operation) {
             this.name = fileName;
             this.version = version;
             this.action = action;
             this.operation = operation;
         }
-        
+
         @Exported
         public String getFile() {
             return name;
         }
-        
+
         public void setFile(String fileName) {
             this.name = fileName;
         }
@@ -221,8 +221,8 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
             this.action = action;
         }
 
-        @Exported        
-            public String getOperation() {
+        @Exported
+        public String getOperation() {
             return operation;
         }
 

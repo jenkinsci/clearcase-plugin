@@ -30,48 +30,44 @@ import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.util.PathUtil;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Check out action that will check out files into a UCM snapshot view. Checking
- * out the files will also update the load rules in the view.
+ * Check out action that will check out files into a UCM snapshot view. Checking out the files will also update the load
+ * rules in the view.
  */
 public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
 
     private ClearTool cleartool;
-    
+
     private String stream;
-    
+
     private String[] loadRules;
-    
+
     private boolean useUpdate;
-    
-    public UcmSnapshotCheckoutAction(ClearTool cleartool, String stream,
-                                     String[] loadRules, boolean useUpdate) {
+
+    public UcmSnapshotCheckoutAction(ClearTool cleartool, String stream, String[] loadRules, boolean useUpdate) {
         super();
         this.cleartool = cleartool;
         this.stream = stream;
         this.loadRules = loadRules;
         this.useUpdate = useUpdate;
     }
-    
-    public boolean checkout(Launcher launcher, FilePath workspace,
-                            String viewName) throws IOException, InterruptedException {
-        
-        boolean localViewPathExists = new FilePath(workspace, viewName)
-            .exists();
+
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
+
+        boolean localViewPathExists = new FilePath(workspace, viewName).exists();
         boolean viewTagExists = cleartool.doesViewExist(viewName);
-        
+
         boolean updateLoadRules = true;
-        
+
         if (localViewPathExists) {
             if (this.useUpdate) {
                 String configSpec = PathUtil.convertPathForOS(cleartool.catcs(viewName), launcher);
                 Set<String> configSpecLoadRules = extractLoadRules(configSpec);
                 if (configSpecNeedsUpdating(configSpecLoadRules)) {
                     String newConfigSpec = getLoadRuleFreeConfigSpec(configSpec) + "\n";
-                    
+
                     for (String loadRule : loadRules) {
                         // Make sure the load rule starts with \ or /, as appropriate
                         if (!(loadRule.startsWith("\\")) && !(loadRule.startsWith("/"))) {
@@ -92,14 +88,13 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
                 cleartool.rmview(viewName);
                 cleartool.mkview(viewName, stream);
             }
-            
+
         } else {
             if (viewTagExists) {
-                launcher.getListener().fatalError("View path for " + viewName + " does not exist, but the view tag does.\n"
-                                                  + "View cannot be created - build aborting.");
+                launcher.getListener().fatalError(
+                        "View path for " + viewName + " does not exist, but the view tag does.\n" + "View cannot be created - build aborting.");
                 return false;
-            }
-            else {
+            } else {
                 cleartool.mkview(viewName, stream);
             }
         }
@@ -120,19 +115,16 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
         }
         return true;
     }
-    
+
     private boolean configSpecNeedsUpdating(Set<String> configSpecLoadRules) {
         boolean recreate = false;
         for (String loadRule : loadRules) {
             if (!configSpecLoadRules.contains(loadRule)) {
-                System.out
-                    .println("Load rule: "
-                             + loadRule
-                             + " not found in current config spec, resetting config spec or recreating view");
+                System.out.println("Load rule: " + loadRule + " not found in current config spec, resetting config spec or recreating view");
                 recreate = true;
             }
         }
         return recreate;
     }
-    
+
 }

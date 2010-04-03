@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
@@ -6,7 +7,7 @@
     <version>1.324</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  
+
   <artifactId>clearcase</artifactId>
   <packaging>hpi</packaging>
   <name>Hudson ClearCase Plug-in</name>
@@ -18,7 +19,10 @@
       <comments>All source code is under the MIT license.</comments>
     </license>
   </licenses>
-
+  <issueManagement>
+  	<system>JIRA</system>
+  	<url>http://issues.hudson-ci.org</url>
+  </issueManagement>
   <developers>
     <developer>
       <id>abayer</id>
@@ -27,7 +31,7 @@
       <timezone>-8</timezone>
     </developer>
   </developers>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.jmock</groupId>
@@ -56,15 +60,15 @@
         <extensions>true</extensions>
         <configuration>
           <compatibleSinceVersion>1.0</compatibleSinceVersion>
-	  <showDeprecation>true</showDeprecation>
+          <showDeprecation>true</showDeprecation>
         </configuration>
       </plugin>
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-compiler-plugin</artifactId>
-	<configuration>
-	  <showDeprecation>true</showDeprecation>
-	</configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <showDeprecation>true</showDeprecation>
+        </configuration>
       </plugin>
     </plugins>
   </build>

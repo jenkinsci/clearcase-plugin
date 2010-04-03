@@ -41,8 +41,7 @@ import hudson.scm.ChangeLogSet;
  */
 public class ClearCaseChangeLogParser extends ChangeLogParser {
     @Override
-    public ChangeLogSet<ClearCaseChangeLogEntry> parse(AbstractBuild build, File changelogFile) throws IOException,
-                                                                                                       SAXException {
+    public ChangeLogSet<ClearCaseChangeLogEntry> parse(AbstractBuild build, File changelogFile) throws IOException, SAXException {
         return ClearCaseChangeLogSet.parse(build, changelogFile);
     }
 }

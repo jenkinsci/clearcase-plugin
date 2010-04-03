@@ -40,78 +40,47 @@ import java.io.InputStreamReader;
 public class ClearToolSnapshot extends ClearToolExec {
 
     private String optionalMkviewParameters;
-    
-    public ClearToolSnapshot(VariableResolver variableResolver, ClearToolLauncher launcher) {
+
+    public ClearToolSnapshot(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
         super(variableResolver, launcher);
     }
 
-    public ClearToolSnapshot(VariableResolver variableResolver, ClearToolLauncher launcher, String optionalParameters) {
+    public ClearToolSnapshot(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalParameters) {
         this(variableResolver, launcher);
         this.optionalMkviewParameters = optionalParameters;
     }
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
+     * 
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
-    public void setcs(String viewName, String configSpec) throws IOException,
-                                                                 InterruptedException {
-        if (configSpec==null) {
+    public void setcs(String viewName, String configSpec) throws IOException, InterruptedException {
+        if (configSpec == null) {
             configSpec = "";
         }
-        
+
         FilePath workspace = launcher.getWorkspace();
         FilePath configSpecFile = workspace.createTextTempFile("configspec", ".txt", configSpec);
         String csLocation = "";
-        
+
         if (!configSpec.equals("")) {
             csLocation = ".." + File.separatorChar + configSpecFile.getName();
             csLocation = PathUtil.convertPathForOS(csLocation, launcher.getLauncher());
         }
-        
+
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
         if (!csLocation.equals("")) {
             cmd.add(csLocation);
-        }
-        else {
+        } else {
             cmd.add("-current");
         }
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewName));
 
         configSpecFile.delete();
-        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        baos.close();
-        String line = reader.readLine();
-        StringBuilder builder = new StringBuilder();
-        while (line != null) {
-        if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(line);
-            line = reader.readLine();
-        }
-        reader.close();
-        
-        if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
-            throw new IOException("View update failed: " + builder.toString());
-        }
-    }
-
-    /**
-     * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
-     */
-    public void setcsCurrent(String viewName) throws IOException,
-                                                     InterruptedException {
-        FilePath workspace = launcher.getWorkspace();
-        ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add("setcs");
-        cmd.add("-current");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
-        launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewName));
-        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
         baos.close();
         String line = reader.readLine();
         StringBuilder builder = new StringBuilder();
@@ -123,15 +92,45 @@ public class ClearToolSnapshot extends ClearToolExec {
             line = reader.readLine();
         }
         reader.close();
-        
+
+        if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
+            throw new IOException("View update failed: " + builder.toString());
+        }
+    }
+
+    /**
+     * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
+     * 
+     * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
+     */
+    public void setcsCurrent(String viewName) throws IOException, InterruptedException {
+        FilePath workspace = launcher.getWorkspace();
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("setcs");
+        cmd.add("-current");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewName));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        baos.close();
+        String line = reader.readLine();
+        StringBuilder builder = new StringBuilder();
+        while (line != null) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(line);
+            line = reader.readLine();
+        }
+        reader.close();
+
         if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + builder.toString());
         }
     }
 
     public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
-    	boolean isOptionalParamContainsHost = false;
-    	ArgumentListBuilder cmd = new ArgumentListBuilder();
+        boolean isOptionalParamContainsHost = false;
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkview");
         cmd.add("-snapshot");
         if (streamSelector != null) {
@@ -140,21 +139,21 @@ public class ClearToolSnapshot extends ClearToolExec {
         }
         cmd.add("-tag");
         cmd.add(viewName);
-        
+
         if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
             String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
             cmd.addTokenized(variabledResolvedParams);
             isOptionalParamContainsHost = optionalMkviewParameters.contains("-host");
         }
-        
-        if (! isOptionalParamContainsHost)
-        	cmd.add(viewName);
-        
+
+        if (!isOptionalParamContainsHost)
+            cmd.add(viewName);
+
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
-    
+
     public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
-    	launcher.getListener().fatalError("Snapshot view does not support mkview (String, String)");
+        launcher.getListener().fatalError("Snapshot view does not support mkview (String, String)");
     }
 
     public void rmview(String viewName) throws IOException, InterruptedException {
@@ -162,10 +161,10 @@ public class ClearToolSnapshot extends ClearToolExec {
         cmd.add("rmview");
         cmd.add("-force");
         cmd.add(viewName);
-        
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, null);
-        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
         baos.close();
         String line = reader.readLine();
         StringBuilder builder = new StringBuilder();
@@ -177,16 +176,14 @@ public class ClearToolSnapshot extends ClearToolExec {
             line = reader.readLine();
         }
         reader.close();
-        
+
         if (builder.toString().contains("cleartool: Error")) {
             throw new IOException("Failed to remove view: " + builder.toString());
         }
-        
-        
+
         FilePath viewFilePath = launcher.getWorkspace().child(viewName);
         if (viewFilePath.exists()) {
-            launcher.getListener().getLogger().println(
-                                                       "Removing view folder as it was not removed when the view was removed.");
+            launcher.getListener().getLogger().println("Removing view folder as it was not removed when the view was removed.");
             viewFilePath.deleteRecursive();
         }
     }
@@ -207,14 +204,13 @@ public class ClearToolSnapshot extends ClearToolExec {
             String loadRulesLocation = PathUtil.convertPathForOS(viewName + loadRules, getLauncher().getLauncher());
             if (loadRulesLocation.matches(".*\\s.*")) {
                 cmd.addQuoted(loadRulesLocation);
-            }
-            else {
+            } else {
                 cmd.add(loadRulesLocation);
             }
         }
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, null);
-        BufferedReader reader = new BufferedReader( new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
         baos.close();
         String line = reader.readLine();
         StringBuilder builder = new StringBuilder();
@@ -226,12 +222,11 @@ public class ClearToolSnapshot extends ClearToolExec {
             line = reader.readLine();
         }
         reader.close();
-        
+
         if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + builder.toString());
         }
     }
-
 
     @Override
     protected FilePath getRootViewPath(ClearToolLauncher launcher) {
@@ -241,7 +236,7 @@ public class ClearToolSnapshot extends ClearToolExec {
     public void startView(String viewTag) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Snapshot view does not support startview");
     }
-    
+
     public void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Snapshot view does not support syncronize");
     }

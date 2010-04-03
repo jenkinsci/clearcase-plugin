@@ -29,9 +29,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.model.Descriptor;
 import hudson.model.Result;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.HudsonClearToolLauncher;
@@ -59,41 +57,40 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
- * UcmMakeBaselineComposite creates a composite baseline and
- * extracting composite baseline information is a file.
+ * UcmMakeBaselineComposite creates a composite baseline and extracting composite baseline information is a file.
  * 
  * @author Gregory BOISSINOT - Zenika
  */
 public class UcmMakeBaselineComposite extends Notifier {
 
+    private static final Logger LOGGER = Logger.getLogger(UcmMakeBaselineComposite.class.getName());
 
-    private static final Logger LOGGER = Logger
-        .getLogger(UcmMakeBaselineComposite.class.getName());
-
-    private final String compositeNamePattern;    
+    private final String compositeNamePattern;
     private final String compositeStreamSelector;
     private final String compositeComponentName;
     private final boolean extractInfoFile;
     private final String fileName;
-    
 
-    public String getCompositeNamePattern(){
+    public String getCompositeNamePattern() {
         return compositeNamePattern;
-    }   
-    public String getCompositeStreamSelector(){
+    }
+
+    public String getCompositeStreamSelector() {
         return compositeStreamSelector;
-    }   
+    }
+
     public String getCompositeComponentName() {
         return this.compositeComponentName;
-    }        
+    }
+
     public boolean isExtractInfoFile() {
         return this.extractInfoFile;
-    }    
+    }
+
     public String getFileName() {
         return this.fileName;
-    }   
+    }
 
-    
     @Override
     public DescriptorImpl getDescriptor() {
         // see Descriptor javadoc for more about what a descriptor is.
@@ -143,11 +140,11 @@ public class UcmMakeBaselineComposite extends Notifier {
                                      final String fileName) {
 
         this.compositeNamePattern = compositeNamePattern.trim();
-        this.compositeStreamSelector = compositeStreamSelector.trim();               
-        this.compositeComponentName=compositeComponentName.trim();
-        this.extractInfoFile=extractInfoFile;
-        this.fileName=fileName.trim();
-        
+        this.compositeStreamSelector = compositeStreamSelector.trim();
+        this.compositeComponentName = compositeComponentName.trim();
+        this.extractInfoFile = extractInfoFile;
+        this.fileName = fileName.trim();
+
     }
 
     @Override
@@ -155,29 +152,24 @@ public class UcmMakeBaselineComposite extends Notifier {
         return true;
     }
 
-
     @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.BUILD;
     }
-    
-    
+
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
 
         return true;
     }
-    
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean perform(AbstractBuild build, Launcher launcher,
-                           BuildListener listener) throws InterruptedException, IOException {
+    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 
         if (build.getProject().getScm() instanceof ClearCaseUcmSCM) {
             ClearCaseUcmSCM scm = (ClearCaseUcmSCM) build.getProject().getScm();
-            FilePath filePath = build.getWorkspace().child(
-                                                           scm.getViewName());
+            FilePath filePath = build.getWorkspace().child(scm.getViewName());
 
             HudsonClearToolLauncher clearToolLauncher = new HudsonClearToolLauncher(
                                                                                     PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(),
@@ -186,40 +178,36 @@ public class UcmMakeBaselineComposite extends Notifier {
 
             if (build.getResult().equals(Result.SUCCESS)) {
 
-                try{
+                try {
                     LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
 
                     String compositeBaselineName = Util.replaceMacro(this.compositeNamePattern, build.getEnvironment(ltl));
 
                     String pvob = compositeStreamSelector;
-                    if (compositeStreamSelector.contains("@"+ File.separator)) {
-                        pvob = compositeStreamSelector.substring(compositeStreamSelector.indexOf("@" + File.separator)+2, compositeStreamSelector.length());
-                    }                                   
-                    
-                    this.makeCompositeBaseline(compositeBaselineName, this.compositeStreamSelector, this.compositeComponentName, pvob, clearToolLauncher, filePath);
-
-                    
-                    this.promoteCompositeBaselineToBuiltLevel(compositeBaselineName, pvob, clearToolLauncher, filePath);
-                    
-                    if (extractInfoFile){
-                        processExtractInfoFile(this.compositeComponentName,pvob,compositeBaselineName, this.fileName, clearToolLauncher, filePath);
+                    if (compositeStreamSelector.contains("@" + File.separator)) {
+                        pvob = compositeStreamSelector.substring(compositeStreamSelector.indexOf("@" + File.separator) + 2, compositeStreamSelector.length());
                     }
-                    
-                }
-                catch (Exception ex){
+
+                    this.makeCompositeBaseline(compositeBaselineName, this.compositeStreamSelector, this.compositeComponentName, pvob, clearToolLauncher,
+                            filePath);
+
+                    this.promoteCompositeBaselineToBuiltLevel(compositeBaselineName, pvob, clearToolLauncher, filePath);
+
+                    if (extractInfoFile) {
+                        processExtractInfoFile(this.compositeComponentName, pvob, compositeBaselineName, this.fileName, clearToolLauncher, filePath);
+                    }
+
+                } catch (Exception ex) {
                     listener.getLogger().println("Failed to create baseline: " + ex);
                     return false;
                 }
             } else {
-                listener.getLogger().println(
-                                             "Not a UCM clearcase SCM, cannot create baseline composite");
+                listener.getLogger().println("Not a UCM clearcase SCM, cannot create baseline composite");
             }
-            
+
         }
         return true;
     }
-
-
 
     /**
      * Retrieve all Clearcase UCM component (with pvob suffix) for a stream
@@ -231,128 +219,109 @@ public class UcmMakeBaselineComposite extends Notifier {
      * @throws IOException
      * @throws InterruptedException
      */
-    private List<String> getComponentList(String stream,
-                                          HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
-        throws IOException, InterruptedException {
-        
-        List<String> result =  new ArrayList<String>();
-        
+    private List<String> getComponentList(String stream, HudsonClearToolLauncher clearToolLauncher, FilePath filePath) throws IOException, InterruptedException {
+
+        List<String> result = new ArrayList<String>();
+
         ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add("lsstream");       
-        cmd.add("-fmt");       
-        cmd.add("\"%[components]XCp\""); 
-        cmd.add(stream); 
+        cmd.add("lsstream");
+        cmd.add("-fmt");
+        cmd.add("\"%[components]XCp\"");
+        cmd.add(stream);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
         String cleartoolResult = baos.toString();
         baos.close();
-        
-        String comp []= cleartoolResult.split(",\\s");
-        for (String c:comp){
+
+        String comp[] = cleartoolResult.split(",\\s");
+        for (String c : comp) {
             result.add(c.split("component:")[1]);
         }
-        
+
         return result;
     }
-    
-    
+
     /**
      * Pick up a view from a stream
      * 
      * @return a view attached to the stream
      */
-    private String getOneViewFromStream(String stream,
-                                        HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
-        throws Exception {
+    private String getOneViewFromStream(String stream, HudsonClearToolLauncher clearToolLauncher, FilePath filePath) throws Exception {
 
         ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add("lsstream");       
-        cmd.add("-fmt");       
-        cmd.add("\"%[views]p\""); 
-        cmd.add(stream); 
+        cmd.add("lsstream");
+        cmd.add("-fmt");
+        cmd.add("\"%[views]p\"");
+        cmd.add(stream);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
         String cleartoolResult = baos.toString();
         baos.close();
-        
+
         String resultLines[] = cleartoolResult.split("\n");
-        if (resultLines.length == 0){
+        if (resultLines.length == 0) {
             throw new Exception("There is no view attached to the stream '" + stream + "'");
         }
-        String viewsLines = resultLines[resultLines.length-1];
+        String viewsLines = resultLines[resultLines.length - 1];
         return viewsLines.split(" ")[0];
-        
-        
+
     }
 
-    
     /**
-     * Make a composite baseline 
+     * Make a composite baseline
      * 
      * @param compositeBaselineName the composite baseline name
      * @param compositeStream the composite UCM Clearcase stream with Pvob like : 'P_EngDesk_Product_3.2_int@\P_ORC'
-     * @param compositeComponent the composite UCM Clearcase component name like 'C_
-     Build_EngDesk'
+     * @param compositeComponent the composite UCM Clearcase component name like 'C_ Build_EngDesk'
      * @param clearToolLauncher the ClearCase launcher
      * @param filePath the filepath
      * @throws Exception
      */
-    private void makeCompositeBaseline(
-                                       String compositeBaselineName,
-                                       String compositeStream,
-                                       String compositeComponent,
-                                       String pvob,
-                                       HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
-        throws Exception {
-        
-        //Get a view containing the composite component
-        String compositeView = getOneViewFromStream(this.compositeStreamSelector,clearToolLauncher,filePath);
-        
-        //Get the component list (with pvob suffix) for the stream
-        List<String> componentList = getComponentList(this.compositeStreamSelector,clearToolLauncher,filePath);
-        
-        //Make baseline composite
+    private void makeCompositeBaseline(String compositeBaselineName, String compositeStream, String compositeComponent, String pvob,
+            HudsonClearToolLauncher clearToolLauncher, FilePath filePath) throws Exception {
+
+        // Get a view containing the composite component
+        String compositeView = getOneViewFromStream(this.compositeStreamSelector, clearToolLauncher, filePath);
+
+        // Get the component list (with pvob suffix) for the stream
+        List<String> componentList = getComponentList(this.compositeStreamSelector, clearToolLauncher, filePath);
+
+        // Make baseline composite
         ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add("mkbl");       
+        cmd.add("mkbl");
         cmd.add("-nc");
-        cmd.add("-view"); 
-        cmd.add(compositeView); 
+        cmd.add("-view");
+        cmd.add(compositeView);
         cmd.add("-comp");
         cmd.add(compositeComponent + "@" + File.separator + pvob);
         cmd.add("-full");
         cmd.add("-ddepends_on");
-        
+
         StringBuffer sb = new StringBuffer();
-        for (String comp:componentList){
-            //Exclude the composite component
+        for (String comp : componentList) {
+            // Exclude the composite component
             if (!comp.contains(compositeComponent))
                 sb.append(",").append(comp);
         }
-        sb.delete(0, 1);                
+        sb.delete(0, 1);
         cmd.add(sb.toString());
-        
+
         cmd.add("-adepends_on");
         cmd.add(sb.toString());
-        
+
         cmd.add(compositeBaselineName);
-        
-        
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
         baos.close();
         String cleartoolResult = baos.toString();
         if (cleartoolResult.contains("cleartool: Error")) {
-            throw new Exception("Failed to make baseline, reason: "
-                                + cleartoolResult);
-        }       
+            throw new Exception("Failed to make baseline, reason: " + cleartoolResult);
+        }
 
     }
 
-    
-    
-    
-    
     /**
      * Promote the composite baseline
      * 
@@ -363,9 +332,8 @@ public class UcmMakeBaselineComposite extends Notifier {
      * @throws InterruptedException
      * @throws IOException
      */
-    private void promoteCompositeBaselineToBuiltLevel(String compositeBaselineName, String pvob,
-                                                      HudsonClearToolLauncher clearToolLauncher, FilePath filePath) 
-        throws InterruptedException, IOException {
+    private void promoteCompositeBaselineToBuiltLevel(String compositeBaselineName, String pvob, HudsonClearToolLauncher clearToolLauncher, FilePath filePath)
+            throws InterruptedException, IOException {
 
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("chbl");
@@ -374,20 +342,18 @@ public class UcmMakeBaselineComposite extends Notifier {
         cmd.add(compositeBaselineName + "@" + File.separator + pvob);
 
         clearToolLauncher.run(cmd.toCommandArray(), null, null, filePath);
-    }   
-    
-    
+    }
+
     /**
      * Retrieve the binding component for the current baseline
+     * 
      * @param baseline the current baseline
      * @param clearToolLauncher
      * @param filePath
      * @return
      * @throws Exception
      */
-    private String getComponent(String baseline,
-                                HudsonClearToolLauncher clearToolLauncher, FilePath filePath) 
-        throws Exception {
+    private String getComponent(String baseline, HudsonClearToolLauncher clearToolLauncher, FilePath filePath) throws Exception {
 
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsbl");
@@ -399,16 +365,15 @@ public class UcmMakeBaselineComposite extends Notifier {
         clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
         baos.close();
         String cleartoolResult = baos.toString();
-        if (cleartoolResult.contains("cleartool: Error")) 
-            throw new Exception("Failed to make baseline, reason: "+ cleartoolResult);
-        
-        return cleartoolResult; 
-    }  
+        if (cleartoolResult.contains("cleartool: Error"))
+            throw new Exception("Failed to make baseline, reason: " + cleartoolResult);
 
+        return cleartoolResult;
+    }
 
-    
     /**
      * Extract Composite baseline information in an external file
+     * 
      * @param compositeComponnentName
      * @param pvob
      * @param compositeBaselineName
@@ -428,40 +393,36 @@ public class UcmMakeBaselineComposite extends Notifier {
         cmd.add("lsbl");
         cmd.add("-fmt");
         cmd.add("\"%[depends_on]p\"");
-        cmd.add(compositeBaselineName  +"@" +  File.separator + pvob);
-        
+        cmd.add(compositeBaselineName + "@" + File.separator + pvob);
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         clearToolLauncher.run(cmd.toCommandArray(), null, baos, filePath);
         baos.close();
         String cleartoolResult = baos.toString();
         if (cleartoolResult.contains("cleartool: Error")) {
-            throw new Exception("Failed to make baseline, reason: "
-                                + cleartoolResult);
-        }  
-        
-        
+            throw new Exception("Failed to make baseline, reason: " + cleartoolResult);
+        }
+
         String baselinesComp[] = cleartoolResult.split(" ");
         List<String> baselineList = Arrays.asList(baselinesComp);
         Collections.sort(baselineList);
 
         FileWriter fw = null;
-        try{
+        try {
             File f = new File(filePath.getRemote() + File.separator + fileName);
-            if (!f.exists()){
+            if (!f.exists()) {
                 f.createNewFile();
             }
             fw = new FileWriter(f);
             fw.write("The composite baseline is '" + compositeBaselineName + "'");
-            for (String baseLine:baselineList){
-                fw.write("\nThe  baseline of component '"+ getComponent(baseLine, clearToolLauncher, filePath) + "' is :" + baseLine);
+            for (String baseLine : baselineList) {
+                fw.write("\nThe  baseline of component '" + getComponent(baseLine, clearToolLauncher, filePath) + "' is :" + baseLine);
             }
-        }
-        finally {
-            if (fw!= null)
+        } finally {
+            if (fw != null)
                 fw.close();
         }
-        
-    }   
 
-    
+    }
+
 }

@@ -35,6 +35,7 @@ import java.util.List;
  * @author Henrik L. Hansen
  */
 public interface ChangeLogAction {
-    
-    List<? extends ChangeLogSet.Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException,InterruptedException;
+
+    List<? extends ChangeLogSet.Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException,
+            InterruptedException;
 }
