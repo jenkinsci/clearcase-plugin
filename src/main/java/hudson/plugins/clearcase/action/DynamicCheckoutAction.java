@@ -132,6 +132,7 @@ public class DynamicCheckoutAction implements CheckOutAction {
                 effectiveConfigSpec = tempConfigSpec;
             } else {
                 cleartool.setcs(viewName, null);
+                effectiveConfigSpec = currentConfigSpec;
             }
         } else {
             effectiveConfigSpec = currentConfigSpec;

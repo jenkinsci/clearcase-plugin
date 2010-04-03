@@ -336,6 +336,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 {
                     one(build).getPreviousBuild(); will(returnValue(null));
                     ignoring(build).getParent(); will(returnValue(project));
+                    ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 }
             });
 
@@ -381,7 +382,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
                     one(build).getTimestamp(); will(returnValue(mockedCalendar));
                     ignoring(build).getParent(); will(returnValue(project));
-                    
+                    ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 }
             });
 
@@ -425,7 +426,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
                     allowing(build).getTimestamp(); will(returnValue(mockedCalendar));
                     ignoring(build).getParent(); will(returnValue(project));
-                    
+                    ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 }
             });
 
@@ -463,7 +464,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     ignoring(build).getParent(); will(returnValue(project));
                     allowing(computer).getName(); will(returnValue("test-node"));
                     ignoring(project).getName(); will(returnValue("CCHudson"));
-                    
+                    ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 }
             });
 
@@ -498,6 +499,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
                     one(build).getTimestamp(); will(returnValue(mockedCalendar));
                     ignoring(build).getParent(); will(returnValue(project));
+                    ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 }
             });
 
@@ -534,6 +536,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     ignoring(build).getPreviousBuild(); will(returnValue(build));
                     ignoring(build).getTimestamp(); will(returnValue(mockedCalendar));
                     ignoring(build).getParent(); will(returnValue(project));
+                    ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 }
             });
 
@@ -757,7 +760,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())),
                                                   with(equal("viewname")), 
                                                   with(equal(new String[]{""})), 
-                                                  with(equal(new String[]{""}))); 
+                                                  with(aNull(String[].class))); 
                     will(returnValue(false));
                 }
             });
@@ -766,6 +769,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     ignoring(build).getParent(); will(returnValue(project));
                     one(build).getTimestamp(); will(returnValue(mockedCalendar));
                     one(project).getLastBuild(); will(returnValue(build));
+                    ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 }
             });
 
@@ -785,7 +789,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())),
                                                   with(equal("viewname")), 
                                                   with(equal(new String[]{"branch"})), 
-                                                  with(equal(new String[]{""}))); 
+                                                  with(aNull(String[].class))); 
                     will(returnValue(true));
                 }
             });
@@ -795,6 +799,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     ignoring(matrixBuild).getParent(); will(returnValue(project));
                     one(project).getLastBuild(); will(returnValue(matrixBuild));
                     one(matrixBuild).getTimestamp(); will(returnValue(mockedCalendar));
+                    ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 }
             });
 
