@@ -33,6 +33,9 @@ public abstract class PathUtil {
     }
 
     public static String convertPathForOS(String path, boolean isUnix) {
+        if (path == null) {
+            return null;
+        }
         String tempPath = path;
         if (isUnix) {
             tempPath = tempPath.replaceAll("\r\n", "\n");
@@ -53,6 +56,14 @@ public abstract class PathUtil {
             return "/";
         } else {
             return "\\";
+        }
+    }
+    
+    public static String newLineForOS(boolean isUnix) {
+        if (isUnix) {
+            return "\n";
+        } else {
+            return "\r\n";
         }
     }
 

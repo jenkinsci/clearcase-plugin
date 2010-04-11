@@ -31,15 +31,14 @@ import hudson.model.TaskListener;
 import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
@@ -61,17 +60,17 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        context = new Mockery();
+        context = new JUnit4Mockery();
+        classContext = new JUnit4Mockery() {
+            {
+                setImposteriser(ClassImposteriser.INSTANCE);
+            }
+        };
         
         clearToolLauncher = context.mock(ClearToolLauncher.class);
         listener = context.mock(TaskListener.class);
         resolver = context.mock(VariableResolver.class);
         clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher);
-        classContext = new Mockery() {
-                {
-                    setImposteriser(ClassImposteriser.INSTANCE);
-                }
-            };
         
         launcher = classContext.mock(Launcher.class);
     }
@@ -80,26 +79,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     public void tearDown() throws Exception {
         deleteWorkspace();
     }
-    
-    //  @Test
-    //  public void testSetcs() throws Exception {
-    //          context.checking(new Expectations() {
-    //                  {
-    //                          one(clearToolLauncher).getWorkspace();
-    //                          will(returnValue(workspace));
-    //                          one(clearToolLauncher).getLauncher();
-    //                          will(re)
-    //                          one(clearToolLauncher).run(with(Matchers.hasItemInArray("setcs")),
-    //                                          with(aNull(InputStream.class)),
-    //                                          with(aNull(OutputStream.class)),
-    //                                          with(aNonNull(FilePath.class)));
-    //                          will(returnValue(Boolean.TRUE));
-    //                  }
-    //          });
-    //
-    //          clearToolExec.setcs("viewName", "configspec");
-    //          context.assertIsSatisfied();
-    //  }
     
     @Test
     public void testRemoveView() throws Exception {
@@ -117,7 +96,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             });
         
         clearToolExec.rmview("viewName");
-        context.assertIsSatisfied();
     }
     
     @Test
@@ -144,33 +122,31 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         clearToolExec.rmview("viewName");
         assertFalse("View folder still exists", workspace.child("viewName")
                     .exists());
-        context.assertIsSatisfied();
     }
     
     @Test
     public void testUpdate() throws Exception {
         context.checking(new Expectations() {
                 {
+                    one(clearToolLauncher).getWorkspace(); will(returnValue(workspace));
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "update", "-force", "-overwrite", "-log",
-                                                                         "NUL", "viewName" })),
+                                                                         "NUL" })),
                                                with(aNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
-                                               with(aNull(FilePath.class)));
+                                               with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                 }
             });
         
         clearToolExec.update("viewName", null);
-        context.assertIsSatisfied();
     }
 
     @Test
     public void testSetcsCurrent() throws Exception {
         context.checking(new Expectations() {
                 {
-                    allowing(clearToolLauncher).getWorkspace();
-                    will(returnValue(workspace));
+                    allowing(clearToolLauncher).getWorkspace(); will(returnValue(workspace));
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "setcs", "-current" })),
                                                with(aNull(InputStream.class)),
@@ -181,26 +157,25 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             });
         
         clearToolExec.setcs("viewName", null);
-        context.assertIsSatisfied();
     }
 
     @Test(expected=IOException.class)
     public void testUpdateBlocked() throws Exception {
         context.checking(new Expectations() {
                 {
+                    one(clearToolLauncher).getWorkspace(); will(returnValue(workspace));
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "update", "-force", "-overwrite", "-log",
-                                                                         "NUL", "viewName" })),
+                                                                         "NUL"})),
                                                with(aNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
-                                               with(aNull(FilePath.class)));
+                                               with(aNonNull(FilePath.class)));
                     will(doAll(new StreamCopyAction(2, ClearToolSnapshotTest.class.getResourceAsStream("ct-update-2.log")),
                                returnValue(Boolean.TRUE)));
                 }
             });
         
         clearToolExec.update("viewName", null);
-        context.assertIsSatisfied();
     }
 
     @Test(expected=IOException.class)
@@ -220,8 +195,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             });
 
         clearToolExec.setcs("viewName", null);
-        
-        context.assertIsSatisfied();
     }
 
     
@@ -235,8 +208,8 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         
         context.checking(new Expectations() {
                 {
-                    allowing(clearToolLauncher).getLauncher();
-                    will(returnValue(launcher));
+                    allowing(clearToolLauncher).getLauncher(); will(returnValue(launcher));
+                    one(clearToolLauncher).getWorkspace(); will(returnValue(workspace));
                     one(clearToolLauncher)
                         .run(
                              with(equal(new String[] {
@@ -246,16 +219,15 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
-                                         "viewName\\more_load_rules" })),
+                                         "more_load_rules" })),
                              with(aNull(InputStream.class)),
                              with(aNonNull(OutputStream.class)),
-                             with(aNull(FilePath.class)));
+                             with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                 }
             });
         
-        clearToolExec.update("viewName", "\\more_load_rules");
-        context.assertIsSatisfied();
+        clearToolExec.update("viewName", new String[] {"\\more_load_rules"});
     }
 
         @Test
@@ -268,8 +240,8 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         
         context.checking(new Expectations() {
                 {
-                    allowing(clearToolLauncher).getLauncher();
-                    will(returnValue(launcher));
+                    allowing(clearToolLauncher).getLauncher(); will(returnValue(launcher));
+                    one(clearToolLauncher).getWorkspace(); will(returnValue(workspace));
                     one(clearToolLauncher)
                         .run(
                              with(equal(new String[] {
@@ -279,16 +251,15 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
-                                         "viewName/more_load_rules" })),
+                                         "more_load_rules" })),
                              with(aNull(InputStream.class)),
                              with(aNonNull(OutputStream.class)),
-                             with(aNull(FilePath.class)));
+                             with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                 }
             });
         
-        clearToolExec.update("viewName", "/more_load_rules");
-        context.assertIsSatisfied();
+        clearToolExec.update("viewName", new String[] {"/more_load_rules"});
     }
 
     @Test
@@ -301,8 +272,8 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         
         context.checking(new Expectations() {
                 {
-                    allowing(clearToolLauncher).getLauncher();
-                    will(returnValue(launcher));
+                    allowing(clearToolLauncher).getLauncher(); will(returnValue(launcher));
+                    one(clearToolLauncher).getWorkspace(); will(returnValue(workspace));
                     one(clearToolLauncher)
                         .run(
                              with(equal(new String[] {
@@ -312,16 +283,15 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
-                                         "\"viewName/more load_rules\"" })),
+                                         "\"more load_rules\"" })),
                              with(aNull(InputStream.class)),
                              with(aNonNull(OutputStream.class)),
-                             with(aNull(FilePath.class)));
+                             with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                 }
             });
         
-        clearToolExec.update("viewName", "/more load_rules");
-        context.assertIsSatisfied();
+        clearToolExec.update("viewName", new String[] {"/more load_rules"});
     }
 
     @Test
@@ -334,8 +304,8 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         
         context.checking(new Expectations() {
                 {
-                    allowing(clearToolLauncher).getLauncher();
-                    will(returnValue(launcher));
+                    one(clearToolLauncher).getWorkspace(); will(returnValue(workspace));
+                    allowing(clearToolLauncher).getLauncher(); will(returnValue(launcher));
                     one(clearToolLauncher)
                         .run(
                              with(equal(new String[] {
@@ -345,16 +315,15 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "-log",
                                          "NUL",
                                          "-add_loadrules",
-                                         "\"viewName\\more load_rules\"" })),
+                                         "\"more load_rules\"" })),
                              with(aNull(InputStream.class)),
                              with(aNonNull(OutputStream.class)),
-                             with(aNull(FilePath.class)));
+                             with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                 }
             });
         
-        clearToolExec.update("viewName", "\\more load_rules");
-        context.assertIsSatisfied();
+        clearToolExec.update("viewName", new String[] {"\\more load_rules"});
     }
     
     @Test
@@ -372,7 +341,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             });
         
         clearToolExec.mkview("viewName", null);
-        context.assertIsSatisfied();
     }
     
     @Test
@@ -391,7 +359,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             });
 
         clearToolExec.mkview("viewName", "streamSelector");
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -412,7 +379,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
                                               "-anextraparam -anotherparam");
         clearToolExec.mkview("viewName", null);
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -433,7 +399,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
                                               "-anextraparam -anotherparam");
         clearToolExec.mkview("viewName", "streamSelector");
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -460,6 +425,5 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
                                               "-anextraparam $COMPUTERNAME");
         clearToolExec.mkview("viewName", null);
-        context.assertIsSatisfied();
     }
 }

@@ -2,7 +2,7 @@
  * The MIT License
  *
  * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -131,6 +131,23 @@ public abstract class ClearToolExec implements ClearTool {
         return new ArrayList<String>();
     }
 
+    @Override
+    public String lscurrentview(String viewPath) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("lsview").add("-cview").add("-s");
+        
+        List<IOException> exceptions = new ArrayList<IOException>();
+        String output = runAndProcessOutput(cmd, getLauncher().getWorkspace().child(viewPath), true, exceptions);
+        if (!exceptions.isEmpty()) {
+            if (output.contains("cleartool: Error: Cannot get view info for current view: not a ClearCase object.")) {
+                output = null;
+            } else {
+                throw exceptions.get(0);
+            }
+        }
+        return output;
+    }
+
     public boolean doesViewExist(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsview");
@@ -160,48 +177,14 @@ public abstract class ClearToolExec implements ClearTool {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("pwv");
         cmd.add("-root");
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String retString = "";
-
-        // changed the path from workspace to getRootViewPath to make Dynamic UCM work
-        FilePath viewPath = getRootViewPath(launcher).child(viewName);
-
-        if (launcher.run(cmd.toCommandArray(), null, baos, viewPath)) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-            retString = reader.readLine();
-
-            reader.close();
-        }
-
-        baos.close();
-
-        return retString;
+        return runAndProcessOutput(cmd, getRootViewPath(launcher).child(viewName), false, null);
     }
 
     public String catcs(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("catcs");
         cmd.add("-tag", viewName);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String retString = "";
-        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-            String line = reader.readLine();
-            StringBuilder builder = new StringBuilder();
-            while (line != null) {
-                if (builder.length() > 0) {
-                    builder.append("\n");
-                }
-                builder.append(line);
-                line = reader.readLine();
-            }
-            reader.close();
-            retString = builder.toString();
-        }
-        baos.close();
-        return retString;
+        return runAndProcessOutput(cmd, null, false, null);
     }
 
     private List<String> parseListOutput(Reader consoleReader, boolean onlyStarMarked) throws IOException {
@@ -254,24 +237,18 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("lsview");
         cmd.add("-l", viewName);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         Pattern uuidPattern = Pattern.compile("View uuid: (.*)");
         Pattern globalPathPattern = Pattern.compile("View server access path: (.*)");
         boolean res = true;
         IOException exception = null;
-
-        try {
-            res = launcher.run(cmd.toCommandArray(), null, baos, null);
-        } catch (IOException ex) {
-            exception = ex;
-        }
-
+        List<IOException> exceptions = new ArrayList<IOException>();
+        
+        String output = runAndProcessOutput(cmd, null, true, exceptions);
         // handle the use case in which view doesn't exist and therefore error is thrown
-        String output = getOutputString(baos);
-        baos.close();
-        if (exception != null && !output.contains("No matching entries found for view"))
-            throw exception;
+        if (!exceptions.isEmpty() && !output.contains("No matching entries found for view")) {
+            throw exceptions.get(0);
+        }
 
         if (res && exception == null) {
             String[] lines = output.split("\n");
@@ -294,49 +271,23 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("endview");
         cmd.add(viewName);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        baos.close();
-        String line = reader.readLine();
-        StringBuilder builder = new StringBuilder();
-        while (line != null) {
-            if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(line);
-            line = reader.readLine();
-        }
-        reader.close();
-
-        if (builder.toString().contains("cleartool: Error")) {
-            throw new IOException("Failed to end view tag: " + builder.toString());
+        String output = runAndProcessOutput(cmd, null, false, null);
+        if (output.contains("cleartool: Error")) {
+            throw new IOException("Failed to end view tag: " + output);
         }
     }
 
     public void rmviewtag(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add("rmtag");
-        cmd.add("-view");
+        cmd.add("rmview");
+        cmd.add("-force");
+        cmd.add("-tag");
         cmd.add(viewName);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        baos.close();
-        String line = reader.readLine();
-        StringBuilder builder = new StringBuilder();
-        while (line != null) {
-            if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(line);
-            line = reader.readLine();
-        }
-        reader.close();
+        String output = runAndProcessOutput(cmd, null, false, null);
 
-        if (builder.toString().contains("cleartool: Error")) {
-            throw new IOException("Failed to remove view tag: " + builder.toString());
+        if (output.contains("cleartool: Error")) {
+            throw new IOException("Failed to remove view tag: " + output);
         }
 
     }
@@ -348,23 +299,9 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-uuid");
         cmd.add(uuid);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        baos.close();
-        String line = reader.readLine();
-        StringBuilder builder = new StringBuilder();
-        while (line != null) {
-            if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(line);
-            line = reader.readLine();
-        }
-        reader.close();
-
-        if (builder.toString().contains("cleartool: Error")) {
-            throw new IOException("Failed to unregister view: " + builder.toString());
+        String output = runAndProcessOutput(cmd, null, false, null);
+        if (output.contains("cleartool: Error")) {
+            throw new IOException("Failed to unregister view: " + output);
         }
 
     }
@@ -377,8 +314,25 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-uuid");
         cmd.add(viewUuid);
 
+        String output = runAndProcessOutput(cmd, null, false, null);
+        if (output.contains("cleartool: Error")) {
+            throw new IOException("Failed to remove view: " + output);
+        }
+
+    }
+
+    protected String runAndProcessOutput(ArgumentListBuilder cmd, FilePath workFolder, boolean catchExceptions, List<IOException> exceptions) throws IOException, InterruptedException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
+        try {
+            launcher.run(cmd.toCommandArray(), null, baos, workFolder);
+        } catch (IOException e) {
+            if (!catchExceptions) {
+                throw e;
+            } else {
+                exceptions.add(e);
+            }
+        }
+    
         BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
         baos.close();
         String line = reader.readLine();
@@ -391,28 +345,9 @@ public abstract class ClearToolExec implements ClearTool {
             line = reader.readLine();
         }
         reader.close();
-
-        if (builder.toString().contains("cleartool: Error")) {
-            throw new IOException("Failed to remove view: " + builder.toString());
-        }
-
-    }
-
-    private String getOutputString(ByteArrayOutputStream baos) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        StringBuilder builder = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            if (builder.length() > 0)
-                builder.append("\n");
-
-            builder.append(line);
-        }
-        reader.close();
-
         return builder.toString();
     }
-
+    
     public void logRedundantCleartoolError(String[] cmd, Exception ex) {
         getLauncher().getListener().getLogger().println("Redundant Cleartool Error ");
 

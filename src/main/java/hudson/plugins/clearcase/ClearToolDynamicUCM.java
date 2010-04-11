@@ -2,7 +2,7 @@
  * The MIT License
  *
  * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -145,7 +145,7 @@ public class ClearToolDynamicUCM extends ClearToolExec {
 
     }
 
-    public void update(String viewName, String loadRules) throws IOException, InterruptedException {
+    public void update(String viewName, String[] loadRules) throws IOException, InterruptedException {
         launcher.getListener().fatalError("Dynamic UCM view does not support update");
     }
 
