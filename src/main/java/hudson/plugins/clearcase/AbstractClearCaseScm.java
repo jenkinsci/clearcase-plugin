@@ -70,7 +70,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.tools.ant.types.selectors.ExtendSelector;
 
 /**
  * Abstract class for ClearCase SCM. The class contains the logic around checkout and polling, the deriving classes only
@@ -113,22 +112,11 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected String getNormalizedViewName() {
         return getNormalizedViewNameThreadLocalWrapper().get();
     }
-    
-    public AbstractClearCaseScm(final String viewName,
-                                final String mkviewOptionalParam,
-                                final boolean filterOutDestroySubBranchEvent,
-                                final boolean useUpdate, 
-                                final boolean rmviewonrename,
-                                final String excludedRegions,
-                                final boolean useDynamicView,
-                                final String viewDrive,
-                                final String loadRules,
-                                final String multiSitePollBuffer,
-                                final boolean createDynView,
-                                final String winDynStorageDir,
-                                final String unixDynStorageDir,
-                                final boolean freezeCode,
-                                final boolean recreateView) {
+
+    public AbstractClearCaseScm(final String viewName, final String mkviewOptionalParam, final boolean filterOutDestroySubBranchEvent, final boolean useUpdate,
+            final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, final String loadRules,
+            final String multiSitePollBuffer, final boolean createDynView, final String winDynStorageDir, final String unixDynStorageDir,
+            final boolean freezeCode, final boolean recreateView) {
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
         this.filteringOutDestroySubBranchEvent = filterOutDestroySubBranchEvent;
@@ -479,9 +467,9 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     @Extension
     public static class ItemListenerImpl extends ItemListener {
-        
+
         private static class JobNameOverrideBuildVariableResolver extends BuildVariableResolver {
-            
+
             private String jobName;
 
             public JobNameOverrideBuildVariableResolver(String jobName, AbstractBuild<?, ?> build, Computer computer) {
@@ -498,7 +486,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                 }
             }
         }
-        
+
         /**
          * Delete the view when the job is renamed
          */
@@ -516,9 +504,9 @@ public abstract class AbstractClearCaseScm extends SCM {
                         }
                         StreamTaskListener listener = new StreamTaskListener(System.out);
                         Launcher launcher = hudson.createLauncher(listener);
-                        
+
                         AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getSomeBuildWithWorkspace();
-                        
+
                         if (build != null) {
                             VariableResolver<String> variableResolver = new JobNameOverrideBuildVariableResolver(oldName, build, ccScm.getBuildComputer(build));
                             String normalizedViewName = ccScm.generateNormalizedViewName(variableResolver);
@@ -548,7 +536,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                 }
             }
         }
-        
+
         private boolean isFreeStyleProjectAndHasCustomWorkspace(AbstractProject project) {
             if (project instanceof FreeStyleProject) {
                 FreeStyleProject fsProject = (FreeStyleProject) project;
@@ -596,7 +584,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                             // Create a variable resolver using the last build's computer - HUDSON-5364
                             VariableResolver<String> variableResolver = new BuildVariableResolver(project.getLastBuild(), ccScm.getBuildComputer(project
                                     .getLastBuild()));
-                            
+
                             // Workspace has already been removed, so the view needs to be unregistered
                             String normalizedViewName = ccScm.generateNormalizedViewName(variableResolver);
                             ct.rmviewtag(normalizedViewName);
