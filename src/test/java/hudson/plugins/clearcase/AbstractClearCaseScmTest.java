@@ -24,27 +24,24 @@
  */
 package hudson.plugins.clearcase;
 
-import hudson.plugins.clearcase.history.HistoryAction;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertArrayEquals;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.matrix.MatrixBuild;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Build; 
-import hudson.model.AbstractBuild; 
-import hudson.model.Node; 
+import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
-
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
+import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCMDescriptor;
@@ -61,6 +58,7 @@ import java.util.Map;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
@@ -80,28 +78,24 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     private EventRecordFilter filter;
     
     private CheckOutAction checkOutAction;
-    //    private PollAction pollAction;
     private HistoryAction historyAction;
     
     private String[] branchArray = new String[] {"branch"};
-    //    public ChangeLogAction changeLogAction;
     public SaveChangeLogAction saveChangeLogAction;
     private VariableResolver resolver;
     
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        context = new Mockery();
-        classContext = new Mockery() {
+        context = new JUnit4Mockery();
+        classContext = new JUnit4Mockery() {
                 {
                     setImposteriser(ClassImposteriser.INSTANCE);
                 }
             };
         checkOutAction = context.mock(CheckOutAction.class);
-        //        pollAction = context.mock(PollAction.class);
         historyAction = context.mock(HistoryAction.class);
         saveChangeLogAction = context.mock(SaveChangeLogAction.class);
-        //        changeLogAction = context.mock(ChangeLogAction.class);
         launcher = classContext.mock(Launcher.class);
         taskListener = context.mock(BuildListener.class);
         project = classContext.mock(AbstractProject.class);
@@ -209,18 +203,13 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 {
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Hudson"));
-                    
-                    //              allowing(launcher).getComputer(); will(returnValue(computer));
-                    //allowing(computer).currentComputer(); will(returnValue(computer));
                     allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                     allowing(computer).getName(); will(returnValue("test-node"));
                 }
             });
-        //        String username = (String)Computer.currentComputer().getSystemProperties().get("user.name");
         String username = System.getProperty("user.name");
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("${JOB_NAME}-${USER_NAME}-${NODE_NAME}-view", "vob", "", true);
         assertEquals("The macros were not replaced in the normalized view name", "Hudson-" + username + "-test-node-view", scm.generateNormalizedViewName(build));
-        classContext.assertIsSatisfied();
     }
 
     
@@ -231,8 +220,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Hudson"));
                     allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars()));
-                    //              allowing(launcher).getComputer(); will(returnValue(computer));
-                    //allowing(computer).currentComputer(); will(returnValue(computer));
                     allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                     allowing(computer).getName(); will(returnValue("test-node"));
                     allowing(computer).getEnvironment(); will(returnValue(envVars));
@@ -240,11 +227,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                     allowing(envVars).get("TEST_VARIABLE"); will(returnValue("result-of-test"));
                 }
             });
-        //        String username = (String)Computer.currentComputer().getSystemProperties().get("user.name");
-        String username = System.getProperty("user.name");
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("${JOB_NAME}-${TEST_VARIABLE}-view", "vob", "", true);
         assertEquals("The macros were not replaced in the normalized view name", "Hudson-result-of-test-view", scm.generateNormalizedViewName(build));
-        classContext.assertIsSatisfied();
     }
 
     @Test
@@ -257,7 +241,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view  with\\-/-:-?-*-|-,", "vob", "", true);
         assertEquals("The invalid view name chars were not removed from the view name", 
                      "view_with_-_-_-_-_-_-,", scm.generateNormalizedViewName(build));
-        classContext.assertIsSatisfied();
     }    
 
     @Test
@@ -347,8 +330,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         FilePath changeLogFilePath = new FilePath(changelogFile);
         assertTrue("The change log file is empty", changeLogFilePath.length() > 5);
-        context.assertIsSatisfied();
-        classContext.assertIsSatisfied();
     }
     
     @Test
@@ -389,9 +370,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
-
-        context.assertIsSatisfied();
-        classContext.assertIsSatisfied();
     }
 
     @Test
@@ -435,9 +413,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                                                                  );
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
-
-        context.assertIsSatisfied();
-        classContext.assertIsSatisfied();
     }
 
     @Test
@@ -470,9 +445,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname-${JOB_NAME}-${NODE_NAME}", "vob", "");
         scm.checkout(build, launcher, workspace, taskListener, changelogFile);
-        
-        context.assertIsSatisfied();
-        classContext.assertIsSatisfied();
     }
 
     @Test
@@ -509,8 +481,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         FilePath changeLogFilePath = new FilePath(changelogFile);
         assertTrue("The change log file is empty", changeLogFilePath.length() > 5);
-        context.assertIsSatisfied();
-        classContext.assertIsSatisfied();
     }
 
     @Test
@@ -547,8 +517,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         FilePath changeLogFilePath = new FilePath(changelogFile);
         assertTrue("The change log file is empty", changeLogFilePath.length() > 5);
-        context.assertIsSatisfied();
-        classContext.assertIsSatisfied();
     }
 
     @Test
@@ -577,9 +545,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
 
@@ -610,9 +575,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                                                                  );
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
 
@@ -639,9 +601,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view-${JOB_NAME}-${NODE_NAME}", "vob", "");
         scm.pollChanges(project, launcher, workspace, taskListener);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -655,9 +614,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -686,9 +642,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertFalse("pollChanges() should return false", hasChanges);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -718,9 +671,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         boolean hasChanges = scm.pollChanges(project, launcher, workspace, taskListener);
         assertTrue("The first time should always return true", hasChanges);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -746,9 +696,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob1\nvob2/vob2-1\nvob\\ 3", "");
         scm.pollChanges(project, launcher, workspace, taskListener);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -775,9 +722,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", "");
         scm.pollChanges(project, launcher, workspace, taskListener);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -805,9 +749,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", "");
         scm.pollChanges(project, launcher, workspace, taskListener);
-
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
     
     @Test
@@ -893,20 +834,10 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             return null;
         }
         
-        //        @Override
-        //        protected PollAction createPollAction(VariableResolver resolver, ClearToolLauncher launcher,List<Filter> filters) {
-        //            return pollAction;
-        //        }
-
         @Override
         public String[] getBranchNames() {
             return branchArray;
         }
-
-        //        @Override
-        //        protected ChangeLogAction createChangeLogAction(ClearToolLauncher launcher, AbstractBuild<?, ?> build,Launcher baseLauncher,List<Filter> filters) {
-        //            return changeLogAction;
-        //        }
         
         @Override
         protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
