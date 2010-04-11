@@ -2,7 +2,7 @@
  * The MIT License
  *
  * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +30,10 @@ import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+
+import org.apache.commons.lang.ArrayUtils;
 
 public class ClearToolSnapshot extends ClearToolExec {
 
@@ -76,25 +74,11 @@ public class ClearToolSnapshot extends ClearToolExec {
         } else {
             cmd.add("-current");
         }
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewName));
-
+        String output = runAndProcessOutput(cmd, workspace.child(viewName), false, null);
         configSpecFile.delete();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        baos.close();
-        String line = reader.readLine();
-        StringBuilder builder = new StringBuilder();
-        while (line != null) {
-            if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(line);
-            line = reader.readLine();
-        }
-        reader.close();
 
-        if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
-            throw new IOException("View update failed: " + builder.toString());
+        if (output.contains("cleartool: Warning: An update is already in progress for view")) {
+            throw new IOException("View update failed: " + output);
         }
     }
 
@@ -108,23 +92,10 @@ public class ClearToolSnapshot extends ClearToolExec {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
         cmd.add("-current");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, workspace.child(viewName));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        baos.close();
-        String line = reader.readLine();
-        StringBuilder builder = new StringBuilder();
-        while (line != null) {
-            if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(line);
-            line = reader.readLine();
-        }
-        reader.close();
+        String output = runAndProcessOutput(cmd, workspace.child(viewName), false, null);
 
-        if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
-            throw new IOException("View update failed: " + builder.toString());
+        if (output.contains("cleartool: Warning: An update is already in progress for view")) {
+            throw new IOException("View update failed: " + output);
         }
     }
 
@@ -162,23 +133,10 @@ public class ClearToolSnapshot extends ClearToolExec {
         cmd.add("-force");
         cmd.add(viewName);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        baos.close();
-        String line = reader.readLine();
-        StringBuilder builder = new StringBuilder();
-        while (line != null) {
-            if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(line);
-            line = reader.readLine();
-        }
-        reader.close();
+        String output = runAndProcessOutput(cmd, null, false, null);
 
-        if (builder.toString().contains("cleartool: Error")) {
-            throw new IOException("Failed to remove view: " + builder.toString());
+        if (output.contains("cleartool: Error")) {
+            throw new IOException("Failed to remove view: " + output);
         }
 
         FilePath viewFilePath = launcher.getWorkspace().child(viewName);
@@ -188,43 +146,38 @@ public class ClearToolSnapshot extends ClearToolExec {
         }
     }
 
-    public void update(String viewName, String loadRules) throws IOException, InterruptedException {
+    @Override
+    public void update(String viewName, String[] loadRules) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("update");
         cmd.add("-force");
         cmd.add("-overwrite");
         cmd.add("-log", "NUL");
-        if (loadRules == null) {
-            cmd.add(viewName);
-        } else {
+        if (!ArrayUtils.isEmpty(loadRules)) {
             cmd.add("-add_loadrules");
-            // We're assuming loadRules already has a leading slash or backslash, since the only place
-            // I can find where it's called like this is in UcmSnapshotCheckoutAction, where we
-            // definitely put the slash/backslash.
-            String loadRulesLocation = PathUtil.convertPathForOS(viewName + loadRules, getLauncher().getLauncher());
-            if (loadRulesLocation.matches(".*\\s.*")) {
-                cmd.addQuoted(loadRulesLocation);
-            } else {
-                cmd.add(loadRulesLocation);
+            for (String loadRule : loadRules) {
+                String loadRuleLocation = PathUtil.convertPathForOS(removePrefixLoadRule(loadRule), getLauncher().getLauncher());
+                if (loadRuleLocation.matches(".*\\s.*")) {
+                    cmd.addQuoted(loadRuleLocation);
+                } else {
+                    cmd.add(loadRuleLocation);
+                }
             }
         }
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
-        baos.close();
-        String line = reader.readLine();
-        StringBuilder builder = new StringBuilder();
-        while (line != null) {
-            if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(line);
-            line = reader.readLine();
+        
+        String output = runAndProcessOutput(cmd, getLauncher().getWorkspace().child(viewName), false, null);
+        
+        if (output.contains("cleartool: Warning: An update is already in progress for view")) {
+            throw new IOException("View update failed: " + output);
         }
-        reader.close();
+    }
 
-        if (builder.toString().contains("cleartool: Warning: An update is already in progress for view")) {
-            throw new IOException("View update failed: " + builder.toString());
+    private String removePrefixLoadRule(String loadRule) {
+        char firstChar = loadRule.charAt(0);
+        if (firstChar == '\\' || firstChar == '/') {
+            return loadRule.substring(1);
+        } else {
+            return loadRule;
         }
     }
 

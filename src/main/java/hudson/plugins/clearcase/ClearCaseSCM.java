@@ -61,6 +61,7 @@ import javax.servlet.ServletException;
 
 import net.sf.json.JSONObject;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -145,7 +146,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), configSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
                     getNormalizedWinDynStorageDir(variableResolver), getNormalizedUnixDynStorageDir(variableResolver), build);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher), configSpec, getViewPaths(), isUseUpdate());
+            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(configSpec, launcher.getLauncher().isUnix()), getViewPaths(),isUseUpdate()); 
         }
         return action;
     }
@@ -224,19 +225,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         }
 
         public String getCleartoolExe() {
-            if (cleartoolExe == null) {
-                return "cleartool";
-            } else {
-                return cleartoolExe;
-            }
+            return StringUtils.defaultString(cleartoolExe, "cleartool");
         }
 
         public String getDefaultViewName() {
-            if (defaultViewName == null) {
-                return "";
-            } else {
-                return defaultViewName;
-            }
+            return StringUtils.defaultString(defaultViewName);
         }
 
         public String getDefaultWinDynStorageDir() {
@@ -265,7 +258,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             cleartoolExe = fixEmpty(req.getParameter("clearcase.cleartoolExe").trim());
             defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName").trim());
             defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir").trim());
-
             defaultUnixDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultUnixDynStorageDir").trim());
 
             String mergeTimeWindow = fixEmpty(req.getParameter("clearcase.logmergetimewindow"));
@@ -353,8 +345,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
          * @throws ServletException
          */
         public FormValidation doMandatoryCheck(@QueryParameter final String value, @QueryParameter final String errorText) throws IOException, ServletException {
-            String v = fixEmpty(value);
-            if (v == null) {
+            if (StringUtils.isEmpty(value)) {
                 return FormValidation.error(fixEmpty(errorText));
             }
             // all tests passed so far

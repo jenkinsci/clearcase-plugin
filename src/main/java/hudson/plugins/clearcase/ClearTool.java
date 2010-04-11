@@ -2,7 +2,7 @@
  * The MIT License
  *
  * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ public interface ClearTool {
      * @param viewName the name of the view
      * @param loadRules optional load rules, null if not used.
      */
-    void update(String viewName, String loadRules) throws IOException, InterruptedException;
+    void update(String viewName, String[] loadRules) throws IOException, InterruptedException;
 
     /**
      * Ends the view
@@ -146,6 +146,14 @@ public interface ClearTool {
      * @return list of view names
      */
     List<String> lsview(boolean onlyActiveDynamicViews) throws IOException, InterruptedException;
+    
+    /**
+     * Given a relative path, return the associated view tag if it exists. Otherwise, it will return null
+     * @return
+     * @throws IOException
+     * @throws InterruptedException 
+     */
+    String lscurrentview(String viewPath) throws IOException, InterruptedException;
 
     /**
      * Lists VOB registry entries

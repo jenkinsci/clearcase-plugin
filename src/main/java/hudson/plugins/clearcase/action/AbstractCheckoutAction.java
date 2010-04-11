@@ -2,7 +2,7 @@
  * The MIT License
  *
  * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,44 +26,123 @@ package hudson.plugins.clearcase.action;
 
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.plugins.clearcase.ClearTool;
+
 import java.io.IOException;
-import java.util.HashSet;
+import java.io.PrintStream;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.Validate;
+
+
+/**
+ * Check out action that will check out files into a snapshot view.
+ */
 public abstract class AbstractCheckoutAction implements CheckOutAction {
-    public AbstractCheckoutAction() {
-
+    
+    public static class LoadRulesDelta {
+        private final Set<String> removed;
+        private final Set<String> added;
+        public LoadRulesDelta(Set<String> removed, Set<String> added) {
+            super();
+            this.removed = removed;
+            this.added = added;
+        }
+        public String[] getAdded() {
+            return added.toArray(new String[added.size()]);
+        }
+        public String[] getRemoved() {
+            return removed.toArray(new String[removed.size()]);
+        }
+        public boolean isEmpty() {
+            return added.isEmpty() && removed.isEmpty();
+        }
     }
 
-    public abstract boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException;
+    protected final ClearTool cleartool;
+    protected final String[] loadRules;
+    protected final boolean useUpdate;
+    
+    public AbstractCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate) {
+        Validate.notNull(cleartool);
+        this.cleartool = cleartool;
+        this.loadRules = loadRules;
+        this.useUpdate = useUpdate;
+    }
 
-    protected Set<String> extractLoadRules(String configSpec) {
-        Set<String> rules = new HashSet<String>();
-        for (String row : configSpec.split("[\\r\\n]+")) {
-            String trimmedRow = row.trim();
-            if (trimmedRow.startsWith("load")) {
-                String rule = row.trim().substring("load".length()).trim();
-                rules.add(rule);
-                if ((!rule.startsWith("/")) && (!rule.startsWith("\\"))) {
-                    rules.add(rule);
+    /**
+     * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be created
+     * @param workspace
+     * @param viewName
+     * @param streamSelector
+     * @return true if a mkview has been done, false if a view existed and is reused
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String viewName, String streamSelector) throws IOException, InterruptedException {
+        FilePath viewPath = new FilePath(workspace, viewName);
+        boolean viewPathExists = viewPath.exists();
+        boolean doViewCreation = true;
+        if (cleartool.doesViewExist(viewName)) {
+            if (viewPathExists) {
+                if (viewName.equals(cleartool.lscurrentview(viewName))) {
+                    if (useUpdate) {
+                        doViewCreation = false;
+                    } else {
+                        cleartool.rmview(viewName);
+                    }
                 } else {
-                    rules.add(rule.substring(1));
+                    viewPath.renameTo(getUnusedFilePath(workspace, viewName));
+                    cleartool.rmviewtag(viewName);
                 }
+            } else {
+                cleartool.rmviewtag(viewName);
+            }
+        } else {
+            if (viewPathExists) {
+                viewPath.renameTo(getUnusedFilePath(workspace, viewName));
             }
         }
-        return rules;
+        if (doViewCreation) {
+            cleartool.mkview(viewName, streamSelector);
+        }
+        return doViewCreation;
     }
 
-    protected String getLoadRuleFreeConfigSpec(String configSpec) {
-        String lrFreeCS = "";
+    protected AbstractCheckoutAction.LoadRulesDelta getLoadRulesDelta(Set<String> configSpecLoadRules, Launcher launcher) {
+        Set<String> removedLoadRules = new LinkedHashSet<String>(configSpecLoadRules);
+        Set<String> addedLoadRules = new LinkedHashSet<String>(loadRules.length);
+        for (String loadRule : loadRules) {
+            addedLoadRules.add(unprefixLoadRule(loadRule));
+        }
+        removedLoadRules.removeAll(addedLoadRules);
+        addedLoadRules.removeAll(configSpecLoadRules);
+        PrintStream logger = launcher.getListener().getLogger();
+        for (String removedLoadRule : removedLoadRules) {
+            logger.println("Removed load rule : " + removedLoadRule);
+        }
+        for (String addedLoadRule : addedLoadRules) {
+            logger.println("Added load rule : " + addedLoadRule);
+        }
+        return new AbstractCheckoutAction.LoadRulesDelta(removedLoadRules, addedLoadRules);
+    }
 
-        for (String row : configSpec.split("[\\r\\n]+")) {
-            if (!row.startsWith("load")) {
-                lrFreeCS += row + "\n";
+    private String unprefixLoadRule(String loadRule) {
+        if (loadRule.startsWith("/") || loadRule.startsWith("\\")) {
+            return loadRule.substring(1);
+        } else {
+            return loadRule;
+        }
+    }
+
+    private FilePath getUnusedFilePath(FilePath workspace, String viewName) throws IOException, InterruptedException {
+        for (int i = 1; i < Integer.MAX_VALUE; i++) {
+            FilePath result = new FilePath(workspace, viewName + ".keep." + i);
+            if (!result.exists()) {
+                return result;
             }
         }
-
-        return lrFreeCS.trim();
+        return null;
     }
-
 }
