@@ -25,10 +25,10 @@
   </issueManagement>
   <developers>
     <developer>
-      <id>abayer</id>
-      <name>Andrew Bayer</name>
-      <email>andrew.bayer@gmail.com</email>
-      <timezone>-8</timezone>
+      <id>vlatombe</id>
+      <name>Vincent Latombe</name>
+      <email>vincent.latombe@gmail.com</email>
+      <timezone>+1</timezone>
     </developer>
   </developers>
 
