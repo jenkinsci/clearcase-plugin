@@ -24,29 +24,31 @@
  */
 package hudson.plugins.clearcase; 
 
-import hudson.model.Computer;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
-import hudson.util.VariableResolver;
-import hudson.plugins.clearcase.base.BaseChangeLogAction;
+import hudson.model.Computer;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
-import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.util.VariableResolver;
+
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
-
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.kohsuke.stapler.StaplerRequest;
 
 public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
@@ -62,7 +64,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        classContext = new Mockery() {
+        classContext = new JUnit4Mockery() {
                 {
                     setImposteriser(ClassImposteriser.INSTANCE);
                 }
@@ -72,7 +74,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         launcher = classContext.mock(Launcher.class);
         computer = classContext.mock(Computer.class);
         clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
-        context = new Mockery();
+        context = new JUnit4Mockery();
         cleartool = context.mock(ClearTool.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
         
@@ -199,18 +201,6 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         assertEquals("The view paths string is incorrect", "tmp", scm.getViewPaths()[0]);
     }
 
-    //    @Test
-    //    public void assertExtendedViewPathIsSetForDynamicViews() throws Exception {
-    //        classContext.checking(new Expectations() {
-    //            {
-    //                ignoring(build).getParent(); will(returnValue(project));
-    //            }
-    //        });
-    //        ClearCaseSCM scm = new ClearCaseSCM("branchone", "configspec", "viewname", true, "vob", true, "/view", null, false, false);
-    //        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(null, null);
-    //        assertEquals("The extended view path is incorrect", "/view/viewname", action.getExtendedViewPath());
-    //    }
-
     @Test
     public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
         classContext.checking(new Expectations() {
@@ -240,19 +230,5 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
-        classContext.assertIsSatisfied();
     }
-    
-    private void assertObjectInArray(Object[] array, Object obj) {
-        boolean found = false;
-        for (Object objInArray : array) {
-            if (obj.equals(objInArray)) {
-                found = true;
-            }
-        }
-        if (!found) {
-            fail(obj + " was not found in array " + Arrays.toString(array));
-        }
-    }
-    
 }
