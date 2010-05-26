@@ -30,6 +30,7 @@ import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -74,7 +75,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         } else {
             cmd.add("-current");
         }
-        String output = runAndProcessOutput(cmd, workspace.child(viewName), false, null);
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), workspace.child(viewName), false, null);
         configSpecFile.delete();
 
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
@@ -92,7 +93,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("setcs");
         cmd.add("-current");
-        String output = runAndProcessOutput(cmd, workspace.child(viewName), false, null);
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), workspace.child(viewName), false, null);
 
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + output);
@@ -133,7 +134,7 @@ public class ClearToolSnapshot extends ClearToolExec {
         cmd.add("-force");
         cmd.add(viewName);
 
-        String output = runAndProcessOutput(cmd, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null);
 
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view: " + output);
@@ -165,7 +166,7 @@ public class ClearToolSnapshot extends ClearToolExec {
             }
         }
         
-        String output = runAndProcessOutput(cmd, getLauncher().getWorkspace().child(viewName), false, null);
+        String output = runAndProcessOutput(cmd, null, getLauncher().getWorkspace().child(viewName), false, null);
         
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + output);

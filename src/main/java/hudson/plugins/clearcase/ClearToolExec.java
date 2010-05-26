@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.text.SimpleDateFormat;
@@ -137,7 +138,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("lsview").add("-cview").add("-s");
         
         List<IOException> exceptions = new ArrayList<IOException>();
-        String output = runAndProcessOutput(cmd, getLauncher().getWorkspace().child(viewPath), true, exceptions);
+        String output = runAndProcessOutput(cmd, null, getLauncher().getWorkspace().child(viewPath), true, exceptions);
         if (!exceptions.isEmpty()) {
             if (output.contains("cleartool: Error: Cannot get view info for current view: not a ClearCase object.")) {
                 output = null;
@@ -177,14 +178,14 @@ public abstract class ClearToolExec implements ClearTool {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("pwv");
         cmd.add("-root");
-        return runAndProcessOutput(cmd, getRootViewPath(launcher).child(viewName), false, null);
+        return runAndProcessOutput(cmd, null, getRootViewPath(launcher).child(viewName), false, null);
     }
 
     public String catcs(String viewName) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("catcs");
         cmd.add("-tag", viewName);
-        return runAndProcessOutput(cmd, null, false, null);
+        return runAndProcessOutput(cmd, null, null, false, null);
     }
 
     private List<String> parseListOutput(Reader consoleReader, boolean onlyStarMarked) throws IOException {
@@ -244,7 +245,7 @@ public abstract class ClearToolExec implements ClearTool {
         IOException exception = null;
         List<IOException> exceptions = new ArrayList<IOException>();
         
-        String output = runAndProcessOutput(cmd, null, true, exceptions);
+        String output = runAndProcessOutput(cmd, null, null, true, exceptions);
         // handle the use case in which view doesn't exist and therefore error is thrown
         if (!exceptions.isEmpty() && !output.contains("No matching entries found for view")) {
             throw exceptions.get(0);
@@ -271,7 +272,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("endview");
         cmd.add(viewName);
 
-        String output = runAndProcessOutput(cmd, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null);
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to end view tag: " + output);
         }
@@ -284,7 +285,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-tag");
         cmd.add(viewName);
 
-        String output = runAndProcessOutput(cmd, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null);
 
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view tag: " + output);
@@ -299,7 +300,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-uuid");
         cmd.add(uuid);
 
-        String output = runAndProcessOutput(cmd, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null);
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to unregister view: " + output);
         }
@@ -314,17 +315,17 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-uuid");
         cmd.add(viewUuid);
 
-        String output = runAndProcessOutput(cmd, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null);
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view: " + output);
         }
 
     }
-
-    protected String runAndProcessOutput(ArgumentListBuilder cmd, FilePath workFolder, boolean catchExceptions, List<IOException> exceptions) throws IOException, InterruptedException {
+    
+    protected String runAndProcessOutput(ArgumentListBuilder cmd, InputStream in, FilePath workFolder, boolean catchExceptions, List<IOException> exceptions) throws IOException, InterruptedException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            launcher.run(cmd.toCommandArray(), null, baos, workFolder);
+            launcher.run(cmd.toCommandArray(), in, baos, workFolder);
         } catch (IOException e) {
             if (!catchExceptions) {
                 throw e;
