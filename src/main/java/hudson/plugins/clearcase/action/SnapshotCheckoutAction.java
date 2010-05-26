@@ -88,4 +88,8 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         return true;
     }
 
+    public ConfigSpec getConfigSpec() {
+        return configSpec;
+    }
+
 }
