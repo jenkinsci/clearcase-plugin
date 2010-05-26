@@ -34,6 +34,8 @@ import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
 import hudson.model.Computer;
+import hudson.plugins.clearcase.action.DynamicCheckoutAction;
+import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.util.VariableResolver;
@@ -226,9 +228,31 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                                                  true, "/view", null, false, false, false, null, null,
                                                  false, false, cleartool, clearCaseScmDescriptor, computer);
         // Create actions
-        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
-        
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
+
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
+    }
+
+    @Test
+    public void assertConfigSpecCanUseVariables() throws Exception {
+        classContext.checking(new Expectations() {
+            {
+                allowing(build).getParent(); will(returnValue(project));
+                one(project).getName(); will(returnValue("ClearCase"));
+                allowing(launcher).isUnix(); will(returnValue(true));
+            }
+        });
+        context.checking(new Expectations() {
+            {
+                allowing(clearToolLauncher).getLauncher(); will(returnValue(launcher));
+            }
+        });
+        ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "${JOB_NAME}", "viewname-${JOB_NAME}", true, "vob", false, "/view", null, false, false, false,
+                null, null, false, false, cleartool, clearCaseScmDescriptor, computer);
+        // Create actions
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
+        SnapshotCheckoutAction action = (SnapshotCheckoutAction) scm.createCheckOutAction(variableResolver, clearToolLauncher, build);
+        assertEquals("Variables haven't been resolved in config spec", "ClearCase", action.getConfigSpec().getRaw());
     }
 }
