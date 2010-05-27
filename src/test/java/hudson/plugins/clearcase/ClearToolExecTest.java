@@ -169,6 +169,35 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         assertNotNull("Returned console reader can not be null", reader);
         context.assertIsSatisfied();
     }
+    
+    @Test
+    public void testLsHistoryBranchNotFound() throws Exception {
+        workspace.child("viewName").mkdirs();
+        final Calendar mockedCalendar = Calendar.getInstance();
+        mockedCalendar.set(2007, 10, 18, 15, 05, 25);
+        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'+0000", Locale.US);
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final String formattedDate = formatter.format(mockedCalendar.getTime()).toLowerCase();
+        context.checking(new Expectations() {
+                {
+                    one(launcher).getWorkspace();
+                    will(returnValue(workspace));
+                    allowing(launcher).getLauncher();
+                    will(returnValue(new Launcher.LocalLauncher(null)));
+                    one(launcher).run(
+                                      with(equal(new String[] { "lshistory", "-all", "-since", formattedDate,
+                                                                "-fmt", "FORMAT", "-branch", "brtype:branch", "-nco",
+                                                                "vob1", "vob2", "\"vob 3\"" })), (InputStream) with(anything()),
+                                      (OutputStream) with(an(OutputStream.class)), with(aNonNull(FilePath.class)));
+                    will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lshistory-1.log")),
+                               throwException(new IOException())));
+                }
+            });
+        Reader reader = clearToolExec.lshistory("FORMAT",
+                                                mockedCalendar.getTime(), "viewName","branch", new String[]{ "vob1", "vob2\n", "vob 3"});
+        assertNotNull("Returned console reader can not be null", reader);
+        context.assertIsSatisfied();
+    }
 
     @Test
     public void testCatConfigSpec() throws Exception {
