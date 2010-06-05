@@ -10,7 +10,7 @@
   <artifactId>clearcase</artifactId>
   <packaging>hpi</packaging>
   <name>Hudson ClearCase Plug-in</name>
-  <version>1.3-SNAPSHOT</version>
+  <version>1.2.1</version>
   <url>http://wiki.hudson-ci.org/display/HUDSON/ClearCase+Plugin</url>
   <licenses>
     <license>
@@ -46,9 +46,9 @@
     </dependency>
   </dependencies>
   <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/trunk/hudson/plugins/clearcase</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/trunk/hudson/plugins/clearcase</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/clearcase</url>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/clearcase-1.2.1</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/clearcase-1.2.1</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/clearcase/tags/clearcase-1.2.1</url>
   </scm>
   <build>
     <plugins>
