@@ -132,7 +132,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "update", "-force", "-overwrite", "-log",
                                                                          "NUL" })),
-                                               with(aNull(InputStream.class)),
+                                               with(aNonNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
                                                with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
@@ -167,7 +167,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "update", "-force", "-overwrite", "-log",
                                                                          "NUL"})),
-                                               with(aNull(InputStream.class)),
+                                               with(aNonNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
                                                with(aNonNull(FilePath.class)));
                     will(doAll(new StreamCopyAction(2, ClearToolSnapshotTest.class.getResourceAsStream("ct-update-2.log")),
@@ -220,7 +220,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "NUL",
                                          "-add_loadrules",
                                          "more_load_rules" })),
-                             with(aNull(InputStream.class)),
+                             with(aNonNull(InputStream.class)),
                              with(aNonNull(OutputStream.class)),
                              with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
@@ -252,7 +252,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "NUL",
                                          "-add_loadrules",
                                          "more_load_rules" })),
-                             with(aNull(InputStream.class)),
+                             with(aNonNull(InputStream.class)),
                              with(aNonNull(OutputStream.class)),
                              with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
@@ -284,7 +284,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "NUL",
                                          "-add_loadrules",
                                          "\"more load_rules\"" })),
-                             with(aNull(InputStream.class)),
+                             with(aNonNull(InputStream.class)),
                              with(aNonNull(OutputStream.class)),
                              with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
@@ -316,7 +316,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                          "NUL",
                                          "-add_loadrules",
                                          "\"more load_rules\"" })),
-                             with(aNull(InputStream.class)),
+                             with(aNonNull(InputStream.class)),
                              with(aNonNull(OutputStream.class)),
                              with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
