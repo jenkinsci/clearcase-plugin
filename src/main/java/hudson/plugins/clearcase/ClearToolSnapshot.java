@@ -166,7 +166,7 @@ public class ClearToolSnapshot extends ClearToolExec {
             }
         }
         
-        String output = runAndProcessOutput(cmd, null, getLauncher().getWorkspace().child(viewName), false, null);
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), getLauncher().getWorkspace().child(viewName), false, null);
         
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + output);
