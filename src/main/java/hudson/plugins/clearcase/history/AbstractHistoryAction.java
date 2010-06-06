@@ -34,9 +34,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author hlyh
@@ -44,23 +48,29 @@ import java.util.regex.Matcher;
 public abstract class AbstractHistoryAction implements HistoryAction {
 
     protected ClearTool cleartool;
-    protected List<Filter> filters;
+    private Filter filter;
     protected String extendedViewPath;
     protected boolean isDynamicView;
 
-    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, List<Filter> filters) {
+    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, Filter filter) {
         this.cleartool = cleartool;
-        this.filters = filters != null ? filters : new ArrayList<Filter>();
+        this.filter = filter;
         this.isDynamicView = isDynamicView;
     }
 
-    @Override
-    public boolean hasChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-        List<HistoryEntry> entries = runLsHistory(time, viewName, branchNames, viewPaths);
-        List<HistoryEntry> filtered = filterEntries(entries);
+    protected abstract List<? extends Entry> buildChangelog(String viewName, List<HistoryEntry> entries) throws IOException, InterruptedException;
 
-        return filtered.size() > 0;
-
+    protected List<HistoryEntry> filterEntries(List<HistoryEntry> entries) throws IOException, InterruptedException {
+        if (filter == null) {
+            return entries;
+        }
+        List<HistoryEntry> filtered = new ArrayList<HistoryEntry>();
+        for (HistoryEntry entry : entries) {
+            if (filter.accept(entry)) {
+                filtered.add(entry);
+            }
+        }
+        return filtered;
     }
 
     @Override
@@ -72,115 +82,75 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         return changelog;
     }
 
+    public String getExtendedViewPath() {
+        return extendedViewPath;
+    }
+
+    protected abstract ClearToolFormatHandler getHistoryFormatHandler();
+
+    @Override
+    public boolean hasChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        List<HistoryEntry> entries = runLsHistory(time, viewName, branchNames, viewPaths);
+        List<HistoryEntry> filtered = filterEntries(entries);
+        return filtered.size() > 0;
+    }
+
+    protected abstract HistoryEntry parseEventLine(Matcher matcher, String line) throws IOException, InterruptedException, ParseException;
+
+    protected void parseLsHistory(BufferedReader reader, Collection<HistoryEntry> history) throws IOException, InterruptedException, ParseException {
+        HistoryEntry currentEntry = null;
+
+        for(String line = reader.readLine(); line != null; line = reader.readLine()) {
+            // TODO: better error handling
+            if (line.startsWith("cleartool: Error:")) {
+                continue;
+            }
+            Matcher matcher = getHistoryFormatHandler().checkLine(line);
+            
+            // finder find start of lshistory entry
+            if (matcher != null) {
+                currentEntry = parseEventLine(matcher, line);
+                // Trim the extended view path
+                currentEntry.setElement(StringUtils.removeStart(currentEntry.getElement(), extendedViewPath));
+                history.add(currentEntry);
+            } else {
+                if (currentEntry != null) {
+                    currentEntry.appendComment(line).appendComment("\n");
+                } else {
+                    Logger.getLogger(AbstractHistoryAction.class.getName()).warning("Got the comment : \"" + line + "\" but couldn't attach it to any entry");
+                }
+            }
+        }
+    }
+
     protected List<HistoryEntry> runLsHistory(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         if (isDynamicView) {
             cleartool.startView(viewName);
             cleartool.mountVobs();
         }
 
-        ClearToolFormatHandler historyHandler = getHistoryFormatHandler();
-        List<HistoryEntry> fullList = new ArrayList<HistoryEntry>();
+        List<HistoryEntry> history = new ArrayList<HistoryEntry>();
 
         try {
             for (String branchName : branchNames) {
-                BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName,
-                        viewPaths));
-                fullList.addAll(parseLsHistory(reader));
+                BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
+                parseLsHistory(reader, history);
                 reader.close();
             }
         } catch (ParseException ex) {
             /* empty by design */
         }
-        return fullList;
-        // ChangeLogEntryMerger entryMerger = new ChangeLogEntryMerger(maxTimeDifferenceMillis);
-        // return entryMerger.getMergedList(fullList);
+        return history;
     }
-
-    protected List<HistoryEntry> parseLsHistory(BufferedReader reader) throws IOException, InterruptedException, ParseException {
-        List<HistoryEntry> entries = new ArrayList<HistoryEntry>();
-        HistoryEntry currentEntry = null;
-
-        StringBuilder commentBuilder = new StringBuilder();
-        String line = reader.readLine();
-
-        while (line != null) {
-
-            // TODO: better error handling
-            if (line.startsWith("cleartool: Error:")) {
-                line = reader.readLine();
-                continue;
-            }
-            Matcher matcher = getHistoryFormatHandler().checkLine(line);
-
-            // finder find start of lshistory entry
-            if (matcher != null) {
-
-                if (currentEntry != null) {
-                    currentEntry.setComment(commentBuilder.toString());
-                }
-
-                commentBuilder = new StringBuilder();
-                currentEntry = parseEventLine(matcher, line);
-
-                String fileName = currentEntry.getElement();
-                // Trim the extended view path
-                if (extendedViewPath != null) {
-                    if (fileName.startsWith(extendedViewPath)) {
-                        fileName = fileName.substring(extendedViewPath.length());
-                        currentEntry.setElement(fileName);
-                    }
-                }
-
-                entries.add(currentEntry);
-
-            } else {
-                if (commentBuilder.length() > 0) {
-                    commentBuilder.append("\n");
-                }
-                commentBuilder.append(line);
-            }
-            line = reader.readLine();
-        }
-        if (currentEntry != null) {
-            currentEntry.setComment(commentBuilder.toString());
-        }
-
-        return entries;
-    }
-
-    protected List<HistoryEntry> filterEntries(List<HistoryEntry> unfiltered) throws IOException, InterruptedException {
-        List<HistoryEntry> filtered = new ArrayList<HistoryEntry>();
-
-        for (HistoryEntry entry : unfiltered) {
-            boolean accepted = true;
-            for (Filter filter : filters) {
-                accepted = accepted & filter.accept(entry);
-            }
-            if (accepted) {
-                filtered.add(entry);
-            }
-        }
-        return filtered;
-    }
-
-    protected abstract List<? extends Entry> buildChangelog(String viewName, List<HistoryEntry> entries) throws IOException, InterruptedException;
-
-    protected abstract ClearToolFormatHandler getHistoryFormatHandler();
-
-    protected abstract HistoryEntry parseEventLine(Matcher matcher, String line) throws IOException, InterruptedException, ParseException;
 
     /**
      * Sets the extended view path. The extended view path will be removed from file paths in the event. The extended
-     * view path is for example the view root + view name; and this path shows up in the history and can be conusing for
+     * view path is for example the view root + view name; and this path shows up in the history and can be confusing for
      * users.
      * 
      * @param path the new extended view path.
      */
     public void setExtendedViewPath(String path) {
         this.extendedViewPath = path;
-    }
-
-    public String getExtendedViewPath() {
-        return extendedViewPath;
     }
 }

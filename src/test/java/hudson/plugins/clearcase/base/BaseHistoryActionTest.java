@@ -24,43 +24,41 @@
  */
 package hudson.plugins.clearcase.base;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import hudson.Launcher;
+import hudson.model.AbstractProject;
+import hudson.model.Build;
 import hudson.plugins.clearcase.AbstractClearCaseScm;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearCaseSCM;
+import hudson.plugins.clearcase.ClearCaseSCMDummy;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
 import hudson.plugins.clearcase.history.DefaultFilter;
-import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
+import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
-
-import hudson.plugins.clearcase.ClearCaseSCMTest;
-import hudson.plugins.clearcase.ClearCaseSCMDummy;
-
-import org.jvnet.hudson.test.Bug;
-
-import hudson.Launcher;
-import hudson.model.AbstractProject;
-import hudson.model.Build;
 import hudson.util.VariableResolver;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
 import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
+import org.jvnet.hudson.test.Bug;
 
 public class BaseHistoryActionTest {
 
@@ -152,9 +150,7 @@ public class BaseHistoryActionTest {
                     will(returnValue(new StringReader("cleartool: Error: Not an object in a vob: \"view.dat\".\n")));
                 }
             });
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DefaultFilter());
-        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,filters,0);
+        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new DefaultFilter(),0);
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
         context.assertIsSatisfied();
@@ -168,9 +164,7 @@ public class BaseHistoryActionTest {
                     will(returnValue(new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\0\" \"create version\"  \"mkelem\" ")));
                 }
             });
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DefaultFilter());
-        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,filters,0);
+        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new DefaultFilter(),0);
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
         context.assertIsSatisfied();
@@ -185,11 +179,7 @@ public class BaseHistoryActionTest {
                                                       "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
                 }
             });
-
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DestroySubBranchFilter());
-
-        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,filters,0);
+        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new DestroySubBranchFilter(),0);
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
         context.assertIsSatisfied();
@@ -260,11 +250,7 @@ public class BaseHistoryActionTest {
                                                       "\"20070906.091701\"   \"egsperi\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"destroy sub-branch \"esmalling_branch\" of branch\"   \"mkelem\"\n")));
                 }
             });
-        
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DestroySubBranchFilter());
-
-        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,filters, 10000);
+        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new DestroySubBranchFilter(), 10000);
         List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("The event record should be ignored", 0, changes.size());        
         context.assertIsSatisfied();        
@@ -288,7 +274,7 @@ public class BaseHistoryActionTest {
         filters.add(new DefaultFilter());
         filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "Customer"));
 
-        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,filters, 10000);
+        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new FilterChain(filters), 10000);
         List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("The event record should be ignored", 0, changes.size());        
         context.assertIsSatisfied();        
@@ -620,10 +606,6 @@ public class BaseHistoryActionTest {
         VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
-        /*      assertEquals("The extended view path is incorrect.",
-                "Y:\\Hudson.SAP.ICI.7.6.Quick\\",
-                action.getExtendedViewPath());
-        */
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
                                                               scm.generateNormalizedViewName((BuildVariableResolver)variableResolver),

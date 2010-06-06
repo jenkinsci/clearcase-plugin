@@ -24,32 +24,32 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Date;
-import java.util.List;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
+import hudson.plugins.clearcase.ClearCaseUcmSCMDummy;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.history.DefaultFilter;
-import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
+import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.FilterChain;
 
-import hudson.plugins.clearcase.ClearCaseUcmSCMDummy;
-
-import org.jvnet.hudson.test.Bug;
-
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
+import org.jvnet.hudson.test.Bug;
 
 public class UcmHistoryActionTest {
 
@@ -90,7 +90,7 @@ public class UcmHistoryActionTest {
                 }
             });
 
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
+        UcmHistoryAction action = createUcmHistoryAction();
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);
         context.assertIsSatisfied();
@@ -122,7 +122,7 @@ public class UcmHistoryActionTest {
                 }
             });
 
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
+        UcmHistoryAction action = createUcmHistoryAction();
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);
         context.assertIsSatisfied();
@@ -136,9 +136,7 @@ public class UcmHistoryActionTest {
                     will(returnValue(new StringReader("cleartool: Error: Not an object in a vob: \"view.dat\".\n")));
                 }
             });
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DefaultFilter());
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,filters, null, null, null, false);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,new DefaultFilter(), null, null);
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
         context.assertIsSatisfied();
@@ -152,9 +150,7 @@ public class UcmHistoryActionTest {
                     will(returnValue(new StringReader("\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\0\" \"create version\"  \"mkelem\" \"activity\" ")));
                 }
             });
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DefaultFilter());
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,filters, null, null, null, false);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,new DefaultFilter(), null, null);
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
         context.assertIsSatisfied();
@@ -169,11 +165,7 @@ public class UcmHistoryActionTest {
                                                       "\"20080326.110739\" \"username\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\" \"activity\" ")));
                 }
             });
-
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new DestroySubBranchFilter());
-
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,filters, null, null, null, false);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,new DestroySubBranchFilter(), null, null);
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
         context.assertIsSatisfied();
@@ -190,7 +182,7 @@ public class UcmHistoryActionTest {
             });
 
 
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
+        UcmHistoryAction action = createUcmHistoryAction();
         boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method reported a change", hasChange);
         context.assertIsSatisfied();
@@ -206,7 +198,7 @@ public class UcmHistoryActionTest {
                 }
             });
 
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
+        UcmHistoryAction action = createUcmHistoryAction();
         action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
         reader.ready();
     }
@@ -227,9 +219,13 @@ public class UcmHistoryActionTest {
                 }
             });
         
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
+        UcmHistoryAction action = createUcmHistoryAction();
         action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         context.assertIsSatisfied();
+    }
+
+    private UcmHistoryAction createUcmHistoryAction() {
+        return new UcmHistoryAction(cleartool,false,null, null, null);
     }
     
     @Test
@@ -247,12 +243,7 @@ public class UcmHistoryActionTest {
                                                       "\"checkin\" \"activity\" ")));
                 }
             });
-        
-        List<Filter> filters = new ArrayList<Filter>();
-
-        filters.add(new DestroySubBranchFilter());
-        
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,filters, null, null, null, false);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,new DestroySubBranchFilter(), null, null);
         @SuppressWarnings("unchecked")
         List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 0 activity", 0, activities.size());
@@ -299,7 +290,7 @@ public class UcmHistoryActionTest {
 
         filters.add(new DefaultFilter());
         filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "Server"));
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,filters, null, null, null, false);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,new FilterChain(filters), null, null);
         @SuppressWarnings("unchecked")
         List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
@@ -329,7 +320,7 @@ public class UcmHistoryActionTest {
                 }
             });
         
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
+        UcmHistoryAction action = createUcmHistoryAction();
         List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
         UcmActivity activity = activities.get(0);
@@ -377,7 +368,7 @@ public class UcmHistoryActionTest {
                 }
             });
         
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
+        UcmHistoryAction action = createUcmHistoryAction();
         List<UcmActivity> activities = (List<UcmActivity>) action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("There should be 1 activity", 1, activities.size());
         UcmActivity activity = activities.get(0);
@@ -416,8 +407,8 @@ public class UcmHistoryActionTest {
                 }
             });
         
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
-        action.getChanges( null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        UcmHistoryAction action = createUcmHistoryAction();
+        action.getChanges( null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         context.assertIsSatisfied();
         lshistoryReader.ready();
     }
@@ -446,8 +437,8 @@ public class UcmHistoryActionTest {
                 }
             });
         
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,null, null, null, null, false);
-        action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
+        UcmHistoryAction action = createUcmHistoryAction();
+        action.getChanges(null, "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         context.assertIsSatisfied();
         lsactivityReader.ready();
     }
@@ -483,7 +474,7 @@ public class UcmHistoryActionTest {
             });
 
 
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,scm.configureFilters(clearToolLauncher), null, null, null, false);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,scm.configureFilters(clearToolLauncher), null, null);
         action.setExtendedViewPath("D:\\java\\hudson\\jobs\\stromp_be_test\\workspace\\stromp_be_builc\\");
         boolean hasChange = action.hasChanges(null, "stromp_be_builc", new String[]{"jcp_v13.1_be_int"}, scm.getViewPaths());
         assertTrue("The hasChanges() method did not report a change", hasChange);

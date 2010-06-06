@@ -28,6 +28,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @author Henrik L. Hansen (henrik.lynggaard@gmail.com)
  */
@@ -41,16 +43,17 @@ public class HistoryEntry {
     String user;
     String operation;
     String activityName;
-    String comment;
+    StringBuilder commentBuilder = new StringBuilder();
     String activityHeadline;
     String line;
 
     public String getComment() {
-        return comment;
+        return StringUtils.chomp(commentBuilder.toString());
     }
-
-    public void setComment(String comment) {
-        this.comment = comment;
+    
+    public HistoryEntry appendComment(String commentFragment) {
+        commentBuilder.append(commentFragment);
+        return this;
     }
 
     public String getActivityHeadline() {
