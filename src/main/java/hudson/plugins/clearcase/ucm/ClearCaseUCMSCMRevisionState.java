@@ -24,28 +24,23 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import hudson.scm.SCMRevisionState;
+
+import hudson.plugins.clearcase.AbstractClearCaseSCMRevisionState;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
-public class ClearCaseUCMSCMRevisionState extends SCMRevisionState {
-    private final Map<String, String> baselines;
-    private final Date buildTime;
-
+public class ClearCaseUCMSCMRevisionState extends AbstractClearCaseSCMRevisionState {
+    final Map<String, String> baselines;
     public ClearCaseUCMSCMRevisionState(Map<String, String> baselines, Date buildTime) {
-        super();
+        super(buildTime);
         this.baselines = baselines;
-        this.buildTime = buildTime;
     }
     
     public Map<String, String> getBaselines() {
         return Collections.unmodifiableMap(baselines);
     }
-
-    public Date getBuildTime() {
-        return buildTime;
-    }
+    
 
 }

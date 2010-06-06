@@ -26,6 +26,7 @@ package hudson.plugins.clearcase;
 
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
+import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
@@ -37,11 +38,13 @@ import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
+import hudson.plugins.clearcase.base.ClearCaseSCMRevisionState;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
+import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
@@ -52,6 +55,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -186,16 +190,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
      * @param branchString string containing none or several branches
      * @return a string array (never empty)
      */
-    @Override
-    public String[] getBranchNames() {
-        // split by whitespace, except "\ "
-        String[] branchArray = branch.split("(?<!\\\\)[ \\r\\n]+");
-        // now replace "\ " to " ".
-        for (int i = 0; i < branchArray.length; i++)
-            branchArray[i] = branchArray[i].replaceAll("\\\\ ", " ");
-        return branchArray;
-    }
-    
     @Override
     public String[] getBranchNames(VariableResolver<String> variableResolver) {
         // split by whitespace, except "\ "
@@ -389,5 +383,19 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             baos.writeTo(rsp.getOutputStream());
         }
     }
-
+    
+    @Override
+    protected boolean isFirstBuild(SCMRevisionState baseline) {
+        return baseline == null || !(baseline instanceof ClearCaseSCMRevisionState);
+    }
+    
+    @Override
+    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException {
+        return new ClearCaseSCMRevisionState(build.getTime());
+    }
+    
+    @Override
+    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException {
+        return new ClearCaseSCMRevisionState(new Date());
+    }
 }

@@ -214,6 +214,7 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     public Reader lshistory(String format, Date lastBuildDate, String viewName, String branch, String[] viewPaths) throws IOException, InterruptedException {
+        Validate.notNull(viewPaths);
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 
