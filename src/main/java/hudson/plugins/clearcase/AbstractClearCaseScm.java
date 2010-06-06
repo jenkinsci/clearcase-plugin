@@ -56,6 +56,7 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.PollingResult;
 import hudson.scm.SCM;
 import hudson.scm.SCMRevisionState;
+import hudson.scm.PollingResult.Change;
 import hudson.util.StreamTaskListener;
 import hudson.util.VariableResolver;
 
@@ -65,6 +66,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -175,9 +177,18 @@ public abstract class AbstractClearCaseScm extends SCM {
      * Return string array containing the branch names that should be used when polling for changes.
      * 
      * @return a string array, can not be empty
+     * @deprecated use {@link #getBranchNames(VariableResolver)} instead
      */
-    public abstract String[] getBranchNames();
+    @Deprecated
+    public String[] getBranchNames(){
+        return getBranchNames(new VariableResolver.ByMap<String>(new HashMap<String, String>()));
+    }
     
+    /**
+     * Return string array containing the branch names that should be used when polling for changes.
+     * 
+     * @return a string array, can not be empty
+     */
     public abstract String[] getBranchNames(VariableResolver<String> variableResolver);
 
     /**
@@ -186,8 +197,9 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return string array that will be used by the lshistory command and for constructing the config spec, etc.
      */
     public String[] getViewPaths() {
-        if (getLoadRules().trim().length() == 0)
+        if (StringUtils.isBlank(getLoadRules())) {
             return null;
+        }
 
         String[] rules = getLoadRules().split("[\\r\\n]+");
         for (int i = 0; i < rules.length; i++) {
@@ -385,11 +397,6 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     @Override
-    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException {
-        return null;
-    }
-
-    @Override
     public boolean checkout(@SuppressWarnings("unchecked") AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException,
             InterruptedException {
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
@@ -434,32 +441,32 @@ public abstract class AbstractClearCaseScm extends SCM {
     @Override
     protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
             SCMRevisionState baseline) throws IOException, InterruptedException {
-        // TODO : Update this logic
-        if (this._pollChanges(project, launcher, workspace, listener)) {
-            return PollingResult.SIGNIFICANT;
-        } else {
-            return PollingResult.NO_CHANGES;
+        if (isFirstBuild(baseline)) {
+            return PollingResult.BUILD_NOW;
         }
+        AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;
+        
+        AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getLastBuild();
+        if (build == null) {
+            return PollingResult.BUILD_NOW;
+        }
+        
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build, getBuildComputer(build));
+        HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(listener, workspace, launcher), build);
+        String poNormalizedViewName = generateNormalizedViewName((BuildVariableResolver) variableResolver);
+        Change change;
+        if (historyAction.hasChanges(ccBaseline.getBuildTime(), poNormalizedViewName, getBranchNames(variableResolver), getViewPaths())) {
+            change = Change.SIGNIFICANT;
+        } else {
+            change = Change.NONE;
+        }
+        return new PollingResult(ccBaseline, calcRevisionsFromPoll(build, launcher, listener), change);
     }
     
-    private boolean _pollChanges(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener) throws IOException, InterruptedException {
-        Run<?, ?> lastBuild = project.getLastBuild();
-        if (lastBuild == null) { // No previous build, run
-            return true;
-        }
-
-        Date buildTime = getBuildTime(lastBuild);
-
-        VariableResolver<String> variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild,
-                getBuildComputer((AbstractBuild<?, ?>) lastBuild));
-
-        HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(listener, workspace, launcher), (AbstractBuild<?, ?>) lastBuild);
-
-        String poNormalizedViewName = generateNormalizedViewName((BuildVariableResolver) variableResolver);
-
-        return historyAction.hasChanges(buildTime, poNormalizedViewName, getBranchNames(variableResolver), getViewPaths());
-    }
-
+    protected abstract boolean isFirstBuild(SCMRevisionState baseline);
+    
+    public abstract SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException;
+    
     protected Date getBuildTime(Run<?, ?> lastBuild) {
         Date buildTime = lastBuild.getTimestamp().getTime();
         if (getMultiSitePollBuffer() != 0) {
@@ -623,7 +630,18 @@ public abstract class AbstractClearCaseScm extends SCM {
         Launcher launcher = node.createLauncher(listener);
         ClearTool ct = createClearTool(null, createClearToolLauncher(listener, project.getSomeWorkspace().getParent().getParent(), launcher));
         try {
-            ct.rmviewtag(generateNormalizedViewName(project.getLastBuild()));
+            AbstractBuild<?, ?> latestBuildOnNode = null;
+            for(AbstractBuild<?, ?> build : project.getBuilds()) {
+                if (node.equals(build.getBuiltOn())) {
+                    latestBuildOnNode = build;
+                    break;
+                }
+            }
+            if (latestBuildOnNode == null) {
+                latestBuildOnNode = project.getLastBuild();
+            }
+            BuildVariableResolver buildVariableResolver = new BuildVariableResolver(latestBuildOnNode, node.toComputer());
+            ct.rmviewtag(generateNormalizedViewName(buildVariableResolver));
         } catch (Exception e) {
             Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove ClearCase view", e);
         }

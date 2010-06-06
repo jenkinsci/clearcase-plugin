@@ -142,11 +142,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public String[] getBranchNames() {
-        return getBranchNames(new VariableResolver.ByMap<String>(new HashMap<String, String>()));
-    }
-    
-    @Override
     public String[] getBranchNames(VariableResolver<String> variableResolver) {
         String override = Util.replaceMacro(overrideBranchName, variableResolver);
         if (StringUtils.isNotEmpty(override)) {
@@ -160,6 +155,17 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
             InterruptedException {
         return new ClearCaseUCMSCMRevisionState(getFoundationBaselines(build, launcher, taskListener), getBuildTime(build));
+    }
+    
+    @Override
+    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
+            InterruptedException {
+        return new ClearCaseUCMSCMRevisionState(getFoundationBaselines(build, launcher, taskListener), new Date());
+    }
+    
+    @Override
+    protected boolean isFirstBuild(SCMRevisionState baseline) {
+        return baseline == null || !(baseline instanceof ClearCaseUCMSCMRevisionState);
     }
     
     private Map<String, String> getFoundationBaselines(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
@@ -186,32 +192,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             foundationBaselines.put(br.readLine(), qualifiedBaseline);
         }
         return foundationBaselines;
-    }
-
-    @Override
-    protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
-            SCMRevisionState baseline) throws IOException, InterruptedException {
-        // First build, or SCM type has been changed
-        if (baseline == null || !(baseline instanceof ClearCaseUCMSCMRevisionState)) {
-            return PollingResult.BUILD_NOW;
-        }
-        ClearCaseUCMSCMRevisionState ccBaseline = (ClearCaseUCMSCMRevisionState) baseline;
-        AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getSomeBuildWithWorkspace();
-        VariableResolver<String> variableResolver = new BuildVariableResolver(build, getBuildComputer(build));
-        ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
-        Map<String, String> foundationBaselines = getFoundationBaselines(build, launcher, listener);
-        // Foundation baselines changed : most likely a rebase
-        Change change;
-        // Check history since last poll
-        HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build);
-        if (historyAction.hasChanges(ccBaseline.getBuildTime(), generateNormalizedViewName((BuildVariableResolver) variableResolver), getBranchNames(variableResolver),
-                getViewPaths())) {
-            change = Change.SIGNIFICANT;
-        } else {
-            change = Change.NONE;
-        }
-        
-        return new PollingResult(ccBaseline, new ClearCaseUCMSCMRevisionState(foundationBaselines, new Date()), change);
     }
 
     @Override
@@ -247,12 +227,12 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                     oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
                 }
                 newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
-            } catch (IOException e1) {
+            } catch (IOException e) {
                 // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (InterruptedException e1) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
-                e1.printStackTrace();
+                e.printStackTrace();
             }
         }
         if (isFreezeCode()) {
