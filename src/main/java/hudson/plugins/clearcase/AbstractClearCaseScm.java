@@ -48,11 +48,14 @@ import hudson.plugins.clearcase.history.DefaultFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.PollingResult;
 import hudson.scm.SCM;
+import hudson.scm.SCMRevisionState;
 import hudson.util.StreamTaskListener;
 import hudson.util.VariableResolver;
 
@@ -174,6 +177,8 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @return a string array, can not be empty
      */
     public abstract String[] getBranchNames();
+    
+    public abstract String[] getBranchNames(VariableResolver<String> variableResolver);
 
     /**
      * Return string array containing the paths in the view that should be used when polling for changes.
@@ -367,7 +372,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * </ul>
      */
     @Override
-    public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
+    public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
         if (getNormalizedViewName() != null) {
 
             env.put(CLEARCASE_VIEWNAME_ENVSTR, getNormalizedViewName());
@@ -380,14 +385,19 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     @Override
-    public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException,
+    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException {
+        return null;
+    }
+
+    @Override
+    public boolean checkout(@SuppressWarnings("unchecked") AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException,
             InterruptedException {
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build, getCurrentComputer());
 
         CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
-        HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build);
+        
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
 
         // Checkout code
@@ -395,34 +405,44 @@ public abstract class AbstractClearCaseScm extends SCM {
 
         build.addAction(new ClearCaseDataAction());
 
-        if (checkoutAction.checkout(launcher, workspace, coNormalizedViewName)) {
+        // Gather change log
+        List<? extends ChangeLogSet.Entry> changelogEntries = null;
+        if (build.getPreviousBuild() != null) {
+            @SuppressWarnings("unchecked") Run prevBuild = build.getPreviousBuild();
+            Date lastBuildTime = getBuildTime(prevBuild);
+            HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build);
+            changelogEntries = historyAction.getChanges(lastBuildTime, coNormalizedViewName, getBranchNames(variableResolver), getViewPaths());
+        }
 
-            // Gather change log
-            List<? extends ChangeLogSet.Entry> changelogEntries = null;
-            if (build.getPreviousBuild() != null) {
-                Run prevBuild = build.getPreviousBuild();
-                Date lastBuildTime = getBuildTime(prevBuild);
-
-                changelogEntries = historyAction.getChanges(lastBuildTime, coNormalizedViewName, getBranchNames(), getViewPaths());
-            }
-
-            // Save change log
-            if (CollectionUtils.isEmpty(changelogEntries)) {
-                // no changes
-                return createEmptyChangeLog(changelogFile, listener, "changelog");
-            } else {
-                saveChangeLogAction.saveChangeLog(changelogFile, changelogEntries);
-            }
-
+        boolean returnValue = true;
+        // Save change log
+        if (CollectionUtils.isEmpty(changelogEntries)) {
+            // no changes
+            returnValue = createEmptyChangeLog(changelogFile, listener, "changelog");
         } else {
+            saveChangeLogAction.saveChangeLog(changelogFile, changelogEntries);
+        }
+
+        
+        if (!checkoutAction.checkout(launcher, workspace, coNormalizedViewName)) {
             throw new AbortException();
         }
 
-        return true;
+        return returnValue;
     }
 
     @Override
-    public boolean pollChanges(AbstractProject project, Launcher launcher, FilePath workspace, TaskListener listener) throws IOException, InterruptedException {
+    protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
+            SCMRevisionState baseline) throws IOException, InterruptedException {
+        // TODO : Update this logic
+        if (this._pollChanges(project, launcher, workspace, listener)) {
+            return PollingResult.SIGNIFICANT;
+        } else {
+            return PollingResult.NO_CHANGES;
+        }
+    }
+    
+    private boolean _pollChanges(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener) throws IOException, InterruptedException {
         Run<?, ?> lastBuild = project.getLastBuild();
         if (lastBuild == null) { // No previous build, run
             return true;
@@ -433,14 +453,14 @@ public abstract class AbstractClearCaseScm extends SCM {
         VariableResolver<String> variableResolver = new BuildVariableResolver((AbstractBuild<?, ?>) lastBuild,
                 getBuildComputer((AbstractBuild<?, ?>) lastBuild));
 
-        HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(listener, workspace, launcher), (AbstractBuild) lastBuild);
+        HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(listener, workspace, launcher), (AbstractBuild<?, ?>) lastBuild);
 
         String poNormalizedViewName = generateNormalizedViewName((BuildVariableResolver) variableResolver);
 
-        return historyAction.hasChanges(buildTime, poNormalizedViewName, getBranchNames(), getViewPaths());
+        return historyAction.hasChanges(buildTime, poNormalizedViewName, getBranchNames(variableResolver), getViewPaths());
     }
 
-    private Date getBuildTime(Run<?, ?> lastBuild) {
+    protected Date getBuildTime(Run<?, ?> lastBuild) {
         Date buildTime = lastBuild.getTimestamp().getTime();
         if (getMultiSitePollBuffer() != 0) {
             long lastBuildMilliSecs = lastBuild.getTimestamp().getTimeInMillis();
@@ -493,7 +513,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         @Override
         public void onRenamed(Item item, String oldName, String newName) {
             Hudson hudson = getHudsonFromItem(item);
-            if (item instanceof AbstractProject) {
+            if (item instanceof AbstractProject<?, ?>) {
                 AbstractProject project = (AbstractProject) item;
                 SCM scm = project.getScm();
                 if (scm instanceof AbstractClearCaseScm) {
@@ -502,7 +522,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                         if (!ccScm.isRemoveViewOnRename()) {
                             return;
                         }
-                        StreamTaskListener listener = new StreamTaskListener(System.out);
+                        StreamTaskListener listener = StreamTaskListener.fromStdout();
                         Launcher launcher = hudson.createLauncher(listener);
 
                         AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getSomeBuildWithWorkspace();
@@ -574,7 +594,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                 if (scm instanceof AbstractClearCaseScm) {
                     try {
                         AbstractClearCaseScm ccScm = (AbstractClearCaseScm) scm;
-                        StreamTaskListener listener = new StreamTaskListener(System.out);
+                        StreamTaskListener listener = StreamTaskListener.fromStdout();
                         Launcher launcher = hudson.createLauncher(listener);
                         ClearTool ct = ccScm.createClearTool(null, ccScm.createClearToolLauncher(listener, project.getSomeWorkspace().getParent().getParent(),
                                 launcher));
@@ -599,7 +619,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     @Override
     public boolean processWorkspaceBeforeDeletion(AbstractProject<?, ?> project, FilePath workspace, Node node) throws IOException, InterruptedException {
-        StreamTaskListener listener = new StreamTaskListener(System.out);
+        StreamTaskListener listener = StreamTaskListener.fromStdout();
         Launcher launcher = node.createLauncher(listener);
         ClearTool ct = createClearTool(null, createClearToolLauncher(listener, project.getSomeWorkspace().getParent().getParent(), launcher));
         try {
@@ -627,7 +647,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         return excludedRegions == null ? null : excludedRegions.split("[\\r\\n]+");
     }
 
-    public List<Filter> configureFilters(ClearToolLauncher ctLauncher) {
+    public Filter configureFilters(ClearToolLauncher ctLauncher) {
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DefaultFilter());
 
@@ -652,7 +672,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (isFilteringOutDestroySubBranchEvent()) {
             filters.add(new DestroySubBranchFilter());
         }
-        return filters;
+        return new FilterChain(filters);
     }
 
     public static String getViewPathsRegexp(String[] loadRules, boolean isUnix) {

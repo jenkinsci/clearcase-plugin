@@ -129,7 +129,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public void buildEnvVars(AbstractBuild build, Map<String, String> env) {
+    public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
         super.buildEnvVars(build, env);
         if (isUseDynamicView()) {
             if (getViewDrive() != null) {
@@ -193,6 +193,17 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         // now replace "\ " to " ".
         for (int i = 0; i < branchArray.length; i++)
             branchArray[i] = branchArray[i].replaceAll("\\\\ ", " ");
+        return branchArray;
+    }
+    
+    @Override
+    public String[] getBranchNames(VariableResolver<String> variableResolver) {
+        // split by whitespace, except "\ "
+        String[] branchArray = branch.split("(?<!\\\\)[ \\r\\n]+");
+        // now replace "\ " to " ".
+        for (int i = 0; i < branchArray.length; i++) {
+            branchArray[i] = Util.replaceMacro(branchArray[i].replaceAll("\\\\ ", " "), variableResolver);
+        }
         return branchArray;
     }
 

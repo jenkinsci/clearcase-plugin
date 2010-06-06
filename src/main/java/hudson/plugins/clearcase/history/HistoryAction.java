@@ -42,7 +42,6 @@ public interface HistoryAction {
     /**
      * Returns if the repository has any changes since the specified time
      * 
-     * @param eventFilter TODO
      * @param time check for changes since this time
      * @param viewName the name of the view
      * @param branchNames the branch names
@@ -54,7 +53,6 @@ public interface HistoryAction {
     /**
      * Returns if the repository has any changes since the specified time
      * 
-     * @param eventFilter TODO
      * @param time check for changes since this time
      * @param viewName the name of the view
      * @param branchNames the branch names

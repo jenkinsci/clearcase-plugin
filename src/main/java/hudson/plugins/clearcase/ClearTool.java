@@ -200,7 +200,7 @@ public interface ClearTool {
     void mountVobs() throws IOException, InterruptedException;
 
     /**
-     * Syncronizes the Dynamic UCM view with the streams recomended baseline
+     * Synchronizes the Dynamic UCM view with the streams recommended baseline
      * 
      * @param viewName
      * @param stream
@@ -208,6 +208,19 @@ public interface ClearTool {
      * @throws InterruptedException
      */
     void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException;
+    
+    /**
+     * Call the cleartool describe with the provided format on the specified object selector
+     * See http://www.ipnom.com/ClearCase-Commands/describe.html for valid options
+     * @param format
+     * @param objectSelector
+     * @return A reader to the command output
+     * @throws IOException If cleartool throws an error code
+     * @throws InterruptedException If the process is interrupted
+     * @since 1.3
+     */
+    Reader describe(String format, String objectSelector) throws IOException, InterruptedException;
+    
 
     /**
      * Gets the view UUID, for thorough view deletion.
@@ -219,5 +232,7 @@ public interface ClearTool {
     Properties getViewData(String viewName) throws IOException, InterruptedException;
 
     void logRedundantCleartoolError(String[] cmd, Exception ex);
+
+    Reader diffblVersions(String baseline1, String baseline2, String viewPath);
 
 }

@@ -1,8 +1,8 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ * Copyright (c) 2007-2010, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,24 +22,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package hudson.plugins.clearcase.action;
+package hudson.plugins.clearcase.history;
 
-import java.io.IOException;
-import java.util.Date;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
- * Action for polling a ClearCase repository.
+ * A filter that chains a collection of filters. It fill filter all elements that get filtered by any of underlying
+ * filters
+ * 
+ * @author vlatombe
  */
-public interface PollAction {
-    /**
-     * Returns if the repository has any changes since the specified time
-     * 
-     * @param eventFilter TODO
-     * @param time check for changes since this time
-     * @param viewName the name of the view
-     * @param branchNames the branch names
-     * @param viewPaths optional vob paths
-     * @return true, if the ClearCase repository has changes; false, otherwise.
-     */
-    boolean getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException;
+public class FilterChain implements Filter {
+
+    private final Collection<Filter> filters;
+
+    public FilterChain(Collection<Filter> filters) {
+        super();
+        this.filters = filters;
+    }
+
+    @Override
+    public boolean accept(HistoryEntry element) {
+        for (Filter f : filters) {
+            if (!f.accept(element)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Collection<Filter> getFilters() {
+        return Collections.unmodifiableCollection(filters);
+    }
+
 }
