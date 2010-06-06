@@ -149,6 +149,7 @@ public class ClearToolSnapshot extends ClearToolExec {
 
     @Override
     public void update(String viewName, String[] loadRules) throws IOException, InterruptedException {
+        FilePath viewPath = getLauncher().getWorkspace().child(viewName);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("update");
         cmd.add("-force");
@@ -157,28 +158,24 @@ public class ClearToolSnapshot extends ClearToolExec {
         if (!ArrayUtils.isEmpty(loadRules)) {
             cmd.add("-add_loadrules");
             for (String loadRule : loadRules) {
-                String loadRuleLocation = PathUtil.convertPathForOS(removePrefixLoadRule(loadRule), getLauncher().getLauncher());
-                if (loadRuleLocation.matches(".*\\s.*")) {
-                    cmd.addQuoted(loadRuleLocation);
-                } else {
-                    cmd.add(loadRuleLocation);
-                }
+                cmd.add(fixLoadRule(loadRule));
             }
         }
         
-        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), getLauncher().getWorkspace().child(viewName), false, null);
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), viewPath, false, null);
         
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + output);
         }
     }
 
-    private String removePrefixLoadRule(String loadRule) {
-        char firstChar = loadRule.charAt(0);
-        if (firstChar == '\\' || firstChar == '/') {
-            return loadRule.substring(1);
+    private String fixLoadRule(String loadRule) {
+        // Remove leading file separator, we don't need it when using add_loadrules
+        String quotedLR = ConfigSpec.cleanLoadRule(loadRule, getLauncher().getLauncher().isUnix());
+        if (quotedLR.startsWith("\"") && quotedLR.endsWith("\"")) {
+            return "\"" + quotedLR.substring(2);
         } else {
-            return loadRule;
+            return quotedLR.substring(1);
         }
     }
 
