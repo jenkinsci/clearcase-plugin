@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -130,7 +131,9 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         }
 
         List<HistoryEntry> history = new ArrayList<HistoryEntry>();
-
+        if (ArrayUtils.isEmpty(viewPaths)) {
+            return history;
+        }
         try {
             for (String branchName : branchNames) {
                 BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));

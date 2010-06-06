@@ -24,14 +24,13 @@
  */
 package hudson.plugins.clearcase.base;
 
-import hudson.plugins.clearcase.ConfigSpec;
-import hudson.scm.SCMRevisionState;
+import hudson.plugins.clearcase.AbstractClearCaseSCMRevisionState;
 
-public class ClearCaseSCMRevisionState extends SCMRevisionState {
-    private final ConfigSpec configSpec;
+import java.util.Date;
 
-    public ClearCaseSCMRevisionState(ConfigSpec configSpec) {
-        super();
-        this.configSpec = configSpec;
+public class ClearCaseSCMRevisionState extends AbstractClearCaseSCMRevisionState {
+
+    public ClearCaseSCMRevisionState(Date buildTime) {
+        super(buildTime);
     }
 }
