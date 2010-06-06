@@ -27,12 +27,14 @@ package hudson.plugins.clearcase.action;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ConfigSpec;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
 
 
@@ -112,28 +114,22 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
 
     protected AbstractCheckoutAction.LoadRulesDelta getLoadRulesDelta(Set<String> configSpecLoadRules, Launcher launcher) {
         Set<String> removedLoadRules = new LinkedHashSet<String>(configSpecLoadRules);
-        Set<String> addedLoadRules = new LinkedHashSet<String>(loadRules.length);
-        for (String loadRule : loadRules) {
-            addedLoadRules.add(unprefixLoadRule(loadRule));
-        }
-        removedLoadRules.removeAll(addedLoadRules);
-        addedLoadRules.removeAll(configSpecLoadRules);
-        PrintStream logger = launcher.getListener().getLogger();
-        for (String removedLoadRule : removedLoadRules) {
-            logger.println("Removed load rule : " + removedLoadRule);
-        }
-        for (String addedLoadRule : addedLoadRules) {
-            logger.println("Added load rule : " + addedLoadRule);
+        Set<String> addedLoadRules = new LinkedHashSet<String>();
+        if (!ArrayUtils.isEmpty(loadRules)) {
+            for (String loadRule : loadRules) {
+                addedLoadRules.add(ConfigSpec.cleanLoadRule(loadRule, launcher.isUnix()));
+            }
+            removedLoadRules.removeAll(addedLoadRules);
+            addedLoadRules.removeAll(configSpecLoadRules);
+            PrintStream logger = launcher.getListener().getLogger();
+            for (String removedLoadRule : removedLoadRules) {
+                logger.println("Removed load rule : " + removedLoadRule);
+            }
+            for (String addedLoadRule : addedLoadRules) {
+                logger.println("Added load rule : " + addedLoadRule);
+            }
         }
         return new AbstractCheckoutAction.LoadRulesDelta(removedLoadRules, addedLoadRules);
-    }
-
-    private String unprefixLoadRule(String loadRule) {
-        if (loadRule.startsWith("/") || loadRule.startsWith("\\")) {
-            return loadRule.substring(1);
-        } else {
-            return loadRule;
-        }
     }
 
     private FilePath getUnusedFilePath(FilePath workspace, String viewName) throws IOException, InterruptedException {

@@ -179,7 +179,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
                     one(clearTool).update("viewname", null);
-                    one(clearTool).update("viewname", new String[]{"loadrule"});
+                    one(clearTool).update("viewname", new String[]{"/loadrule"});
                     atLeast(1).of(clearTool).catcs("viewname"); will(returnValue("ucm configspec"));
                     one(clearTool).setcs("viewname", "ucm configspec\nload /loadrule\n");
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
@@ -232,7 +232,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
-                    one(clearTool).catcs(viewName); will(returnValue("load abc/\nload abcd"));
+                    one(clearTool).catcs(viewName); will(returnValue("load /abc/\nload /abcd"));
                     one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
                     one(clearTool).update(viewName, null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
@@ -258,9 +258,9 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
-                    one(clearTool).catcs(viewName); will(returnValue("ucm configspec\nload abc/\n"));
+                    one(clearTool).catcs(viewName); will(returnValue("ucm configspec\nload /abc/\n"));
                     one(clearTool).update(viewName, null);
-                    one(clearTool).update(viewName, new String[] {"abcd"});
+                    one(clearTool).update(viewName, new String[] {"/abcd"});
                     one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
@@ -402,7 +402,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
-                    one(clearTool).update("viewname", new String[] {"bar"});
+                    one(clearTool).update("viewname", new String[] {"/bar"});
                     one(clearTool).update("viewname", null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }

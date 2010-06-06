@@ -243,7 +243,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"foo"}, true);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo"}, true);
         action.checkout(launcher, workspace, "viewname");
     }
     
@@ -267,7 +267,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     allowing(launcher).getListener(); will(returnValue(taskListener));
                 }
             });
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"foo"}, false);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo"}, false);
         action.checkout(launcher, workspace, "viewname");
     }
 
@@ -305,7 +305,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
-                    one(clearTool).update("viewname", new String[] {"bar"});
+                    one(clearTool).update("viewname", new String[] {"/bar"});
                     one(clearTool).update("viewname", null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
@@ -317,7 +317,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"foo", "bar"}, true);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo", "/bar"}, true);
         action.checkout(launcher, workspace, "viewname");
     }
     

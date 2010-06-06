@@ -29,6 +29,8 @@ import hudson.plugins.clearcase.util.PathUtil;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 public class ConfigSpec {
@@ -66,11 +68,7 @@ public class ConfigSpec {
             String trimmedRow = row.trim();
             if (trimmedRow.startsWith("load")) {
                 String rule = row.trim().substring("load".length()).trim();
-                if ((!rule.startsWith("/")) && (!rule.startsWith("\\"))) {
-                    rules.add(rule);
-                } else {
-                    rules.add(rule.substring(1));
-                }
+                rules.add(rule);
             }
         }
         return rules;
@@ -91,16 +89,35 @@ public class ConfigSpec {
     
     public ConfigSpec setLoadRules(String[] loadRules) {
         StringBuilder sb = stripLoadRulesOnRaw();
-        for (String loadRule : loadRules) {
-            // Make sure the load rule starts with \ or /, as appropriate
-            sb.append("load ");
-            char firstChar = loadRule.charAt(0);
-            if (!(firstChar == '\\') && !(firstChar == '/')) {
-                sb.append(PathUtil.fileSepForOS(isUnix));
+        if (!ArrayUtils.isEmpty(loadRules)) {
+            for (String loadRule : loadRules) {
+                // Make sure the load rule starts with \ or /, as appropriate
+                sb.append("load ");
+                sb.append(cleanLoadRule(loadRule, isUnix).trim()).append(PathUtil.newLineForOS(isUnix));
             }
-            sb.append(loadRule.trim()).append(PathUtil.newLineForOS(isUnix));
         }
         return new ConfigSpec(sb.toString(), isUnix);
+    }
+
+    public static String cleanLoadRule(String loadRule, boolean isUnix) {
+        if (StringUtils.isBlank(loadRule)) {
+            return loadRule;
+        }
+        String lr = loadRule;
+        // Remove quotes if needed
+        if (lr.charAt(0) == '"' && lr.charAt(lr.length()-1) == '"') {
+            lr = lr.substring(1, lr.length()-1);
+        }
+        // Prepend OS separator
+        char firstChar = lr.charAt(0);
+        if (!(firstChar == '\\') && !(firstChar == '/')) {
+            lr = PathUtil.fileSepForOS(isUnix) + lr;
+        }
+        // Add quotes if path contains spaces
+        if (lr.contains(" ")) {
+            lr = '"' + lr + '"';
+        }
+        return PathUtil.convertPathForOS(lr, isUnix);
     }
 
     public ConfigSpec stripLoadRules() {
