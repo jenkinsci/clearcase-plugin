@@ -30,14 +30,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
 import hudson.model.Computer;
-import hudson.plugins.clearcase.action.DynamicCheckoutAction;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
 import java.io.File;
@@ -207,8 +208,10 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
         classContext.checking(new Expectations() {
                 {
-                    atLeast(2).of(build).getParent(); will(returnValue(project));
-                    one(project).getName(); will(returnValue("ClearCase"));
+                    allowing(build).getBuildVariables(); will(returnValue(new HashMap()));
+                    allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "ClearCase")));
+                    allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                    atLeast(1).of(build).getParent(); will(returnValue(project));
                     atLeast(1).of(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
                     allowing(launcher).isUnix(); will(returnValue(true));
                 }
@@ -239,8 +242,10 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         classContext.checking(new Expectations() {
             {
                 allowing(build).getParent(); will(returnValue(project));
-                one(project).getName(); will(returnValue("ClearCase"));
                 allowing(launcher).isUnix(); will(returnValue(true));
+                allowing(build).getBuildVariables(); will(returnValue(new HashMap()));
+                allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "ClearCase")));
+                allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
             }
         });
         context.checking(new Expectations() {

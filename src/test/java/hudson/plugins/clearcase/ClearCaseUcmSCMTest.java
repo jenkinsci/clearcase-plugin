@@ -28,16 +28,21 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
 import hudson.model.Computer;
 import hudson.plugins.clearcase.ucm.UcmHistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
+
+import java.util.HashMap;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
@@ -58,7 +63,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        classContext = new Mockery() {
+        classContext = new JUnit4Mockery() {
                 {
                     setImposteriser(ClassImposteriser.INSTANCE);
                 }
@@ -68,7 +73,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         launcher = classContext.mock(Launcher.class);
         computer = classContext.mock(Computer.class);
         clearCaseUcmScmDescriptor = classContext.mock(ClearCaseUcmSCM.ClearCaseUcmScmDescriptor.class);
-        context = new Mockery();
+        context = new JUnit4Mockery();
         cleartool = context.mock(ClearTool.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
         
@@ -90,7 +95,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     public void testGetStream() {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option",
                                                   false, false, false, "", null, "", false, null, null, false, false, false);
-        assertEquals("The stream isnt correct", "stream", scm.getStream());
+        assertEquals("The stream isn't correct", "stream", scm.getStream());
     }
 
     @Test
@@ -194,9 +199,11 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
         classContext.checking(new Expectations() {
                 {
-                    atLeast(2).of(build).getParent(); will(returnValue(project));
-                    one(project).getName(); will(returnValue("ClearCase"));
+                    atLeast(1).of(build).getParent(); will(returnValue(project));
                     allowing(launcher).isUnix(); will(returnValue(true));
+                    allowing(build).getBuildVariables(); will(returnValue(new HashMap()));
+                    allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "ClearCase")));
+                    allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                 }
             });
         context.checking(new Expectations() {
@@ -215,6 +222,5 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         VariableResolver<String> variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
         UcmHistoryAction action = (UcmHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
-        classContext.assertIsSatisfied();
     }
 }
