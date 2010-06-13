@@ -24,7 +24,10 @@
  */
 package hudson.plugins.clearcase;
 
-import java.text.DateFormat;
+import hudson.model.User;
+import hudson.scm.ChangeLogSet;
+import hudson.scm.EditType;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,12 +35,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import hudson.model.User;
-import hudson.scm.ChangeLogSet;
-import hudson.scm.EditType;
-
-import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * ClearCase change log entry.
@@ -46,7 +45,7 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
 
-    private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private static final String DATE_FORMAT = "dd/MM/yyyy HH:mm:ss";
 
     private String user = "";
     private String dateStr = "";
@@ -94,13 +93,13 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
         if (date == null) {
             return dateStr;
         } else {
-            return DATE_FORMATTER.format(date);
+            return new SimpleDateFormat(DATE_FORMAT).format(date);
         }
     }
 
     public void setDateStr(String date) {
         try {
-            this.date = DATE_FORMATTER.parse(date);
+            this.date = new SimpleDateFormat(DATE_FORMAT).parse(date);
         } catch (ParseException e) {
             this.dateStr = date;
         }
