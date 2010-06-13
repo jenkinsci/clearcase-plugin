@@ -32,11 +32,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.lang.Validate;
+
 public class UcmSaveChangeLogAction implements SaveChangeLogAction {
 
     public void saveChangeLog(File changeLogFile, List<? extends Entry> entries) throws IOException, InterruptedException {
+        Validate.allElementsOfType(entries, UcmActivity.class);
+        @SuppressWarnings("unchecked") List<UcmActivity> ucmEntries = (List<UcmActivity>) entries;
         FileOutputStream fileOutputStream = new FileOutputStream(changeLogFile);
-        UcmChangeLogSet.saveToChangeLog(fileOutputStream, (List<UcmActivity>) entries);
+        UcmChangeLogSet.saveToChangeLog(fileOutputStream, ucmEntries);
         fileOutputStream.close();
     }
 }

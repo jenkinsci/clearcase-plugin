@@ -174,12 +174,13 @@ public class UcmCommon {
             for (ComponentDesc componentDesc : componentsList) {
                 if (getNoVob(componentDesc.getName()).equals(getNoVob(baseLineDesc.getComponentName()))) {
                     matchComponentDesc = componentDesc;
+                    baselinesDescList.add(new BaselineDesc(blName, matchComponentDesc, baseLineDesc.isNotLabeled));
                     break;
                 }
-
             }
-
-            baselinesDescList.add(new BaselineDesc(blName, matchComponentDesc, baseLineDesc.isNotLabeled));
+            if (matchComponentDesc == null) {
+                clearToolLauncher.getListener().error("Could not find a component matching baseline " + blName);
+            }
         }
 
         return baselinesDescList;
@@ -420,13 +421,14 @@ public class UcmCommon {
         cmd.add("rebase");
 
         cmd.add("-base");
-        String baselineStr = "";
+        StringBuilder sb = new StringBuilder();
         for (UcmCommon.BaselineDesc bl : baselines) {
-            if (baselineStr.length() > 0)
-                baselineStr += ",";
-            baselineStr += bl.getBaselineName();
+            if (sb.length() > 0) {
+                sb.append(',');
+            }
+            sb.append(bl.getBaselineName());
         }
-        cmd.add(baselineStr);
+        cmd.add(sb.toString());
 
         cmd.add("-view");
         cmd.add(viewName);
