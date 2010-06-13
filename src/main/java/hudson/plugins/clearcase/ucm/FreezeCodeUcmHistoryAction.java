@@ -64,7 +64,7 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
     }
     
     @Override
-    public List<? extends Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public List<? extends Entry> getChanges(Date time, String viewPath, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> entries = new ArrayList<HistoryEntry>();
 
         // get latest baselines on the configured stream (set as an action on the build by the checkout operation)
@@ -108,7 +108,7 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
     }
 
     @Override
-    public boolean hasChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public boolean hasChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         // make baseline on the configured stream.
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy_HH_mm_ss", Locale.US);
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));

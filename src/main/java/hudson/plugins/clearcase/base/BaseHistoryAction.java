@@ -55,7 +55,7 @@ public class BaseHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<? extends Entry> buildChangelog(String viewName, List<HistoryEntry> entries) {
+    protected List<? extends Entry> buildChangelog(String viewPath, List<HistoryEntry> entries) {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();
 
         for (HistoryEntry entry : entries) {

@@ -30,15 +30,16 @@ import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.plugins.clearcase.ClearCaseDataAction;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ucm.UcmCommon;
 import hudson.plugins.clearcase.ucm.UcmCommon.BaselineDesc;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
 import java.util.TimeZone;
 
 /**
@@ -73,7 +74,7 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
         this.recreateView = recreateView;
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
         // add stream to data action (to be used by ClearCase report)
         ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
         if (dataAction != null) {
@@ -83,20 +84,21 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
                 dataAction.setStream(stream);
             }
         }
-
+        PrintStream logger = launcher.getListener().getLogger();
+        logger.println("createDynView = " + createDynView);
+        logger.println("freezeCode = " + freezeCode);
+        logger.println("recreateView = " + recreateView);
         if (createDynView) {
             if (freezeCode) {
-                checkoutCodeFreeze(viewName);
+                checkoutCodeFreeze(viewTag);
             } else {
-                cleartool.mountVobs();
-                recreateView(viewName);
-                cleartool.startView(viewName);
-                cleartool.syncronizeViewWithStream(viewName, stream);
+                prepareView(viewTag, stream);
+                cleartool.startView(viewTag);
+                cleartool.setcsTag(viewTag, SetcsOption.STREAM, null);
             }
-
         } else {
-            cleartool.startView(viewName);
-            cleartool.syncronizeViewWithStream(viewName, stream);
+            cleartool.startView(viewTag);
+            cleartool.setcsTag(viewTag, SetcsOption.STREAM, null);
         }
 
         return true;
@@ -160,76 +162,33 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
         return true;
     }
 
-    private void prepareBuildStreamAndViews(String viewName, String stream) throws IOException, InterruptedException {
-        // mount vobs
-        cleartool.mountVobs();
-
+    private void prepareBuildStreamAndViews(String viewTag, String stream) throws IOException, InterruptedException {
         // verify that view exists on the configured stream and start it
-        String uuid = cleartool.getViewData(getConfiguredStreamViewName()).getProperty("UUID");
-        if (uuid == null || uuid.equals("")) {
+        if (!cleartool.doesViewExist(getConfiguredStreamViewName())) {
             String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixDynStorageDir : winDynStorageDir;
-            cleartool.mkview(getConfiguredStreamViewName(), stream, dynStorageDir);
+            cleartool.mkview(null, getConfiguredStreamViewName(), stream, dynStorageDir);
         }
-
         cleartool.startView(getConfiguredStreamViewName());
 
         // do we have build stream? if not create it
-        if (!UcmCommon.isStreamExists(cleartool.getLauncher(), getBuildStream()))
+        if (!UcmCommon.isStreamExists(cleartool.getLauncher(), getBuildStream())) {
             UcmCommon.mkstream(cleartool.getLauncher(), stream, getBuildStream());
+        }
 
         // create view on build stream
-        recreateView(viewName);
+        prepareView(viewTag, getBuildStream());
 
     }
 
-    private void recreateView(String viewName) throws IOException, InterruptedException {
-        Properties viewDataPrp = cleartool.getViewData(viewName);
-        String uuid = viewDataPrp.getProperty("UUID");
-        String storageDir = viewDataPrp.getProperty("STORAGE_DIR");
-
-        // If we don't find a UUID, then the view tag must not exist, in which case we don't
-        // have to delete it anyway.
-        if (uuid != null && !uuid.equals("") && recreateView) {
-            try {
-                cleartool.endView(viewName);
-            } catch (Exception ex) {
-                cleartool.logRedundantCleartoolError(null, ex);
+    private void prepareView(String viewTag, String stream) throws IOException, InterruptedException {
+        String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixDynStorageDir : winDynStorageDir;
+        if (cleartool.doesViewExist(viewTag)) {
+            if (recreateView) {
+                cleartool.rmviewtag(viewTag);
+                cleartool.mkview(null, viewTag, stream, dynStorageDir);
             }
-
-            try {
-                cleartool.rmviewUuid(uuid);
-            } catch (Exception ex) {
-                cleartool.logRedundantCleartoolError(null, ex);
-            }
-
-            try {
-                cleartool.unregisterView(uuid);
-            } catch (Exception ex) {
-                cleartool.logRedundantCleartoolError(null, ex);
-            }
-
-            // remove storage directory
-            try {
-                FilePath storageDirFile = new FilePath(build.getWorkspace().getChannel(), storageDir);
-                storageDirFile.deleteRecursive();
-            } catch (Exception ex) {
-                cleartool.logRedundantCleartoolError(null, ex);
-            }
-        }
-
-        // try to remove the view tag in any case. might help in overcoming corrupted views
-        if (recreateView) {
-            try {
-                cleartool.rmviewtag(viewName);
-            } catch (Exception ex) {
-                cleartool.logRedundantCleartoolError(null, ex);
-            }
-        }
-
-        // Now, make the view.
-        if (recreateView || uuid == null || uuid.equals("")) {
-            String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixDynStorageDir : winDynStorageDir;
-            cleartool.mkview(viewName, getBuildStream(), dynStorageDir);
+        } else {
+            cleartool.mkview(null, viewTag, stream, dynStorageDir);
         }
     }
 

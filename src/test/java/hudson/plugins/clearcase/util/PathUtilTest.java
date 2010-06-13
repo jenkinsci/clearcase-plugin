@@ -24,27 +24,22 @@
  */
 package hudson.plugins.clearcase.util;
 
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Proc;
+import hudson.remoting.Channel;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
 import junit.framework.Assert;
 
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Proc;
-import hudson.model.TaskListener;
-import hudson.remoting.Channel;
-import hudson.remoting.VirtualChannel;
-
-import org.jmock.Mockery;
 import org.junit.Test;
 
 public class PathUtilTest {
     @Test
     public void testWindows() throws Exception {
-        Mockery ctx = new Mockery();
         Launcher launcher = new MyLauncher(false);
         String converted = PathUtil.convertPathForOS("C/abc",
                                                      launcher);
@@ -67,7 +62,6 @@ public class PathUtilTest {
     
     @Test
     public void testUnix() throws Exception {
-        Mockery ctx = new Mockery();
         Launcher launcher = new MyLauncher(true);
         String converted = PathUtil.convertPathForOS("C\\abc",
                                                      launcher);

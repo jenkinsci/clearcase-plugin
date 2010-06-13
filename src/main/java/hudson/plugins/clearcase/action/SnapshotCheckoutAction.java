@@ -28,6 +28,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ConfigSpec;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
 
 import java.io.IOException;
 
@@ -39,27 +40,30 @@ import org.apache.commons.lang.ArrayUtils;
 public class SnapshotCheckoutAction extends AbstractCheckoutAction {
 
     private final ConfigSpec configSpec;
+    
+    private final String viewPath;
 
-    public SnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate) {
+    public SnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath) {
         super(cleartool, loadRules, useUpdate);
         this.configSpec = configSpec;
+        this.viewPath = viewPath;
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException {
-        boolean viewCreated = cleanAndCreateViewIfNeeded(workspace, viewName, null);
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        boolean viewCreated = cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, null);
 
         // At this stage, we have a valid view and a valid path
         boolean needSetCs = true;
         AbstractCheckoutAction.LoadRulesDelta loadRulesDelta = null;
         if (!viewCreated) {
-            ConfigSpec viewConfigSpec = new ConfigSpec(cleartool.catcs(viewName), launcher.isUnix());
+            ConfigSpec viewConfigSpec = new ConfigSpec(cleartool.catcs(viewTag), launcher.isUnix());
             loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
             needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());
         }
 
         if (needSetCs) {
             try {
-                cleartool.setcs(viewName, configSpec.setLoadRules(loadRules).getRaw());
+                cleartool.setcs(viewPath, SetcsOption.CONFIGSPEC, configSpec.setLoadRules(loadRules).getRaw());
             } catch (IOException e) {
                 launcher.getListener().fatalError(e.toString());
                 return false;
@@ -69,7 +73,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
             if (!ArrayUtils.isEmpty(addedLoadRules)) {
                 // Config spec haven't changed, but there are new load rules
                 try {
-                    cleartool.update(viewName, addedLoadRules);
+                    cleartool.update(viewPath, addedLoadRules);
                 } catch (IOException e) {
                     launcher.getListener().fatalError(e.toString());
                     return false;
@@ -79,7 +83,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         // Perform a full update of the view. to reevaluate config spec
         if (!viewCreated) {
             try {
-                cleartool.update(viewName, null);
+                cleartool.update(viewPath, null);
             } catch (IOException e) {
                 launcher.getListener().fatalError(e.toString());
                 return false;

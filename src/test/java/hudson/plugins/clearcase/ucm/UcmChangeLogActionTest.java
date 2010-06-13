@@ -25,21 +25,20 @@
 package hudson.plugins.clearcase.ucm;
 
 import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Date;
-import java.util.List;
-import java.io.File;
-
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.Filter;
-import hudson.plugins.clearcase.util.EventRecordFilter;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,7 +49,7 @@ public class UcmChangeLogActionTest {
 
     @Before
     public void setUp() throws Exception {
-        context = new Mockery();
+        context = new JUnit4Mockery();
         cleartool = context.mock(ClearTool.class);
         
     }
@@ -68,7 +67,6 @@ public class UcmChangeLogActionTest {
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
         action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
-        context.assertIsSatisfied();
     }
     
     @Test
@@ -206,7 +204,6 @@ public class UcmChangeLogActionTest {
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
         action.getChanges( null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
-        context.assertIsSatisfied();
         lshistoryReader.ready();
     }
 
@@ -235,7 +232,6 @@ public class UcmChangeLogActionTest {
         
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool,null);
         action.getChanges(null, "VIEW_NAME", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
-        context.assertIsSatisfied();
         lsactivityReader.ready();
     }
 }

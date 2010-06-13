@@ -33,17 +33,16 @@
       <a href="${rootURL}/scm/ClearCaseSCM/listViews">List clearcase views</a>
     </div>
   </f:description>
-  <j:choose>
-    <j:when test="${descriptor.defaultViewName!=''}">
-      <input name="ucm.viewname" type="hidden" value="${descriptor.defaultViewName}" />
-    </j:when>
-    <j:otherwise>
-      <f:entry title="View name" help="/plugin/clearcase/localdir.html">
-        <f:textbox name="ucm.viewname" value="${h.defaulted(scm.viewName, 'hudson_view')}" 
-                   checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('View name is mandatory')+'&amp;value='+escape(this.value)" />
-      </f:entry>
-    </j:otherwise>
-  </j:choose>
+  <f:entry title="View tag" help="/plugin/clearcase/viewtag.html">
+    <f:textbox name="ucm.viewname"
+      value="${h.defaulted(scm.viewName, descriptor.defaultViewName)}"
+      checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Entering a view tag is mandatory')+'&amp;value='+escape(this.value)" />
+  </f:entry>
+  <f:entry title="View path" help="/plugin/clearcase/localdir.html">
+    <f:textbox name="ucm.viewpath"
+      value="${h.defaulted(scm.viewpath, h.defaulted(scm.viewPath, descriptor.defaultViewPath))}"
+      checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('View path is mandatory')+'&amp;value='+escape(this.value)" />
+  </f:entry>
   <f:entry title="Stream selector" help="/plugin/clearcase/stream.html">
     <f:textbox name="ucm.stream" value="${scm.stream}" 
                checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Stream selector is mandatory')+'&amp;value='+escape(this.value)" />
@@ -51,6 +50,12 @@
   
   <f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
     <f:textarea name="ucm.loadrules" value="${scm.loadRules}" />
+  </f:entry>
+  
+  <f:entry title="Use update">
+    <f:checkbox name="ucm.useupdate" checked="${h.defaultToTrue(scm.useUpdate)}"/>
+    If checked, Hudson will use 'cleartool update' whenever possible, making the build faster.
+    But this causes the artifacts from the previous build to remain when a new build starts.
   </f:entry>
   
   <f:advanced>
@@ -61,14 +66,9 @@
       <f:expandableTextbox name="ucm.mkviewoptionalparam" value="${scm.mkviewOptionalParam}" />
     </f:entry>
     
-    <f:entry title="Use update">
-      <f:checkbox name="ucm.useupdate" checked="${h.defaultToTrue(scm.useUpdate)}"/>
-      If checked, Hudson will use 'cleartool update' whenever possible, making the build faster.
-      But this causes the artifacts from the previous build to remain when a new build starts.
-    </f:entry>
     
     <f:entry title="Remove clearcase view on rename">
-      <f:checkbox name="ucm.rmviewonrename" checked="${scm.removeViewOnRename}"/>
+      <f:checkbox name="ucm.rmviewonrename" checked="${h.defaultToTrue(scm.removeViewOnRename)}"/>
       If checked, Hudson will try to remove the existing clearcase view.
     </f:entry>
     
@@ -105,13 +105,13 @@
           
           <f:entry title="Freeze code">
 				<f:checkbox name="ucm.freezeCode" checked="${scm.freezeCode}"/>
-				If checked, Hudson will create a child stream under the configured stream and will use it for the build. 
-				When a build starts, Hudson will rebase the build stream with the latest baselines found on the configured stream.				  
-          </f:entry>          
-
+				If checked, Hudson will create a child stream under the configured stream and will use it for the build.
+				When a build starts, Hudson will rebase the build stream with the latest baselines found on the configured stream.
+          </f:entry>
+          
           <f:optionalBlock name="ucm.createDynView" title="Create view if view doesn't exist"
                          checked="${scm.createDynView}">
-	          	        
+
 		      <f:entry title="Remove and recreate view on each build">
 						<f:checkbox name="ucm.recreateView" checked="${scm.recreateView}"/>
 						If checked, Hudson will remove the view and recreate it in order to allow clean build.

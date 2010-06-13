@@ -24,12 +24,13 @@
  */
 package hudson.plugins.clearcase;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasItemInArray;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.util.VariableResolver;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,24 +44,30 @@ import java.util.TimeZone;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ClearToolExecTest extends AbstractWorkspaceTest {
     private Mockery context;
+    private Mockery classContext;
     private ClearToolExec clearToolExec;
-    private ClearToolLauncher launcher;
-    private BuildListener taskListener;
-    private VariableResolver resolver;
+    private ClearToolLauncher ccLauncher;
+    private Launcher launcher;
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        context = new Mockery();
-        launcher = context.mock(ClearToolLauncher.class);
-        taskListener = context.mock(BuildListener.class);
-        resolver = context.mock(VariableResolver.class);
-        clearToolExec = new ClearToolImpl(launcher);
+        context = new JUnit4Mockery();
+        classContext = new JUnit4Mockery() {
+            {
+                setImposteriser(ClassImposteriser.INSTANCE);
+            }
+        };
+        ccLauncher = context.mock(ClearToolLauncher.class);
+        clearToolExec = new ClearToolImpl(ccLauncher);
+        launcher = classContext.mock(Launcher.class);
     }
     @After
     public void tearDown() throws Exception {
@@ -71,7 +78,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     public void testListViews() throws Exception {
         context.checking(new Expectations() {
                 {
-                    one(launcher).run(with(equal(new String[] { "lsview" })),
+                    one(ccLauncher).run(with(equal(new String[] { "lsview" })),
                                       (InputStream) with(anything()), (OutputStream) with(an(OutputStream.class)),
                                       with(aNull(FilePath.class)));
                     will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")),
@@ -90,7 +97,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     public void testListActiveDynamicViews() throws Exception {
         context.checking(new Expectations() {
                 {
-                    one(launcher).run(with(equal(new String[] { "lsview" })),
+                    one(ccLauncher).run(with(equal(new String[] { "lsview" })),
                                       (InputStream) with(anything()), (OutputStream) with(an(OutputStream.class)),
                                       with(aNull(FilePath.class)));
                     will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-1.log")),
@@ -106,7 +113,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     public void testListVobs() throws Exception {
         context.checking(new Expectations() {
                 {
-                    one(launcher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
+                    one(ccLauncher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
                                       (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
                     will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")),
                                returnValue(Boolean.TRUE)));
@@ -126,7 +133,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     public void testListVobsMounted() throws Exception {
         context.checking(new Expectations() {
                 {
-                    one(launcher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
+                    one(ccLauncher).run(with(equal(new String[] { "lsvob" })), (InputStream) with(anything()),
                                       (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
                     will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log")),
                                returnValue(Boolean.TRUE)));
@@ -151,11 +158,11 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         final String formattedDate = formatter.format(mockedCalendar.getTime()).toLowerCase();
         context.checking(new Expectations() {
                 {
-                    one(launcher).getWorkspace();
+                    one(ccLauncher).getWorkspace();
                     will(returnValue(workspace));
-                    allowing(launcher).getLauncher();
+                    allowing(ccLauncher).getLauncher();
                     will(returnValue(new Launcher.LocalLauncher(null)));
-                    one(launcher).run(
+                    one(ccLauncher).run(
                                       with(equal(new String[] { "lshistory", "-all", "-since", formattedDate,
                                                                 "-fmt", "FORMAT", "-branch", "brtype:branch", "-nco",
                                                                 "vob1", "vob2", "\"vob 3\"" })), (InputStream) with(anything()),
@@ -180,11 +187,11 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         final String formattedDate = formatter.format(mockedCalendar.getTime()).toLowerCase();
         context.checking(new Expectations() {
                 {
-                    one(launcher).getWorkspace();
+                    one(ccLauncher).getWorkspace();
                     will(returnValue(workspace));
-                    allowing(launcher).getLauncher();
+                    allowing(ccLauncher).getLauncher();
                     will(returnValue(new Launcher.LocalLauncher(null)));
-                    one(launcher).run(
+                    one(ccLauncher).run(
                                       with(equal(new String[] { "lshistory", "-all", "-since", formattedDate,
                                                                 "-fmt", "FORMAT", "-branch", "brtype:branch", "-nco",
                                                                 "vob1", "vob2", "\"vob 3\"" })), (InputStream) with(anything()),
@@ -203,7 +210,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     public void testCatConfigSpec() throws Exception {
         context.checking(new Expectations() {
                 {
-                    one(launcher).run(with(equal(new String[] { "catcs", "-tag", "viewname" })), (InputStream) with(anything()),
+                    one(ccLauncher).run(with(equal(new String[] { "catcs", "-tag", "viewname" })), (InputStream) with(anything()),
                                       (OutputStream) with(an(OutputStream.class)), with(aNull(FilePath.class)));
                     will(doAll(new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-catcs-1.log")),
                                returnValue(Boolean.TRUE)));
@@ -220,9 +227,9 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         workspace.child("viewName").mkdirs();
         context.checking(new Expectations() {
                 {
-                    one(launcher).getWorkspace();
+                    one(ccLauncher).getWorkspace();
                     will(returnValue(workspace));                
-                    one(launcher).run(
+                    one(ccLauncher).run(
                                       with(equal(new String[] { "lsactivity", "-fmt", "ACTIVITY_FORMAT", 
                                                                 "ACTIVITY@VOB"})), (InputStream) with(anything()),
                                       (OutputStream) with(an(OutputStream.class)), (FilePath) with(an(FilePath.class)));
@@ -235,53 +242,64 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         context.assertIsSatisfied();
     }
     
+    @Test
+    public void testStartview() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    one(ccLauncher).run(
+                                      with(allOf(hasItemInArray("startview"),
+                                                 hasItemInArray("viewName"))),
+                                      with(aNull(InputStream.class)),
+                                      with(aNull(OutputStream.class)),
+                                      with(aNull(FilePath.class)));
+                }
+            });
+        clearToolExec.startView("viewName");
+    }
+    
+    /**
+     * Make sure that if we call setcs with a null or empty string for the config spec,
+     * we get a call to cleartool setcs -current.
+     */
+    @Test
+    public void testSyncronizeViewWithStream() throws Exception {
+        context.checking(new Expectations() {
+                {
+                    allowing(ccLauncher).getWorkspace();
+                    will(returnValue(workspace));
+                    one(ccLauncher).getLauncher(); will(returnValue(launcher));
+                    one(ccLauncher).run(
+                                      with(allOf(hasItemInArray("setcs"),
+                                                 hasItemInArray("-tag"),
+                                                 hasItemInArray("viewName"),
+                                                 hasItemInArray("-current"))),
+                                      with(any(InputStream.class)),
+                                      with(any(OutputStream.class)),
+                                      with(any(FilePath.class)));
+                    will(returnValue(Boolean.TRUE));
+                }
+            });
+        classContext.checking(new Expectations() {
+            {
+                one(launcher).isUnix(); will(returnValue(true));
+            }
+        });
+        
+        clearToolExec.setcsTag("viewName", SetcsOption.CURRENT, null);
+    }
+    
     /**
      * Simple impl of ClearToolExec to help testing the methods in the class
      */
     private static class ClearToolImpl extends ClearToolExec {
         
         public ClearToolImpl(ClearToolLauncher launcher) {
-            super(null, launcher);
-        }
-        public void checkout(String configSpec, String viewName) throws IOException,
-                                                                        InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void mkview(String viewName) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void mkview(String viewName, String streamSelector) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void mkview(String viewName, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void rmview(String viewName) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void rmviewtag(String viewName) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void setcs(String viewName, String configSpec) throws IOException,
-                                                                     InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void update(String viewName) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void startView(String viewTag) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
-        }
-        public void syncronizeViewWithStream(String viewName, String stream) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
+            super(null, launcher, null);
         }
         
         @Override
         protected FilePath getRootViewPath(ClearToolLauncher launcher) {
             return launcher.getWorkspace();
-        }
-        public void update(String viewName, String[] loadRules) throws IOException, InterruptedException {
-            throw new IllegalStateException("Not implemented");
         }
     }
 }

@@ -24,29 +24,21 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Proc;
+import hudson.model.BuildListener;
+import hudson.model.TaskListener;
+
 import java.io.ByteArrayOutputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Proc;
-import hudson.Util;
-import hudson.model.BuildListener;
-import hudson.model.TaskListener;
-import hudson.util.ForkOutputStream;
-import hudson.util.ArgumentListBuilder;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
@@ -63,8 +55,8 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        context = new Mockery();
-        classContext = new Mockery() {
+        context = new JUnit4Mockery();
+        classContext = new JUnit4Mockery() {
                 {
                     setImposteriser(ClassImposteriser.INSTANCE);
                 }

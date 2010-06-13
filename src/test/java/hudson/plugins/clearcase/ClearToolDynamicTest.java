@@ -27,6 +27,8 @@ package hudson.plugins.clearcase;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItemInArray;
 import hudson.FilePath;
+import hudson.Launcher;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.util.VariableResolver;
 
 import java.io.InputStream;
@@ -34,6 +36,8 @@ import java.io.OutputStream;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,20 +45,27 @@ import org.junit.Test;
 public class ClearToolDynamicTest extends AbstractWorkspaceTest {
 
     private Mockery context;
+    private Mockery classContext;
 
     private ClearTool clearToolExec;
-    private ClearToolLauncher launcher;
+    private ClearToolLauncher ccLauncher;
+    private Launcher launcher;
 
     private VariableResolver resolver;
 
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        context = new Mockery();
-
-        launcher = context.mock(ClearToolLauncher.class);
+        context = new JUnit4Mockery();
+        classContext = new JUnit4Mockery() {
+            {
+                setImposteriser(ClassImposteriser.INSTANCE);
+            }
+        };
+        ccLauncher = context.mock(ClearToolLauncher.class);
         resolver = context.mock(VariableResolver.class);
-        clearToolExec = new ClearToolDynamic(resolver, launcher, "/cc/drives", "");
+        launcher = classContext.mock(Launcher.class);
+        clearToolExec = new ClearToolDynamic(resolver, ccLauncher, "/cc/drives", "");
     }
 
     @After
@@ -66,64 +77,26 @@ public class ClearToolDynamicTest extends AbstractWorkspaceTest {
     public void testSetcs() throws Exception {
         context.checking(new Expectations() {
                 {
-                    allowing(launcher).getWorkspace();
-                    will(returnValue(workspace));
-                    one(launcher).run(
+                    allowing(ccLauncher).getWorkspace(); will(returnValue(workspace));
+                    one(ccLauncher).getLauncher(); will(returnValue(launcher));
+                    one(ccLauncher).run(
                                       with(allOf(hasItemInArray("setcs"),
                                                  hasItemInArray("-tag"),
-                                                 hasItemInArray("viewName"))),
-                                      with(aNull(InputStream.class)),
-                                      with(aNull(OutputStream.class)),
+                                                 hasItemInArray("viewTag"))),
+                                      with(any(InputStream.class)),
+                                      with(any(OutputStream.class)),
                                       with(any(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                     
                 }
             });
+        classContext.checking(new Expectations() {
+            {
+                one(launcher).isUnix(); will(returnValue(true));
+            }
+        });
 
-        clearToolExec.setcs("viewName", "configspec");
-        context.assertIsSatisfied();
+        clearToolExec.setcsTag("viewTag", SetcsOption.CONFIGSPEC, "configspec");
     }
 
-    /**
-     * Make sure that if we call setcs with a null or empty string for the config spec,
-     * we get a call to cleartool setcs -current.
-     */
-    @Test
-    public void testSetcsCurrent() throws Exception {
-        context.checking(new Expectations() {
-                {
-                    allowing(launcher).getWorkspace();
-                    will(returnValue(workspace));
-                    one(launcher).run(
-                                      with(allOf(hasItemInArray("setcs"),
-                                                 hasItemInArray("-tag"),
-                                                 hasItemInArray("viewName"),
-                                                 hasItemInArray("-current"))),
-                                      with(aNull(InputStream.class)),
-                                      with(aNull(OutputStream.class)),
-                                      with(any(FilePath.class)));
-                    will(returnValue(Boolean.TRUE));
-                }
-            });
-
-        clearToolExec.setcs("viewName", null);
-        context.assertIsSatisfied();
-    }
-
-    @Test
-    public void testStartview() throws Exception {
-        context.checking(new Expectations() {
-                {
-                    one(launcher).run(
-                                      with(allOf(hasItemInArray("startview"),
-                                                 hasItemInArray("viewName"))),
-                                      with(aNull(InputStream.class)),
-                                      with(aNull(OutputStream.class)),
-                                      with(aNull(FilePath.class)));
-                }
-            });
-
-        clearToolExec.startView("viewName");
-        context.assertIsSatisfied();
-    }
 }
