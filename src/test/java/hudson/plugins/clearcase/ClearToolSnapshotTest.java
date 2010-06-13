@@ -28,6 +28,7 @@ import static org.junit.Assert.assertFalse;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.TaskListener;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
@@ -51,7 +52,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 
     private Mockery context;
     private Mockery classContext;
-    private ClearTool clearToolExec;
+    private ClearToolExec clearToolExec;
     private ClearToolLauncher clearToolLauncher;
     private VariableResolver resolver;
     private TaskListener listener;
@@ -70,7 +71,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
         clearToolLauncher = context.mock(ClearToolLauncher.class);
         listener = context.mock(TaskListener.class);
         resolver = context.mock(VariableResolver.class);
-        clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher);
+        clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher, null);
         
         launcher = classContext.mock(Launcher.class);
     }
@@ -84,13 +85,12 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
     public void testRemoveView() throws Exception {
         context.checking(new Expectations() {
                 {
-                    one(clearToolLauncher).getWorkspace();
-                    will(returnValue(workspace));
+                    one(clearToolLauncher).getWorkspace(); will(returnValue(workspace));
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "rmview", "-force",
                                                                          "viewName" })), with(aNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
-                                               with(aNull(FilePath.class)));
+                                               with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                 }
             });
@@ -110,7 +110,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                                with(equal(new String[] { "rmview", "-force",
                                                                          "viewName" })), with(aNull(InputStream.class)),
                                                with(aNonNull(OutputStream.class)),
-                                               with(aNull(FilePath.class)));
+                                               with(aNonNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
                     one(clearToolLauncher).getListener();
                     will(returnValue(listener));
@@ -156,7 +156,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 }
             });
         
-        clearToolExec.setcs("viewName", null);
+        clearToolExec.setcs("viewName", SetcsOption.CURRENT, null);
     }
 
     @Test(expected=IOException.class)
@@ -194,7 +194,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 }
             });
 
-        clearToolExec.setcs("viewName", null);
+        clearToolExec.setcs("viewName", SetcsOption.CURRENT, null);
     }
 
     
@@ -332,7 +332,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 {
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "mkview", "-snapshot",
-                                                                         "-tag", "viewName", "viewName" })),
+                                                                         "-tag", "viewName", "viewpath" })),
                                                with(aNull(InputStream.class)),
                                                with(aNull(OutputStream.class)),
                                                with(aNull(FilePath.class)));
@@ -340,7 +340,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 }
             });
         
-        clearToolExec.mkview("viewName", null);
+        clearToolExec.mkview("viewpath", "viewName", null);
     }
     
     @Test
@@ -350,7 +350,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "mkview", "-snapshot",
                                                                          "-stream", "streamSelector", "-tag",
-                                                                         "viewName", "viewName" })),
+                                                                         "viewName", "viewpath" })),
                                                with(aNull(InputStream.class)),
                                                with(aNull(OutputStream.class)),
                                                with(aNull(FilePath.class)));
@@ -358,7 +358,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                 }
             });
 
-        clearToolExec.mkview("viewName", "streamSelector");
+        clearToolExec.mkview("viewpath", "viewName", "streamSelector");
     }
 
     @Test
@@ -368,7 +368,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "mkview", "-snapshot",
                                                                          "-tag", "viewName", "-anextraparam",
-                                                                         "-anotherparam", "viewName" })),
+                                                                         "-anotherparam", "viewpath" })),
                                                with(aNull(InputStream.class)),
                                                with(aNull(OutputStream.class)),
                                                with(aNull(FilePath.class)));
@@ -378,7 +378,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 
         clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
                                               "-anextraparam -anotherparam");
-        clearToolExec.mkview("viewName", null);
+        clearToolExec.mkview("viewpath", "viewName", null);
     }
 
     @Test
@@ -389,7 +389,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                                                with(equal(new String[] { "mkview", "-snapshot",
                                                                          "-stream", "streamSelector", "-tag",
                                                                          "viewName", "-anextraparam", "-anotherparam",
-                                                                         "viewName" })), with(aNull(InputStream.class)),
+                                                                         "viewpath" })), with(aNull(InputStream.class)),
                                                with(aNull(OutputStream.class)),
                                                with(aNull(FilePath.class)));
                     will(returnValue(Boolean.TRUE));
@@ -398,7 +398,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
 
         clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
                                               "-anextraparam -anotherparam");
-        clearToolExec.mkview("viewName", "streamSelector");
+        clearToolExec.mkview("viewpath", "viewName", "streamSelector");
     }
 
     @Test
@@ -408,7 +408,7 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
                     one(clearToolLauncher).run(
                                                with(equal(new String[] { "mkview", "-snapshot",
                                                                          "-tag", "viewName", "-anextraparam",
-                                                                         "Test", "viewName" })),
+                                                                         "Test", "viewpath" })),
                                                with(aNull(InputStream.class)),
                                                with(aNull(OutputStream.class)),
                                                with(aNull(FilePath.class)));
@@ -424,6 +424,6 @@ public class ClearToolSnapshotTest extends AbstractWorkspaceTest {
             });
         clearToolExec = new ClearToolSnapshot(resolver, clearToolLauncher,
                                               "-anextraparam $COMPUTERNAME");
-        clearToolExec.mkview("viewName", null);
+        clearToolExec.mkview("viewpath", "viewName", null);
     }
 }

@@ -27,9 +27,12 @@ package hudson.plugins.clearcase.base;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Build;
+import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.plugins.clearcase.AbstractClearCaseScm;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearCaseSCM;
@@ -43,6 +46,7 @@ import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
 import java.io.IOException;
@@ -51,10 +55,12 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,15 +76,17 @@ public class BaseHistoryActionTest {
     private Launcher launcher;
     private ClearToolLauncher clearToolLauncher;
     private ClearCaseSCM.ClearCaseScmDescriptor clearCaseScmDescriptor;
+    private Node node;
+    private Computer computer;
 
     private ClearTool cleartool;
     
     @Before
     public void setUp() throws Exception {
-        context = new Mockery();
+        context = new JUnit4Mockery();
         cleartool = context.mock(ClearTool.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
-        classContext = new Mockery() {
+        classContext = new JUnit4Mockery() {
                 {
                     setImposteriser(ClassImposteriser.INSTANCE);
                 }
@@ -87,6 +95,8 @@ public class BaseHistoryActionTest {
         build = classContext.mock(Build.class);
         launcher = classContext.mock(Launcher.class);
         clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
+        node = classContext.mock(Node.class);
+        computer = classContext.mock(Computer.class);
     }
 
     /*
@@ -97,6 +107,7 @@ public class BaseHistoryActionTest {
     public void assertSeparateBranchCommands() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})));
                     will(returnValue(new StringReader("")));
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchtwo")), with(equal(new String[]{"vobpath"})));
@@ -105,30 +116,15 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null,0);
-        boolean hasChange = action.hasChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
+        boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);
-        context.assertIsSatisfied();
     }
-
-    //    @Test
-    //    public void assertFirstFoundChangeStopsPolling() throws Exception {
-    //        context.checking(new Expectations() {
-    //            {
-    //                one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})));
-    //                will(returnValue(new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\" \"mkelem\" ")));
-    //            }
-    //        });
-    //
-    //        BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null,0);
-    //        boolean hasChange = action.hasChanges(null, "view", new String[]{"branchone", "branchtwo"}, new String[]{"vobpath"});
-    //        assertTrue("The getChanges() method did not report a change", hasChange);
-    //        context.assertIsSatisfied();
-    //    }
 
     @Test
     public void assertSuccessfulParse() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
                     will(returnValue(new StringReader(
                                                       "\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" "
@@ -137,58 +133,58 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null,0);
-        boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method did not report a change", hasChange);
-        context.assertIsSatisfied();
     }
 
     @Test
     public void assertIgnoringErrors() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
                     will(returnValue(new StringReader("cleartool: Error: Not an object in a vob: \"view.dat\".\n")));
                 }
             });
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new DefaultFilter(),0);
-        boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
-        context.assertIsSatisfied();
     }
 
     @Test
     public void assertIgnoringVersionZero() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
                     will(returnValue(new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\0\" \"create version\"  \"mkelem\" ")));
                 }
             });
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new DefaultFilter(),0);
-        boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
-        context.assertIsSatisfied();
     }
 
     @Test
     public void assertIgnoringDestroySubBranchEvent() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
                     will(returnValue(new StringReader(
                                                       "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
                 }
             });
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new DestroySubBranchFilter(),0);
-        boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[]{"branch"}, new String[]{"vobpath"});
         assertFalse("The getChanges() method reported a change", hasChange);
-        context.assertIsSatisfied();
     }
 
     @Test
     public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
                     will(returnValue(new StringReader(
                                                       "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
@@ -197,9 +193,8 @@ public class BaseHistoryActionTest {
 
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null,0);
-        boolean hasChange = action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[]{"branch"}, new String[]{"vobpath"});
         assertTrue("The getChanges() method reported a change", hasChange);
-        context.assertIsSatisfied();
     }
 
     @Test(expected=IOException.class)
@@ -207,13 +202,14 @@ public class BaseHistoryActionTest {
         final StringReader reader = new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" ");
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     ignoring(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})));
                     will(returnValue(reader));
                 }
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null,0);
-        action.hasChanges(null, "view", new String[]{"branch"}, new String[]{"vobpath"});
+        action.hasChanges(null, "view", "viewTag", new String[]{"branch"}, new String[]{"vobpath"});
         reader.ready();
     }
 
@@ -227,6 +223,7 @@ public class BaseHistoryActionTest {
     public void assertFormatContainsComment() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
                                              with(any(String[].class)));
@@ -235,14 +232,14 @@ public class BaseHistoryActionTest {
             });
         
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null,0);
-        action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
-        context.assertIsSatisfied();
+        action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
     }
 
     @Test
     public void assertDestroySubBranchEventIsIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
                                              with(any(String[].class)));
@@ -251,22 +248,20 @@ public class BaseHistoryActionTest {
                 }
             });
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new DestroySubBranchFilter(), 10000);
-        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("The event record should be ignored", 0, changes.size());        
-        context.assertIsSatisfied();        
     }
 
     @Test
     public void assertExcludedRegionsAreIgnored() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
                                              with(any(String[].class)));
                     will(returnValue(new StringReader(
                                                       "\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" ")));
-
-
                 }
             });
         
@@ -275,15 +270,15 @@ public class BaseHistoryActionTest {
         filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "Customer"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,new FilterChain(filters), 10000);
-        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("The event record should be ignored", 0, changes.size());        
-        context.assertIsSatisfied();        
     }
 
     @Test
     public void assertMergedLogEntries() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
                                              with(any(String[].class)));
@@ -294,9 +289,8 @@ public class BaseHistoryActionTest {
             }); 
         
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 10000);
-        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Two entries should be merged into one", 1, changes.size());        
-        context.assertIsSatisfied();        
     }
 
     @Test(expected=IOException.class)
@@ -304,6 +298,7 @@ public class BaseHistoryActionTest {
         final StringReader reader = new StringReader("\"20070906.091701\"   \"egsperi\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"create version\"  \"mkelem\"\n");
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)),
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
@@ -312,8 +307,7 @@ public class BaseHistoryActionTest {
             });
         
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 10000);
-        action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
-        context.assertIsSatisfied();
+        action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
         reader.ready();
     }
 
@@ -321,6 +315,7 @@ public class BaseHistoryActionTest {
     public void testSorted() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)),
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
@@ -332,18 +327,18 @@ public class BaseHistoryActionTest {
             });
         
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 10000);
-        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> changes = (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 3, changes.size());
         assertEquals("First entry is incorrect", "inttest1", changes.get(0).getUser());
         assertEquals("First entry is incorrect", "inttest2", changes.get(1).getUser());
         assertEquals("First entry is incorrect", "inttest3", changes.get(2).getUser());
-        context.assertIsSatisfied();
     }
 
     @Test
     public void testMultiline() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)),
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
@@ -353,7 +348,7 @@ public class BaseHistoryActionTest {
                 }
             });
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 10000);
-        List<ClearCaseChangeLogEntry> changes =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> changes =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 2, changes.size());
     }
 
@@ -361,6 +356,7 @@ public class BaseHistoryActionTest {
     public void testErrorOutput() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -371,7 +367,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 10000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         assertEquals("First entry is incorrect", "", entries.get(0).getComment());
         assertEquals("Scond entry is incorrect", "", entries.get(1).getComment());
@@ -381,6 +377,7 @@ public class BaseHistoryActionTest {
     public void testUserOutput() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new InputStreamReader(
@@ -389,7 +386,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 1000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 2, entries.size());
     }
 
@@ -397,6 +394,7 @@ public class BaseHistoryActionTest {
     public void testOperation() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -405,7 +403,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 10000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         FileElement element = entries.get(0).getElements().get(0);
         assertEquals("Status is incorrect", "mkelem", element.getOperation());
@@ -415,6 +413,7 @@ public class BaseHistoryActionTest {
     public void testParseNoComment() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -423,7 +422,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 1000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
 
         assertEquals("Number of history entries are incorrect", 1, entries.size());
 
@@ -440,6 +439,7 @@ public class BaseHistoryActionTest {
     public void testEmptyComment() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -448,7 +448,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 1000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("Comment is incorrect", "", entry.getComment());
@@ -458,6 +458,7 @@ public class BaseHistoryActionTest {
     public void testCommentWithEmptyLine() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -466,7 +467,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 1000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
 
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -477,6 +478,7 @@ public class BaseHistoryActionTest {
     public void testParseWithComment() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -485,7 +487,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 1000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
 
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -501,6 +503,7 @@ public class BaseHistoryActionTest {
     public void testParseWithTwoLineComment() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -509,7 +512,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 1000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
 
         ClearCaseChangeLogEntry entry = entries.get(0);
@@ -525,6 +528,7 @@ public class BaseHistoryActionTest {
     public void testParseWithLongAction() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -533,7 +537,7 @@ public class BaseHistoryActionTest {
             });
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 1000);
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("Action is incorrect", "create a version", entry.getElements().get(0).getAction());
@@ -543,6 +547,7 @@ public class BaseHistoryActionTest {
     public void assertViewPathIsRemovedFromFilePaths() throws Exception {
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
                                              with(any(String.class)), with(any(String.class)), with(any(String[].class)));
                     will(returnValue(new StringReader(
@@ -552,7 +557,7 @@ public class BaseHistoryActionTest {
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool,false,null, 1000);
         action.setExtendedViewPath("/view/ralef_0.2_nightly");
-        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
+        List<ClearCaseChangeLogEntry> entries =  (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(), "viewPath", "viewTag", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "/vobs/Tools/framework/util/QT.h", entry.getElements().get(0).getFile());
@@ -575,6 +580,13 @@ public class BaseHistoryActionTest {
     public void testCaseSensitivityInViewName() throws Exception {
         classContext.checking(new Expectations() {
                 {
+                    ignoring(build).getBuiltOn(); will(returnValue(node));
+                    ignoring(node).toComputer(); will(returnValue(computer));
+                    ignoring(node).getNodeName(); will(returnValue("test-node"));
+                    ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                    ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                    ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                    
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Issue3666"));
                     allowing(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
@@ -583,6 +595,7 @@ public class BaseHistoryActionTest {
         
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("Hudson.SAP.ICI.7.6.Quick"))); will(returnValue(true));
                     allowing(clearToolLauncher).getLauncher();
                     will(returnValue(launcher));
                     allowing(cleartool).pwv(with(any(String.class)));
@@ -603,14 +616,14 @@ public class BaseHistoryActionTest {
                                                       "Y:\\", "", false, false, false, "", "",
                                                       false, false, cleartool, clearCaseScmDescriptor);
 
-        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
-                                                              scm.generateNormalizedViewName((BuildVariableResolver)variableResolver),
-                                                              scm.getBranchNames(),
-                                                              scm.getViewPaths());
+                                                              scm.getViewPath(variableResolver),
+                                                              scm.generateNormalizedViewName(variableResolver),
+                                                              scm.getBranchNames(variableResolver), scm.getViewPaths());
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "sapiciadapter\\Tools\\gplus_tt\\gplus_tt_config.py", entry.getElements().get(0).getFile());
@@ -625,6 +638,13 @@ public class BaseHistoryActionTest {
     public void testCaseSensitivityInExtendedViewPath() throws Exception {
         classContext.checking(new Expectations() {
                 {
+                    ignoring(build).getBuiltOn(); will(returnValue(node));
+                    ignoring(node).toComputer(); will(returnValue(computer));
+                    ignoring(node).getNodeName(); will(returnValue("test-node"));
+                    ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                    ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                    ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                    
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Issue4430"));
                     allowing(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
@@ -633,6 +653,7 @@ public class BaseHistoryActionTest {
         
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("sa-seso-tempusr4__refact_structure__sot"))); will(returnValue(true));
                     allowing(clearToolLauncher).getLauncher();
                     will(returnValue(launcher));
                     allowing(cleartool).pwv(with(any(String.class)));
@@ -664,15 +685,15 @@ public class BaseHistoryActionTest {
                                                       "", "", false, false, false, "", "",
                                                       false, false, cleartool, clearCaseScmDescriptor);
 
-        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
 
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
-                                                              scm.generateNormalizedViewName((BuildVariableResolver)variableResolver),
-                                                              scm.getBranchNames(),
-                                                              scm.getViewPaths());
+                                                              scm.getViewPath(variableResolver),
+                                                              scm.generateNormalizedViewName(variableResolver),
+                                                              scm.getBranchNames(variableResolver), scm.getViewPaths());
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "ecs3cop\\projects\\apps\\esa\\ecl\\sot\\sot_impl\\src\\main\\java\\com\\ascom\\ecs3\\ecl\\sot\\nodeoperationstate\\OperationStateManagerImpl.java", entry.getElements().get(0).getFile());
@@ -688,6 +709,13 @@ public class BaseHistoryActionTest {
     public void testUnixSlashesInWindowsLoadRules() throws Exception {
         classContext.checking(new Expectations() {
                 {
+                    ignoring(build).getBuiltOn(); will(returnValue(node));
+                    ignoring(node).toComputer(); will(returnValue(computer));
+                    ignoring(node).getNodeName(); will(returnValue("test-node"));
+                    ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                    ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                    ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                    
                     allowing(build).getParent(); will(returnValue(project));
                     allowing(project).getName(); will(returnValue("Issue4781"));
                     allowing(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
@@ -696,6 +724,7 @@ public class BaseHistoryActionTest {
         
         context.checking(new Expectations() {
                 {
+                    allowing(cleartool).doesViewExist(with(equal("someview"))); will(returnValue(true));
                     allowing(clearToolLauncher).getLauncher();
                     will(returnValue(launcher));
                     allowing(cleartool).pwv(with(any(String.class)));
@@ -721,15 +750,15 @@ public class BaseHistoryActionTest {
                                                       false, "", "", false, false, false, "", "",
                                                       false, false, cleartool, clearCaseScmDescriptor);
 
-        VariableResolver variableResolver = new BuildVariableResolver(build, scm.getCurrentComputer());
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
 
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
+                                                              scm.getViewPath(variableResolver),
                                                               scm.generateNormalizedViewName((BuildVariableResolver)variableResolver),
-                                                              scm.getBranchNames(),
-                                                              scm.getViewPaths());
+                                                              scm.getBranchNames(variableResolver), scm.getViewPaths());
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "some_vob\\path\\to\\file.java", entry.getElements().get(0).getFile());

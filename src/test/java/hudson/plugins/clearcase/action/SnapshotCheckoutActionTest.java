@@ -24,14 +24,15 @@
  */
 package hudson.plugins.clearcase.action;
 
-import java.util.List;
-
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ConfigSpec;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
+
+import java.util.List;
 
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -75,8 +76,8 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(false));
-                    one(clearTool).mkview("viewname", null);
-                    one(clearTool).setcs("viewname", "config\r\nspec\r\nload \\foo\r\n");
+                    one(clearTool).mkview("viewpath", "viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\r\nspec\r\nload \\foo\r\n");
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -87,7 +88,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", false), new String[]{"foo"}, false);
+        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", false), new String[]{"foo"}, false, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
     
@@ -96,8 +97,8 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(false));
-                    one(clearTool).mkview("viewname", null);
-                    one(clearTool).setcs("viewname", "config\nspec\nload /foo\n");
+                    one(clearTool).mkview("viewpath", "viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -108,7 +109,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", true), new String[]{"foo"}, false);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", true), new String[]{"foo"}, false, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
 
@@ -118,8 +119,8 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).rmviewtag("viewname");
-                    one(clearTool).mkview("viewname", null);
-                    one(clearTool).setcs("viewname", "config\nspec\nload /foo\n");
+                    one(clearTool).mkview("viewpath", "viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -130,20 +131,20 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", true), new String[]{"foo"}, false);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", true), new String[]{"foo"}, false, "viewpath");
         boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
         Assert.assertTrue("Build should succeed.", checkoutResult);
     }
     
     @Test
     public void testFirstTimeViewPathExists() throws Exception {
-        workspace.child("viewname").mkdirs();
+        workspace.child("viewpath").mkdirs();
         
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(false));
-                    one(clearTool).mkview("viewname", null);
-                    one(clearTool).setcs("viewname", "config\nspec\nload /foo\n");
+                    one(clearTool).mkview("viewpath", "viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -154,12 +155,12 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", true), new String[]{"foo"}, false);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", true), new String[]{"foo"}, false, "viewpath");
         boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
         List<FilePath> directories = workspace.listDirectories();
         boolean foundRenamedDirectory = false;
         for (FilePath directory : directories) {
-            if (directory.getName().contains("viewname.keep.")) {
+            if (directory.getName().contains("viewpath.keep.")) {
                 foundRenamedDirectory = true;
                 break;
             }
@@ -170,14 +171,14 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     
     @Test
     public void testFirstTimeViewPathAndViewTagExist() throws Exception {
-        workspace.child("viewname").mkdirs();
+        workspace.child("viewpath").mkdirs();
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
-                    one(clearTool).lscurrentview("viewname"); will(returnValue("otherviewtag"));
+                    one(clearTool).lscurrentview("viewpath"); will(returnValue("otherviewtag"));
                     one(clearTool).rmviewtag("viewname");
-                    one(clearTool).mkview("viewname", null);
-                    one(clearTool).setcs("viewname", "config\nspec\nload /foo\n");
+                    one(clearTool).mkview("viewpath", "viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -188,12 +189,12 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", true), new String[]{"foo"}, false);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", true), new String[]{"foo"}, false, "viewpath");
         boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
         List<FilePath> directories = workspace.listDirectories();
         boolean foundRenamedDirectory = false;
         for (FilePath directory : directories) {
-            if (directory.getName().contains("viewname.keep.")) {
+            if (directory.getName().contains("viewpath.keep.")) {
                 foundRenamedDirectory = true;
                 break;
             }
@@ -207,8 +208,8 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(false));
-                    one(clearTool).mkview("viewname", null);
-                    one(clearTool).setcs("viewname", "configspec\nload /foo\n");
+                    one(clearTool).mkview("viewpath", "viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -219,20 +220,20 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"foo"}, true);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"foo"}, true, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
     
     @Test
     public void testSecondTimeUsingUpdate() throws Exception {
-        workspace.child("viewname").mkdirs();
+        workspace.child("viewpath").mkdirs();
 
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
-                    one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
+                    one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
-                    one(clearTool).update("viewname", null);
+                    one(clearTool).update("viewpath", null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -243,21 +244,21 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo"}, true);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo"}, true, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
     
     @Test
     public void testSecondTimeNotUsingUpdate() throws Exception {
-        workspace.child("viewname").mkdirs();
+        workspace.child("viewpath").mkdirs();
 
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
-                    one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
-                    one(clearTool).rmview("viewname");
-                    one(clearTool).mkview("viewname", null);
-                    one(clearTool).setcs("viewname", "configspec\nload /foo\n");
+                    one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
+                    one(clearTool).rmview("viewpath");
+                    one(clearTool).mkview("viewpath", "viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -267,21 +268,21 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     allowing(launcher).getListener(); will(returnValue(taskListener));
                 }
             });
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo"}, false);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo"}, false, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
 
     @Test
     public void testSecondTimeNewConfigSpec() throws Exception {
-        workspace.child("viewname").mkdirs();
+        workspace.child("viewpath").mkdirs();
 
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
-                    one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
+                    one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                    one(clearTool).setcs("viewname", "configspec\nload /foo\n");
-                    one(clearTool).update("viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+                    one(clearTool).update("viewpath", null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -292,21 +293,21 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"foo"}, true);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"foo"}, true, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
     
     @Test
     public void testSecondTimeNewLoadRule() throws Exception {
-        workspace.child("viewname").mkdirs();
+        workspace.child("viewpath").mkdirs();
 
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
-                    one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
+                    one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
-                    one(clearTool).update("viewname", new String[] {"/bar"});
-                    one(clearTool).update("viewname", null);
+                    one(clearTool).update("viewpath", new String[] {"/bar"});
+                    one(clearTool).update("viewpath", null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -317,21 +318,21 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo", "/bar"}, true);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"/foo", "/bar"}, true, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
     
     @Test
     public void testSecondTimeRemovedLoadRule() throws Exception {
-        workspace.child("viewname").mkdirs();
+        workspace.child("viewpath").mkdirs();
 
         context.checking(new Expectations() {
                 {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
-                    one(clearTool).lscurrentview("viewname"); will(returnValue("viewname"));
+                    one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\nload /bar\n"));
-                    one(clearTool).setcs("viewname", "configspec\nload /bar\n");
-                    one(clearTool).update("viewname", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
+                    one(clearTool).update("viewpath", null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -342,7 +343,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"bar"}, true);
+        CheckOutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("configspec", true), new String[]{"bar"}, true, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
     

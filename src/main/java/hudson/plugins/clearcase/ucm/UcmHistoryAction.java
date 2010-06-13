@@ -37,6 +37,7 @@ import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_STREAM;
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_VERSION_ACTIVITY;
 import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearTool.DiffBlOptions;
 import hudson.plugins.clearcase.history.AbstractHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryEntry;
@@ -48,6 +49,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +81,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<? extends Entry> buildChangelog(String viewName, List<HistoryEntry> entries) throws IOException, InterruptedException {
+    protected List<? extends Entry> buildChangelog(String viewPath, List<HistoryEntry> entries) throws IOException, InterruptedException {
         List<UcmActivity> result = new ArrayList<UcmActivity>();
         Map<String, UcmActivity> activityMap = new HashMap<String, UcmActivity>();
 
@@ -106,13 +108,13 @@ public class UcmHistoryAction extends AbstractHistoryAction {
         }
 
         for (UcmActivity activity : result) {
-            callLsActivity(activityMap, activity, viewName, 3);
+            callLsActivity(activityMap, activity, viewPath, 3);
         }
 
         return result;
     }
 
-    private void callLsActivity(Map<String, UcmActivity> activityMap, UcmActivity activity, String viewname, int numberOfContributingActivitiesToFollow)
+    private void callLsActivity(Map<String, UcmActivity> activityMap, UcmActivity activity, String viewPath, int numberOfContributingActivitiesToFollow)
             throws IOException, InterruptedException {
         ClearToolFormatHandler handler = new ClearToolFormatHandler(activity.isIntegrationActivity() ? INTEGRATION_ACTIVITY_FORMAT : ACTIVITY_FORMAT);
         if (StringUtils.isBlank(activity.getName())) {
@@ -120,7 +122,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
             return;
         }
 
-        BufferedReader reader = new BufferedReader(cleartool.lsactivity(activity.getName(), handler.getFormat(), viewname));
+        BufferedReader reader = new BufferedReader(cleartool.lsactivity(activity.getName(), handler.getFormat(), viewPath));
 
         String line = reader.readLine();
         Matcher matcher = handler.checkLine(line);
@@ -141,7 +143,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
                     if (cachedActivity == null) {
                         subActivity = new UcmActivity();
                         subActivity.setName(contributing);
-                        callLsActivity(activityMap, subActivity, viewname, --numberOfContributingActivitiesToFollow);
+                        callLsActivity(activityMap, subActivity, viewPath, --numberOfContributingActivitiesToFollow);
                         activityMap.put(contributing, subActivity);
                     } else {
                         /* do deep copy */
@@ -155,8 +157,8 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-        List<HistoryEntry> historyFromCurrentBranch = super.runLsHistory(sinceTime, viewName, branchNames, viewPaths);
+    protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        List<HistoryEntry> historyFromCurrentBranch = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
         if (oldBaseline != null) {
             List<HistoryEntry> history = new ArrayList<HistoryEntry>();
             Map<String, String> oldBaselines = oldBaseline.getBaselines();
@@ -166,10 +168,13 @@ public class UcmHistoryAction extends AbstractHistoryAction {
                 for(Map.Entry<String, String> entry : oldBaselines.entrySet()) {
                     String bl1 = entry.getValue();
                     String bl2 = newBaselines.get(entry.getKey());
-                    BufferedReader br = new BufferedReader(cleartool.diffblVersions("baseline:" + bl1, "baseline:" + bl2, viewName));
-                    for(String line = br.readLine(); line != null; line = br.readLine()) {
-                        System.out.println(line);
-                        versions.add(line.substring(3));
+                    BufferedReader br = new BufferedReader(cleartool.diffbl(EnumSet.of(DiffBlOptions.VERSIONS), "baseline:" + bl1, "baseline:" + bl2, viewPath));
+                    try {
+                        for(String line = br.readLine(); line != null; line = br.readLine()) {
+                            versions.add(line.substring(3));
+                        }
+                    } finally {
+                        br.close();
                     }
                 }
                 for (String version: versions) {

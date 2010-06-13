@@ -89,21 +89,21 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private boolean useTimeRule;
 
     @DataBoundConstructor
-    public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
+    public ClearCaseSCM(String branch, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
-            String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir) {
-        super(viewname, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
-                viewdrive, loadRules, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false);
+            String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath) {
+        super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
+                viewdrive, loadRules, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false, viewPath);
         this.branch = branch;
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
     }
 
-    public ClearCaseSCM(String branch, String configspec, String viewname, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
+    public ClearCaseSCM(String branch, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
-        this(branch, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-                doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "");
+        this(branch, configspec, viewTag, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+                doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "", viewTag);
     }
 
     public String getBranch() {
@@ -152,7 +152,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
                     getNormalizedWinDynStorageDir(variableResolver), getNormalizedUnixDynStorageDir(variableResolver), build);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(),isUseUpdate()); 
+            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(),isUseUpdate(), getViewPath(variableResolver)); 
         }
         return action;
     }
@@ -163,7 +163,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(launcher), getDescriptor().getLogMergeTimeWindow());
 
         try {
-            String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
+            String viewName = generateNormalizedViewName(variableResolver);
+            String pwv = ct.pwv(viewName);
             if (pwv != null) {
                 if (pwv.contains("/")) {
                     pwv += "/";
@@ -219,6 +220,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         private String cleartoolExe;
         private int changeLogMergeTimeWindow = 5;
         private String defaultViewName;
+        private String defaultViewPath;
         private String defaultWinDynStorageDir;
         private String defaultUnixDynStorageDir;
 
@@ -236,7 +238,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         }
 
         public String getDefaultViewName() {
-            return StringUtils.defaultString(defaultViewName);
+            return StringUtils.defaultString(defaultViewName, "${USER_NAME}_${NODE_NAME}_${JOB_NAME}_hudson");
+        }
+        
+        public String getDefaultViewPath() {
+            return StringUtils.defaultString(defaultViewPath, "view");
         }
 
         public String getDefaultWinDynStorageDir() {
@@ -264,6 +270,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         public boolean configure(StaplerRequest req, JSONObject json) {
             cleartoolExe = fixEmpty(req.getParameter("clearcase.cleartoolExe").trim());
             defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName").trim());
+            defaultViewPath = fixEmpty(req.getParameter("clearcase.defaultViewPath").trim());
             defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir").trim());
             defaultUnixDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultUnixDynStorageDir").trim());
 
@@ -300,7 +307,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.useTimeRule") != null,
                                                         req.getParameter("cc.createDynView") != null,
                                                         req.getParameter("cc.winDynStorageDir"),
-                                                        req.getParameter("cc.unixDynStorageDir")
+                                                        req.getParameter("cc.unixDynStorageDir"),
+                                                        req.getParameter("cc.viewpath")
                                                         );
             return scm;
         }
