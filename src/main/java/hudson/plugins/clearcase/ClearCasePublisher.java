@@ -2,10 +2,10 @@ package hudson.plugins.clearcase;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.model.Descriptor;
+import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 
 import java.io.IOException;
@@ -17,11 +17,9 @@ import org.kohsuke.stapler.StaplerRequest;
 /**
  * Display ClearCase information report for build
  * 
- * @deprecated As documented in Publisher class, this class should extend Reporter or Notifier instead
  * @author Rinat Ailon
  */
-@Deprecated
-public class ClearCasePublisher extends Publisher implements Serializable {
+public class ClearCasePublisher extends Notifier implements Serializable {
     @DataBoundConstructor
     public ClearCasePublisher() {
 
@@ -44,7 +42,7 @@ public class ClearCasePublisher extends Publisher implements Serializable {
         return true;
     }
 
-    public Descriptor<Publisher> getDescriptor() {
+    public BuildStepDescriptor getDescriptor() {
         return DescriptorImpl.DESCRIPTOR;
     }
 
@@ -53,13 +51,11 @@ public class ClearCasePublisher extends Publisher implements Serializable {
      * 
      * @author rgoren
      */
-    public static final class DescriptorImpl extends Descriptor<Publisher> {
+    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
         /*
          * This initializes the global configuration when loaded
          */
-
-        private ClearCaseSCM.ClearCaseScmDescriptor scmDescriptor;
 
         public DescriptorImpl() {
             super(ClearCasePublisher.class);
@@ -67,13 +63,10 @@ public class ClearCasePublisher extends Publisher implements Serializable {
             // dir>/hudson.plugins.logparser.LogParserPublisher.xml
             load();
         }
-
-        public DescriptorImpl(ClearCaseSCM.ClearCaseScmDescriptor scmDescriptor) {
-            super(ClearCasePublisher.class);
-            // This makes sure any existing global configuration is read from the persistence file <Hudson work
-            // dir>/hudson.plugins.logparser.LogParserPublisher.xml
-            load();
-            this.scmDescriptor = scmDescriptor;
+        
+        @Override
+        public boolean isApplicable(Class jobType) {
+            return true;
         }
 
         public String getDisplayName() {
@@ -82,10 +75,6 @@ public class ClearCasePublisher extends Publisher implements Serializable {
 
         public String getHelpFile() {
             return "/plugin/clearcase/publisher.html";
-        }
-
-        public boolean isApplicable(Class<? extends AbstractProject<?, ?>> jobType) {
-            return true;
         }
 
         /*
