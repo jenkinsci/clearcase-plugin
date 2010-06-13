@@ -107,7 +107,7 @@ public class ChangeLogEntryMerger {
         return false;
     }
 
-    private class MergedLogEntry {
+    private static class MergedLogEntry {
         private ClearCaseChangeLogEntry entry;
         private Date oldest;
         private Date newest;
