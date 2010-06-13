@@ -30,6 +30,14 @@
       <timezone>+1</timezone>
     </developer>
   </developers>
+  <repositories>
+    <!-- Required for jdave -->
+    <repository>
+      <id>laughing-panda</id>
+      <name>Laughing Panda</name>
+      <url>http://www.laughingpanda.org/maven2/</url>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>
@@ -44,6 +52,12 @@
       <version>2.2.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jdave</groupId>
+      <artifactId>jdave-unfinalizer</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <scm>
     <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/trunk/hudson/plugins/clearcase</connection>
@@ -55,7 +69,7 @@
       <plugin>
         <groupId>org.jvnet.hudson.tools</groupId>
         <artifactId>maven-hpi-plugin</artifactId>
-        <version>1.52</version>
+        <version>1.53</version>
         <extensions>true</extensions>
         <configuration>
           <compatibleSinceVersion>1.0</compatibleSinceVersion>
@@ -63,10 +77,36 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <showDeprecation>true</showDeprecation>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution> 
+            <id>copy-unfinalizer</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.jdave</groupId>
+                  <artifactId>jdave-unfinalizer</artifactId>
+                  <version>1.1</version>
+                </artifactItem> 
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-javaagent:${project.build.directory}/dependency/jdave-unfinalizer-1.1.jar</argLine>
         </configuration>
       </plugin>
     </plugins>
