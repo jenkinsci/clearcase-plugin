@@ -28,6 +28,7 @@ import hudson.EnvVars;
 import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
@@ -59,46 +60,67 @@ public class BuildVariableResolver implements VariableResolver<String> {
     private static final Logger LOGGER = Logger.getLogger(BuildVariableResolver.class.getName());
 
     private AbstractBuild<?, ?> build;
-    private Computer computer;
+    
+    private transient String nodeName;
+    
+    private transient Computer computer;
+    
+    private transient Map<Object, Object> systemProperties;
+    
+    private boolean restricted;
 
-    public BuildVariableResolver(final AbstractBuild<?, ?> build, final Computer computer) {
+    public BuildVariableResolver(final AbstractBuild<?, ?> build) {
         this.build = build;
-        this.computer = computer;
+        Node node = build.getBuiltOn();
+        this.nodeName = node.getNodeName();
+        this.computer = node.toComputer();
     }
-
+    
+    public BuildVariableResolver(final AbstractBuild<?, ?> build, boolean restricted) {
+        this(build);
+        this.restricted = restricted;
+    }
+    
     @Override
     public String resolve(String key) {
         try {
+            if (systemProperties == null) {
+                systemProperties = computer.getSystemProperties();
+            }
             LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
+            if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
+                return build.getProject().getName();
+            }
+            
             if ("HOST".equals(key)) {
                 return (Util.fixEmpty(computer.getHostName()));
             }
 
             if ("OS".equals(key)) {
-                return System.getProperty("os.name");
+                return (String) systemProperties.get("os.name");
             }
 
             if ("NODE_NAME".equals(key)) {
-                return (Util.fixEmpty(StringUtils.isEmpty(computer.getName()) ? "master" : computer.getName()));
+                return (Util.fixEmpty(StringUtils.isEmpty(nodeName) ? "master" : nodeName));
             }
 
             if ("USER_NAME".equals(key)) {
-                return (String) computer.getSystemProperties().get("user.name");
+                return (String) systemProperties.get("user.name");
             }
 
             Map<String, String> buildVariables = build.getBuildVariables();
             if (buildVariables.containsKey(key)) {
                 return buildVariables.get(key);
             }
-
-            EnvVars env = build.getEnvironment(ltl);
-            if (env.containsKey(key)) {
-                return env.get(key);
+            if (!restricted) {
+                EnvVars env = build.getEnvironment(ltl);
+                if (env.containsKey(key)) {
+                    return env.get(key);
+                }
             }
-
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Variable name '" + key + "' look up failed", e);
         }
-        return null;
+        return null; 
     }
 }
