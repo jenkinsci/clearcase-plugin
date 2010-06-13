@@ -1,8 +1,8 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ * Copyright (c) 2007-2010, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@ import java.util.regex.Matcher;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author hlyh
@@ -59,7 +60,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         this.isDynamicView = isDynamicView;
     }
 
-    protected abstract List<? extends Entry> buildChangelog(String viewName, List<HistoryEntry> entries) throws IOException, InterruptedException;
+    protected abstract List<? extends Entry> buildChangelog(String viewPath, List<HistoryEntry> entries) throws IOException, InterruptedException;
 
     protected List<HistoryEntry> filterEntries(List<HistoryEntry> entries) throws IOException, InterruptedException {
         if (filter == null) {
@@ -75,11 +76,11 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     }
 
     @Override
-    public List<? extends Entry> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-        List<HistoryEntry> entries = runLsHistory(time, viewName, branchNames, viewPaths);
+    public List<? extends Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        List<HistoryEntry> entries = runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
         List<HistoryEntry> filtered = filterEntries(entries);
 
-        List<? extends Entry> changelog = buildChangelog(viewName, filtered);
+        List<? extends Entry> changelog = buildChangelog(viewPath, filtered);
         return changelog;
     }
 
@@ -90,8 +91,8 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     protected abstract ClearToolFormatHandler getHistoryFormatHandler();
 
     @Override
-    public boolean hasChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-        List<HistoryEntry> entries = runLsHistory(time, viewName, branchNames, viewPaths);
+    public boolean hasChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        List<HistoryEntry> entries = runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
         List<HistoryEntry> filtered = filterEntries(entries);
         return filtered.size() > 0;
     }
@@ -124,19 +125,22 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         }
     }
 
-    protected List<HistoryEntry> runLsHistory(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    protected List<HistoryEntry> runLsHistory(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        Validate.notNull(viewPath);
+        List<HistoryEntry> history = new ArrayList<HistoryEntry>();
+        if (!cleartool.doesViewExist(viewTag)) {
+            return history;
+        }
         if (isDynamicView) {
-            cleartool.startView(viewName);
-            cleartool.mountVobs();
+                cleartool.startView(viewTag);
         }
 
-        List<HistoryEntry> history = new ArrayList<HistoryEntry>();
         if (ArrayUtils.isEmpty(viewPaths)) {
             return history;
         }
         try {
             for (String branchName : branchNames) {
-                BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewName, branchName, viewPaths));
+                BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewPath, branchName, viewPaths));
                 parseLsHistory(reader, history);
                 reader.close();
             }

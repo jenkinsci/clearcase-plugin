@@ -26,10 +26,8 @@ package hudson.plugins.clearcase;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
-import hudson.util.VariableResolver;
-import hudson.plugins.clearcase.ucm.UcmHistoryAction;
-
 import hudson.plugins.clearcase.history.HistoryAction;
+import hudson.util.VariableResolver;
 
 public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
 
@@ -48,7 +46,7 @@ public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
         this(stream, loadrules, viewname, usedynamicview,
              viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate,
              rmviewonrename, excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView,
-             cleartool, clearCaseUcmScmDescriptor, null);
+             cleartool, clearCaseUcmScmDescriptor, null, viewname);
     }
     
     public ClearCaseUcmSCMDummy(String stream, String loadrules, String viewname,
@@ -59,17 +57,17 @@ public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
                                 String overrideBranchName, boolean createDynView,
                                 ClearTool cleartool,
                                 ClearCaseUcmScmDescriptor clearCaseUcmScmDescriptor,
-                                Computer overrideComputer) {
+                                Computer overrideComputer, String viewPath) {
         super(stream, loadrules, viewname, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate,
-              rmviewonrename, excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView, overrideBranchName, overrideBranchName, true, true, false);
+              rmviewonrename, excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView, overrideBranchName, overrideBranchName, true, true, false, viewPath);
         this.cleartool = cleartool;
         this.clearCaseUcmScmDescriptor = clearCaseUcmScmDescriptor;
         this.overrideComputer = overrideComputer;
     }
     
     @Override
-    protected ClearTool createClearTool(VariableResolver variableResolver,
+    public ClearTool createClearTool(VariableResolver variableResolver,
                                         ClearToolLauncher launcher) {
         return cleartool;
     }

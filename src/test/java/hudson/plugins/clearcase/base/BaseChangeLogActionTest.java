@@ -24,28 +24,27 @@
  */
 package hudson.plugins.clearcase.base;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
+import static org.junit.Assert.assertEquals;
 import hudson.plugins.clearcase.AbstractClearCaseScm;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
-import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FileFilter;
-import hudson.plugins.clearcase.util.EventRecordFilter;
+import hudson.plugins.clearcase.history.Filter;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import org.codehaus.plexus.util.StringUtils;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,7 +55,7 @@ public class BaseChangeLogActionTest {
     
     @Before
     public void setUp() throws Exception {
-        context = new Mockery();
+        context = new JUnit4Mockery();
         cleartool = context.mock(ClearTool.class);
     }
 
@@ -73,7 +72,6 @@ public class BaseChangeLogActionTest {
         
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 0,null);
         action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -94,7 +92,6 @@ public class BaseChangeLogActionTest {
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,filters);
         List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("The event record should be ignored", 0, changes.size());        
-        context.assertIsSatisfied();        
     }
 
     @Test
@@ -114,7 +111,6 @@ public class BaseChangeLogActionTest {
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,filters);
         List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("The event record should be ignored", 0, changes.size());        
-        context.assertIsSatisfied();        
     }
 
     @Test
@@ -133,7 +129,6 @@ public class BaseChangeLogActionTest {
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,null);
         List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});
         assertEquals("Two entries should be merged into one", 1, changes.size());        
-        context.assertIsSatisfied();        
     }
 
     @Test(expected=IOException.class)
@@ -149,7 +144,6 @@ public class BaseChangeLogActionTest {
         
         BaseChangeLogAction action = new BaseChangeLogAction(cleartool, 10000,null);
         action.getChanges(new Date(), "IGNORED", new String[]{"Release_2_1_int"}, new String[]{"vobs/projects/Server"});        
-        context.assertIsSatisfied();
         reader.ready();
     }
 
@@ -172,7 +166,6 @@ public class BaseChangeLogActionTest {
         assertEquals("First entry is incorrect", "inttest1", changes.get(0).getUser());
         assertEquals("First entry is incorrect", "inttest2", changes.get(1).getUser());
         assertEquals("First entry is incorrect", "inttest3", changes.get(2).getUser());
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -197,7 +190,6 @@ public class BaseChangeLogActionTest {
         assertEquals("Number of history entries are incorrect", 2, changes.size());
         assertEquals("First entry is incorrect", "inttest2", changes.get(0).getUser());
         assertEquals("First entry is incorrect", "inttest3", changes.get(1).getUser());
-        context.assertIsSatisfied();
     }
 
     @Test
@@ -220,12 +212,10 @@ public class BaseChangeLogActionTest {
         
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DestroySubBranchFilter());
-        String tempFilterRules = "";
         String[] loadRules = new String[]{"vobs/com", "vobs/inf", "vobs/sm", "vobs/acc", "vobs/test"};
         
         String regexpStr = AbstractClearCaseScm.getViewPathsRegexp(loadRules, true);
-
-        if (!regexpStr.equals("")) {
+        if (StringUtils.isNotEmpty(regexpStr)) {
             filters.add(new FileFilter(FileFilter.Type.ContainsRegxp, regexpStr));
         }
 
@@ -235,7 +225,6 @@ public class BaseChangeLogActionTest {
         assertEquals("Number of history entries are incorrect", 3, changes.size());
         assertEquals("First entry is incorrect", "picker", changes.get(0).getUser());
         assertEquals("Third entry is incorrect", "callow", changes.get(2).getUser());
-        context.assertIsSatisfied();
     }
 
     /**
@@ -258,7 +247,6 @@ public class BaseChangeLogActionTest {
         
         List<Filter> filters = new ArrayList<Filter>();
         filters.add(new DestroySubBranchFilter());
-        String tempFilterRules = "";
         String[] loadRules = new String[]{"vobs/inf"};
         
         String regexpStr = AbstractClearCaseScm.getViewPathsRegexp(loadRules, true);
@@ -272,7 +260,6 @@ public class BaseChangeLogActionTest {
         List<ClearCaseChangeLogEntry> changes = action.getChanges(new Date(), "IGNORED", new String[]{"dev"}, loadRules);
         assertEquals("Number of history entries are incorrect", 3, changes.size());
         assertEquals("First entry is incorrect", "picker", changes.get(0).getUser());
-        context.assertIsSatisfied();
     }
 
     @Test

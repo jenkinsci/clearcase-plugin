@@ -1,8 +1,8 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ * Copyright (c) 2007-2010, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package hudson.plugins.clearcase;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import hudson.EnvVars;
 import hudson.FilePath;
@@ -43,7 +42,6 @@ import hudson.model.TaskListener;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.HistoryAction;
-import hudson.plugins.clearcase.util.EventRecordFilter;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
@@ -77,17 +75,13 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     private AbstractProject project;
     private Build build;
     private Computer computer;
-    private EnvVars envVars;
-
-    private EventRecordFilter filter;
+    private Node node;
 
     private CheckOutAction checkOutAction;
     private HistoryAction historyAction;
-    private Node node;
 
     private String[] branchArray = new String[] {"branch"};
     public SaveChangeLogAction saveChangeLogAction;
-    private VariableResolver resolver;
     private AbstractClearCaseSCMRevisionState scmRevisionState;
 
     @Before
@@ -108,11 +102,9 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         build = classContext.mock(Build.class);
         scmRevisionState = classContext.mock(AbstractClearCaseSCMRevisionState.class);
         computer = classContext.mock(Computer.class);
-        envVars = classContext.mock(EnvVars.class);
         node = classContext.mock(Node.class);
-        Map systemProperties = new HashMap();
+        Map<String, String> systemProperties = new HashMap<String, String>();
         systemProperties.put("user.name", "henrik");
-        resolver = context.mock(VariableResolver.class);
     }
 
     @After
@@ -144,51 +136,50 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         assertEquals("The view name isnt correct", "viewname", scm.getViewName());
     }
 
-    @Test
+    @Test(expected=IllegalArgumentException.class)
     public void testGetViewNameNonNull() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy(null, "vob", "");
-        assertNotNull("The view name can not be null", scm.getViewName());
+        new AbstractClearCaseScmDummy(null, "vob", "");
     }
 
     @Test
     public void testGetLoadRules() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules", null, false);
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules", null, false, "viewpath");
         assertEquals("The load rules arent correct", "loadrules", scm.getLoadRules());
     }
 
     @Test
     public void testGetLoadRulesWithSpaces() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load rules", null, false);
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load rules", null, false, "viewpath");
         assertEquals("The load rules arent correct", "load rules", scm.getLoadRules());
     }
 
     @Test
     public void testGetViewPaths() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules", null, false);
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "loadrules", null, false, "viewpath");
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
     }
 
     @Test
     public void testGetViewPathsWithSpaces() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "test rules", null, false);
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "test rules", null, false, "viewpath");
         assertEquals("The view paths aren't correct", "test rules", scm.getViewPaths()[0]);
     }
 
     @Test
     public void testGetViewPathsNoLoad() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load loadrules", null, false);
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load loadrules", null, false, "viewpath");
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
     }
 
     @Test
     public void testGetViewPathsLeadingSlash() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "/loadrules", null, false);
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "/loadrules", null, false, "viewpath");
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
     }
 
     @Test
     public void testGetViewPathsLeadingSlashAndLoad() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load /loadrules", null, false);
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "viewparams", false, false, false, "", false, "", "load /loadrules", null, false, "viewpath");
         assertEquals("The view paths aren't correct", "loadrules", scm.getViewPaths()[0]);
     }
 
@@ -200,15 +191,20 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
     @Test
     public void assertViewNameMacrosAreWorking() throws IOException, InterruptedException {
+        context.checking(new Expectations() {
+            {
+            }
+        });
         classContext.checking(new Expectations() {
             {
-                allowing(build).getBuildVariables();
-                will(returnValue(new HashMap<String, String>()));
-                allowing(build).getEnvironment(with(any(LogTaskListener.class)));
-                will(returnValue(new EnvVars("JOB_NAME", "Hudson")));
-                allowing(computer).getName(); will(returnValue("test-node"));
-                allowing(computer).getSystemProperties();
-                will(returnValue(System.getProperties()));
+                one(build).getBuiltOn(); will(returnValue(node));
+                allowing(build).getProject(); will(returnValue(project));
+                allowing(project).getName(); will(returnValue("Hudson"));
+                one(node).toComputer(); will(returnValue(computer));
+                one(node).getNodeName(); will(returnValue("test-node"));
+                one(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                one(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                one(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson")));
             }
         });
         String username = System.getProperty("user.name");
@@ -221,12 +217,14 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testViewNameMacrosUsingBuildEnv() throws IOException, InterruptedException {
         classContext.checking(new Expectations() {
             {
-                allowing(build).getBuildVariables();
-                will(returnValue(new HashMap<String, String>()));
-                allowing(build).getEnvironment(with(any(LogTaskListener.class)));
-                will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
-                allowing(computer).getSystemProperties();
-                will(returnValue(System.getProperties()));
+                one(build).getBuiltOn(); will(returnValue(node));
+                allowing(build).getProject(); will(returnValue(project));
+                allowing(project).getName(); will(returnValue("Hudson"));
+                one(node).toComputer(); will(returnValue(computer));
+                one(node).getNodeName(); will(returnValue("test-node"));
+                allowing(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                one(computer).getSystemProperties(); will(returnValue(System.getProperties()));
             }
         });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("${JOB_NAME}-${TEST_VARIABLE}-view", "vob", "", true);
@@ -234,11 +232,15 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void assertNormalizedViewNameDoesNotContainInvalidChars() {
+    public void assertNormalizedViewNameDoesNotContainInvalidChars() throws IOException, InterruptedException {
         classContext.checking(new Expectations() {
             {
-                allowing(build).getParent();
-                will(returnValue(project));
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
             }
         });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view  with\\-/-:-?-*-|-,", "vob", "", true);
@@ -252,11 +254,15 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testBuildEnvVars() {
+    public void testBuildEnvVars() throws IOException, InterruptedException {
         classContext.checking(new Expectations() {
             {
-                ignoring(build).getParent();
-                will(returnValue(project));
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
             }
         });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
@@ -270,21 +276,15 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testBuildEnvVarsNoViewName() {
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy(null, "vob", "");
-        Map<String, String> env = new HashMap<String, String>();
-        env.put("WORKSPACE", "/hudson/jobs/job/workspace");
-        scm.buildEnvVars(build, env);
-        assertFalse("The env var VIEWNAME was set", env.containsKey(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
-        assertFalse("The env var VIEWPATH was set", env.containsKey(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
-    }
-
-    @Test
-    public void testBuildEnvVarsNoWorkspaceVar() {
+    public void testBuildEnvVarsNoWorkspaceVar() throws IOException, InterruptedException {
         classContext.checking(new Expectations() {
             {
-                ignoring(build).getParent();
-                will(returnValue(project));
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
             }
         });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
@@ -299,19 +299,22 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void assertBuildEnvVarsUsesNormalizedViewName() throws IOException, InterruptedException {
         classContext.checking(new Expectations() {
             {
-                allowing(build).getBuildVariables(); will(returnValue(new HashMap()));
-                allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "CCHudson")));
-                allowing(computer).getName(); will(returnValue("test-node"));
-                allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                allowing(build).getProject(); will(returnValue(project));
+                allowing(project).getName(); will(returnValue("CCHudson"));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                allowing(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
             }
         });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname-${JOB_NAME}-${NODE_NAME}", "vob", "");
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
-        scm.generateNormalizedViewName(build);
+        env.put("NODE_NAME", "test-node");
         scm.buildEnvVars(build, env);
-        assertEquals("The env var VIEWNAME wasnt set", "viewname-CCHudson-test-node", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
-        assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace" + File.separator + "viewname-CCHudson-test-node", env
+        assertEquals("The env var VIEWNAME wasn't set", "viewname-CCHudson-test-node", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
+        assertEquals("The env var VIEWPATH wasn't set", "/hudson/jobs/job/workspace" + File.separator + "viewname-CCHudson-test-node", env
                 .get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
@@ -325,8 +328,13 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                 one(build).getPreviousBuild(); will(returnValue(null));
-                ignoring(build).getParent(); will(returnValue(project));
                 ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
             }
         });
@@ -344,7 +352,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void assertCheckoutWithChanges() throws Exception {
         workspace.child("viewname").mkdirs();
         final File changelogFile = new File(parentFile, "changelog.xml");
-        final File extendedChangelogFile = new File(parentFile, "extended-changelog.xml");
         
         final ArrayList<ClearCaseChangeLogEntry> list = new ArrayList<ClearCaseChangeLogEntry>();
         list.add(new ClearCaseChangeLogEntry(new Date(12), "user", "comment"));
@@ -358,8 +365,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 one(checkOutAction).checkout(launcher, workspace, "viewname"); will(returnValue(true));
 
                 // normal changelog
-                one(historyAction).getChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] { "branch" })),
-                        with(equal(new String[] { "vob" })));
+                one(historyAction).getChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal("viewname")),
+                        with(equal(new String[] { "branch" })), with(equal(new String[] { "vob" })));
                 will(returnValue(list));
                 one(saveChangeLogAction).saveChangeLog(changelogFile, list);
 
@@ -367,11 +374,18 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                 // normal changelog
                 exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
                 ignoring(build).getParent(); will(returnValue(project));
                 ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
+                allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars()));
             }
         });
 
@@ -382,9 +396,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
     @Test
     public void assertCheckoutWithChangesWithBuffer() throws Exception {
-        workspace.child("viewname").mkdirs();
+        workspace.child("viewpath").mkdirs();
         final File changelogFile = new File(parentFile, "changelog.xml");
-        final File extendedChangelogFile = new File(parentFile, "extended-changelog.xml");
         
         final ArrayList<ClearCaseChangeLogEntry> list = new ArrayList<ClearCaseChangeLogEntry>();
         list.add(new ClearCaseChangeLogEntry(new Date(12), "user", "comment"));
@@ -396,12 +409,11 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
-                one(checkOutAction).checkout(launcher, workspace, "viewname");
-                will(returnValue(true));
+                one(checkOutAction).checkout(launcher, workspace, "viewname"); will(returnValue(true));
 
                 // normal changelog
-                one(historyAction).getChanges(with(equal(bufferedDate)), with(equal("viewname")), with(equal(new String[] { "branch" })),
-                        with(equal(new String[] { "vob" })));
+                one(historyAction).getChanges(with(equal(bufferedDate)), with(equal("viewpath")), with(equal("viewname")),
+                        with(equal(new String[] { "branch" })), with(equal(new String[] { "vob" })));
                 will(returnValue(list));
                 one(saveChangeLogAction).saveChangeLog(changelogFile, list);
 
@@ -409,15 +421,22 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                 // normal changelog
                 exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
                 allowing(build).getTimestamp(); will(returnValue(mockedCalendar));
                 ignoring(build).getParent(); will(returnValue(project));
                 ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
+                allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars()));
             }
         });
 
-        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", false, false, false, "", false, "", "vob", "5", false);
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", false, false, false, "", false, "", "vob", "5", false, "viewpath");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
     }
@@ -430,17 +449,22 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(checkOutAction).checkout(launcher, workspace, "viewname-CCHudson-test-node"); will(returnValue(true));
-                ignoring(historyAction).getChanges(with(any(Date.class)), with(equal("viewname-CCHudson-test-node")), with(any(String[].class)), with(any(String[].class)));
+                ignoring(historyAction).getChanges(with(any(Date.class)), with(equal("viewname-CCHudson-test-node")), with(equal("viewname-CCHudson-test-node")), with(any(String[].class)), with(any(String[].class)));
                 will(returnValue(new ArrayList<ClearCaseChangeLogEntry>()));
 
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                allowing(build).getProject(); will(returnValue(project));
+                allowing(project).getName(); will(returnValue("CCHudson"));
                 allowing(build).getBuildVariables(); will(returnValue(new HashMap()));
-                allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "CCHudson")));
-                allowing(computer).getName(); will(returnValue("test-node"));
+                allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "CCHudson", "NODE_NAME", "test-node")));
                 allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                allowing(computer).getName(); will(returnValue("test-node"));
                 // normal changelog
                 ignoring(build).getPreviousBuild(); will(returnValue(build));
                 ignoring(build).getTimestamp(); will(returnValue(Calendar.getInstance()));
@@ -463,17 +487,25 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(checkOutAction).checkout(launcher, workspace, "viewname"); will(returnValue(true));
-                one(historyAction).getChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] { "branch" })),
-                        with(equal(new String[] { "vob" })));
+                one(historyAction).getChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal("viewname")),
+                        with(equal(new String[] { "branch" })), with(equal(new String[] { "vob" })));
                 will(returnValue(null));
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
                 exactly(2).of(build).getPreviousBuild(); will(returnValue(build));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
                 ignoring(build).getParent(); will(returnValue(project));
                 ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
+                ignoring(build).getEnvironment(with(any(TaskListener.class))); will(returnValue(new EnvVars()));
             }
         });
 
@@ -497,16 +529,24 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
             {
                 one(checkOutAction).checkout(launcher, workspace, "viewname"); will(returnValue(true));
                 one(historyAction).getChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")),
-                        with(equal(new String[] { "branchone", "branchtwo" })), with(equal(new String[] { "vob" })));
+                        with(equal("viewname")), with(equal(new String[] { "branchone", "branchtwo" })), with(equal(new String[] { "vob" })));
                 will(returnValue(null));
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
                 ignoring(build).getPreviousBuild(); will(returnValue(build));
                 ignoring(build).getTimestamp(); will(returnValue(mockedCalendar));
                 ignoring(build).getParent(); will(returnValue(project));
                 ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
+                ignoring(build).getEnvironment(with(any(TaskListener.class))); will(returnValue(new EnvVars()));
             }
         });
 
@@ -527,8 +567,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
 
-                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] { "branch" })),
-                        with(equal(new String[] { "vob" })));
+                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal("viewname")),
+                        with(equal(new String[] { "branch" })), with(equal(new String[] { "vob" })));
                 will(returnValue(true));
             }
         });
@@ -555,8 +595,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
 
-                one(historyAction).hasChanges(with(equal(bufferedDate)), with(equal("viewname")), with(equal(new String[] { "branch" })),
-                        with(equal(new String[] { "vob" })));
+                one(historyAction).hasChanges(with(equal(bufferedDate)), with(equal("viewpath")), with(equal("viewname")),
+                        with(equal(new String[] { "branch" })), with(equal(new String[] { "vob" })));
                 will(returnValue(true));
             }
         });
@@ -567,7 +607,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 one(project).getLastBuild(); will(returnValue(build));
             }
         });
-        AbstractClearCaseScmDummy scm = new AbstractClearCaseScmDummy("viewname", "", false, false, false, "", false, "", "vob", "5", false);
+        AbstractClearCaseScmDummy scm = new AbstractClearCaseScmDummy("viewname", "", false, false, false, "", false, "", "vob", "5", false, "viewpath");
         scm.setFirstBuild(true);
         PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, null);
         assertEquals("The first time should always have a significant change", PollingResult.BUILD_NOW, pr);
@@ -579,24 +619,28 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
 
-                one(historyAction).hasChanges(with(any(Date.class)), with(equal("view-CCHudson-test-node")), with(any(String[].class)),
-                        with(any(String[].class)));
+                one(historyAction).hasChanges(with(any(Date.class)), with(equal("view-CCHudson-test-node")), with(equal("view-CCHudson-test-node")),
+                        with(any(String[].class)), with(any(String[].class)));
                 will(returnValue(true));
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                allowing(build).getProject(); will(returnValue(project));
+                allowing(project).getName(); will(returnValue("CCHudson"));
                 ignoring(project).getLastBuild(); will(returnValue(build));
                 ignoring(build).getTimestamp(); will(returnValue(Calendar.getInstance()));
                 allowing(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
                 allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "CCHudson")));
                 allowing(scmRevisionState).getBuildTime(); will(returnValue(new Date()));
-                allowing(computer).getName(); will(returnValue("test-node"));
                 allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
             }
         });
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view-${JOB_NAME}-${NODE_NAME}", "vob", "");
-        PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
+        scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
     }
 
     @Test
@@ -621,13 +665,20 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
 
-                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] { "branch" })),
-                        with(equal(new String[] { "vob" })));
+                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal("viewname")),
+                        with(equal(new String[] { "branch" })), with(equal(new String[] { "vob" })));
                 will(returnValue(false));
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
                 ignoring(build).getParent(); will(returnValue(project));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
                 one(project).getLastBuild(); will(returnValue(build));
@@ -651,12 +702,19 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")),
-                        with(equal(new String[] { "branchone", "branchtwo" })), with(equal(new String[] { "vob" })));
+                        with(equal("viewname")), with(equal(new String[] { "branchone", "branchtwo" })), with(equal(new String[] { "vob" })));
                 will(returnValue(true));
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
                 ignoring(build).getParent(); will(returnValue(project));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
                 one(project).getLastBuild(); will(returnValue(build));
@@ -674,13 +732,20 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         context.checking(new Expectations() {
             {
                 ignoring(build).getParent(); will(returnValue(project));
-                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] { "branch" })),
-                        with(equal(new String[] { "vob1", "vob2/vob2-1", "vob\\ 3" })));
+                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal("viewname")),
+                        with(equal(new String[] { "branch" })), with(equal(new String[] { "vob1", "vob2/vob2-1", "vob\\ 3" })));
                 will(returnValue(true));
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
                 ignoring(build).getParent(); will(returnValue(project));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
                 one(project).getLastBuild(); will(returnValue(build));
@@ -689,7 +754,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob1\nvob2/vob2-1\nvob\\ 3", "");
-        PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
+        scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
     }
 
     @Test
@@ -698,13 +763,20 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         final Calendar mockedCalendar = Calendar.getInstance();
         context.checking(new Expectations() {
             {
-                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] { "" })),
-                        with(aNull(String[].class)));
+                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal("viewname")),
+                        with(equal(new String[] { "" })), with(aNull(String[].class)));
                 will(returnValue(false));
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
                 ignoring(build).getParent(); will(returnValue(project));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
                 one(project).getLastBuild(); will(returnValue(build));
@@ -714,7 +786,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", "");
-        PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
+        scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
     }
 
     @Test
@@ -723,14 +795,21 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         mockedCalendar.setTimeInMillis(400000);
         context.checking(new Expectations() {
             {
-                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal(new String[] { "branch" })),
-                        with(aNull(String[].class)));
+                one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal("viewname")),
+                        with(equal(new String[] { "branch" })), with(aNull(String[].class)));
                 will(returnValue(true));
             }
         });
         final MatrixBuild matrixBuild = classContext.mock(MatrixBuild.class);
         classContext.checking(new Expectations() {
             {
+                ignoring(matrixBuild).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(matrixBuild).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(matrixBuild).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
                 ignoring(matrixBuild).getParent(); will(returnValue(project));
                 one(project).getLastBuild(); will(returnValue(matrixBuild));
                 one(matrixBuild).getTimestamp(); will(returnValue(mockedCalendar));
@@ -740,22 +819,29 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", "");
-        PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
+        scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
     }
-
+    
     @Test
-    public void assertGetModuleRootReturnsViewFolder() throws Exception {
+    public void assertGetModuleRootReturnsViewFolderSnapshot() throws Exception {
         // Must initiate a pollChanges() or checkout() to update the normalizedViewName
         createWorkspace();
         final Calendar mockedCalendar = Calendar.getInstance();
         context.checking(new Expectations() {
             {
-                ignoring(historyAction).hasChanges(with(any(Date.class)), with(any(String.class)), with(any(String[].class)), with(any(String[].class)));
+                ignoring(historyAction).hasChanges(with(any(Date.class)), with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(String[].class)));
                 will(returnValue(true));
             }
         });
         classContext.checking(new Expectations() {
             {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
                 ignoring(build).getParent(); will(returnValue(project));
                 ignoring(build).getTimestamp(); will(returnValue(mockedCalendar));
                 ignoring(project).getLastBuild(); will(returnValue(build));
@@ -765,7 +851,45 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view name", "", "");
-        PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
+        scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
+        FilePath moduleRoot = scm.getModuleRoot(workspace);
+        assertEquals("The module root path is incorrect", "view_name", moduleRoot.getName());
+
+        FilePath[] moduleRoots = scm.getModuleRoots(workspace);
+        assertEquals("The number of module roots are incorrect", 1, moduleRoots.length);
+        assertEquals("The module root path is incorrect", "view_name", moduleRoots[0].getName());
+    }
+    
+    @Test
+    public void assertGetModuleRootReturnsViewFolderDynamic() throws Exception {
+        // Must initiate a pollChanges() or checkout() to update the normalizedViewName
+        createWorkspace();
+        final Calendar mockedCalendar = Calendar.getInstance();
+        context.checking(new Expectations() {
+            {
+                ignoring(historyAction).hasChanges(with(any(Date.class)), with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(String[].class)));
+                will(returnValue(true));
+            }
+        });
+        classContext.checking(new Expectations() {
+            {
+                ignoring(build).getBuiltOn(); will(returnValue(node));
+                ignoring(node).toComputer(); will(returnValue(computer));
+                ignoring(node).getNodeName(); will(returnValue("test-node"));
+                ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
+                ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                
+                ignoring(build).getParent(); will(returnValue(project));
+                ignoring(build).getTimestamp(); will(returnValue(mockedCalendar));
+                ignoring(project).getLastBuild(); will(returnValue(build));
+                ignoring(project).getName(); will(returnValue("CCHudson"));
+                one(scmRevisionState).getBuildTime(); will(returnValue(mockedCalendar.getTime()));
+            }
+        });
+
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view name", null, true, true, true, null, true, "M:", null, null, false, null);
+        scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
         FilePath moduleRoot = scm.getModuleRoot(workspace);
         assertEquals("The module root path is incorrect", "view_name", moduleRoot.getName());
 
@@ -777,23 +901,23 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     private class AbstractClearCaseScmDummy extends AbstractClearCaseScm {
 
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam, boolean filterOutDestroySubBranchEvent) {
-            this(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, "", false, "", vobPaths, null, false);
+            this(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, "", false, "", vobPaths, null, false, viewName);
         }
 
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam, boolean filterOutDestroySubBranchEvent,
                 String excludedRegions) {
-            this(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, excludedRegions, false, "", vobPaths, null, false);
+            this(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, false, false, excludedRegions, false, "", vobPaths, null, false, viewName);
         }
 
         public AbstractClearCaseScmDummy(String viewName, String vobPaths, String mkviewOptionalParam) {
-            this(viewName, mkviewOptionalParam, false, false, false, "", false, "", vobPaths, null, false);
+            this(viewName, mkviewOptionalParam, false, false, false, "", false, "", vobPaths, null, false, viewName);
         }
 
         public AbstractClearCaseScmDummy(String viewName, String mkviewOptionalParam, boolean filterOutDestroySubBranchEvent, boolean useUpdate,
                 boolean rmviewonrename, String excludedRegions, boolean useDynamicView, String viewDrive, String loadRules, String multiSitePollBuffer,
-                boolean createDynView) {
+                boolean createDynView, String viewpath) {
             super(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, useDynamicView, viewDrive,
-                    loadRules, multiSitePollBuffer, createDynView, "", "", createDynView, createDynView);
+                    loadRules, multiSitePollBuffer, createDynView, "", "", createDynView, createDynView, viewpath);
         }
 
         @Override
@@ -812,7 +936,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         }
 
         @Override
-        protected ClearToolLauncher createClearToolLauncher(TaskListener listener, FilePath workspace, Launcher launcher) {
+        public ClearToolLauncher createClearToolLauncher(TaskListener listener, FilePath workspace, Launcher launcher) {
             return null;
         }
 

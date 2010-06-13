@@ -2,8 +2,8 @@
 
     The MIT License
 
-    Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
-                             Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+    Copyright (c) 2007-2010, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+                             Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 -->
 <div>
   <p>
-	The plugin will create a view in the workspace with the specified view name. The view is a normal folder
+	The plugin will create a view in the workspace with the specified view path name. The view is a normal folder
 	which can be accessed by the build tools. Make sure that there is no other folder in the workspace 
 	with the same name as the specified view name. 
 	</p>
@@ -41,7 +41,7 @@
 	</ol>
   </p>
   <p>
-  	The name of the view is available as an environment variable named <code>CLEARCASE_VIEWNAME</code>.
+  	The view path relative to the workspace is available as an environment variable named <code>CLEARCASE_VIEWNAME</code>.
   	<br/> 
   	The absolute path to the ClearCase view is available as an environment 
   	variable named <code>CLEARCASE_VIEWPATH</code>.
