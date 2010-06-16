@@ -27,8 +27,9 @@ package hudson.plugins.clearcase;
 import hudson.FilePath;
 import hudson.util.VariableResolver;
 
-
-
+/**
+ * Specific implementation of cleartool for snapshot views
+ */
 public class ClearToolSnapshot extends ClearToolExec {
 
     public ClearToolSnapshot(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalParameters) {

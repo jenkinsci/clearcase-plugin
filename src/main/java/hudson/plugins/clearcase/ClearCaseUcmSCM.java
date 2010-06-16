@@ -50,6 +50,7 @@ import hudson.util.VariableResolver;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -150,13 +151,13 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     @Override
     public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
             InterruptedException {
-        return new ClearCaseUCMSCMRevisionState(getFoundationBaselines(build, launcher, taskListener), getBuildTime(build));
+        return new ClearCaseUCMSCMRevisionState(getFoundationBaselines(build, launcher, taskListener), getBuildTime(build), stream);
     }
     
     @Override
     public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
             InterruptedException {
-        return new ClearCaseUCMSCMRevisionState(getFoundationBaselines(build, launcher, taskListener), new Date());
+        return new ClearCaseUCMSCMRevisionState(getFoundationBaselines(build, launcher, taskListener), new Date(), stream);
     }
     
     @Override
@@ -173,14 +174,14 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         BufferedReader rd = new BufferedReader(clearTool.describe("%[found_bls]p\\n", "stream:" + lStream));
         List<String> baselines = new ArrayList<String>();
         try {
-        for(String line = rd.readLine(); line != null; line = rd.readLine()) {
-            String[] bl = line.split(" ");
-            for(String b : bl) {
-                if (StringUtils.isNotBlank(b)) {
-                    baselines.add(b);
+            for(String line = rd.readLine(); line != null; line = rd.readLine()) {
+                String[] bl = line.split(" ");
+                for(String b : bl) {
+                    if (StringUtils.isNotBlank(b)) {
+                        baselines.add(b);
+                    }
                 }
             }
-        }
         } finally {
             rd.close();
         }
@@ -224,6 +225,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         UcmHistoryAction action;
         ClearCaseUCMSCMRevisionState oldBaseline = null;
         ClearCaseUCMSCMRevisionState newBaseline = null;
+        PrintStream logger = launcher.getListener().getLogger();
         if (build != null) {
             try {
                 AbstractBuild<?, ?> previousBuild = (AbstractBuild<?, ?>) build.getPreviousBuild();
@@ -232,11 +234,13 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                 }
                 newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.SEVERE, "IOException when calculating revisions'", e);
+                e.printStackTrace(logger);
+                return null;
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
+                e.printStackTrace(logger);
+                return null;
             }
         }
         if (isFreezeCode()) {
