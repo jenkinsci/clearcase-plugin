@@ -31,6 +31,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * Abstraction to cleartool commands
+ */
 public interface ClearTool {
 
     public static enum DiffBlOptions {

@@ -31,15 +31,25 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
+/**
+ * Represents the repository state at a given point of time
+ */
 public class ClearCaseUCMSCMRevisionState extends AbstractClearCaseSCMRevisionState {
-    final Map<String, String> baselines;
-    public ClearCaseUCMSCMRevisionState(Map<String, String> baselines, Date buildTime) {
+    private final Map<String, String> baselines;
+    private final String stream;
+    
+    public ClearCaseUCMSCMRevisionState(Map<String, String> baselines, Date buildTime, String stream) {
         super(buildTime);
         this.baselines = baselines;
+        this.stream = stream;
     }
     
     public Map<String, String> getBaselines() {
         return Collections.unmodifiableMap(baselines);
+    }
+    
+    public String getStream() {
+        return stream;
     }
     
 

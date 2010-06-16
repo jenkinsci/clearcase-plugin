@@ -27,6 +27,9 @@ package hudson.plugins.clearcase;
 import hudson.FilePath;
 import hudson.util.VariableResolver;
 
+/**
+ * Specific implementation of cleartool to handle dynamic views
+ */
 public class ClearToolDynamic extends ClearToolExec {
 
     private transient String viewDrive;

@@ -40,7 +40,6 @@ import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
 import hudson.plugins.clearcase.base.ClearCaseSCMRevisionState;
 import hudson.plugins.clearcase.history.HistoryAction;
-import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;

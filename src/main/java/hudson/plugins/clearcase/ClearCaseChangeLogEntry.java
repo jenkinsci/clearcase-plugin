@@ -172,7 +172,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
      * Overrides the setParent() method so the ClearCaseChangeLogSet can access it.
      */
     @Override
-    public void setParent(ChangeLogSet parent) {
+    public void setParent(@SuppressWarnings("unchecked") ChangeLogSet parent) {
         super.setParent(parent);
     }
 
