@@ -97,10 +97,10 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
                     }
                 } else {
                     filePath.renameTo(getUnusedFilePath(workspace, viewPath));
-                    cleartool.rmviewtag(viewTag);
+                    rmviewtag(viewTag);
                 }
             } else {
-                cleartool.rmviewtag(viewTag);
+                rmviewtag(viewTag);
             }
         } else {
             if (viewPathExists) {
@@ -111,6 +111,15 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
             cleartool.mkview(viewPath, viewTag, streamSelector);
         }
         return doViewCreation;
+    }
+    
+    private void rmviewtag(String viewTag) throws InterruptedException, IOException{
+        try {
+            cleartool.rmviewtag(viewTag);
+        } catch(IOException e) {
+            // ClearCase RT doesn't support rmview -tag
+            cleartool.rmtag(viewTag);
+        }
     }
 
     protected AbstractCheckoutAction.LoadRulesDelta getLoadRulesDelta(Set<String> configSpecLoadRules, Launcher launcher) {
