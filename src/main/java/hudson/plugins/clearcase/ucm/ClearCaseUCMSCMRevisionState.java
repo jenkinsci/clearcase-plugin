@@ -26,26 +26,27 @@ package hudson.plugins.clearcase.ucm;
 
 
 import hudson.plugins.clearcase.AbstractClearCaseSCMRevisionState;
+import hudson.plugins.clearcase.Baseline;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Represents the repository state at a given point of time
  */
 public class ClearCaseUCMSCMRevisionState extends AbstractClearCaseSCMRevisionState {
-    private final Map<String, String> baselines;
+    private final List<Baseline> baselines;
     private final String stream;
     
-    public ClearCaseUCMSCMRevisionState(Map<String, String> baselines, Date buildTime, String stream) {
+    public ClearCaseUCMSCMRevisionState(List<Baseline> baselines, Date buildTime, String stream) {
         super(buildTime);
         this.baselines = baselines;
         this.stream = stream;
     }
     
-    public Map<String, String> getBaselines() {
-        return Collections.unmodifiableMap(baselines);
+    public List<Baseline> getBaselines() {
+        return Collections.unmodifiableList(baselines);
     }
     
     public String getStream() {

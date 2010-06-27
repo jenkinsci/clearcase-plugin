@@ -26,9 +26,9 @@ package hudson.plugins.clearcase;
 
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
+import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.ClearCaseSCM.ClearCaseScmDescriptor;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
@@ -43,19 +43,14 @@ import hudson.plugins.clearcase.ucm.UcmHistoryAction;
 import hudson.plugins.clearcase.ucm.UcmSaveChangeLogAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
-import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
+import hudson.scm.SCM;
 import hudson.util.VariableResolver;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -151,13 +146,20 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     @Override
     public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
             InterruptedException {
-        return new ClearCaseUCMSCMRevisionState(getFoundationBaselines(build, launcher, taskListener), getBuildTime(build), stream);
+        return createRevisionState(build, launcher, taskListener, getBuildTime(build));
     }
     
     @Override
     public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
             InterruptedException {
-        return new ClearCaseUCMSCMRevisionState(getFoundationBaselines(build, launcher, taskListener), new Date(), stream);
+        return createRevisionState(build, launcher, taskListener, new Date());
+    }
+    
+    private ClearCaseUCMSCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date) throws IOException, InterruptedException {
+        ClearTool clearTool = createClearTool(build, launcher, taskListener);
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build);
+        String resolvedStream = getStream(variableResolver);
+        return new ClearCaseUCMSCMRevisionState(UcmCommon.getFoundationBaselines(clearTool, resolvedStream), date, resolvedStream);
     }
     
     @Override
@@ -165,40 +167,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return baseline == null || !(baseline instanceof ClearCaseUCMSCMRevisionState);
     }
     
-    private Map<String, String> getFoundationBaselines(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-            InterruptedException {
-        BuildVariableResolver variableResolver = new BuildVariableResolver(build);
-        ClearToolLauncher clearToolLauncher = createClearToolLauncher(taskListener, build.getWorkspace(), launcher);
-        ClearTool clearTool = createClearTool(variableResolver, clearToolLauncher);
-        String lStream = Util.replaceMacro(stream, variableResolver);
-        BufferedReader rd = new BufferedReader(clearTool.describe("%[found_bls]p\\n", "stream:" + lStream));
-        List<String> baselines = new ArrayList<String>();
-        try {
-            for(String line = rd.readLine(); line != null; line = rd.readLine()) {
-                String[] bl = line.split(" ");
-                for(String b : bl) {
-                    if (StringUtils.isNotBlank(b)) {
-                        baselines.add(b);
-                    }
-                }
-            }
-        } finally {
-            rd.close();
-        }
-        Map<String, String> foundationBaselines = new HashMap<String, String>();
-        String pvob = UcmCommon.getVob(lStream);
-        for(String baseline : baselines) {
-            String qualifiedBaseline = baseline + "@" + pvob;
-            BufferedReader br = new BufferedReader(clearTool.describe("%[component]p\\n", "baseline:" + qualifiedBaseline));
-            try {
-                foundationBaselines.put(br.readLine(), qualifiedBaseline);
-            } finally {
-                br.close();
-            }
-        }
-        return foundationBaselines;
-    }
-
     @Override
     public String generateNormalizedViewName(VariableResolver<String> variableResolver, String modViewName) {
         // Modify the view name in order to support concurrent builds
@@ -278,6 +246,12 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         } else {
             return super.createClearTool(variableResolver, launcher);
         }
+    }
+    
+    public ClearTool createClearTool(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) {
+        BuildVariableResolver variableResolver = new BuildVariableResolver(build);
+        ClearToolLauncher clearToolLauncher = createClearToolLauncher(taskListener, build.getWorkspace(), launcher);
+        return createClearTool(variableResolver, clearToolLauncher);
     }
 
     private String shortenStreamName(String longStream) {
