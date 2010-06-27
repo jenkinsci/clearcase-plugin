@@ -267,6 +267,19 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     }
     
     @Test
+    public void testRmTag() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(ccLauncher).run(with(equal(new String[] {"rmtag", "-view", "myViewTag"})),
+                                               with(any(InputStream.class)),
+                                               with(any(OutputStream.class)),
+                                               with(any(FilePath.class)));
+            }
+        });
+        clearToolExec.rmtag("myViewTag");
+    }
+    
+    @Test
     public void testUpdate() throws Exception {
         context.checking(new Expectations() {
                 {

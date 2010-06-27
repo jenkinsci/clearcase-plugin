@@ -30,8 +30,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import hudson.EnvVars;
 import hudson.Launcher;
-import hudson.model.AbstractProject;
 import hudson.model.Build;
+import hudson.model.TaskListener;
+import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.plugins.clearcase.ucm.UcmHistoryAction;
@@ -60,6 +61,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     private ClearToolLauncher clearToolLauncher;
     private Computer computer;
     private Node node;
+    private TaskListener taskListener;
     private ClearCaseUcmSCM.ClearCaseUcmScmDescriptor clearCaseUcmScmDescriptor;
     
     @Before
@@ -77,6 +79,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         clearCaseUcmScmDescriptor = classContext.mock(ClearCaseUcmSCM.ClearCaseUcmScmDescriptor.class);
         context = new JUnit4Mockery();
         cleartool = context.mock(ClearTool.class);
+        taskListener = context.mock(TaskListener.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
         node = classContext.mock(Node.class);
         
@@ -216,6 +219,8 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
             });
         context.checking(new Expectations() {
                 {
+                    allowing(clearToolLauncher).getListener(); will(returnValue(taskListener));
+                    allowing(taskListener).getLogger(); will(returnValue(System.out));
                     allowing(clearToolLauncher).getLauncher();
                     will(returnValue(launcher));
                     one(cleartool).pwv("viewname-ClearCase");
