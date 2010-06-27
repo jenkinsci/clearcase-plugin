@@ -43,6 +43,33 @@ import org.apache.commons.lang.StringUtils;
  * @author kyosi
  */
 public class UcmCommon {
+    
+    /**
+     * Takes a list of baselines as argument, and return the load rules for all components matching these baselines
+     * @param clearTool
+     * @param stream
+     * @param baselines
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static String[] generateLoadRulesFromBaselines(ClearTool clearTool, String stream, List<Baseline> baselines) throws IOException, InterruptedException {
+        if (baselines == null) {
+            return null;
+        }
+        String[] loadRules = new String[baselines.size()];
+        int i = 0;
+        for(Baseline bl : baselines) {
+            Reader reader = clearTool.describe("%[root_dir]p", bl.getComponentName());
+            BufferedReader br = new BufferedReader(reader);
+            StringBuilder sb = new StringBuilder();
+            for(String line = br.readLine(); line != null; line = br.readLine()){
+                sb.append(line);
+            }
+            loadRules[i++] = sb.toString();
+        }
+        return loadRules;
+    }
 
     /**
      * @param clearToolLauncher
