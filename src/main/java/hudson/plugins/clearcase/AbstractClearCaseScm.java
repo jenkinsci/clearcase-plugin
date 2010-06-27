@@ -299,7 +299,11 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     public String getNormalizedWinDynStorageDir(VariableResolver<String> variableResolver) {
-        return Util.replaceMacro(getWinDynStorageDir(), variableResolver);
+        if (variableResolver != null) {
+            return Util.replaceMacro(getWinDynStorageDir(), variableResolver);
+        } else {
+            return getWinDynStorageDir();
+        }
     }
 
     public String getUnixDynStorageDir() {
@@ -307,7 +311,11 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     public String getNormalizedUnixDynStorageDir(VariableResolver<String> variableResolver) {
-        return Util.replaceMacro(getUnixDynStorageDir(), variableResolver);
+        if (variableResolver != null) {
+            return Util.replaceMacro(getUnixDynStorageDir(), variableResolver);
+        } else {
+            return getUnixDynStorageDir();
+        }
     }
 
     public boolean isFreezeCode() {
