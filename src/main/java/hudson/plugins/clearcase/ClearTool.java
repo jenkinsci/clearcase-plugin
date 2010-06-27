@@ -296,6 +296,14 @@ public interface ClearTool {
      * @param viewTag The view tag (server identifier of the view)
      */
     void rmviewtag(String viewTag) throws IOException, InterruptedException;
+    
+    /**
+     * Removes a view tag or a VOB tag from the networkwide storage registry
+     * @param tag
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    void rmtag(String tag) throws IOException, InterruptedException;
 
     /**
      * Removes the view (as identified by UUID) from all VOBs

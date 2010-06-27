@@ -632,6 +632,17 @@ public abstract class ClearToolExec implements ClearTool {
         }
 
     }
+    
+    public void rmtag(String viewTag) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("rmtag");
+        cmd.add("-view");
+        cmd.add(viewTag);
+        String output = runAndProcessOutput(cmd, null, null, false, null);
+        if (output.contains("cleartool: Error")) {
+            throw new IOException("Failed to remove view tag: " + output);
+        }
+    }
 
     public void rmviewUuid(String viewUuid) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
