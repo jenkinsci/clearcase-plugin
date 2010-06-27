@@ -1,10 +1,34 @@
+/**
+ * The MIT License
+ *
+ * Copyright (c) 2007-2010, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package hudson.plugins.clearcase.ucm;
 
 import hudson.FilePath;
 import hudson.plugins.clearcase.Baseline;
 import hudson.plugins.clearcase.ClearTool;
-import hudson.plugins.clearcase.Component;
 import hudson.plugins.clearcase.ClearTool.DiffBlOptions;
+import hudson.plugins.clearcase.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,8 +88,8 @@ public class UcmCommon {
      * @throws InterruptedException
      * @throws IOException
      */
-    public static List<Baseline> getComponentsForBaselines(ClearTool clearTool, List<Component> componentsList,
-            boolean isUseDynamicView, String viewName, FilePath filePath, List<String> baselinesNames) throws InterruptedException, IOException {
+    public static List<Baseline> getComponentsForBaselines(ClearTool clearTool, List<Component> componentsList, boolean isUseDynamicView, String viewName,
+            FilePath filePath, List<String> baselinesNames) throws InterruptedException, IOException {
         List<Baseline> baselinesList = new ArrayList<Baseline>();
 
         // loop through baselines
@@ -99,8 +123,7 @@ public class UcmCommon {
      * @throws InterruptedException
      * @throws IOException
      */
-    public static Baseline getDataforBaseline(ClearTool clearTool, FilePath filePath, String blName) throws InterruptedException,
-            IOException {
+    public static Baseline getDataforBaseline(ClearTool clearTool, FilePath filePath, String blName) throws InterruptedException, IOException {
         String cleartoolResult = clearTool.lsbl(blName, "%[label_status]p|%[component]Xp");
         String[] arr = cleartoolResult.split("\\|");
         boolean isNotLabeled = arr[0].contains("Not Labeled");
@@ -109,6 +132,36 @@ public class UcmCommon {
         String componentName = arr[1].substring(cleartoolResult.indexOf(cleartoolResult) + prefix.length());
 
         return new Baseline(componentName, isNotLabeled);
+    }
+
+    public static List<Baseline> getFoundationBaselines(ClearTool clearTool, String stream) throws IOException,
+            InterruptedException {
+        BufferedReader rd = new BufferedReader(clearTool.describe("%[found_bls]p\\n", "stream:" + stream));
+        List<String> baselines = new ArrayList<String>();
+        try {
+            for (String line = rd.readLine(); line != null; line = rd.readLine()) {
+                String[] bl = line.split(" ");
+                for (String b : bl) {
+                    if (StringUtils.isNotBlank(b)) {
+                        baselines.add(b);
+                    }
+                }
+            }
+        } finally {
+            rd.close();
+        }
+        List<Baseline> foundationBaselines = new ArrayList<Baseline>();
+        String pvob = UcmCommon.getVob(stream);
+        for (String baseline : baselines) {
+            String qualifiedBaseline = baseline + "@" + pvob;
+            BufferedReader br = new BufferedReader(clearTool.describe("%[component]p\\n", "baseline:" + qualifiedBaseline));
+            try {
+                foundationBaselines.add(new Baseline(qualifiedBaseline, br.readLine() + "@" + pvob));
+            } finally {
+                br.close();
+            }
+        }
+        return foundationBaselines;
     }
 
     /**
@@ -123,7 +176,7 @@ public class UcmCommon {
         Reader reader = clearTool.describe(null, "stream:" + streamName);
         BufferedReader bufferedReader = new BufferedReader(reader);
         StringBuilder sb = new StringBuilder();
-        while(bufferedReader.ready()) {
+        while (bufferedReader.ready()) {
             sb.append(bufferedReader.readLine());
         }
         String output = sb.toString();
@@ -162,8 +215,7 @@ public class UcmCommon {
      * @throws IOException
      * @throws Exception
      */
-    public static List<Baseline> getLatestBlsWithCompOnStream(ClearTool clearTool, String stream, String view) throws IOException,
-            InterruptedException {
+    public static List<Baseline> getLatestBlsWithCompOnStream(ClearTool clearTool, String stream, String view) throws IOException, InterruptedException {
         // get the components on the build stream
         List<Component> componentsList = getStreamComponentsDesc(clearTool, stream);
 
@@ -206,7 +258,7 @@ public class UcmCommon {
         Reader rd = clearTool.diffbl(EnumSet.of(DiffBlOptions.VERSIONS), bl1, bl2, viewRootDirectory);
 
         BufferedReader br = new BufferedReader(rd);
-        
+
         List<String> versionList = new ArrayList<String>();
         // remove ">>" from result
         for (String line = br.readLine(); br.ready(); line = br.readLine()) {
@@ -243,8 +295,7 @@ public class UcmCommon {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static void rebase(ClearTool clearTool, String viewName, List<Baseline> baselines) throws IOException,
-            InterruptedException {
+    public static void rebase(ClearTool clearTool, String viewName, List<Baseline> baselines) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
         for (Baseline bl : baselines) {
             if (sb.length() > 0) {

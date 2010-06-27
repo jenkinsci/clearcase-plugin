@@ -36,8 +36,8 @@ import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_HEADLINE;
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_STREAM;
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_VERSION_ACTIVITY;
 import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
+import hudson.plugins.clearcase.Baseline;
 import hudson.plugins.clearcase.ClearTool;
-import hudson.plugins.clearcase.ClearTool.DiffBlOptions;
 import hudson.plugins.clearcase.history.AbstractHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryEntry;
@@ -49,12 +49,13 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -74,7 +75,8 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     private final ClearCaseUCMSCMRevisionState oldBaseline;
     private final ClearCaseUCMSCMRevisionState newBaseline;
 
-    public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ClearCaseUCMSCMRevisionState oldBaseline, ClearCaseUCMSCMRevisionState newBaseline) {
+    public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ClearCaseUCMSCMRevisionState oldBaseline,
+            ClearCaseUCMSCMRevisionState newBaseline) {
         super(cleartool, useDynamicView, filter);
         this.oldBaseline = oldBaseline;
         this.newBaseline = newBaseline;
@@ -157,40 +159,36 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-        List<HistoryEntry> historyFromCurrentBranch = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
-        if (oldBaseline != null) {
-            List<HistoryEntry> history = new ArrayList<HistoryEntry>();
-            Map<String, String> oldBaselines = oldBaseline.getBaselines();
-            Map<String, String> newBaselines = newBaseline.getBaselines();
-            if (!ObjectUtils.equals(oldBaselines,newBaselines)) {
-                List<String> versions = new ArrayList<String>();
-                for(Map.Entry<String, String> entry : oldBaselines.entrySet()) {
-                    String bl1 = entry.getValue();
-                    String bl2 = newBaselines.get(entry.getKey());
-                    BufferedReader br = new BufferedReader(cleartool.diffbl(EnumSet.of(DiffBlOptions.VERSIONS), "baseline:" + bl1, "baseline:" + bl2, viewPath));
-                    try {
-                        for(String line = br.readLine(); line != null; line = br.readLine()) {
-                            versions.add(line.substring(3));
-                        }
-                    } finally {
-                        br.close();
-                    }
+    protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+            InterruptedException {
+        List<HistoryEntry> history = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
+        if (oldBaseline == null) {
+            return history;
+        }
+        List<Baseline> oldBaselines = oldBaseline.getBaselines();
+        List<Baseline> newBaselines = newBaseline.getBaselines();
+        if (ObjectUtils.equals(oldBaselines, newBaselines)) {
+            return history;
+        }
+        for (final Baseline oldBl : oldBaselines) {
+            String bl1 = oldBl.getBaselineName();
+            String bl2 = ((Baseline) CollectionUtils.find(newBaselines, new Predicate() {
+                @Override
+                public boolean evaluate(Object bl) {
+                    return StringUtils.equals(oldBl.getComponentName(), ((Baseline) bl).getComponentName());
                 }
-                for (String version: versions) {
-                    try {
-                        parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, version)), history);
-                    } catch (ParseException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
+            })).getBaselineName();
+            List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
+            for (String version : versions) {
+                try {
+                    parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, version)), history);
+                } catch (ParseException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
             }
-            history.addAll(historyFromCurrentBranch);
-            return history;
-        } else {
-            return historyFromCurrentBranch;
         }
+        return history;
     }
 
     @Override
