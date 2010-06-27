@@ -4,7 +4,6 @@ import java.util.List;
 
 import hudson.model.Action;
 import hudson.model.AbstractBuild;
-import hudson.plugins.clearcase.ucm.UcmCommon;
 
 public class ClearCaseReportAction implements Action {
 
@@ -47,7 +46,7 @@ public class ClearCaseReportAction implements Action {
         return (cspec != null && cspec.trim().length() > 0);
     }
 
-    public List<UcmCommon.BaselineDesc> getBaselines() {
+    public List<Baseline> getBaselines() {
         ClearCaseDataAction clearCaseDataAction = build.getAction(ClearCaseDataAction.class);
 
         if (clearCaseDataAction != null) {

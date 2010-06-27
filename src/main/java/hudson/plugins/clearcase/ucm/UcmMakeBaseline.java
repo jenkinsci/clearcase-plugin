@@ -25,19 +25,18 @@
 package hudson.plugins.clearcase.ucm;
 
 import hudson.Extension;
-import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Executor;
 import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
 import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.Executor;
+import hudson.model.ParametersAction;
 import hudson.model.StringParameterValue;
+import hudson.plugins.clearcase.Baseline;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.ClearTool;
-import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.ClearTool.DefaultPromotionLevel;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.SCM;
@@ -45,7 +44,6 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
 
 import java.io.IOException;
@@ -82,7 +80,7 @@ public class UcmMakeBaseline extends Notifier {
 
     private transient List<String> latestBaselines = new ArrayList<String>();
 
-    private transient List<String> createdBaselines = null;
+    private transient List<Baseline> createdBaselines = null;
 
     private final String namePattern;
 
@@ -204,9 +202,8 @@ public class UcmMakeBaseline extends Notifier {
         if (scm instanceof ClearCaseUcmSCM) {
             ClearCaseUcmSCM ucm = (ClearCaseUcmSCM) scm;
             Launcher launcher = Executor.currentExecutor().getOwner().getNode().createLauncher(listener);
-            ClearToolLauncher clearToolLauncher = ucm.createClearToolLauncher(listener, build.getWorkspace(), launcher);
             VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-            ClearTool clearTool = ucm.createClearTool(variableResolver, clearToolLauncher);
+            ClearTool clearTool = ucm.createClearTool(variableResolver, ucm.createClearToolLauncher(listener, build.getWorkspace(), launcher));
             if (this.lockStream) {
                 try {
                     this.streamSuccessfullyLocked = lockStream(clearTool, ucm.getStream());
@@ -255,9 +252,8 @@ public class UcmMakeBaseline extends Notifier {
         SCM scm = build.getProject().getScm();
         if (scm instanceof ClearCaseUcmSCM) {
             ClearCaseUcmSCM ucm = (ClearCaseUcmSCM) scm;
-            ClearToolLauncher clearToolLauncher = ucm.createClearToolLauncher(listener, build.getWorkspace(), launcher);
             VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-            ClearTool clearTool = ucm.createClearTool(variableResolver, clearToolLauncher);
+            ClearTool clearTool = ucm.createClearTool(variableResolver, ucm.createClearToolLauncher(listener, build.getWorkspace(), launcher));
 
             Result result = build.getResult();
             if (result.equals(Result.SUCCESS)) {
@@ -280,19 +276,19 @@ public class UcmMakeBaseline extends Notifier {
                 List<String> alreadyRejected = new ArrayList<String>();
 
                 // On failure, demote only baselines created in this build
-                for (String baselineName : this.createdBaselines) {
+                for (Baseline baseline : this.createdBaselines) {
 
                     // Find full baseline name from latest baselines
                     String realBaselineName = null;
                     for (String fullBaselineName : this.latestBaselines) {
-                        if (fullBaselineName.startsWith(baselineName)) {
+                        if (fullBaselineName.startsWith(baseline.getBaselineName())) {
                             if (!alreadyRejected.contains(fullBaselineName)) {
                                 realBaselineName = fullBaselineName;
                             }
                         }
                     }
                     if (realBaselineName == null) {
-                        listener.getLogger().println("Couldn't find baseline name for " + baselineName);
+                        listener.getLogger().println("Couldn't find baseline name for " + baseline.getBaselineName());
                     } else {
                         demoteBaselineToRejectedLevel(clearTool, realBaselineName);
                         alreadyRejected.add(realBaselineName);
@@ -329,7 +325,7 @@ public class UcmMakeBaseline extends Notifier {
         return clearTool.lock("Locked by Hudson", "stream:" + stream);
     }
 
-    private List<String> makeBaseline(ClearTool clearTool, String viewTag, VariableResolver<String> variableResolver) throws Exception {
+    private List<Baseline> makeBaseline(ClearTool clearTool, String viewTag, VariableResolver<String> variableResolver) throws Exception {
         String baselineName = Util.replaceMacro(namePattern, variableResolver);
         String baselineComment = Util.replaceMacro(commentPattern, variableResolver);
         return clearTool.mkbl(baselineName, viewTag, baselineComment, fullBaseline, identical, this.readWriteComponents, null, null);

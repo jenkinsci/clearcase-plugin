@@ -1,7 +1,6 @@
 package hudson.plugins.clearcase;
 
 import hudson.model.Action;
-import hudson.plugins.clearcase.ucm.UcmCommon;
 
 import java.util.List;
 
@@ -12,7 +11,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 public class ClearCaseDataAction implements Action {
 
     @Exported(visibility = 3)
-    public List<UcmCommon.BaselineDesc> latestBlsOnConfiguredStream;
+    public List<Baseline> latestBlsOnConfiguredStream;
 
     @Exported(visibility = 3)
     public String cspec;
@@ -39,11 +38,11 @@ public class ClearCaseDataAction implements Action {
         return null;
     }
 
-    public List<UcmCommon.BaselineDesc> getLatestBlsOnConfiguredStream() {
+    public List<Baseline> getLatestBlsOnConfiguredStream() {
         return latestBlsOnConfiguredStream;
     }
 
-    public void setLatestBlsOnConfiguredStream(List<UcmCommon.BaselineDesc> latestBlsOnConfiguredStream) {
+    public void setLatestBlsOnConfiguredStream(List<Baseline> latestBlsOnConfiguredStream) {
         this.latestBlsOnConfiguredStream = latestBlsOnConfiguredStream;
     }
 

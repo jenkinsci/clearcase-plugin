@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase;
 
+
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Date;
@@ -75,6 +76,14 @@ public interface ClearTool {
      * @return
      */
     Reader diffbl(EnumSet<DiffBlOptions> options, String baseline1, String baseline2, String viewPath);
+    
+    /**
+     * @param streamSelector
+     * @return true if the specified stream exists
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    boolean doesStreamExist(String streamSelector) throws IOException, InterruptedException;
 
     /**
      * Checks whether the given view tag already exists in the ClearCase region.
@@ -230,8 +239,18 @@ public interface ClearTool {
      * @throws IOException
      * @throws InterruptedException
      */
-    List<String> mkbl(String name, String viewTag, String comment, boolean fullBaseline, boolean identical, List<String> components, String dDependOn, String aDependOn) throws IOException, InterruptedException;
+    List<Baseline> mkbl(String name, String viewTag, String comment, boolean fullBaseline, boolean identical, List<String> components, String dDependOn, String aDependOn) throws IOException, InterruptedException;
 
+    /**
+     * Make a new stream
+     * @param parentStream The parent stream name
+     * @param stream The new stream name
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    void mkstream(String parentStream, String stream) throws IOException, InterruptedException;
+        
+    
     /**
      * Creates and registers a view
      * 
