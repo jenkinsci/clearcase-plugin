@@ -109,6 +109,25 @@ public abstract class ClearToolExec implements ClearTool {
         return new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
     }
 
+    @Override
+    public boolean doesStreamExist(String streamSelector) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+
+        cmd.add("lsstream");
+        cmd.add("-short");
+        cmd.add(streamSelector);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        try {
+            launcher.run(cmd.toCommandArray(), null, baos, null);
+        } catch (Exception e) {
+            // empty by design
+        }
+        baos.close();
+        String cleartoolResult = baos.toString();
+        return !(cleartoolResult.contains("stream not found"));
+    }
+
     public boolean doesViewExist(String viewTag) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsview");
@@ -392,7 +411,7 @@ public abstract class ClearToolExec implements ClearTool {
         return new ArrayList<String>();
     }
     
-    public List<String> mkbl(String name, String viewTag, String comment, boolean fullBaseline, boolean identical, List<String> components, String dDependsOn, String aDependsOn) throws IOException, InterruptedException {
+    public List<Baseline> mkbl(String name, String viewTag, String comment, boolean fullBaseline, boolean identical, List<String> components, String dDependsOn, String aDependsOn) throws IOException, InterruptedException {
         Validate.notNull(viewTag);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkbl");
@@ -431,11 +450,13 @@ public abstract class ClearToolExec implements ClearTool {
 
         Pattern pattern = Pattern.compile("Created baseline \".+?\"");
         Matcher matcher = pattern.matcher(output);
-        List<String> createdBaselinesList = new ArrayList<String>();
+        List<Baseline> createdBaselinesList = new ArrayList<Baseline>();
         while (matcher.find()) {
             String match = matcher.group();
-            String newBaseline = match.substring(match.indexOf("\"") + 1, match.length() - 1);
-            createdBaselinesList.add(newBaseline);
+            String[] parts = match.split("\"");
+            String newBaseline = parts[1];
+            String componentName = parts[3];
+            createdBaselinesList.add(new Baseline(newBaseline, componentName));
         }
 
         return createdBaselinesList;
@@ -443,6 +464,19 @@ public abstract class ClearToolExec implements ClearTool {
 
     public void mklabel(String viewName, String label) throws IOException, InterruptedException {
         throw new AbortException();
+    }
+    
+    public void mkstream(String parentStream, String stream) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+
+        cmd.add("mkstream");
+        cmd.add("-in");
+        cmd.add(parentStream);
+        cmd.add(stream);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        baos.close();
     }
 
     public void mkview(String viewPath, String viewTag, String streamSelector) throws IOException, InterruptedException {
@@ -581,11 +615,10 @@ public abstract class ClearToolExec implements ClearTool {
     public void rebaseDynamic(String viewTag, String baseline) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("rebase");
-        cmd.add("-baseline");
-        cmd.add(baseline);
-        cmd.add("-view");
-        cmd.add(viewTag);
+        cmd.add("-baseline", baseline);
+        cmd.add("-view", viewTag);
         cmd.add("-complete");
+        cmd.add("-force");
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
     
