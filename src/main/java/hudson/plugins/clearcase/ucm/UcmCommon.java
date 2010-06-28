@@ -60,7 +60,7 @@ public class UcmCommon {
         String[] loadRules = new String[baselines.size()];
         int i = 0;
         for(Baseline bl : baselines) {
-            Reader reader = clearTool.describe("%[root_dir]p", bl.getComponentName());
+            Reader reader = clearTool.describe("%[root_dir]p", "component:" + bl.getComponentName());
             BufferedReader br = new BufferedReader(reader);
             StringBuilder sb = new StringBuilder();
             for(String line = br.readLine(); line != null; line = br.readLine()){
