@@ -28,10 +28,10 @@ public class UcmCommonTest {
     }
 
     @Test
-    public void testGenerateLoadRulesFromBaselines() throws Exception {
+    public void testGenerateLoadRulesFromBaselinesOneBaseline() throws Exception {
         context.checking(new Expectations() {
             {
-                one(cleartool).describe("%[root_dir]p", "comp1@\\pvob"); will(returnValue(new StringReader("/vob/comp1")));
+                one(cleartool).describe("%[root_dir]p", "component:comp1@\\pvob"); will(returnValue(new StringReader("/vob/comp1")));
             }
         });
         assertTrue(UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", null) == null);
@@ -40,5 +40,23 @@ public class UcmCommonTest {
         String[] loadRules = UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", baselines);
         assertTrue(loadRules.length == 1);
         assertEquals("/vob/comp1", loadRules[0]);
+    }
+    
+    @Test
+    public void testGenerateLoadRulesFromBaselinesMultiBaseline() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(cleartool).describe("%[root_dir]p", "component:comp1@\\pvob"); will(returnValue(new StringReader("/vob/comp1")));
+                one(cleartool).describe("%[root_dir]p", "component:comp2@\\otherpvob"); will(returnValue(new StringReader("/othervob/comp2")));
+            }
+        });
+        assertTrue(UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", null) == null);
+        List<Baseline> baselines = new ArrayList<Baseline>();
+        baselines.add(new Baseline("bl1@\\pvob", "comp1@\\pvob"));
+        baselines.add(new Baseline("bl2@\\otherpvob", "comp2@\\otherpvob"));
+        String[] loadRules = UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", baselines);
+        assertTrue(loadRules.length == 2);
+        assertEquals("/vob/comp1", loadRules[0]);
+        assertEquals("/othervob/comp2", loadRules[1]);
     }
 }
