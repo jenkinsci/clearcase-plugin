@@ -24,6 +24,8 @@
  */
 package hudson.plugins.clearcase; 
 
+import java.io.IOException;
+
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.plugins.clearcase.history.HistoryAction;
@@ -76,7 +78,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
 
     @Override
     public HistoryAction createHistoryAction(
-                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) {   
+                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) throws IOException, InterruptedException {   
 
         return super.createHistoryAction(variableResolver, launcher, null);
     }

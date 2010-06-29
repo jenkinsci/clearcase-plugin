@@ -227,7 +227,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     @Test
     public void testGetViewPaths() throws Exception {
         AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "configspec", "viewname", true, "load tmp", true, "", null, false, false,false);
-        assertEquals("The view paths string is incorrect", "tmp", scm.getViewPaths()[0]);
+        assertEquals("The view paths string is incorrect", "tmp", scm.getViewPaths(null, null, launcher)[0]);
     }
 
     @Test
