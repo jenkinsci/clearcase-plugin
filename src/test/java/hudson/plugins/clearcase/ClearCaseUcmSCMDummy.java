@@ -24,6 +24,8 @@
  */
 package hudson.plugins.clearcase; 
 
+import java.io.IOException;
+
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.plugins.clearcase.history.HistoryAction;
@@ -60,7 +62,7 @@ public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
                                 Computer overrideComputer, String viewPath) {
         super(stream, loadrules, viewname, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate,
-              rmviewonrename, excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView, overrideBranchName, overrideBranchName, true, true, false, viewPath);
+              rmviewonrename, excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView, overrideBranchName, overrideBranchName, true, true, false, viewPath, true);
         this.cleartool = cleartool;
         this.clearCaseUcmScmDescriptor = clearCaseUcmScmDescriptor;
         this.overrideComputer = overrideComputer;
@@ -79,7 +81,7 @@ public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
     
     @Override
     public HistoryAction createHistoryAction(
-                                             VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) {
+                                             VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) throws IOException, InterruptedException {
         return super.createHistoryAction(variableResolver, launcher, null);
     }
     

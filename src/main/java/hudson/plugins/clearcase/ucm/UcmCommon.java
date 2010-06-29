@@ -57,20 +57,25 @@ public class UcmCommon {
         if (baselines == null) {
             return null;
         }
-        String[] loadRules = new String[baselines.size()];
+        List<String> loadRules = new ArrayList<String>();
         int i = 0;
         for(Baseline bl : baselines) {
-            Reader reader = clearTool.describe("%[root_dir]p", "component:" + bl.getComponentName());
+            Reader reader = clearTool.describe("%[root_dir]p\\n", "component:" + bl.getComponentName());
             BufferedReader br = new BufferedReader(reader);
             StringBuilder sb = new StringBuilder();
             for(String line = br.readLine(); line != null; line = br.readLine()){
-                sb.append(line);
+                if (StringUtils.isNotBlank(line)) {
+                    sb.append(line.substring(1)); // Remove leading separator
+                }
             }
-            loadRules[i++] = sb.toString();
+            String loadRule = sb.toString();
+            if (StringUtils.isNotBlank(loadRule)) {
+                loadRules.add(loadRule);
+            }
         }
-        return loadRules;
+        return loadRules.toArray(new String[loadRules.size()]);
     }
-
+    
     /**
      * @param clearToolLauncher
      * @param isUseDynamicView
@@ -160,10 +165,18 @@ public class UcmCommon {
 
         return new Baseline(componentName, isNotLabeled);
     }
-
-    public static List<Baseline> getFoundationBaselines(ClearTool clearTool, String stream) throws IOException,
+    
+    public static List<Baseline> getLatestBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
+        return getBaselinesDesc(clearTool, stream, "%[latest_bls]p\\n");
+    }
+    
+    public static List<Baseline> getFoundationBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
+        return getBaselinesDesc(clearTool, stream, "%[found_bls]p\\n");
+    }
+    
+    private static List<Baseline> getBaselinesDesc(ClearTool clearTool, String stream, String format) throws IOException,
             InterruptedException {
-        BufferedReader rd = new BufferedReader(clearTool.describe("%[found_bls]p\\n", "stream:" + stream));
+        BufferedReader rd = new BufferedReader(clearTool.describe(format, "stream:" + stream));
         List<String> baselines = new ArrayList<String>();
         try {
             for (String line = rd.readLine(); line != null; line = rd.readLine()) {
@@ -190,7 +203,7 @@ public class UcmCommon {
         }
         return foundationBaselines;
     }
-
+    
     /**
      * @param clearToolLauncher
      * @param streamName

@@ -153,6 +153,9 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     private String fixLoadRule(String loadRule) {
+        if (StringUtils.isBlank(loadRule)) {
+            return loadRule;
+        }
         // Remove leading file separator, we don't need it when using add_loadrules
         String quotedLR = ConfigSpec.cleanLoadRule(loadRule, getLauncher().getLauncher().isUnix());
         if (quotedLR.startsWith("\"") && quotedLR.endsWith("\"")) {
