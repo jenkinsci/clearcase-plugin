@@ -623,7 +623,7 @@ public class BaseHistoryActionTest {
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
                                                               scm.getViewPath(variableResolver),
                                                               scm.generateNormalizedViewName(variableResolver),
-                                                              scm.getBranchNames(variableResolver), scm.getViewPaths());
+                                                              scm.getBranchNames(variableResolver), scm.getViewPaths(null, null, launcher));
         assertEquals("Number of history entries are incorrect", 1, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "sapiciadapter\\Tools\\gplus_tt\\gplus_tt_config.py", entry.getElements().get(0).getFile());
@@ -693,7 +693,7 @@ public class BaseHistoryActionTest {
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
                                                               scm.getViewPath(variableResolver),
                                                               scm.generateNormalizedViewName(variableResolver),
-                                                              scm.getBranchNames(variableResolver), scm.getViewPaths());
+                                                              scm.getBranchNames(variableResolver), scm.getViewPaths(null, null, launcher));
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "ecs3cop\\projects\\apps\\esa\\ecl\\sot\\sot_impl\\src\\main\\java\\com\\ascom\\ecs3\\ecl\\sot\\nodeoperationstate\\OperationStateManagerImpl.java", entry.getElements().get(0).getFile());
@@ -758,7 +758,7 @@ public class BaseHistoryActionTest {
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
                                                               scm.getViewPath(variableResolver),
                                                               scm.generateNormalizedViewName((BuildVariableResolver)variableResolver),
-                                                              scm.getBranchNames(variableResolver), scm.getViewPaths());
+                                                              scm.getBranchNames(variableResolver), scm.getViewPaths(null, null, launcher));
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         ClearCaseChangeLogEntry entry = entries.get(0);
         assertEquals("File path is incorrect", "some_vob\\path\\to\\file.java", entry.getElements().get(0).getFile());

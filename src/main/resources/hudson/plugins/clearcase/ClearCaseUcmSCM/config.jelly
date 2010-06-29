@@ -48,9 +48,12 @@
                checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Stream selector is mandatory')+'&amp;value='+escape(this.value)" />
   </f:entry>
   
-  <f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
-    <f:textarea name="ucm.loadrules" value="${scm.loadRules}" />
-  </f:entry>
+  <f:optionalBlock name="ucm.useManualLoadRules" title="Define load rules manually"
+                         checked="${scm.useManualLoadRules}" help="/plugin/clearcase/useManualLoadRules.html">
+    <f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
+      <f:textarea name="ucm.loadrules" value="${scm.loadRules}" />
+    </f:entry>
+  </f:optionalBlock>
   
   <f:entry title="Use update">
     <f:checkbox name="ucm.useupdate" checked="${h.defaultToTrue(scm.useUpdate)}"/>

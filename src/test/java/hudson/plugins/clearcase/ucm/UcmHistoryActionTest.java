@@ -28,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import hudson.Launcher;
+import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.ClearCaseUcmSCMDummy;
 import hudson.plugins.clearcase.ClearTool;
@@ -37,11 +38,13 @@ import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FilterChain;
+import hudson.util.VariableResolver;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.jmock.Expectations;
@@ -60,6 +63,7 @@ public class UcmHistoryActionTest {
     private ClearToolLauncher clearToolLauncher;
     private Launcher launcher;
     private ClearCaseUcmSCM.ClearCaseUcmScmDescriptor clearCaseUcmScmDescriptor;
+    private AbstractBuild build;
 
     @Before
     public void setUp() throws Exception {
@@ -73,6 +77,7 @@ public class UcmHistoryActionTest {
         context = new JUnit4Mockery();
         cleartool = context.mock(ClearTool.class);
         clearToolLauncher = context.mock(ClearToolLauncher.class);
+        build = classContext.mock(AbstractBuild.class);
         
     }
 
@@ -467,9 +472,9 @@ public class UcmHistoryActionTest {
             });
 
 
-        UcmHistoryAction action = new UcmHistoryAction(cleartool,false,scm.configureFilters(clearToolLauncher), null, null);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, scm.configureFilters(new VariableResolver.ByMap<String>(new HashMap<String, String>()), build, launcher), null, null);
         action.setExtendedViewPath("D:\\java\\hudson\\jobs\\stromp_be_test\\workspace\\stromp_be_builc\\");
-        boolean hasChange = action.hasChanges(null, "stromp_be_builc", "viewTag", new String[]{"jcp_v13.1_be_int"}, scm.getViewPaths());
+        boolean hasChange = action.hasChanges(null, "stromp_be_builc", "viewTag", new String[]{"jcp_v13.1_be_int"}, scm.getViewPaths(null, null, launcher));
         assertTrue("The hasChanges() method did not report a change", hasChange);
     }
         
