@@ -454,15 +454,13 @@ public abstract class ClearToolExec implements ClearTool {
             throw new IOException("Failed to make baseline, reason: " + output);
         }
 
-        Pattern pattern = Pattern.compile("Created baseline \".+?\"");
+        Pattern pattern = Pattern.compile("Created baseline \"(.+?)\" in component \"(.+?)\"");
         Matcher matcher = pattern.matcher(output);
         List<Baseline> createdBaselinesList = new ArrayList<Baseline>();
-        while (matcher.find()) {
-            String match = matcher.group();
-            String[] parts = match.split("\"");
-            String newBaseline = parts[1];
-            String componentName = parts[3];
-            createdBaselinesList.add(new Baseline(newBaseline, componentName));
+        while (matcher.find() && matcher.groupCount() == 2 ) {
+            String baseline = matcher.group(1);
+            String component = matcher.group(2);
+            createdBaselinesList.add(new Baseline(baseline, component));
         }
 
         return createdBaselinesList;

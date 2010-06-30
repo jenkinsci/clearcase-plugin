@@ -180,6 +180,30 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                                                 mockedCalendar.getTime(), "viewName","branch", new String[]{ "vob1", "vob2\n", "vob 3"});
         assertNotNull("Returned console reader can not be null", reader);
     }
+
+    @Test
+    public void testMkbl() throws Exception {
+        context.checking(new Expectations() {
+            {
+                one(ccLauncher).run(
+                        with(equal(new String[] { "mkbl", "-comment",
+                                "comment", "-incremental", "-view", "viewTag",
+                                "myBl" })), (InputStream) with(anything()),
+                        (OutputStream) with(an(OutputStream.class)),
+                        with(any(FilePath.class)));
+                will(doAll(
+                        new StreamCopyAction(2, ClearToolExecTest.class
+                                .getResourceAsStream("ct-mkbl-1.log")),
+                        returnValue(Boolean.TRUE)));
+            }
+        });
+        List<Baseline> baselines = clearToolExec.mkbl("myBl", "viewTag",
+                "comment", false, false, null, null, null);
+        assertEquals(1, baselines.size());
+        Baseline baseline = baselines.get(0);
+        assertEquals("mybl", baseline.getBaselineName());
+        assertEquals("mycomponent", baseline.getComponentName());
+    }
     
     @Test
     public void testLsHistoryBranchNotFound() throws Exception {
