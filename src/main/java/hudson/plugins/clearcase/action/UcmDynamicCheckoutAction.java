@@ -84,10 +84,6 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
                 dataAction.setStream(stream);
             }
         }
-        PrintStream logger = launcher.getListener().getLogger();
-        logger.println("createDynView = " + createDynView);
-        logger.println("freezeCode = " + freezeCode);
-        logger.println("recreateView = " + recreateView);
         if (createDynView) {
             if (freezeCode) {
                 checkoutCodeFreeze(viewTag);
