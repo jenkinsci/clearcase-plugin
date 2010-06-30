@@ -50,6 +50,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -435,7 +436,9 @@ public abstract class ClearToolExec implements ClearTool {
         }
 
         // Make baseline only for specified components
-        cmd.add("-comp", StringUtils.join(components, ','));
+        if (CollectionUtils.isNotEmpty(components)) {
+        	cmd.add("-comp", StringUtils.join(components, ','));
+        }
         
         if (StringUtils.isNotEmpty(dDependsOn)) {
             cmd.add("-ddepends_on", dDependsOn);
