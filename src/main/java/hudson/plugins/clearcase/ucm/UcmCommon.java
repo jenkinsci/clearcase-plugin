@@ -95,7 +95,7 @@ public class UcmCommon {
         if (StringUtils.startsWith(output, prefix)) {
             String[] baselineNamesSplit = output.split("baseline:");
             for (String baselineName : baselineNamesSplit) {
-                if (StringUtils.isBlank(baselineName)) {
+                if (StringUtils.isNotBlank(baselineName)) {
                     String baselineNameTrimmed = StringUtils.trim(baselineName);
                     // Retrict to baseline bind to read/write component
                     String blComp = getDataforBaseline(clearTool, filePath, baselineNameTrimmed).getBaselineName();
