@@ -178,13 +178,15 @@ public class UcmHistoryAction extends AbstractHistoryAction {
                     return StringUtils.equals(oldBl.getComponentName(), ((Baseline) bl).getComponentName());
                 }
             })).getBaselineName();
-            List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
-            for (String version : versions) {
-                try {
-                    parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, version)), history);
-                } catch (ParseException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+            if (!StringUtils.equals(bl1, bl2)) {
+                List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
+                for (String version : versions) {
+                    try {
+                        parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, version)), history);
+                    } catch (ParseException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
             }
         }

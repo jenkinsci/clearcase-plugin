@@ -484,6 +484,7 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     public void mkview(String viewPath, String viewTag, String streamSelector) throws IOException, InterruptedException {
+        Validate.notEmpty(viewPath);
         boolean isOptionalParamContainsHost = false;
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkview");
