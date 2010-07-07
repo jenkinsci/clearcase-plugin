@@ -84,6 +84,7 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
      * @throws InterruptedException
      */
     protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String viewTag, String viewPath, String streamSelector) throws IOException, InterruptedException {
+        Validate.notEmpty(viewPath);
         FilePath filePath = new FilePath(workspace, viewPath);
         boolean viewPathExists = filePath.exists();
         boolean doViewCreation = true;
