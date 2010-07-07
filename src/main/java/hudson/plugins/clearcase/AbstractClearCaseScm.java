@@ -653,7 +653,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     
     public String getViewPath(VariableResolver<String> variableResolver) {
         String normalized = null;
-        String viewPath = getViewPath();
+        String viewPath = StringUtils.defaultIfEmpty(getViewPath(), getViewName());
         if (viewPath != null) {
             normalized = Util.replaceMacro(viewPath.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_"), variableResolver);
             setNormalizedViewPath(normalized);
