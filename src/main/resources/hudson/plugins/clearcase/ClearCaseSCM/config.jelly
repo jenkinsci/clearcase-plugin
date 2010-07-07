@@ -32,8 +32,7 @@
   </f:entry>
   <f:entry title="View path" help="/plugin/clearcase/localdir.html">
     <f:textbox name="cc.viewpath"
-      value="${h.defaulted(scm.viewpath, h.defaulted(scm.viewName, descriptor.defaultViewPath))}"
-      checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('View path is mandatory')+'&amp;value='+escape(this.value)" />
+      value="${h.defaulted(scm.viewpath, h.defaulted(scm.viewName, descriptor.defaultViewPath))}"/>
   </f:entry>
   <f:entry title="Config spec" help="/plugin/clearcase/configspec.html">
     <f:textarea name="cc.configspec" value="${scm.configSpec}"

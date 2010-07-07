@@ -31,15 +31,8 @@
 	with the same name as the specified view name. 
 	</p>
 	<p>
-	If you have several jobs that uses this ClearCase plugin you need to specify a unique view 
-	name for each job. To help creating unique view names, there are two macros that will be 
-	replaced in the view name.
-	<ol>
-		<li><tt>${NODE_NAME}</tt> is replaced with the name of the node</li>
-		<li><tt>${JOB_NAME}</tt> is replaced with the name of the job</li>
-		<li><tt>${USER_NAME}</tt> is replaced with the name of the user that is running Hudson</li>
-	</ol>
-  </p>
+	If the view path is left empty, the view tag will be used as view path.
+	</p>
   <p>
   	The view path relative to the workspace is available as an environment variable named <code>CLEARCASE_VIEWNAME</code>.
   	<br/> 

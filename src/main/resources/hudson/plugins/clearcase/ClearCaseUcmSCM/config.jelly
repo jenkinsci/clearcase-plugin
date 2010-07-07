@@ -40,8 +40,7 @@
   </f:entry>
   <f:entry title="View path" help="/plugin/clearcase/localdir.html">
     <f:textbox name="ucm.viewpath"
-      value="${h.defaulted(scm.viewpath, h.defaulted(scm.viewPath, descriptor.defaultViewPath))}"
-      checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('View path is mandatory')+'&amp;value='+escape(this.value)" />
+      value="${h.defaulted(scm.viewpath, h.defaulted(scm.viewPath, descriptor.defaultViewPath))}"/>
   </f:entry>
   <f:entry title="Stream selector" help="/plugin/clearcase/stream.html">
     <f:textbox name="ucm.stream" value="${scm.stream}" 
