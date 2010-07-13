@@ -25,8 +25,8 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
             return super.cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, streamSelector);
         }
 
-        public DummyCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate) {
-            super(cleartool, loadRules, useUpdate);
+        public DummyCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate, String viewPath) {
+            super(cleartool, loadRules, useUpdate, viewPath);
         }
 
         @Override
@@ -61,7 +61,7 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
                one(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
             }
         });
-        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, true);
+        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, true, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
     }
     
@@ -74,7 +74,7 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
                 one(clearTool).lscurrentview("path"); will(returnValue("aViewTag"));
             }
         });
-        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, true);
+        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, true, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
     }
     
@@ -89,7 +89,7 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
                 one(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
             }
         });
-        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false);
+        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
     }
     
@@ -104,7 +104,7 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
                 one(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
             }
         });
-        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false);
+        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
         assertTrue("The existing path should have been renamed", workspace.child("path.keep.1").exists());
     }
@@ -121,7 +121,7 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
                 one(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
             }
         });
-        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false);
+        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
     }
 }

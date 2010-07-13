@@ -43,6 +43,7 @@ import org.apache.commons.lang.Validate;
  */
 public abstract class AbstractCheckoutAction implements CheckOutAction {
     
+
     public static class LoadRulesDelta {
         private final Set<String> removed;
         private final Set<String> added;
@@ -65,14 +66,20 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
     protected final ClearTool cleartool;
     protected final String[] loadRules;
     protected final boolean useUpdate;
+    protected final String viewPath;
     
-    public AbstractCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate) {
+    public AbstractCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate, String viewPath) {
         Validate.notNull(cleartool);
         this.cleartool = cleartool;
         this.loadRules = loadRules;
         this.useUpdate = useUpdate;
+        this.viewPath = viewPath;
     }
 
+    @Override
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        return cleartool.doesViewExist(viewTag) && viewTag.equals(cleartool.lscurrentview(viewPath));
+    }
     /**
      * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be created
      * @param workspace The job's workspace
