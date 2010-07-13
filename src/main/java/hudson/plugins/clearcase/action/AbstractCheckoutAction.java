@@ -78,7 +78,10 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
 
     @Override
     public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        return cleartool.doesViewExist(viewTag) && viewTag.equals(cleartool.lscurrentview(viewPath));
+        Validate.notEmpty(viewPath);
+        FilePath filePath = new FilePath(workspace, viewPath);
+        boolean viewPathExists = filePath.exists();
+        return cleartool.doesViewExist(viewTag) && viewPathExists && viewTag.equals(cleartool.lscurrentview(viewPath));
     }
     /**
      * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be created
