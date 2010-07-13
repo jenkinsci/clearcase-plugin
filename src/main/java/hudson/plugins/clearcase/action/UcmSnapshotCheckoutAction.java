@@ -37,12 +37,9 @@ import org.apache.commons.lang.ArrayUtils;
 public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
 
     private final String streamSelector;
-    private final String viewPath;
-
     public UcmSnapshotCheckoutAction(ClearTool cleartool, String streamSelector, String[] loadRules, boolean useUpdate, String viewPath) {
-        super(cleartool, loadRules, useUpdate);
+        super(cleartool, loadRules, useUpdate, viewPath);
         this.streamSelector = streamSelector;
-        this.viewPath = viewPath;
     }
 
     @Override
