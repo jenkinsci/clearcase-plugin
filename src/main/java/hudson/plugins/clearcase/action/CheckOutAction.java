@@ -34,5 +34,7 @@ import java.io.IOException;
  */
 public interface CheckOutAction {
 
-    boolean checkout(Launcher launcher, FilePath workspace, String viewName) throws IOException, InterruptedException;
+    boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
+    
+    boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
 }

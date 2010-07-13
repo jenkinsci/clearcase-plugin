@@ -28,13 +28,13 @@ import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.DefaultFilter;
@@ -47,9 +47,9 @@ import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.PollingResult;
-import hudson.scm.SCM;
-import hudson.scm.SCMRevisionState;
 import hudson.scm.PollingResult.Change;
+import hudson.scm.SCMRevisionState;
+import hudson.scm.SCM;
 import hudson.util.StreamTaskListener;
 import hudson.util.VariableResolver;
 
@@ -469,16 +469,37 @@ public abstract class AbstractClearCaseScm extends SCM {
 
         build.addAction(new ClearCaseDataAction());
 
-        // Gather change log
-        List<? extends ChangeLogSet.Entry> changelogEntries = null;
+        boolean computeChangeLogAfterCheckout = false;
+        boolean returnValue = true;
         if (build.getPreviousBuild() != null) {
-            @SuppressWarnings("unchecked") Run prevBuild = build.getPreviousBuild();
-            Date lastBuildTime = getBuildTime(prevBuild);
-            HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build);
-            changelogEntries = historyAction.getChanges(lastBuildTime, getViewPath(variableResolver), coNormalizedViewName, getBranchNames(variableResolver), getViewPaths(variableResolver, build, launcher));
+            if (checkoutAction.isViewValid(launcher, workspace, coNormalizedViewName)) {
+                // We need a valid view to determine the change log. For instance, on a new slave the view won't exist
+                returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
+                        coNormalizedViewName, returnValue);
+            } else {
+                // Otherwise, we just wait for the checkout to happen to set the view correctly.
+                computeChangeLogAfterCheckout = true;
+            }
+        }
+        if (!checkoutAction.checkout(launcher, workspace, coNormalizedViewName)) {
+            throw new AbortException();
+        }
+        if (computeChangeLogAfterCheckout) {
+            returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
+                    coNormalizedViewName, returnValue);
         }
 
-        boolean returnValue = true;
+        return returnValue;
+    }
+
+    private boolean saveChangeLog(AbstractBuild build, Launcher launcher, BuildListener listener, File changelogFile, ClearToolLauncher clearToolLauncher,
+            VariableResolver<String> variableResolver, SaveChangeLogAction saveChangeLogAction, String coNormalizedViewName, boolean returnValue)
+            throws IOException, InterruptedException {
+        List<? extends ChangeLogSet.Entry> changelogEntries;
+        @SuppressWarnings("unchecked") Run prevBuild = build.getPreviousBuild();
+        Date lastBuildTime = getBuildTime(prevBuild);
+        HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build);
+        changelogEntries = historyAction.getChanges(lastBuildTime, getViewPath(variableResolver), coNormalizedViewName, getBranchNames(variableResolver), getViewPaths(variableResolver, build, launcher));
         // Save change log
         if (CollectionUtils.isEmpty(changelogEntries)) {
             // no changes
@@ -486,12 +507,6 @@ public abstract class AbstractClearCaseScm extends SCM {
         } else {
             saveChangeLogAction.saveChangeLog(changelogFile, changelogEntries);
         }
-
-        
-        if (!checkoutAction.checkout(launcher, workspace, coNormalizedViewName)) {
-            throw new AbortException();
-        }
-
         return returnValue;
     }
 

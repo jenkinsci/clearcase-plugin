@@ -204,4 +204,13 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
         return BUILD_STREAM_PREFIX + jobName + "." + stream;
     }
 
+    @Override
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        if (cleartool.doesViewExist(viewTag)) {
+            cleartool.startView(viewTag);
+            return true;
+        }
+        return false;
+    }
+
 }

@@ -121,4 +121,13 @@ public class DynamicCheckoutAction implements CheckOutAction {
 
         return formatter.format(nowDate).toLowerCase();
     }
+
+    @Override
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        if (cleartool.doesViewExist(viewTag)) {
+            cleartool.startView(viewTag);
+            return true;
+        }
+        return false;
+    }
 }

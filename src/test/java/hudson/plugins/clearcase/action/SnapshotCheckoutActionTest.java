@@ -88,7 +88,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                 }
             });
 
-        SnapshotCheckoutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", false), new String[]{"foo"}, false, "viewpath");
+        AbstractCheckoutAction action = new SnapshotCheckoutAction(clearTool, new ConfigSpec("config\r\nspec", false), new String[]{"foo"}, false, "viewpath");
         action.checkout(launcher, workspace, "viewname");
     }
     

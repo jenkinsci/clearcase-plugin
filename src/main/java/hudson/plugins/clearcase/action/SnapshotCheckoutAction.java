@@ -41,12 +41,9 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
 
     private final ConfigSpec configSpec;
     
-    private final String viewPath;
-
     public SnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath) {
-        super(cleartool, loadRules, useUpdate);
+        super(cleartool, loadRules, useUpdate, viewPath);
         this.configSpec = configSpec;
-        this.viewPath = viewPath;
     }
 
     public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
