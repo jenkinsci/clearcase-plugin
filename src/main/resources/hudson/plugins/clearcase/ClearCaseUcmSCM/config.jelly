@@ -51,7 +51,7 @@
     <td colspan="4">
       <table width="100%">
         <f:optionalBlock name="ucm.useManualLoadRules" title="Define load rules manually"
-                         checked="${scm.useManualLoadRules}" help="/plugin/clearcase/useManualLoadRules.html">
+                         checked="${scm.useManualLoadRules || not empty scm.loadRules}" help="/plugin/clearcase/useManualLoadRules.html">
           <f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
             <f:textarea name="ucm.loadrules" value="${scm.loadRules}" />
           </f:entry>
