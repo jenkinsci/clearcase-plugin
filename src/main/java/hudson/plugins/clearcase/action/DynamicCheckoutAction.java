@@ -70,7 +70,7 @@ public class DynamicCheckoutAction implements CheckOutAction {
             // Remove current view
             if (cleartool.doesViewExist(viewTag)) {
                 try {
-                    cleartool.rmview(viewTag);
+                    cleartool.rmviewtag(viewTag);
                 } catch (Exception ex) {
                     cleartool.logRedundantCleartoolError(null, ex);
                 }
