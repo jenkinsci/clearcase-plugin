@@ -283,8 +283,15 @@ public abstract class AbstractClearCaseScm extends SCM {
             if (normViewPath != null) {
                 return workspace.child(normViewPath);
             } else {
-                // Should never happen, because viewName must not be null, and if viewpath is null, then it is made equal to viewName
-                throw new IllegalStateException("View path name cannot be null. There is a bug inside AbstractClearCaseScm.");
+                // HUDSON-7027 : Lost of Clearcase configuration during maven site
+                // Note that this won't work if variables are used in the view path
+                normViewPath = getViewPath();
+                if (normViewPath != null) {
+                    return workspace.child(normViewPath);
+                } else {
+                    // Should never happen, because viewName must not be null, and if viewpath is null, then it is made equal to viewName
+                    throw new IllegalStateException("View path name cannot be null. There is a bug inside AbstractClearCaseScm.");
+                }
             }
         }
     }
@@ -656,7 +663,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     
             // Adding tweak for ignoring leading slashes or Windows drives in case of strange situations using setview.
             if (StringUtils.isNotEmpty(tempFilterRules)) {
-                filterRegexp = "^(?:\\W?|\\w\\:\\\\)(" + tempFilterRules.substring(1) + ")";
+                filterRegexp = tempFilterRules.substring(1);
             }
         }
         return filterRegexp;
