@@ -167,11 +167,11 @@ public class UcmCommon {
     }
     
     public static List<Baseline> getLatestBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
-        return getBaselinesDesc(clearTool, stream, "%[latest_bls]p\\n");
+        return getBaselinesDesc(clearTool, stream, "%[latest_bls]Xp\\n");
     }
     
     public static List<Baseline> getFoundationBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
-        return getBaselinesDesc(clearTool, stream, "%[found_bls]p\\n");
+        return getBaselinesDesc(clearTool, stream, "%[found_bls]Xp\\n");
     }
     
     private static List<Baseline> getBaselinesDesc(ClearTool clearTool, String stream, String format) throws IOException,
@@ -191,12 +191,10 @@ public class UcmCommon {
             rd.close();
         }
         List<Baseline> foundationBaselines = new ArrayList<Baseline>();
-        String pvob = UcmCommon.getVob(stream);
         for (String baseline : baselines) {
-            String qualifiedBaseline = baseline + "@" + pvob;
-            BufferedReader br = new BufferedReader(clearTool.describe("%[component]p\\n", "baseline:" + qualifiedBaseline));
+            BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", baseline));
             try {
-                foundationBaselines.add(new Baseline(qualifiedBaseline, br.readLine() + "@" + pvob));
+                foundationBaselines.add(new Baseline(StringUtils.removeStart(baseline, "baseline:"), StringUtils.removeStart(br.readLine(), "component:")));
             } finally {
                 br.close();
             }
