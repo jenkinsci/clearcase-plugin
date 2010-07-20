@@ -754,7 +754,7 @@ public abstract class ClearToolExec implements ClearTool {
         FilePath configSpecFile = null;
         if (option == SetcsOption.CONFIGSPEC) {
             configSpecFile = launcher.getWorkspace().createTextTempFile("configspec", ".txt", configSpec);
-            cmd.add(PathUtil.convertPathForOS(".." + File.separator + configSpecFile.getName(), launcher.getLauncher().isUnix()));
+            cmd.add(PathUtil.convertPathForOS(configSpecFile.absolutize().getRemote(), launcher.getLauncher().isUnix()));
         }
         FilePath workingDirectory = null;
         if (viewPath != null) {
