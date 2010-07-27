@@ -180,10 +180,12 @@ public class UcmCommon {
         List<String> baselines = new ArrayList<String>();
         try {
             for (String line = rd.readLine(); line != null; line = rd.readLine()) {
-                String[] bl = line.split(" ");
-                for (String b : bl) {
-                    if (StringUtils.isNotBlank(b)) {
-                        baselines.add(b);
+                if (!line.startsWith("cleartool: Error:")) {
+                    String[] bl = line.split(" ");
+                    for (String b : bl) {
+                        if (StringUtils.isNotBlank(b)) {
+                            baselines.add(b);
+                        }
                     }
                 }
             }
