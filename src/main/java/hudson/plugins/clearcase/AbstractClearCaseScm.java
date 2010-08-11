@@ -580,6 +580,9 @@ public abstract class AbstractClearCaseScm extends SCM {
         Launcher launcher = node.createLauncher(listener);
         ClearTool ct = createClearTool(null, createClearToolLauncher(listener, project.getSomeWorkspace().getParent().getParent(), launcher));
         try {
+            if (isUseDynamicView() && !isCreateDynView()) {
+                return true;
+            }
             AbstractBuild<?, ?> latestBuildOnNode = null;
             for(AbstractBuild<?, ?> build : project.getBuilds()) {
                 if (node.equals(build.getBuiltOn())) {
