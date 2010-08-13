@@ -95,21 +95,28 @@ public abstract class ClearToolExec implements ClearTool {
     public Reader diffbl(EnumSet<DiffBlOptions> type, String baseline1, String baseline2, String viewPath) {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("diffbl");
-        for (DiffBlOptions t : type) {
-            cmd.add(getOption(t));
+        if (type != null) {
+            for (DiffBlOptions t : type) {
+                cmd.add(getOption(t));
+            }
         }
         cmd.add(baseline1);
         cmd.add(baseline2);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        
+        FilePath workingDirectory = launcher.getWorkspace();
+        if (viewPath != null) {
+            workingDirectory = workingDirectory.child(viewPath);
+        }
         try {
-            launcher.run(cmd.toCommandArray(), null, baos, launcher.getWorkspace().child(viewPath));
+            launcher.run(cmd.toCommandArray(), null, baos, workingDirectory);
         } catch (IOException e) {
         } catch (InterruptedException e) {
         }
         return new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
     }
-
+    
     @Override
     public boolean doesStreamExist(String streamSelector) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
