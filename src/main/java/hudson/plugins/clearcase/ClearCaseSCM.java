@@ -26,12 +26,15 @@ package hudson.plugins.clearcase;
 
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
+import hudson.CopyOnWrite;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.Hudson;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
+import hudson.model.AbstractBuild;
+import hudson.model.Computer;
+import hudson.model.Hudson;
+import hudson.model.Node;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.DynamicCheckoutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
@@ -40,13 +43,11 @@ import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
 import hudson.plugins.clearcase.base.ClearCaseSCMRevisionState;
 import hudson.plugins.clearcase.history.HistoryAction;
-import hudson.plugins.clearcase.ucm.ClearCaseUCMSCMRevisionState;
-import hudson.plugins.clearcase.ucm.UcmCommon;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
-import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
+import hudson.scm.SCM;
 import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
@@ -219,12 +220,16 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
      * @author Erik Ramfelt
      */
     public static class ClearCaseScmDescriptor extends SCMDescriptor<ClearCaseSCM> implements ModelObject {
-        private String cleartoolExe;
-        private int changeLogMergeTimeWindow = 5;
+        private static final int DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW = 5;
+        
+        private int changeLogMergeTimeWindow = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
         private String defaultViewName;
         private String defaultViewPath;
         private String defaultWinDynStorageDir;
         private String defaultUnixDynStorageDir;
+
+        @CopyOnWrite
+        private volatile ClearCaseInstallation[] installations = new ClearCaseInstallation[0];
 
         public ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
@@ -236,7 +241,17 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         }
 
         public String getCleartoolExe() {
-            return StringUtils.defaultString(cleartoolExe, "cleartool");
+            String cleartoolExe;
+            try {
+                cleartoolExe = getCleartoolExe(Computer.currentComputer().getNode(), TaskListener.NULL);
+            } catch (Exception e) {
+                cleartoolExe = "cleartool";
+            }
+            return cleartoolExe;
+        }
+
+        public String getCleartoolExe(Node node, TaskListener listener) throws IOException, InterruptedException {
+            return Hudson.getInstance().getDescriptorByType(ClearCaseInstallation.DescriptorImpl.class).getInstallation().getCleartoolExe(node, listener);
         }
 
         public String getDefaultViewName() {
@@ -270,7 +285,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) {
-            cleartoolExe = fixEmpty(req.getParameter("clearcase.cleartoolExe").trim());
             defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName").trim());
             defaultViewPath = fixEmpty(req.getParameter("clearcase.defaultViewPath").trim());
             defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir").trim());
@@ -281,10 +295,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                 try {
                     changeLogMergeTimeWindow = DecimalFormat.getIntegerInstance().parse(mergeTimeWindow).intValue();
                 } catch (ParseException e) {
-                    changeLogMergeTimeWindow = 5;
+                    changeLogMergeTimeWindow = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
                 }
             } else {
-                changeLogMergeTimeWindow = 5;
+                changeLogMergeTimeWindow = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
             }
             save();
             return true;
@@ -391,6 +405,15 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             rsp.setContentType("text/plain");
             rsp.getOutputStream().println("ClearCase Views found:\n");
             baos.writeTo(rsp.getOutputStream());
+        }
+
+        public ClearCaseInstallation[] getInstallations() {
+            return this.installations;
+        }
+
+        public void setInstallations(ClearCaseInstallation[] installations) {
+            this.installations = installations;
+            save();
         }
     }
     
