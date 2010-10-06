@@ -156,7 +156,7 @@ public class ItemListenerImpl extends ItemListener {
             if (scm instanceof AbstractClearCaseScm) {
                 try {
                     AbstractClearCaseScm ccScm = (AbstractClearCaseScm) scm;
-                    if (!ccScm.isCreateDynView()) {
+                    if (ccScm.isUseDynamicView() && !ccScm.isCreateDynView()) {
                         return;
                     }
                     StreamTaskListener listener = StreamTaskListener.fromStdout();
