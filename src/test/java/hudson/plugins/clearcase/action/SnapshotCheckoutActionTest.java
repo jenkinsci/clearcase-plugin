@@ -233,7 +233,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(true));
                     one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
-                    one(clearTool).update("viewpath", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CURRENT, null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -282,7 +282,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
-                    one(clearTool).update("viewpath", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CURRENT, null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -307,7 +307,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
                     one(clearTool).update("viewpath", new String[] {"/bar"});
-                    one(clearTool).update("viewpath", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CURRENT, null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -332,7 +332,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\nload /bar\n"));
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
-                    one(clearTool).update("viewpath", null);
+                    one(clearTool).setcs("viewpath", SetcsOption.CURRENT, null);
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
