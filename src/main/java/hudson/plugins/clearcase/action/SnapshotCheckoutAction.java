@@ -80,7 +80,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
         // Perform a full update of the view. to reevaluate config spec
         if (!viewCreated) {
             try {
-                cleartool.update(viewPath, null);
+                cleartool.setcs(viewPath, SetcsOption.CURRENT, null);
             } catch (IOException e) {
                 launcher.getListener().fatalError(e.toString());
                 return false;
