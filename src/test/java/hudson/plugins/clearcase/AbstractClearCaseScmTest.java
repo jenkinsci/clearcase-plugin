@@ -634,7 +634,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
                 allowing(build).getProject(); will(returnValue(project));
                 allowing(project).getName(); will(returnValue("CCHudson"));
-                ignoring(project).getLastBuild(); will(returnValue(build));
+                ignoring(project).getSomeBuildWithWorkspace(); will(returnValue(build));
                 ignoring(build).getTimestamp(); will(returnValue(Calendar.getInstance()));
                 allowing(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
                 allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "CCHudson")));
@@ -651,7 +651,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testPollChangesFirstTime() throws Exception {
         classContext.checking(new Expectations() {
             {
-                one(project).getLastBuild();
+                one(project).getSomeBuildWithWorkspace();
                 will(returnValue(null));
             }
         });
@@ -685,7 +685,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 
                 ignoring(build).getParent(); will(returnValue(project));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
-                one(project).getLastBuild(); will(returnValue(build));
+                one(project).getSomeBuildWithWorkspace(); will(returnValue(build));
                 one(scmRevisionState).getBuildTime(); will(returnValue(mockedCalendar.getTime()));
                 ignoring(scmRevisionState).getLoadRules(); will(returnValue(new String[]{"vob"}));
             }
@@ -722,7 +722,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 
                 ignoring(build).getParent(); will(returnValue(project));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
-                one(project).getLastBuild(); will(returnValue(build));
+                one(project).getSomeBuildWithWorkspace(); will(returnValue(build));
                 one(scmRevisionState).getBuildTime(); will(returnValue(mockedCalendar.getTime()));
                 ignoring(scmRevisionState).getLoadRules(); will(returnValue(new String[]{"vob"}));
             }
@@ -754,7 +754,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 
                 ignoring(build).getParent(); will(returnValue(project));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
-                one(project).getLastBuild(); will(returnValue(build));
+                one(project).getSomeBuildWithWorkspace(); will(returnValue(build));
                 one(scmRevisionState).getBuildTime(); will(returnValue(mockedCalendar.getTime()));
                 ignoring(scmRevisionState).getLoadRules(); will(returnValue(new String[]{"vob1", "vob2/vob2-1", "vob\\ 3"}));
             }
@@ -786,7 +786,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 
                 ignoring(build).getParent(); will(returnValue(project));
                 one(build).getTimestamp(); will(returnValue(mockedCalendar));
-                one(project).getLastBuild(); will(returnValue(build));
+                one(project).getSomeBuildWithWorkspace(); will(returnValue(build));
                 ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 one(scmRevisionState).getBuildTime(); will(returnValue(mockedCalendar.getTime()));
                 ignoring(scmRevisionState).getLoadRules(); will(returnValue(null));
@@ -819,7 +819,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
                 
                 ignoring(matrixBuild).getParent(); will(returnValue(project));
-                one(project).getLastBuild(); will(returnValue(matrixBuild));
+                one(project).getSomeBuildWithWorkspace(); will(returnValue(matrixBuild));
                 one(matrixBuild).getTimestamp(); will(returnValue(mockedCalendar));
                 ignoring(build).addAction(with(any(ClearCaseDataAction.class)));
                 one(scmRevisionState).getBuildTime(); will(returnValue(mockedCalendar.getTime()));
@@ -853,7 +853,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 
                 ignoring(build).getParent(); will(returnValue(project));
                 ignoring(build).getTimestamp(); will(returnValue(mockedCalendar));
-                ignoring(project).getLastBuild(); will(returnValue(build));
+                ignoring(project).getSomeBuildWithWorkspace(); will(returnValue(build));
                 ignoring(project).getName(); will(returnValue("CCHudson"));
                 one(scmRevisionState).getBuildTime(); will(returnValue(mockedCalendar.getTime()));
                 ignoring(scmRevisionState).getLoadRules(); will(returnValue(new String[]{}));
@@ -892,7 +892,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 
                 ignoring(build).getParent(); will(returnValue(project));
                 ignoring(build).getTimestamp(); will(returnValue(mockedCalendar));
-                ignoring(project).getLastBuild(); will(returnValue(build));
+                ignoring(project).getSomeBuildWithWorkspace(); will(returnValue(build));
                 ignoring(project).getName(); will(returnValue("CCHudson"));
                 one(scmRevisionState).getBuildTime(); will(returnValue(mockedCalendar.getTime()));
                 ignoring(scmRevisionState).getLoadRules(); will(returnValue(new String[]{}));
