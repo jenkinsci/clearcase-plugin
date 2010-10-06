@@ -576,6 +576,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     @Override
     public boolean processWorkspaceBeforeDeletion(AbstractProject<?, ?> project, FilePath workspace, Node node) throws IOException, InterruptedException {
+        if (node == null) {
+            // HUDSON-7663 : deleting a job that has never run
+            return true;
+        }
         StreamTaskListener listener = StreamTaskListener.fromStdout();
         Launcher launcher = node.createLauncher(listener);
         ClearTool ct = createClearTool(null, createClearToolLauncher(listener, project.getSomeWorkspace().getParent().getParent(), launcher));
