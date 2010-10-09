@@ -40,7 +40,7 @@
   </f:entry>
   <f:entry title="View path" help="/plugin/clearcase/localdir.html">
     <f:textbox name="ucm.viewpath"
-      value="${h.defaulted(scm.viewpath, h.defaulted(scm.viewPath, descriptor.defaultViewPath))}"/>
+      value="${h.defaulted(scm.viewPath, h.defaulted(scm.viewName, descriptor.defaultViewPath))}"/>
   </f:entry>
   <f:entry title="Stream selector" help="/plugin/clearcase/stream.html">
     <f:textbox name="ucm.stream" value="${scm.stream}" 
