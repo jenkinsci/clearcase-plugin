@@ -24,54 +24,52 @@
 
 -->
 
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <l:layout>
-        <st:include it="${it.owner}" page="sidepanel.jelly" />
-        <l:main-panel>
-					<h2>ClearCase Information</h2>
-					<j:choose>
-						<j:when test="${it.cspec}">
-							<h3>Config Spec.</h3>
-							
-							<table class="pane">
-								<tbody>
-									<tr>
-										<td class="pane">
-											${it.configSpecHtml}
-										</td>
-									</tr>
-								</tbody>
-							</table>						
-						</j:when>
-						<j:otherwise>
-							<h3>Stream: ${it.stream}</h3>
-							
-							<j:choose>
-								<j:when test="${it.baselineInfo}">
-									<h3>Baseline list:</h3>							
-									<table class="pane">
-										<tbody>
-											<tr>
-												<td class="pane-header">Component</td>
-												<td class="pane-header">Baseline</td>
-											</tr>							
-											<j:forEach var="i" items="${it.baselines}">
-												<tr>
-													<td class="pane">
-														${i.componentName}
-													</td>
-													<td class="pane">
-														${i.baselineName}											
-													</td>											
-												</tr>							
-											</j:forEach>
-										</tbody>
-									</table>
-								</j:when>
-							</j:choose>								
-						</j:otherwise>
-					</j:choose>							
-       </l:main-panel>
-    </l:layout>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+  xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <l:layout>
+    <st:include it="${it.owner}" page="sidepanel.jelly" />
+    <l:main-panel>
+      <h2>ClearCase Information</h2>
+      <j:choose>
+        <j:when test="${it.cspec}">
+          <h3>Config Spec.</h3>
+          <table class="pane">
+            <tbody>
+              <tr>
+                <td class="pane">
+                  ${it.configSpecHtml}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </j:when>
+        <j:otherwise>
+          <h3>Stream: ${it.stream}</h3>
+          <j:choose>
+            <j:when test="${it.baselineInfo}">
+              <h3>Baseline list:</h3>
+              <table class="pane">
+                <tbody>
+                  <tr>
+                    <td class="pane-header">Component</td>
+                    <td class="pane-header">Baseline</td>
+                  </tr>
+                  <j:forEach var="i" items="${it.baselines}">
+                    <tr>
+                      <td class="pane">
+                        ${i.componentName}
+                      </td>
+                      <td class="pane">
+                        ${i.baselineName}
+                      </td>
+                    </tr>
+                  </j:forEach>
+                </tbody>
+              </table>
+            </j:when>
+          </j:choose>
+        </j:otherwise>
+      </j:choose>
+    </l:main-panel>
+  </l:layout>
 </j:jelly>
