@@ -172,12 +172,20 @@ public class UcmHistoryAction extends AbstractHistoryAction {
         }
         for (final Baseline oldBl : oldBaselines) {
             String bl1 = oldBl.getBaselineName();
-            String bl2 = ((Baseline) CollectionUtils.find(newBaselines, new Predicate() {
+            final String comp1 = oldBl.getComponentName();
+            // Lookup the component in the set of new baselines
+            Baseline newBl = (Baseline) CollectionUtils.find(newBaselines, new Predicate() {
                 @Override
                 public boolean evaluate(Object bl) {
-                    return StringUtils.equals(oldBl.getComponentName(), ((Baseline) bl).getComponentName());
+                    return StringUtils.equals(comp1, ((Baseline) bl).getComponentName());
                 }
-            })).getBaselineName();
+            });
+            // If we cannot find a new baseline, log and skip
+            if (newBl == null) {
+                cleartool.getLauncher().getListener().getLogger().print("Old Baseline " + bl1 + " for component " + comp1 + " couldn't be found in the new set of baselines.");
+                continue;
+            }
+            String bl2 = newBl.getBaselineName();
             if (!StringUtils.equals(bl1, bl2)) {
                 List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
                 for (String version : versions) {
