@@ -107,10 +107,13 @@ public class BuildVariableResolver implements VariableResolver<String> {
             if ("USER_NAME".equals(key)) {
                 return (String) systemProperties.get("user.name");
             }
-
             Map<String, String> buildVariables = build.getBuildVariables();
             if (buildVariables.containsKey(key)) {
                 return buildVariables.get(key);
+            }
+            EnvVars compEnv = computer.getEnvironment();
+            if (compEnv.containsKey(key)) {
+                return compEnv.get(key);
             }
             if (!restricted) {
                 EnvVars env = build.getEnvironment(ltl);
