@@ -224,6 +224,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 one(node).getNodeName(); will(returnValue("test-node"));
                 allowing(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
                 allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
+                one(computer).getEnvironment(); will(returnValue(new EnvVars()));
                 one(computer).getSystemProperties(); will(returnValue(System.getProperties()));
             }
         });
