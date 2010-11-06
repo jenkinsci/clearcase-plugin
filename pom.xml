@@ -63,9 +63,9 @@
     </dependency>
   </dependencies>
   <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/trunk/hudson/plugins/clearcase</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/trunk/hudson/plugins/clearcase</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/clearcase</url>
+    <connection>scm:git:git://github.com/hudson/hudson-clearcase-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:hudson/hudson-clearcase-plugin.git</developerConnection>
+    <url>https://github.com/hudson/hudson-clearcase-plugin</url>
   </scm>
   <build>
     <plugins>
@@ -127,8 +127,26 @@
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>1.0-beta-1</version>
             </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.1</version>
+                <dependencies>  
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>1.4</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </pluginManagement>
+    <extensions>
+      <extension>
+        <groupId>org.jvnet.wagon-svn</groupId>
+        <artifactId>wagon-svn</artifactId>
+        <version>1.9</version>
+      </extension>
+    </extensions>
   </build>
   <distributionManagement>
     <snapshotRepository>
