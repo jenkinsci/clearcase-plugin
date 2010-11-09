@@ -275,6 +275,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     @Override
     public FilePath getModuleRoot(FilePath workspace) {
+        return getModuleRoot(workspace,null);
+    }
+
+    public FilePath getModuleRoot(FilePath workspace, AbstractBuild build) {
         if (useDynamicView) {
             String normViewName = getNormalizedViewName( );
             return new FilePath(workspace.getChannel(), viewDrive).child(normViewName);
@@ -283,9 +287,11 @@ public abstract class AbstractClearCaseScm extends SCM {
             if (normViewPath != null) {
                 return workspace.child(normViewPath);
             } else {
-                // HUDSON-7027 : Lost of Clearcase configuration during maven site
-                // Note that this won't work if variables are used in the view path
-                normViewPath = getViewPath();
+                if(build == null) {
+                    normViewPath = getViewPath();
+                } else {
+                    normViewPath = getViewPath(new BuildVariableResolver(build));
+                }
                 if (normViewPath != null) {
                     return workspace.child(normViewPath);
                 } else {
