@@ -4,7 +4,7 @@
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>1.358</version>
-    <relativePath/>
+    <relativePath />
   </parent>
 
   <artifactId>clearcase</artifactId>
@@ -112,6 +112,17 @@
           <argLine>-javaagent:${project.build.directory}/dependency/jdave-unfinalizer-1.1.jar</argLine>
         </configuration>
       </plugin>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.1</version>
+        <dependencies>  
+            <dependency>
+                <groupId>org.apache.maven.scm</groupId>
+                <artifactId>maven-scm-provider-gitexe</artifactId>
+                <version>1.4</version>
+            </dependency>
+        </dependencies>
+      </plugin>
     </plugins>
     <pluginManagement>
         <plugins>
@@ -126,17 +137,6 @@
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>1.0-beta-1</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.1</version>
-                <dependencies>  
-                    <dependency>
-                        <groupId>org.apache.maven.scm</groupId>
-                        <artifactId>maven-scm-provider-gitexe</artifactId>
-                        <version>1.4</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </pluginManagement>
