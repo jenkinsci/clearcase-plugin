@@ -75,6 +75,8 @@ import org.apache.commons.lang.Validate;
  * have to implement the specific checkout and polling logic.
  */
 public abstract class AbstractClearCaseScm extends SCM {
+    
+    private static final Logger LOGGER = Logger.getLogger(AbstractClearCaseScm.class.getName());
 
     public static final String CLEARCASE_VIEWTAG_ENVSTR = "CLEARCASE_VIEWTAG";
     public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
@@ -83,8 +85,6 @@ public abstract class AbstractClearCaseScm extends SCM {
     private String viewName;
     private final String mkviewOptionalParam;
     private final boolean filteringOutDestroySubBranchEvent;
-    private transient ThreadLocal<String> normalizedViewName;
-    private transient ThreadLocal<String> normalizedViewPath;
     private final boolean useUpdate;
     private final boolean removeViewOnRename;
     private String excludedRegions;
@@ -98,37 +98,6 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean freezeCode;
     private final boolean recreateView;
     private final String viewPath;
-
-    private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
-        if (null == normalizedViewName) {
-            this.normalizedViewName = new ThreadLocal<String>();
-        }
-        return this.normalizedViewName;
-    }
-    
-    private synchronized ThreadLocal<String> getNormalizedViewPathThreadLocalWrapper() {
-        if (normalizedViewPath == null) {
-            normalizedViewPath = new ThreadLocal<String>();
-        }
-        return normalizedViewPath;
-    }
-
-    protected void setNormalizedViewName(String normalizedViewName) {
-        getNormalizedViewNameThreadLocalWrapper().set(normalizedViewName);
-    }
-
-    protected String getNormalizedViewName() {
-        return getNormalizedViewNameThreadLocalWrapper().get();
-    }
-    
-    protected void setNormalizedViewPath(String normalizedViewPath) {
-        getNormalizedViewPathThreadLocalWrapper().set(normalizedViewPath);
-    }
-
-    protected String getNormalizedViewPath() {
-        return getNormalizedViewPathThreadLocalWrapper().get();
-    }
-    
 
     public AbstractClearCaseScm(final String viewName, final String mkviewOptionalParam, final boolean filterOutDestroySubBranchEvent, final boolean useUpdate,
             final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, final String loadRules,
@@ -279,25 +248,22 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     public FilePath getModuleRoot(FilePath workspace, AbstractBuild build) {
+        VariableResolver<String> resolver = null;
+        if (build == null) {
+            LOGGER.warning("getModuleRoot called with a null build instance. Build-scoped variables won't be replaced. Consider upgrading core to 1.382 minimum.");
+        } else {
+            resolver = new BuildVariableResolver(build);
+        }
         if (useDynamicView) {
-            String normViewName = getNormalizedViewName( );
+            String normViewName = getViewName(resolver);
             return new FilePath(workspace.getChannel(), viewDrive).child(normViewName);
         } else {
-            String normViewPath = getNormalizedViewPath();
+            String normViewPath = getViewPath(resolver);
             if (normViewPath != null) {
                 return workspace.child(normViewPath);
             } else {
-                if(build == null) {
-                    normViewPath = getViewPath();
-                } else {
-                    normViewPath = getViewPath(new BuildVariableResolver(build));
-                }
-                if (normViewPath != null) {
-                    return workspace.child(normViewPath);
-                } else {
-                    // Should never happen, because viewName must not be null, and if viewpath is null, then it is made equal to viewName
-                    throw new IllegalStateException("View path name cannot be null. There is a bug inside AbstractClearCaseScm.");
-                }
+                // Should never happen, because viewName must not be null, and if viewpath is null, then it is made equal to viewName
+                throw new IllegalStateException("View path name cannot be null. There is a bug inside AbstractClearCaseScm.");
             }
         }
     }
@@ -307,13 +273,10 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
     
     public String getViewName(VariableResolver<String> variableResolver) {
-        String normalized = null;
         String v = getViewName();
-        if (v != null) {
-            normalized = Util.replaceMacro(v.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_"), variableResolver);
-            setNormalizedViewName(normalized);
-        }
-        return normalized;
+        v = normalize(v);
+        v = replaceMacro(v, variableResolver);
+        return v;
     }
 
     public String getWinDynStorageDir() {
@@ -333,11 +296,8 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     public String getNormalizedUnixDynStorageDir(VariableResolver<String> variableResolver) {
-        if (variableResolver != null) {
-            return Util.replaceMacro(getUnixDynStorageDir(), variableResolver);
-        } else {
-            return getUnixDynStorageDir();
-        }
+        String dir = getUnixDynStorageDir();
+        return replaceMacro(dir, variableResolver);
     }
 
     public boolean isFreezeCode() {
@@ -391,9 +351,8 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String generateNormalizedViewName(VariableResolver<String> variableResolver, String modViewName) {
         String generatedNormalizedViewName = Util.replaceMacro(modViewName, variableResolver);
 
-        generatedNormalizedViewName = generatedNormalizedViewName.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
+        generatedNormalizedViewName = normalize(generatedNormalizedViewName);
 
-        setNormalizedViewName(generatedNormalizedViewName);
         return generatedNormalizedViewName;
     }
 
@@ -453,7 +412,11 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (normalizedViewPath != null) {
             env.put(CLEARCASE_VIEWNAME_ENVSTR, normalizedViewPath);
             if(isUseDynamicView()) {
-                env.put("CLEARCASE_VIEWPATH_ENVSTR", viewDrive + File.separator + normalizedViewPath);
+                if (getViewDrive() != null) {
+                    env.put("CLEARCASE_VIEWPATH_ENVSTR", viewDrive + File.separator + normalizedViewName);
+                } else {
+                    LOGGER.warning("View drive is null. Not setting CLEARCASE_VIEWPATH_ENVSTR");
+                }
             } else {
                 String workspace = env.get("WORKSPACE");
                 if (workspace != null) {
@@ -683,17 +646,22 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     public String getViewPath() {
-        return StringUtils.defaultString(viewPath, viewName);
+        return StringUtils.defaultString(viewPath, getViewName());
     }
     
     public String getViewPath(VariableResolver<String> variableResolver) {
-        String normalized = null;
-        String viewPath = StringUtils.defaultIfEmpty(getViewPath(), getViewName());
-        if (viewPath != null) {
-            normalized = Util.replaceMacro(viewPath.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_"), variableResolver);
-            setNormalizedViewPath(normalized);
-        }
-        return normalized;
+        String viewPath = getViewPath();
+        viewPath = normalize(viewPath);
+        viewPath = replaceMacro(viewPath, variableResolver);
+        return viewPath;
+    }
+
+    private String normalize(String viewPath) {
+        return viewPath == null ? viewPath : viewPath.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
+    }
+    
+    private String replaceMacro(String s, VariableResolver<String> resolver) {
+        return resolver == null ? s : Util.replaceMacro(s, resolver);
     }
 
 }

@@ -136,18 +136,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
-        super.buildEnvVars(build, env);
-        if (isUseDynamicView()) {
-            if (getViewDrive() != null) {
-                env.put(CLEARCASE_VIEWPATH_ENVSTR, getViewDrive() + File.separator + getNormalizedViewName());
-            } else {
-                env.remove(CLEARCASE_VIEWPATH_ENVSTR);
-            }
-        }
-    }
-
-    @Override
     protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         CheckOutAction action;
         String effectiveConfigSpec = Util.replaceMacro(configSpec, variableResolver);
