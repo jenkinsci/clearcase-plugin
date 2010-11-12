@@ -413,7 +413,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             env.put(CLEARCASE_VIEWNAME_ENVSTR, normalizedViewPath);
             if(isUseDynamicView()) {
                 if (getViewDrive() != null) {
-                    env.put("CLEARCASE_VIEWPATH_ENVSTR", viewDrive + File.separator + normalizedViewName);
+                    env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + normalizedViewName);
                 } else {
                     LOGGER.warning("View drive is null. Not setting CLEARCASE_VIEWPATH_ENVSTR");
                 }
