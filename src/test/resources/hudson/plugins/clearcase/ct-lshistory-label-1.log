@@ -1,0 +1,7 @@
+"20101123.181957" "user1" "vob1\GNUmakefile" "\main\rel10.4_main\rel10.4_int\19" "remove label "USER1_TEST" from version" "rmlabel"
+Moved label "USER1_TEST" to version "/main/rel10.4_main/rel10.4_int/18".
+
+"20101123.181957" "user1" "vob1\GNUmakefile" "\main\rel10.4_main\rel10.4_int\18" "make label "USER1_TEST" on version" "mklabel"
+Moved label "USER1_TEST" from version "/main/rel10.4_main/rel10.4_int/19".
+
+"20101123.181944" "user1" "vob1\GNUmakefile" "\main\rel10.4_main\rel10.4_int\18" "create version" "checkin"

@@ -60,7 +60,7 @@ public class UcmChangeLogActionTest {
                 {
                     one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n")),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)));                
+                                             with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader("")));
                 }
             });
@@ -74,7 +74,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"vobs/projects/Server//config-admin-client\" " +
@@ -100,7 +100,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"vobs/projects/Server//config-admin-client\" " +
@@ -132,7 +132,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));                
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"vobs/projects/Server//config-admin-client\" " +
@@ -191,7 +191,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})), with(equal(false)));
                     will(returnValue(lshistoryReader));
                     ignoring(cleartool).lsactivity(
                                                    with(equal("Release_3_3_jdk5.20080509.155359")), 
@@ -215,7 +215,7 @@ public class UcmChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})));
+                                             with(equal("VIEW_NAME")), with(equal("Release_2_1_int")), with(equal(new String[]{"VIEW_NAME" + File.separator + "vobs/projects/Server"})), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"vobs/projects/Server//config-admin-client\" " +

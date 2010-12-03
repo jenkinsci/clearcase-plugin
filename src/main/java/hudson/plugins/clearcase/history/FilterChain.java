@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase.history;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -39,7 +40,7 @@ public class FilterChain implements Filter {
 
     public FilterChain(Collection<Filter> filters) {
         super();
-        this.filters = filters;
+        this.filters = (filters != null) ? filters : new ArrayList<Filter>();
     }
 
     @Override
@@ -50,6 +51,16 @@ public class FilterChain implements Filter {
             }
         }
         return true;
+    }
+
+    @Override
+    public boolean requiresMinorEvents() {
+        for (Filter f : filters) {
+            if (f.requiresMinorEvents()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Collection<Filter> getFilters() {

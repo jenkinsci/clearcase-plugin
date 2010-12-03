@@ -29,6 +29,7 @@ import static hudson.plugins.clearcase.util.OutputFormat.*;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
 
@@ -67,7 +68,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
     private SimpleDateFormat dateFormatter = new SimpleDateFormat(
                                                                   "yyyyMMdd.HHmmss");
     private Map<String, UcmActivity> activityNameToEntry = new HashMap<String, UcmActivity>();
-    private List<Filter> filters;
+    private Filter filter;
 
     /**
      * Extended view path that should be removed file paths in entries.
@@ -76,11 +77,8 @@ public class UcmChangeLogAction implements ChangeLogAction {
 
     public UcmChangeLogAction(ClearTool cleartool, List<Filter> filters) {
         this.cleartool = cleartool;
-        this.filters = filters;
-        if (this.filters == null) {
-            this.filters = new ArrayList<Filter>();
+        this.filter = new FilterChain(filters);
         }
-    }
 
     @Override
     public List<UcmActivity> getChanges(Date time, String viewName,
@@ -102,7 +100,8 @@ public class UcmChangeLogAction implements ChangeLogAction {
                 String fullpath = viewName + File.separator + path;
                 BufferedReader reader = new BufferedReader(cleartool.lshistory(
                                                                                historyHandler.getFormat() + COMMENT + LINEEND, time,
-                                                                               viewName, branchNames[0], new String[] { fullpath }));
+                                                                               viewName, branchNames[0], new String[] { fullpath },
+                                                                               filter.requiresMinorEvents()));
                 history.addAll(parseHistory(reader, viewName));
                 reader.close();
                 ok = true; // At least one path was successful
@@ -126,7 +125,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
             String line = reader.readLine();
 
             UcmActivity.File currentFile = null;
-            outer: while (line != null) {
+            while (line != null) {
 
                 // TODO: better error handling
                 if (line.startsWith("cleartool: Error:")) {
@@ -170,13 +169,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                     historyEntry.setOperation(matcher.group(6).trim());
                     historyEntry.setUser(matcher.group(7).trim());
 
-                    for (Filter filter : filters) {
-                        if (!filter.accept(historyEntry)) {
-                            line = reader.readLine();
-                            continue outer;
-                        }
-                    }
-
+                    if (filter.accept(historyEntry)) {
                     String activityName = matcher.group(4);
 
                     UcmActivity activity = activityNameToEntry
@@ -196,6 +189,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                     }
 
                     activity.addFile(currentFile);
+                    }
                 } else {
                     if (commentBuilder.length() > 0) {
                         commentBuilder.append("\n");

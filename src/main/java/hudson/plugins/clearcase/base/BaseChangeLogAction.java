@@ -39,6 +39,7 @@ import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
@@ -55,7 +56,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd.HHmmss");
 
     private final int maxTimeDifferenceMillis;
-    private List<Filter> filters;
+    private Filter filter;
     /**
      * Extended view path that should be removed file paths in entries.
      */
@@ -64,10 +65,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
     public BaseChangeLogAction(ClearTool cleartool, int maxTimeDifferenceMillis, List<Filter> filters) {
         this.cleartool = cleartool;
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
-        this.filters = filters;
-        if (this.filters == null) {
-            this.filters = new ArrayList<Filter>();
-        }
+        this.filter = new FilterChain(filters);
     }
 
     @Override
@@ -77,7 +75,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
         try {
             for (String branchName : branchNames) {
                 BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchName,
-                        viewPaths));
+                        viewPaths, filter.requiresMinorEvents()));
                 fullList.addAll(parseEntries(reader));
                 reader.close();
             }
@@ -96,7 +94,7 @@ public class BaseChangeLogAction implements ChangeLogAction {
         String line = reader.readLine();
 
         ClearCaseChangeLogEntry currentEntry = null;
-        outer: while (line != null) {
+        while (line != null) {
             // TODO: better error handling
             if (line.startsWith("cleartool: Error:")) {
                 line = reader.readLine();
@@ -136,14 +134,9 @@ public class BaseChangeLogAction implements ChangeLogAction {
                 entry.setVersionId(matcher.group(5).trim());
                 entry.setOperation(matcher.group(6).trim());
 
-                for (Filter filter : filters) {
-                    if (!filter.accept(entry)) {
-                        line = reader.readLine();
-                        continue outer;
+                if (filter.accept(entry)) {
+                    entries.add(currentEntry);
                     }
-                }
-
-                entries.add(currentEntry);
 
             } else {
                 if (commentBuilder.length() > 0) {

@@ -30,5 +30,6 @@ package hudson.plugins.clearcase.history;
 public interface Filter {
 
     public boolean accept(HistoryEntry element);
+    public boolean requiresMinorEvents();
 
 }

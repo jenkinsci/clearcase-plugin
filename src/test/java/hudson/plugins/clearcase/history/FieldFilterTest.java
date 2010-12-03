@@ -206,5 +206,10 @@ public class FieldFilterTest {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
+        @Override
+        public boolean requiresMinorEvents() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
     }
 }

@@ -36,7 +36,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     private ClearCaseScmDescriptor clearCaseScmDescriptor;
     private Computer overrideComputer;
     
-    public ClearCaseSCMDummy(String branch, String configspec, String viewname,
+    public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname,
                              boolean useupdate, String loadRules, boolean usedynamicview,
                              String viewdrive, String mkviewoptionalparam,
                              boolean filterOutDestroySubBranchEvent,
@@ -45,14 +45,14 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              boolean useTimeRule, boolean createDynView,
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor) {
-        this(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
+        this(branch, label, configspec, viewname, useupdate, loadRules, usedynamicview,
              viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule,
              createDynView, cleartool,
              clearCaseScmDescriptor, null, viewname);
     }
     
-    public ClearCaseSCMDummy(String branch, String configspec, String viewname,
+    public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname,
                              boolean useupdate, String loadRules, boolean usedynamicview,
                              String viewdrive, String mkviewoptionalparam,
                              boolean filterOutDestroySubBranchEvent,
@@ -62,7 +62,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor,
                              Computer overrideComputer, String viewPath) {
-        super(branch, configspec, viewname, useupdate, loadRules, usedynamicview,
+        super(branch, label, configspec, viewname, useupdate, loadRules, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
               rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, "", "", viewPath);
         this.cleartool = cleartool;

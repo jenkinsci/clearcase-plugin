@@ -40,4 +40,10 @@ public class DestroySubBranchFilter implements Filter {
 
         return true;
     }
+
+    @Override
+    public boolean requiresMinorEvents() {
+        return false;
+}
+
 }
