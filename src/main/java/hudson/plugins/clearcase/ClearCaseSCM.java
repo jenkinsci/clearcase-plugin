@@ -24,6 +24,8 @@
  */
 package hudson.plugins.clearcase;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
 import hudson.CopyOnWrite;
@@ -42,7 +44,10 @@ import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
 import hudson.plugins.clearcase.base.ClearCaseSCMRevisionState;
+import hudson.plugins.clearcase.history.Filter;
+import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
+import hudson.plugins.clearcase.history.LabelFilter;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCMDescriptor;
@@ -88,29 +93,35 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     private String configSpec;
     private final String branch;
+    private final String label;
     private boolean doNotUpdateConfigSpec;
     private boolean useTimeRule;
 
     @DataBoundConstructor
-    public ClearCaseSCM(String branch, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
+    public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
             String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath) {
         super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
                 viewdrive, loadRules, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false, viewPath);
         this.branch = branch;
+        this.label = label;
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
     }
 
-    public ClearCaseSCM(String branch, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
+    public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
-        this(branch, configspec, viewTag, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+        this(branch, label, configspec, viewTag, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
                 doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "", viewTag);
     }
 
     public String getBranch() {
         return branch;
+    }
+
+    public String getLabel() {
+        return label;
     }
 
     public String getConfigSpec() {
@@ -133,6 +144,18 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     @Override
     public ChangeLogParser createChangeLogParser() {
         return new ClearCaseChangeLogParser();
+    }
+
+    @Override
+    public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
+        super.buildEnvVars(build, env);
+        if (isUseDynamicView()) {
+            if (getViewDrive() != null) {
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, getViewDrive() + File.separator + getNormalizedViewName());
+            } else {
+                env.remove(CLEARCASE_VIEWPATH_ENVSTR);
+            }
+        }
     }
 
     @Override
@@ -191,6 +214,22 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             branchArray[i] = Util.replaceMacro(branchArray[i].replaceAll("\\\\ ", " "), variableResolver);
         }
         return branchArray;
+    }
+
+    public String[] getLabelNames(VariableResolver<String> variableResolver) {
+        return Util.replaceMacro(label, variableResolver).split("\\s+");
+    }
+
+    @Override
+    public Filter configureFilters(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
+        Filter filter = super.configureFilters(variableResolver, build, launcher);
+        if (StringUtils.isNotBlank(label)) {
+            ArrayList<Filter> filters = new ArrayList<Filter>();
+            filters.add(filter);
+            filters.add(new LabelFilter(getLabelNames(variableResolver)));
+            filter = new FilterChain(filters);
+        }
+        return filter;
     }
 
     @Override
@@ -296,6 +335,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             AbstractClearCaseScm scm = new ClearCaseSCM(
                                                         req.getParameter("cc.branch"),
+                                                        req.getParameter("cc.label"),
                                                         req.getParameter("cc.configspec"),
                                                         req.getParameter("cc.viewname"),
                                                         req.getParameter("cc.useupdate") != null,

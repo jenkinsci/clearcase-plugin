@@ -34,7 +34,6 @@ import hudson.util.VariableResolver;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -323,7 +322,8 @@ public abstract class ClearToolExec implements ClearTool {
         return output;
     }
 
-    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView) throws IOException, InterruptedException {
+    @Override
+    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException, InterruptedException {
         Validate.notNull(pathsInView);
         Validate.notNull(viewPath);
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
@@ -337,6 +337,9 @@ public abstract class ClearToolExec implements ClearTool {
         // cmd.addQuoted(format);
         if (StringUtils.isNotEmpty(branch)) {
             cmd.add("-branch", "brtype:" + branch);
+        }
+        if (getMinor) {
+            cmd.add("-minor");
         }
         cmd.add("-nco");
 

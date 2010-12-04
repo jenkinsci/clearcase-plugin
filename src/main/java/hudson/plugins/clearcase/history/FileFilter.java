@@ -38,4 +38,9 @@ public class FileFilter extends FieldFilter {
         return accept(entry.getElement());
     }
 
+    @Override
+    public boolean requiresMinorEvents() {
+        return false;
+}
+
 }
