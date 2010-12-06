@@ -74,8 +74,9 @@ public interface ClearTool {
      * @param baseline2
      * @param viewPath A view path name needed to retrieve versions from
      * @return
+     * @throws IOException if unable to do I/O operations
      */
-    Reader diffbl(EnumSet<DiffBlOptions> options, String baseline1, String baseline2, String viewPath);
+    Reader diffbl(EnumSet<DiffBlOptions> options, String baseline1, String baseline2, String viewPath) throws IOException;
     
     /**
      * @param streamSelector
