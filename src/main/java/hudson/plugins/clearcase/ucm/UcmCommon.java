@@ -58,8 +58,8 @@ public class UcmCommon {
             return null;
         }
         List<String> loadRules = new ArrayList<String>();
-        int i = 0;
         for(Baseline bl : baselines) {
+        	clearTool.getLauncher().getListener().getLogger().print("DEBUG (" + bl.getBaselineName() + ", " + bl.getComponentName() + ")\n");
             Reader reader = clearTool.describe("%[root_dir]p\\n", "component:" + bl.getComponentName());
             BufferedReader br = new BufferedReader(reader);
             StringBuilder sb = new StringBuilder();
