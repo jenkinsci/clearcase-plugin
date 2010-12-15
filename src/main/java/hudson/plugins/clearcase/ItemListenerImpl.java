@@ -73,7 +73,7 @@ public class ItemListenerImpl extends ItemListener {
      */
     @Override
     public void onRenamed(Item item, String oldName, String newName) {
-        Hudson hudson = getHudsonFromItem(item);
+        Hudson hudson = Hudson.getInstance();
         if (item instanceof AbstractProject<?, ?>) {
             @SuppressWarnings("unchecked") AbstractProject project = (AbstractProject) item;
             SCM scm = project.getScm();
@@ -128,28 +128,12 @@ public class ItemListenerImpl extends ItemListener {
         }
     }
 
-    private Hudson getHudsonFromItem(Item item) {
-        ItemGroup<? extends Item> itemGroup = item.getParent();
-        Hudson hudson = null;
-        // Go up to Hudson instance
-        while (hudson == null) {
-            if (itemGroup instanceof Hudson) {
-                hudson = (Hudson) itemGroup;
-            } else if (itemGroup instanceof TopLevelItem) {
-                hudson = ((TopLevelItem) itemGroup).getParent();
-            } else {
-                itemGroup = ((Item) itemGroup).getParent();
-            }
-        }
-        return hudson;
-    }
-
     /**
      * Delete the view when the job is deleted
      */
     @Override
     public void onDeleted(Item item) {
-        Hudson hudson = getHudsonFromItem(item);
+        Hudson hudson = Hudson.getInstance();
         if (item instanceof AbstractProject<?, ?>) {
             AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
             SCM scm = project.getScm();
