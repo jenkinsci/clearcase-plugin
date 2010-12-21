@@ -66,6 +66,9 @@ public class ClearToolFormatHandler {
     }
 
     public Matcher checkLine(String line) {
+        if (line == null) {
+            return null;
+        }
         Matcher matcher = pattern.matcher(line);
 
         if (matcher.find() && matcher.groupCount() == groupCount) {

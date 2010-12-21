@@ -42,4 +42,9 @@ public class DefaultFilter implements Filter {
         return true;
     }
 
+    @Override
+    public boolean requiresMinorEvents() {
+        return false;
+}
+
 }

@@ -74,8 +74,9 @@ public interface ClearTool {
      * @param baseline2
      * @param viewPath A view path name needed to retrieve versions from
      * @return
+     * @throws IOException if unable to do I/O operations
      */
-    Reader diffbl(EnumSet<DiffBlOptions> options, String baseline1, String baseline2, String viewPath);
+    Reader diffbl(EnumSet<DiffBlOptions> options, String baseline1, String baseline2, String viewPath) throws IOException;
     
     /**
      * @param streamSelector
@@ -178,7 +179,7 @@ public interface ClearTool {
      * @param pathsInView view paths that should be added to the lshistory command. The view paths must be relative.
      * @return Reader containing output from command
      */
-    Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView) throws IOException, InterruptedException;
+    Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException, InterruptedException;
 
     /**
      * List attributes of a project

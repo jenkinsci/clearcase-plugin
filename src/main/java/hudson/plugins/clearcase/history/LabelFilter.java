@@ -1,8 +1,9 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ * Copyright (c) 2007-2010, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer,
+ *                          Krzysztof Malinowski
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +26,29 @@
 package hudson.plugins.clearcase.history;
 
 /**
- * @author Henrik L. Hansen (henrik.lynggaard@gmail.com)
+ * @author Krzysztof Malinowski (raspy@dev.java.net)
  */
-public interface Filter {
+public class LabelFilter extends OperationFilter {
 
-    public boolean accept(HistoryEntry element);
-    public boolean requiresMinorEvents();
+    private static final String[] LABEL_OPERATIONS = { "mklabel", "rmlabel" };
+
+    public LabelFilter(String... namePatterns) {
+        super(namePatterns);
+    }
+
+    @Override
+    protected boolean getAllowOtherOperations() {
+        return false;
+    }
+
+    @Override
+    protected String[] getApplicableOperations() {
+        return LABEL_OPERATIONS;
+    }
+
+    @Override
+    public boolean requiresMinorEvents() {
+        return true;
+    }
 
 }

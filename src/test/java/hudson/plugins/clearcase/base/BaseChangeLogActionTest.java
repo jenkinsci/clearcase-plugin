@@ -65,7 +65,7 @@ public class BaseChangeLogActionTest {
                 {
                     one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%u\\\" \\\"%e\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%o\\\" \\n%c\\n")), 
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)));
+                                             with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader("")));
                 }
             });
@@ -80,7 +80,7 @@ public class BaseChangeLogActionTest {
                 {
                     one(cleartool).lshistory(with(any(String.class)), 
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)));
+                                             with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\"    \"destroy sub-branch \"esmalling_branch\" of branch\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n")));
                 }
@@ -100,7 +100,7 @@ public class BaseChangeLogActionTest {
                 {
                     one(cleartool).lshistory(with(any(String.class)), 
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)));
+                                             with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader("\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n")));
                 }
             });
@@ -119,7 +119,7 @@ public class BaseChangeLogActionTest {
                 {
                     one(cleartool).lshistory(with(any(String.class)), 
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)));
+                                             with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n"
                                                       + "\"20070906.091705\"   \"egsperi\"    \"create version\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"mkelem\"\n")));
@@ -137,7 +137,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(reader));
                 }
             });
@@ -152,7 +152,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
                                                       + "\"20070825.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
@@ -173,7 +173,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.084801\"   \"inttest2\"  \"create version\" \"First\\Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
                                                       + "\"20070825.084801\"   \"inttest3\"  \"create version\" \"Second/Source/Definitions/Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
@@ -197,7 +197,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20091013.080912\" \"picker\" \"create version\" \"/vobs/inf/Messages/src/ServiceException.cc\" \"/main/test/dev/0\" \"mkbranch\"\n\n"
                                                       + "\"20091013.080912\" \"picker\" \"create branch\" \"/vobs/inf/Messages/src/ServiceException.cc\" \"/main/test/dev\" \"mkbranch\"\n\n"
@@ -235,7 +235,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20091013.080912\" \"picker\" \"create version\" \"/vobs/inf/Messages/src/ServiceException.cc\" \"/main/test/dev/0\" \"mkbranch\"\n\n"
                                                       + "\"20091013.082113\" \"picker\" \"create directory version\" \"/vobs/inf\" \"/main/test/dev/7\" \"mkelem\"\n\n"
@@ -267,7 +267,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070830.084801\"   \"inttest2\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n"
                                                       + "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n")));
@@ -283,7 +283,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070830.084801\"   \"inttest3\"  \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n"
                                                       + "cleartool: Error: Branch type not found: \"sit_r6a\".\n"
@@ -303,7 +303,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new InputStreamReader(
                                                            AbstractClearCaseScm.class.getResourceAsStream( "ct-lshistory-1.log"))));
                 }
@@ -319,7 +319,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\"  \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"mkelem\"\n")));
                 }
@@ -337,7 +337,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.084801\" \"inttest14\" \"create version\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"mkelem\"\n\n")));
                 }
@@ -362,7 +362,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"mkelem\"\n")));
                 }
@@ -380,7 +380,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\"    \"create directory version\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"mkelem\"\ntext\n\nend of comment")));
                 }
@@ -399,7 +399,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"  \"mkelem\"\nBUG8949")));
                 }
@@ -423,7 +423,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.085901\"   \"aname\"    \"create version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"  \"mkelem\"\nBUG8949\nThis fixed the problem")));
                 }
@@ -447,7 +447,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.085901\"   \"aname\"    \"create a version\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"  \"mkelem\"\n")));
                 }
@@ -465,7 +465,7 @@ public class BaseChangeLogActionTest {
         context.checking(new Expectations() {
                 {
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.085901\" \"user\" \"action\" \"/view/ralef_0.2_nightly/vobs/Tools/framework/util/QT.h\" \"/main/comain\"  \"mkelem\"\n")));
                 }

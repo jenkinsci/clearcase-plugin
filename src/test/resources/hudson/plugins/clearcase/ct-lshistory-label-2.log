@@ -1,0 +1,15 @@
+"20101123.182332" "user1" "vob1\GNUmakefile" "\main\rel10.4_main\rel10.4_int\18" "remove label "USER1_TEST2" from version" "rmlabel"
+
+"20101123.182319" "user2" "LABEL7344" "" "lock label type" "lock"
+Locked for all users.
+
+"20101123.182318" "user2" "vob1\include\version_ete.h" "\main\2" "make label "LABEL7344" on version" "mklabel"
+
+"20101123.182318" "user2" "vob1\include\encryption.h" "\main\1" "make label "LABEL7344" on version" "mklabel"
+
+"20101123.182318" "user2" "vob1\lib\vr_aes.c" "\main\1" "make label "LABEL7344" on version" "mklabel"
+
+"20101123.182317" "user2" "LABEL7344" "" "create label type" "mktype"
+
+"20101123.182309" "user1" "USER1_TEST2" "" "rename label type" "rename"
+Changed name of label type from "USER1_TEST" to "USER1_TEST2".

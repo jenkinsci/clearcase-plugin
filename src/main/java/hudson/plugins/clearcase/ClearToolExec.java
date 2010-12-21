@@ -35,9 +35,12 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -92,7 +95,7 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
-    public Reader diffbl(EnumSet<DiffBlOptions> type, String baseline1, String baseline2, String viewPath) {
+    public Reader diffbl(EnumSet<DiffBlOptions> type, String baseline1, String baseline2, String viewPath) throws IOException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("diffbl");
         if (type != null) {
@@ -103,18 +106,26 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add(baseline1);
         cmd.add(baseline2);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        // Output to a temporary file since the output can become quite large
+        File tmpFile = null;
+        try {
+            tmpFile = File.createTempFile("cleartool-diffbl", null);
+        } catch (IOException e) {
+            throw new IOException("Couldn't create a temporary file", e);
+        }
+        OutputStream out = new FileOutputStream(tmpFile);
         
         FilePath workingDirectory = launcher.getWorkspace();
         if (viewPath != null) {
             workingDirectory = workingDirectory.child(viewPath);
         }
         try {
-            launcher.run(cmd.toCommandArray(), null, baos, workingDirectory);
+            launcher.run(cmd.toCommandArray(), null, out, workingDirectory);
         } catch (IOException e) {
         } catch (InterruptedException e) {
         }
-        return new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
+        out.close();
+        return new InputStreamReader(new FileInputStream(tmpFile));
     }
     
     @Override
@@ -323,7 +334,8 @@ public abstract class ClearToolExec implements ClearTool {
         return output;
     }
 
-    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView) throws IOException, InterruptedException {
+    @Override
+    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException, InterruptedException {
         Validate.notNull(pathsInView);
         Validate.notNull(viewPath);
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
@@ -337,6 +349,9 @@ public abstract class ClearToolExec implements ClearTool {
         // cmd.addQuoted(format);
         if (StringUtils.isNotEmpty(branch)) {
             cmd.add("-branch", "brtype:" + branch);
+        }
+        if (getMinor) {
+            cmd.add("-minor");
         }
         cmd.add("-nco");
 

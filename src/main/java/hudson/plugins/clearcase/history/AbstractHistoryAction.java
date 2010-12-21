@@ -138,9 +138,15 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         if (ArrayUtils.isEmpty(viewPaths)) {
             return history;
         }
+        if (ArrayUtils.isEmpty(branchNames)) {
+            // If no branch was specified lshistory should be called
+            // without branch filtering.
+            // This solves [HUDSON-4800] and is required for [HUDSON-7218].
+            branchNames = new String[] { StringUtils.EMPTY };
+        }
         try {
             for (String branchName : branchNames) {
-                BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewPath, branchName, viewPaths));
+                BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewPath, branchName, viewPaths, (filter != null) && (filter.requiresMinorEvents())));
                 parseLsHistory(reader, history);
                 reader.close();
             }

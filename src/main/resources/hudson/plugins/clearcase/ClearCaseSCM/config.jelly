@@ -55,6 +55,10 @@
     <f:expandableTextbox name="cc.branch" value="${scm.branch}" />
   </f:entry>
 
+  <f:entry title="Label(s)" help="/plugin/clearcase/label.html">
+    <f:expandableTextbox name="cc.label" value="${scm.label}" />
+  </f:entry>
+
   <f:advanced>
     <f:entry title="Excluded Regions" help="/plugin/clearcase/excludedRegions.html">
       <f:textarea name="cc.excludedRegions" value="${scm.excludedRegions}"
