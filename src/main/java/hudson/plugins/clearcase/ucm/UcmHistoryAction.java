@@ -162,42 +162,42 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
             InterruptedException {
         List<HistoryEntry> history = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
-        if (oldBaseline == null) {
-            return history;
-        }
-        List<Baseline> oldBaselines = oldBaseline.getBaselines();
-        List<Baseline> newBaselines = newBaseline.getBaselines();
-        if (ObjectUtils.equals(oldBaselines, newBaselines)) {
-            return history;
-        }
-        for (final Baseline oldBl : oldBaselines) {
-            String bl1 = oldBl.getBaselineName();
-            final String comp1 = oldBl.getComponentName();
-            // Lookup the component in the set of new baselines
-            Baseline newBl = (Baseline) CollectionUtils.find(newBaselines, new Predicate() {
-                @Override
-                public boolean evaluate(Object bl) {
-                    return StringUtils.equals(comp1, ((Baseline) bl).getComponentName());
-                }
-            });
-            // If we cannot find a new baseline, log and skip
-            if (newBl == null) {
-                cleartool.getLauncher().getListener().getLogger().print("Old Baseline " + bl1 + " for component " + comp1 + " couldn't be found in the new set of baselines.");
-                continue;
-            }
-            String bl2 = newBl.getBaselineName();
-            if (!StringUtils.equals(bl1, bl2)) {
-                List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
-                for (String version : versions) {
-                    try {
-                        parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, version)), history);
-                    } catch (ParseException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
+//        if (oldBaseline == null) {
+//            return history;
+//        }
+//        List<Baseline> oldBaselines = oldBaseline.getBaselines();
+//        List<Baseline> newBaselines = newBaseline.getBaselines();
+//        if (ObjectUtils.equals(oldBaselines, newBaselines)) {
+//            return history;
+//        }
+//        for (final Baseline oldBl : oldBaselines) {
+//            String bl1 = oldBl.getBaselineName();
+//            final String comp1 = oldBl.getComponentName();
+//            // Lookup the component in the set of new baselines
+//            Baseline newBl = (Baseline) CollectionUtils.find(newBaselines, new Predicate() {
+//                @Override
+//                public boolean evaluate(Object bl) {
+//                    return StringUtils.equals(comp1, ((Baseline) bl).getComponentName());
+//                }
+//            });
+//            // If we cannot find a new baseline, log and skip
+//            if (newBl == null) {
+//                cleartool.getLauncher().getListener().getLogger().print("Old Baseline " + bl1 + " for component " + comp1 + " couldn't be found in the new set of baselines.");
+//                continue;
+//            }
+//            String bl2 = newBl.getBaselineName();
+//            if (!StringUtils.equals(bl1, bl2)) {
+//                List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
+//                for (String version : versions) {
+//                    try {
+//                        parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, version)), history);
+//                    } catch (ParseException e) {
+//                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }
         return history;
     }
 
