@@ -140,15 +140,12 @@
             </plugin>
         </plugins>
     </pluginManagement>
-    <extensions>
-      <extension>
-        <groupId>org.jvnet.wagon-svn</groupId>
-        <artifactId>wagon-svn</artifactId>
-        <version>1.9</version>
-      </extension>
-    </extensions>
   </build>
   <distributionManagement>
+    <repository>
+      <id>java.net-m2-repository</id>
+      <url>http://maven.hudson-labs.org:8081/content/repositories/releases/</url>
+    </repository>
     <snapshotRepository>
         <id>local-repo</id>
         <url>file:.</url>
