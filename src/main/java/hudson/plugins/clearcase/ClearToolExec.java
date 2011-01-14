@@ -855,10 +855,6 @@ public abstract class ClearToolExec implements ClearTool {
             }
         }
 
-        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), filePath, false, null);
-
-        if (output.contains("cleartool: Warning: An update is already in progress for view")) {
-            throw new IOException("View update failed: " + output);
-        }
+        runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, false, null);
     }
 }
