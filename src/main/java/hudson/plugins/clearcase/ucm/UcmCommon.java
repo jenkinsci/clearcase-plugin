@@ -68,7 +68,7 @@ public class UcmCommon {
                 clearTool.getLauncher().getListener().getLogger().print("[WARNING] " + bl.getBaselineName() + " has a null component\n");
             }
         }
-        Reader reader = clearTool.describe("%[root_dir]p\\n", sb.toString());
+        Reader reader = clearTool.describe("%[root_dir]p\\n", sb.toString().trim());
         BufferedReader br = new BufferedReader(reader);
         for(String line = br.readLine(); line != null; line = br.readLine()){
             String loadRule = StringUtils.isNotBlank(line) ? line.substring(1) : null;

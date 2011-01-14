@@ -57,8 +57,7 @@ public class UcmCommonTest {
     public void testGenerateLoadRulesFromBaselinesMultiBaseline() throws Exception {
         context.checking(new Expectations() {
             {
-                one(cleartool).describe("%[root_dir]p\\n", "component:comp1@\\pvob"); will(returnValue(new StringReader("/vob/comp1")));
-                one(cleartool).describe("%[root_dir]p\\n", "component:comp2@\\otherpvob"); will(returnValue(new StringReader("/othervob/comp2")));
+                one(cleartool).describe("%[root_dir]p\\n", "component:comp1@\\pvob component:comp2@\\otherpvob"); will(returnValue(new StringReader("/vob/comp1\n/othervob/comp2")));
                 allowing(cleartool).getLauncher(); will(returnValue(launcher));
                 allowing(launcher).getListener(); will(returnValue(listener));
                 allowing(listener).getLogger(); will(returnValue(System.out));

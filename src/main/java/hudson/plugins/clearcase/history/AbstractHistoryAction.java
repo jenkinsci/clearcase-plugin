@@ -26,6 +26,7 @@ package hudson.plugins.clearcase.history;
 
 import static hudson.plugins.clearcase.util.OutputFormat.COMMENT;
 import static hudson.plugins.clearcase.util.OutputFormat.LINEEND;
+import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
 import hudson.scm.ChangeLogSet.Entry;
@@ -53,11 +54,13 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     private Filter filter;
     protected String extendedViewPath;
     protected boolean isDynamicView;
+    private ChangeSetLevel changeset; 
 
-    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, Filter filter) {
+    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, Filter filter, ChangeSetLevel changeset) {
         this.cleartool = cleartool;
         this.filter = filter;
         this.isDynamicView = isDynamicView;
+        this.changeset = changeset;
     }
 
     protected abstract List<? extends Entry> buildChangelog(String viewPath, List<HistoryEntry> entries) throws IOException, InterruptedException;
@@ -84,6 +87,10 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         return changelog;
     }
 
+    public ChangeSetLevel getChangeset() {
+        return changeset;
+    }
+
     public String getExtendedViewPath() {
         return extendedViewPath;
     }
@@ -95,6 +102,22 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         List<HistoryEntry> entries = runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
         List<HistoryEntry> filtered = filterEntries(entries);
         return filtered.size() > 0;
+    }
+
+    private boolean needsHistory(String viewTag, String[] loadRules) throws IOException, InterruptedException {
+        return !ChangeSetLevel.NONE.equals(changeset)
+            || !cleartool.doesViewExist(viewTag)
+            || ArrayUtils.isEmpty(loadRules);
+    }
+
+    private String[] normalizeBranches(String[] branchNames) {
+        if (ArrayUtils.isEmpty(branchNames)) {
+            // If no branch was specified lshistory should be called
+            // without branch filtering.
+            // This solves [HUDSON-4800] and is required for [HUDSON-7218].
+            branchNames = new String[] { StringUtils.EMPTY };
+        }
+        return branchNames;
     }
 
     protected abstract HistoryEntry parseEventLine(Matcher matcher, String line) throws IOException, InterruptedException, ParseException;
@@ -128,30 +151,19 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     protected List<HistoryEntry> runLsHistory(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         Validate.notNull(viewPath);
         List<HistoryEntry> history = new ArrayList<HistoryEntry>();
-        if (!cleartool.doesViewExist(viewTag)) {
-            return history;
-        }
-        if (isDynamicView) {
-                cleartool.startView(viewTag);
-        }
-
-        if (ArrayUtils.isEmpty(viewPaths)) {
-            return history;
-        }
-        if (ArrayUtils.isEmpty(branchNames)) {
-            // If no branch was specified lshistory should be called
-            // without branch filtering.
-            // This solves [HUDSON-4800] and is required for [HUDSON-7218].
-            branchNames = new String[] { StringUtils.EMPTY };
-        }
-        try {
-            for (String branchName : branchNames) {
-                BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewPath, branchName, viewPaths, (filter != null) && (filter.requiresMinorEvents())));
-                parseLsHistory(reader, history);
-                reader.close();
+        if (needsHistory(viewTag, viewPaths)) {
+            if (isDynamicView) {
+               cleartool.startView(viewTag);
             }
-        } catch (ParseException ex) {
-            /* empty by design */
+            try {
+                for (String branchName : normalizeBranches(branchNames)) {
+                    BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewPath, branchName, viewPaths, (filter != null) && (filter.requiresMinorEvents())));
+                    parseLsHistory(reader, history);
+                    reader.close();
+                }
+            } catch (ParseException ex) {
+                /* empty by design */
+            }
         }
         return history;
     }

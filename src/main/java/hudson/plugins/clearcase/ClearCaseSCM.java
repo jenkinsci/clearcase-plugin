@@ -24,8 +24,6 @@
  */
 package hudson.plugins.clearcase;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
 import hudson.CopyOnWrite;
@@ -37,6 +35,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.Hudson;
 import hudson.model.Node;
+import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.DynamicCheckoutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
@@ -63,6 +62,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.logging.Level;
@@ -100,9 +100,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     @DataBoundConstructor
     public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
-            String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath) {
+            String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath, ChangeSetLevel changeset) {
         super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
-                viewdrive, loadRules, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false, viewPath);
+                viewdrive, loadRules, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false, viewPath, changeset);
         this.branch = branch;
         this.label = label;
         this.configSpec = configspec;
@@ -113,7 +113,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
         this(branch, label, configspec, viewTag, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-                doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "", viewTag);
+                doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "", viewTag, null);
     }
 
     public String getBranch() {
@@ -352,7 +352,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.createDynView") != null,
                                                         req.getParameter("cc.winDynStorageDir"),
                                                         req.getParameter("cc.unixDynStorageDir"),
-                                                        req.getParameter("cc.viewpath")
+                                                        req.getParameter("cc.viewpath"),
+                                                        ChangeSetLevel.fromString(req.getParameter("ucm.changeset"))
                                                         );
             return scm;
         }
