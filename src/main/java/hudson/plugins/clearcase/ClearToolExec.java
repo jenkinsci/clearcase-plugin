@@ -79,14 +79,14 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
-    public Reader describe(String format, String objectSelector) throws IOException, InterruptedException {
-        Validate.notNull(objectSelector);
+    public Reader describe(String format, String objectSelectors) throws IOException, InterruptedException {
+        Validate.notNull(objectSelectors);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("desc");
         if (StringUtils.isNotBlank(format)) {
             cmd.add("-fmt", format);
         }
-        cmd.add(objectSelector);
+        cmd.addTokenized(objectSelectors);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, null);
         Reader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));

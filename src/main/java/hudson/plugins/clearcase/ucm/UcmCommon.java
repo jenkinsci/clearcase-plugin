@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -58,18 +59,20 @@ public class UcmCommon {
             return null;
         }
         List<String> loadRules = new ArrayList<String>();
-        for(Baseline bl : baselines) {
-        	clearTool.getLauncher().getListener().getLogger().print("DEBUG (" + bl.getBaselineName() + ", " + bl.getComponentName() + ")\n");
-            Reader reader = clearTool.describe("%[root_dir]p\\n", "component:" + bl.getComponentName());
-            BufferedReader br = new BufferedReader(reader);
-            StringBuilder sb = new StringBuilder();
-            for(String line = br.readLine(); line != null; line = br.readLine()){
-                if (StringUtils.isNotBlank(line)) {
-                    sb.append(line.substring(1)); // Remove leading separator
-                }
+        StringBuilder sb = new StringBuilder();
+        for (Baseline bl : baselines) {
+            String componentName = bl.getComponentName();
+            if (componentName != null) {
+                sb.append("component:").append(componentName).append(" ");
+            } else {
+                clearTool.getLauncher().getListener().getLogger().print("[WARNING] " + bl.getBaselineName() + " has a null component\n");
             }
-            String loadRule = sb.toString();
-            if (StringUtils.isNotBlank(loadRule)) {
+        }
+        Reader reader = clearTool.describe("%[root_dir]p\\n", sb.toString());
+        BufferedReader br = new BufferedReader(reader);
+        for(String line = br.readLine(); line != null; line = br.readLine()){
+            String loadRule = StringUtils.isNotBlank(line) ? line.substring(1) : null;
+            if (loadRule != null) {
                 loadRules.add(loadRule);
             }
         }
@@ -193,12 +196,13 @@ public class UcmCommon {
             rd.close();
         }
         List<Baseline> foundationBaselines = new ArrayList<Baseline>();
-        for (String baseline : baselines) {
-            BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", baseline));
-            try {
-                foundationBaselines.add(new Baseline(StringUtils.removeStart(baseline, "baseline:"), StringUtils.removeStart(br.readLine(), "component:")));
-            } finally {
-                br.close();
+        BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", StringUtils.join(baselines," ")));
+        Iterator<String> blIterator = baselines.iterator();
+        for(String line = br.readLine(); line != null; line = br.readLine()){
+            if (StringUtils.isNotBlank(line)) {
+                String simpleBaseline = StringUtils.removeStart(blIterator.next(), "baseline:");
+                String simpleComponent = StringUtils.removeStart(line, "component:");
+                foundationBaselines.add(new Baseline(simpleBaseline, simpleComponent));
             }
         }
         return foundationBaselines;
