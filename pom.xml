@@ -10,7 +10,7 @@
   <artifactId>clearcase</artifactId>
   <packaging>hpi</packaging>
   <name>Hudson ClearCase Plug-in</name>
-  <version>1.3.4-SNAPSHOT</version>
+  <version>1.3.6-SNAPSHOT</version>
   <url>http://wiki.hudson-ci.org/display/HUDSON/ClearCase+Plugin</url>
   <licenses>
     <license>
@@ -115,6 +115,9 @@
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.1</version>
+        <configuration>
+          <goals>deploy</goals>
+        </configuration>
         <dependencies>  
             <dependency>
                 <groupId>org.apache.maven.scm</groupId>
@@ -140,15 +143,12 @@
             </plugin>
         </plugins>
     </pluginManagement>
-    <extensions>
-      <extension>
-        <groupId>org.jvnet.wagon-svn</groupId>
-        <artifactId>wagon-svn</artifactId>
-        <version>1.9</version>
-      </extension>
-    </extensions>
   </build>
   <distributionManagement>
+    <repository>
+      <id>java.net-m2-repository</id>
+      <url>http://maven.hudson-labs.org:8081/content/repositories/releases/</url>
+    </repository>
     <snapshotRepository>
         <id>local-repo</id>
         <url>file:.</url>
