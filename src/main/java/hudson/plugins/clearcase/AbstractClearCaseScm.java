@@ -211,7 +211,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     /**
      * Return string array containing the paths in the view that should be used when polling for changes.
-     * @param variableResolver TODO
+     * @param variableResolver [anb0s: HUDSON-8497]
      * @param build TODO
      * @param launcher TODO
      * @return string array that will be used by the lshistory command and for constructing the config spec, etc.
@@ -219,11 +219,14 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @throws IOException 
      */
     public String[] getViewPaths(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
+    	// [--> anb0s: HUDSON-8497] 
         String loadRules = getLoadRules();
         if (StringUtils.isBlank(loadRules)) {
             return null;
         }
-
+        loadRules = Util.replaceMacro(loadRules, variableResolver);
+        // [<-- anb0s: HUDSON-8497]
+        
         String[] rules = loadRules.split("[\\r\\n]+");
         for (int i = 0; i < rules.length; i++) {
             String rule = rules[i];
