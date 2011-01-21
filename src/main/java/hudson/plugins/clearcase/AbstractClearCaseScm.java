@@ -219,7 +219,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @throws IOException 
      */
     public String[] getViewPaths(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
-        String loadRules = getLoadRules();
+        String loadRules = getLoadRules(variableResolver);
         if (StringUtils.isBlank(loadRules)) {
             return null;
         }
@@ -257,6 +257,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     public String getLoadRules() {
         return loadRules;
+    }
+    
+    public String getLoadRules(VariableResolver<String> variableResolver) {
+        return Util.replaceMacro(loadRules, variableResolver);
     }
 
     public boolean isCreateDynView() {
