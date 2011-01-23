@@ -214,12 +214,10 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                 }
                 newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
             } catch (IOException e) {
-                Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.SEVERE, "IOException when calculating revisions'", e);
-                e.printStackTrace(logger);
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "IOException when calculating revisions'", e);
                 return null;
             } catch (InterruptedException e) {
-                Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
-                e.printStackTrace(logger);
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
                 return null;
             }
         }

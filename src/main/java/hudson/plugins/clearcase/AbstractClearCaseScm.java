@@ -584,7 +584,10 @@ public abstract class AbstractClearCaseScm extends SCM {
         String viewName = getViewName(variableResolver);
         String[] branchNames = getBranchNames(variableResolver);
 
-        if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewName, branchNames, ccBaseline.getLoadRules())) {
+        if (historyAction == null) {
+            // Error when calculating the new baseline => Probably clearcase server error, not launching the build
+            change = Change.NONE;
+        } else if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewName, branchNames, ccBaseline.getLoadRules())) {
             change = Change.SIGNIFICANT;
         } else {
             change = Change.NONE;
