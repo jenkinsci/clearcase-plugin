@@ -75,28 +75,28 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     private final String overrideBranchName;
     private boolean allocateViewName;
     private boolean useManualLoadRules;
-
     @DataBoundConstructor
     public ClearCaseUcmSCM(String stream, String loadrules, String viewTag, boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
             boolean filterOutDestroySubBranchEvent, boolean useUpdate, boolean rmviewonrename, String excludedRegions, String multiSitePollBuffer,
             String overrideBranchName, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, boolean freezeCode, boolean recreateView,
-            boolean allocateViewName, String viewPath, boolean useManualLoadRules) {
+            boolean allocateViewName, String viewPath, boolean useManualLoadRules, ChangeSetLevel changeset) {
         super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, usedynamicview, viewdrive, useManualLoadRules ? loadrules : null,
-                multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, freezeCode, recreateView, viewPath);
+                multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, freezeCode, recreateView, viewPath, changeset);
         this.stream = shortenStreamName(stream);
         this.allocateViewName = allocateViewName;
         this.overrideBranchName = overrideBranchName;
         this.useManualLoadRules = useManualLoadRules ? useManualLoadRules : StringUtils.isNotBlank(loadrules); // Default to keep backward compat 
         Validate.notEmpty(this.stream, "The stream selector cannot be empty");
-        
     }
 
     @Deprecated
     public ClearCaseUcmSCM(String stream, String loadrules, String viewTag, boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
             boolean filterOutDestroySubBranchEvent, boolean useUpdate, boolean rmviewonrename) {
         this(stream, loadrules, viewTag, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, "", null,
-                "", false, null, null, false, false, false, viewTag, StringUtils.isBlank(loadrules));
+                "", false, null, null, false, false, false, viewTag, StringUtils.isBlank(loadrules), ChangeSetLevel.defaultLevel());
     }
+
+
 
     /**
      * Return the stream that is used to create the UCM view.
@@ -214,19 +214,17 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                 }
                 newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
             } catch (IOException e) {
-                Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.SEVERE, "IOException when calculating revisions'", e);
-                e.printStackTrace(logger);
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "IOException when calculating revisions'", e);
                 return null;
             } catch (InterruptedException e) {
-                Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
-                e.printStackTrace(logger);
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
                 return null;
             }
         }
         if (isFreezeCode()) {
             action = new FreezeCodeUcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getStream(variableResolver), getViewDrive(), build, oldBaseline, newBaseline);
         } else {
-            action = new UcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), oldBaseline, newBaseline);
+            action = new UcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), oldBaseline, newBaseline, getChangeset());
         }
         try {
             String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
@@ -250,7 +248,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     public String[] getViewPaths(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
         if (!useManualLoadRules) {
             // If the revision state is already available for this build, just use the value
-            AbstractClearCaseSCMRevisionState revisionState = build.getAction(ClearCaseUCMSCMRevisionState.class);
+            ClearCaseUCMSCMRevisionState revisionState = build.getAction(ClearCaseUCMSCMRevisionState.class);
             if (revisionState != null) {
                 String[] lr = revisionState.getLoadRules();
                 if (lr != null) {
@@ -355,7 +353,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                                                       req.getParameter("ucm.recreateView") != null,
                                                       req.getParameter("ucm.allocateViewName") != null,
                                                       req.getParameter("ucm.viewpath"),
-                                                      req.getParameter("ucm.useManualLoadRules") != null
+                                                      req.getParameter("ucm.useManualLoadRules") != null,
+                                                      ChangeSetLevel.fromString(req.getParameter("ucm.changeset"))
                                                       );
             return scm;
         }

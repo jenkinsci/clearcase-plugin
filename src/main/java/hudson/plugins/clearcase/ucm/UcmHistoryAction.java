@@ -24,10 +24,8 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import static hudson.plugins.clearcase.util.OutputFormat.COMMENT;
 import static hudson.plugins.clearcase.util.OutputFormat.DATE_NUMERIC;
 import static hudson.plugins.clearcase.util.OutputFormat.EVENT;
-import static hudson.plugins.clearcase.util.OutputFormat.LINEEND;
 import static hudson.plugins.clearcase.util.OutputFormat.NAME_ELEMENTNAME;
 import static hudson.plugins.clearcase.util.OutputFormat.NAME_VERSIONID;
 import static hudson.plugins.clearcase.util.OutputFormat.OPERATION;
@@ -36,12 +34,14 @@ import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_HEADLINE;
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_STREAM;
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_VERSION_ACTIVITY;
 import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
+import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
 import hudson.plugins.clearcase.Baseline;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.history.AbstractHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
+import hudson.plugins.clearcase.util.OutputFormat;
 import hudson.scm.ChangeLogSet.Entry;
 
 import java.io.BufferedReader;
@@ -76,8 +76,8 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     private final ClearCaseUCMSCMRevisionState newBaseline;
 
     public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ClearCaseUCMSCMRevisionState oldBaseline,
-            ClearCaseUCMSCMRevisionState newBaseline) {
-        super(cleartool, useDynamicView, filter);
+            ClearCaseUCMSCMRevisionState newBaseline, ChangeSetLevel changeset) {
+        super(cleartool, useDynamicView, filter, changeset);
         this.oldBaseline = oldBaseline;
         this.newBaseline = newBaseline;
     }
@@ -162,43 +162,48 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
             InterruptedException {
         List<HistoryEntry> history = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
-//        if (oldBaseline == null) {
-//            return history;
-//        }
-//        List<Baseline> oldBaselines = oldBaseline.getBaselines();
-//        List<Baseline> newBaselines = newBaseline.getBaselines();
-//        if (ObjectUtils.equals(oldBaselines, newBaselines)) {
-//            return history;
-//        }
-//        for (final Baseline oldBl : oldBaselines) {
-//            String bl1 = oldBl.getBaselineName();
-//            final String comp1 = oldBl.getComponentName();
-//            // Lookup the component in the set of new baselines
-//            Baseline newBl = (Baseline) CollectionUtils.find(newBaselines, new Predicate() {
-//                @Override
-//                public boolean evaluate(Object bl) {
-//                    return StringUtils.equals(comp1, ((Baseline) bl).getComponentName());
-//                }
-//            });
-//            // If we cannot find a new baseline, log and skip
-//            if (newBl == null) {
-//                cleartool.getLauncher().getListener().getLogger().print("Old Baseline " + bl1 + " for component " + comp1 + " couldn't be found in the new set of baselines.");
-//                continue;
-//            }
-//            String bl2 = newBl.getBaselineName();
-//            if (!StringUtils.equals(bl1, bl2)) {
-//                List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
-//                for (String version : versions) {
-//                    try {
-//                        parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, version)), history);
-//                    } catch (ParseException e) {
-//                        // TODO Auto-generated catch block
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        }
+        if (needsHistoryOnAllBranches()) {
+            if (oldBaseline == null) {
+                return history;
+            }
+            List<Baseline> oldBaselines = oldBaseline.getBaselines();
+            List<Baseline> newBaselines = newBaseline.getBaselines();
+            if (ObjectUtils.equals(oldBaselines, newBaselines)) {
+                return history;
+            }
+            for (final Baseline oldBl : oldBaselines) {
+                String bl1 = oldBl.getBaselineName();
+                final String comp1 = oldBl.getComponentName();
+                // Lookup the component in the set of new baselines
+                Baseline newBl = (Baseline) CollectionUtils.find(newBaselines, new Predicate() {
+                    @Override
+                    public boolean evaluate(Object bl) {
+                        return StringUtils.equals(comp1, ((Baseline) bl).getComponentName());
+                    }
+                });
+                // If we cannot find a new baseline, log and skip
+                if (newBl == null) {
+                    cleartool.getLauncher().getListener().getLogger().print("Old Baseline " + bl1 + " for component " + comp1 + " couldn't be found in the new set of baselines.");
+                    continue;
+                }
+                String bl2 = newBl.getBaselineName();
+                if (!StringUtils.equals(bl1, bl2)) {
+                    List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
+                    for (String version : versions) {
+                        try {
+                            parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + OutputFormat.COMMENT + OutputFormat.LINEEND, version)), history);
+                        } catch (ParseException e) {
+                            /* empty by design */
+                        }
+                    }
+                }
+            }
+        }
         return history;
+    }
+
+    private boolean needsHistoryOnAllBranches() {
+        return ChangeSetLevel.ALL.equals(getChangeset());
     }
 
     @Override

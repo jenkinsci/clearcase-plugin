@@ -35,6 +35,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Run;
+import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.DefaultFilter;
@@ -76,7 +77,45 @@ import org.apache.commons.lang.Validate;
  */
 public abstract class AbstractClearCaseScm extends SCM {
 
-    public static final String CLEARCASE_VIEWTAG_ENVSTR = "CLEARCASE_VIEWTAG";
+	/**
+	 * The change set level describes which level of details will be in the changeset
+	 */
+    public enum ChangeSetLevel {
+    	/**
+    	 * No changeset will be generated
+    	 */
+		NONE("no"),
+		/**
+		 * Changeset will be generated based only on changes done in current branch
+		 */
+		BRANCH("branch"),
+		/**
+		 * Changeset will be generated based on changes done in current branch, and changes due to rebase
+		 */
+		ALL("all");
+		
+		private String name;
+		private ChangeSetLevel(String name) {
+			this.name = name;
+		}
+		public static ChangeSetLevel fromString(String str) {
+			for (ChangeSetLevel csl : values()) {
+				if (csl.name.equals(str)) {
+					return csl;
+				}
+			}
+			return ChangeSetLevel.defaultLevel();
+		}
+		
+		public String getName() {
+		    return name;
+		} 
+		public static ChangeSetLevel defaultLevel() {
+			return ChangeSetLevel.BRANCH;
+		}
+	}
+
+	public static final String CLEARCASE_VIEWTAG_ENVSTR = "CLEARCASE_VIEWTAG";
     public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
     public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
 
@@ -98,6 +137,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean freezeCode;
     private final boolean recreateView;
     private final String viewPath;
+    private ChangeSetLevel changeset;
 
     private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
         if (null == normalizedViewName) {
@@ -133,7 +173,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public AbstractClearCaseScm(final String viewName, final String mkviewOptionalParam, final boolean filterOutDestroySubBranchEvent, final boolean useUpdate,
             final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, final String loadRules,
             final String multiSitePollBuffer, final boolean createDynView, final String winDynStorageDir, final String unixDynStorageDir,
-            final boolean freezeCode, final boolean recreateView, final String viewPath) {
+            final boolean freezeCode, final boolean recreateView, final String viewPath, ChangeSetLevel changeset) {
         Validate.notNull(viewName);
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
@@ -159,6 +199,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.freezeCode = freezeCode;
         this.recreateView = recreateView;
         this.viewPath = StringUtils.defaultIfEmpty(viewPath, viewName);
+        this.changeset = changeset;
     }
 
     /**
@@ -547,7 +588,10 @@ public abstract class AbstractClearCaseScm extends SCM {
         String viewName = getViewName(variableResolver);
         String[] branchNames = getBranchNames(variableResolver);
 
-        if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewName, branchNames, ccBaseline.getLoadRules())) {
+        if (historyAction == null) {
+            // Error when calculating the new baseline => Probably clearcase server error, not launching the build
+            change = Change.NONE;
+        } else if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewName, branchNames, ccBaseline.getLoadRules())) {
             change = Change.SIGNIFICANT;
         } else {
             change = Change.NONE;
@@ -698,6 +742,15 @@ public abstract class AbstractClearCaseScm extends SCM {
             setNormalizedViewPath(normalized);
         }
         return normalized;
+    }
+    
+
+    public ChangeSetLevel getChangeset() {
+        return changeset;
+    }
+    
+    protected void setChangeset(ChangeSetLevel changeset) {
+        this.changeset = changeset;
     }
 
 }

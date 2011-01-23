@@ -27,7 +27,6 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
          xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
          xmlns:f="/lib/form">
-  
   <f:description>
     <div align="right">
       <a href="${rootURL}/scm/ClearCaseSCM/listViews">List clearcase views</a>
@@ -60,11 +59,18 @@
     </td>
   </tr>
   
-  <f:entry title="Use update">
+  <f:entry title="Use update" field="useupdate">
     <f:checkbox name="ucm.useupdate" checked="${h.defaultToTrue(scm.useUpdate)}"/>
     If checked, Hudson will use 'cleartool update' whenever possible, making the build faster.
     But this causes the artifacts from the previous build to remain when a new build starts.
   </f:entry>
+  <f:entry title="Changeset" help="/plugin/clearcase/ucm/help-changeset.html">
+    <table>
+      <f:radioBlock name="ucm.changeset" title="No History" checked="${scm.changeset.name eq 'no'}" value="no"/>
+      <f:radioBlock name="ucm.changeset" title="Current stream" checked="${scm.changeset eq null || scm.changeset.name eq 'branch'}" value="branch"/>
+      <f:radioBlock name="ucm.changeset" title="Current stream + rebases" checked="${scm.changeset.name eq 'all'}" value="all"/>
+    </table>
+  </f:entry> 
   
   <f:advanced>
     <f:entry title="Excluded Regions" help="/plugin/clearcase/excludedRegions.html">
