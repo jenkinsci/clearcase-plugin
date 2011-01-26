@@ -50,7 +50,7 @@ public class BaseHistoryAction extends AbstractHistoryAction {
     private int maxTimeDifferenceMillis;
 
     public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, int maxTimeDifferenceMillis) {
-        super(cleartool, useDynamicView, filter);
+        super(cleartool, useDynamicView, filter, null);
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
     }
 

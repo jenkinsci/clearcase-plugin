@@ -338,25 +338,6 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         clearToolExec.setcs("viewName", SetcsOption.CURRENT, null);
     }
 
-    @Test(expected=IOException.class)
-    public void testUpdateBlocked() throws Exception {
-        context.checking(new Expectations() {
-                {
-                    one(ccLauncher).getWorkspace(); will(returnValue(workspace));
-                    one(ccLauncher).run(
-                                               with(equal(new String[] { "update", "-force", "-overwrite", "-log",
-                                                                         "NUL"})),
-                                               with(aNonNull(InputStream.class)),
-                                               with(aNonNull(OutputStream.class)),
-                                               with(aNonNull(FilePath.class)));
-                    will(doAll(new StreamCopyAction(2, this.getClass().getResourceAsStream("ct-update-2.log")),
-                               returnValue(Boolean.TRUE)));
-                }
-            });
-        
-        clearToolExec.update("viewName", null);
-    }
-    
     @Test
     public void testSetcs() throws Exception {
         context.checking(new Expectations() {

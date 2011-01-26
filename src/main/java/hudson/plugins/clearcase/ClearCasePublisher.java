@@ -3,6 +3,7 @@ package hudson.plugins.clearcase;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Descriptor.FormException;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -10,6 +11,8 @@ import hudson.tasks.Publisher;
 
 import java.io.IOException;
 import java.io.Serializable;
+
+import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -81,7 +84,8 @@ public class ClearCasePublisher extends Notifier implements Serializable {
          * This method is invoked when the global configuration "save" is pressed
          */
         @Override
-        public boolean configure(StaplerRequest req) throws FormException {
+        public boolean configure(StaplerRequest req, JSONObject json)
+                throws FormException {
             save();
             return true;
         }

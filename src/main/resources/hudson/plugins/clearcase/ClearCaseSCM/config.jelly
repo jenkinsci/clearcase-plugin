@@ -50,6 +50,12 @@
     But this causes the artifacts from the
     previous build to remain when a new build starts.
   </f:entry>
+  <f:entry title="Changeset" field="cc.changeset" help="/plugin/clearcase/base/help-changeset.html">
+    <table>
+      <f:radioBlock name="cc.changeset" title="No History" checked="${scm.changeset.name eq 'no'}" value="no"/>
+      <f:radioBlock name="cc.changeset" title="Current branch" checked="${scm.changeset eq null || scm.changeset.name eq 'branch'}" value="branch"/>
+    </table>
+  </f:entry> 
 
   <f:entry title="Branch(es)" help="/plugin/clearcase/branch.html">
     <f:expandableTextbox name="cc.branch" value="${scm.branch}" />

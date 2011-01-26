@@ -56,7 +56,7 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
     private final String stream;
     public FreezeCodeUcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, String stream, String viewDrive,
             AbstractBuild<?, ?> build, ClearCaseUCMSCMRevisionState oldBaseline, ClearCaseUCMSCMRevisionState newBaseline) {
-        super(cleartool, useDynamicView, filter, oldBaseline, newBaseline);
+        super(cleartool, useDynamicView, filter, oldBaseline, newBaseline, null);
         this.build = build;
         this.stream = stream;
         this.viewDrive = viewDrive;
