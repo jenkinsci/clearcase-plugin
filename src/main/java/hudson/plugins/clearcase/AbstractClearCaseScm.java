@@ -127,7 +127,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean useUpdate;
     private final boolean removeViewOnRename;
     private String excludedRegions;
-    private final String loadRules;
+    private String loadRules;
     private final boolean useDynamicView;
     private final String viewDrive;
     private int multiSitePollBuffer;
@@ -265,9 +265,8 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (StringUtils.isBlank(loadRules)) {
             return null;
         }
-        loadRules = Util.replaceMacro(loadRules, variableResolver);
         // [<-- anb0s: HUDSON-8497]
-        
+
         String[] rules = loadRules.split("[\\r\\n]+");
         for (int i = 0; i < rules.length; i++) {
             String rule = rules[i];
@@ -302,10 +301,16 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String getLoadRules() {
         return loadRules;
     }
+
+    public void setLoadRules(String ldRls) {
+        loadRules = ldRls;
+    }
     
+	// [--> anb0s: HUDSON-8497] 
     public String getLoadRules(VariableResolver<String> variableResolver) {
         return Util.replaceMacro(loadRules, variableResolver);
     }
+    // [<-- anb0s: HUDSON-8497]
 
     public boolean isCreateDynView() {
         return createDynView;

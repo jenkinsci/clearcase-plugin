@@ -34,15 +34,33 @@
     <f:textbox name="cc.viewpath"
       value="${h.defaulted(scm.viewPath, h.defaulted(scm.viewName, descriptor.defaultViewPath))}"/>
   </f:entry>
+
+  <f:block>
+  <table>
+
+  <f:optionalBlock name="cc.getConfigSpecFromFile" title="Get config spec from file"
+                       checked="${scm.extractConfigSpec}" >
+   	<f:entry title="File name" >
+     <f:textbox name="cc.configSpecFileName" value="${scm.configSpecFileName}" />       
+   	</f:entry>  
+  </f:optionalBlock>    
+
   <f:entry title="Config spec" help="/plugin/clearcase/configspec.html">
     <f:textarea name="cc.configspec" value="${scm.configSpec}"
       checkUrl="'${rootURL}/scm/ClearCaseSCM/configSpecCheck?value='+escape(this.value)" />
   </f:entry>
 
-  <f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
-    <f:expandableTextbox name="cc.loadrules" value="${scm.loadRules}"
-      checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules are mandatory')+'&amp;value='+escape(this.value)" />
-  </f:entry>
+  <f:optionalBlock name="cc.extractLoadRules" title="Get load rules from config spec"
+    checked="${scm.extractLoadRules}" negative="true">	  
+	<f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
+	  <f:expandableTextbox name="cc.loadrules" value="${scm.loadRules}"
+	    checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules are mandatory')+'&amp;value='+escape(this.value)" />
+	</f:entry>
+  </f:optionalBlock>
+
+  </table>
+  </f:block>
+
   <f:entry title="Use update">
     <f:checkbox name="cc.useupdate" checked="${h.defaultToTrue(scm.useUpdate)}" />
     If checked, Hudson will use 'cleartool update' whenever possible,
