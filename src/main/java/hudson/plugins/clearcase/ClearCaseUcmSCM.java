@@ -24,8 +24,10 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.BuildListener;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
@@ -48,6 +50,7 @@ import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
 import hudson.util.VariableResolver;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
@@ -359,4 +362,11 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             return scm;
         }
     }
+
+	@Override
+	protected void inspectConfigAction(
+			VariableResolver<String> variableResolver, ClearToolLauncher launcher)
+			throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
+	}
 }

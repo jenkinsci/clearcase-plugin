@@ -38,11 +38,22 @@
   <f:block>
   <table>
 
-  <f:optionalBlock name="cc.getConfigSpecFromFile" title="Get config spec from file"
+  <f:optionalBlock name="cc.getConfigSpecFromFile" title="Get config spec from a file"
                        checked="${scm.extractConfigSpec}" >
    	<f:entry title="File name" >
-     <f:textbox name="cc.configSpecFileName" value="${scm.configSpecFileName}" />       
+     <f:textbox name="cc.configSpecFileName" value="${scm.configSpecFileName}"
+		checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Config spec file is mandatory')+'&amp;value='+escape(this.value)" />
    	</f:entry>  
+    <f:block>
+    <table>
+      <f:optionalBlock name="cc.refreshConfigSpecFile" title="Refresh config spec file"
+                       checked="${scm.refreshConfigSpecFile}" >
+        <f:entry title="Refresh command" >
+         <f:textbox name="cc.refreshConfigSpecCommand" value="${scm.refreshConfigSpecCommand}" />       
+        </f:entry>  
+      </f:optionalBlock>    
+    </table>
+    </f:block>
   </f:optionalBlock>    
 
   <f:entry title="Config spec" help="/plugin/clearcase/configspec.html">
@@ -53,8 +64,8 @@
   <f:optionalBlock name="cc.extractLoadRules" title="Get load rules from config spec"
     checked="${scm.extractLoadRules}" negative="true">	  
 	<f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
-	  <f:expandableTextbox name="cc.loadrules" value="${scm.loadRules}"
-	    checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules are mandatory')+'&amp;value='+escape(this.value)" />
+	  <f:textarea name="cc.loadrules" value="${scm.loadRules}"
+		checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules are mandatory')+'&amp;value='+escape(this.value)" />
 	</f:entry>
   </f:optionalBlock>
 

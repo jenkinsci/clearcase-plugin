@@ -213,6 +213,17 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected abstract CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
     /**
+     * inspect config action that will be used by the checkout method.
+     * 
+     * @param variableResolver
+     * @param launcher
+     * @return void.
+     * @throws InterruptedException
+     * @throws IOException 
+     */
+    protected abstract void inspectConfigAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher) throws IOException, InterruptedException;
+
+    /**
      * Create a HistoryAction that will be used by the pollChanges() and checkout() method.
      * 
      * @param variableResolver
@@ -519,12 +530,17 @@ public abstract class AbstractClearCaseScm extends SCM {
     @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException,
             InterruptedException {
-        // Calculate revision state from the beginning, it will enable to reuse load rules
-        build.addAction(calcRevisionsFromBuild(build, launcher, listener));
         
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
+
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
+
+        // inspect config spec
+        inspectConfigAction(variableResolver, clearToolLauncher);
+
+        // Calculate revision state from the beginning, it will enable to reuse load rules
+        build.addAction(calcRevisionsFromBuild(build, launcher, listener));
 
         CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
         

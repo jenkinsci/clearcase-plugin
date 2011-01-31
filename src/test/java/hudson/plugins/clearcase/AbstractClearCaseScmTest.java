@@ -39,6 +39,7 @@ import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.HistoryAction;
@@ -1008,5 +1009,12 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         public void setFirstBuild(boolean firstBuild) {
             this.firstBuild = firstBuild;
         }
+
+    	@Override
+    	protected void inspectConfigAction(
+    			VariableResolver<String> variableResolver, ClearToolLauncher launcher)
+    			throws IOException, InterruptedException {
+    		// TODO Auto-generated method stub
+    	}
     }
 }
