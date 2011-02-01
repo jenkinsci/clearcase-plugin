@@ -316,7 +316,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public void setLoadRules(String ldRls) {
         loadRules = ldRls;
     }
-    
+
 	// [--> anb0s: HUDSON-8497] 
     public String getLoadRules(VariableResolver<String> variableResolver) {
         return Util.replaceMacro(loadRules, variableResolver);

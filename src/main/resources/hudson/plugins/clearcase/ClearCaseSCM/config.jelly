@@ -46,10 +46,11 @@
    	</f:entry>  
     <f:block>
     <table>
-      <f:optionalBlock name="cc.refreshConfigSpecFile" title="Refresh config spec file"
-                       checked="${scm.refreshConfigSpecFile}" >
+      <f:optionalBlock name="cc.refreshConfigSpec" title="Refresh config spec"
+                       checked="${scm.refreshConfigSpec}" >
         <f:entry title="Refresh command" >
-         <f:textbox name="cc.refreshConfigSpecCommand" value="${scm.refreshConfigSpecCommand}" />       
+        	<f:textbox name="cc.refreshConfigSpecCommand" value="${scm.refreshConfigSpecCommand}"
+        	checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Refresh command is mandatory')+'&amp;value='+escape(this.value)" />       
         </f:entry>  
       </f:optionalBlock>    
     </table>

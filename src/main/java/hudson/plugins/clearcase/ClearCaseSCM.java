@@ -51,6 +51,7 @@ import hudson.scm.ChangeLogParser;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
+import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
@@ -92,9 +93,12 @@ import org.kohsuke.stapler.framework.io.ByteBuffer;
 public class ClearCaseSCM extends AbstractClearCaseScm {
 
     private static final String DEFAULT_VALUE_WIN_DYN_STORAGE_DIR = "\\views\\dynamic";
+    public static final String CLEARCASE_CSFILENAME_ENVSTR = "CLEARCASE_CSFILENAME";
 
     private boolean extractConfigSpec;
     private String configSpecFileName;
+    private boolean refreshConfigSpec;
+    private String refreshConfigSpecCommand;
     private String configSpec;
     private final String branch;
     private final String label;
@@ -103,7 +107,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private boolean extractLoadRules;
 
     @DataBoundConstructor
-    public ClearCaseSCM(String branch, String label, boolean extractConfigSpec, String configSpecFileName, String configspec, String viewTag, boolean useupdate, boolean extractLoadRules, String loadRules, boolean usedynamicview, String viewdrive,
+    public ClearCaseSCM(String branch, String label, boolean extractConfigSpec, String configSpecFileName, boolean refreshConfigSpec, String refreshConfigSpecCommand, String configspec,
+    		String viewTag, boolean useupdate, boolean extractLoadRules, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
             String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath, ChangeSetLevel changeset) {
         super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
@@ -112,51 +117,66 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         this.label = label;
         this.extractConfigSpec = extractConfigSpec;
         this.configSpecFileName = configSpecFileName;
+        this.refreshConfigSpec = refreshConfigSpec;
+        this.refreshConfigSpecCommand = refreshConfigSpecCommand;
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
         this.extractLoadRules = extractLoadRules;
-        //extractFromConfigSpec(null);
     }
 
     public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
-        this(branch, label, false, null, configspec, viewTag, useupdate, false, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+        this(branch, label, false, null, false, null, configspec, viewTag, useupdate, false, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
                 doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "", viewTag, null);
     }
 
-    /*
-    private void extractFromConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
-    	refreshConfigSpec(variableResolver, launcher);
-    	refreshLoadRules(variableResolver, launcher);
+    @SuppressWarnings("deprecation")
+	private boolean doRefreshConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
+    	int cmdResult = 0;
+        // execute refresh command
+        if (isRefreshConfigSpec()) {
+        	ArgumentListBuilder cmd = new ArgumentListBuilder();
+        	cmd.addTokenized(getRefreshConfigSpecCommand(variableResolver));
+            PrintStream logger = launcher.getListener().getLogger();
+            try {
+				cmdResult = launcher.launch(cmd.toCommandArray(), new String[0], null, logger, null).join();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+        return (cmdResult == 0);
     }
-    */
 
-    private void refreshConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
-        // get config spec from file
-        if (extractConfigSpec)
+    private boolean doExtractConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
+        boolean ret = true;
+    	// get config spec from file
+        if (isExtractConfigSpec())
         {
         	String cs = null;
-        	String effectiveFileName = null;
-    		if (variableResolver != null)
-    			effectiveFileName = Util.replaceMacro(configSpecFileName, variableResolver);
-    		else
-    			effectiveFileName = configSpecFileName;
-        	cs = getConfigSpecFromFile(effectiveFileName, launcher);
+        	cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
         	if (cs != null) {
         		configSpec = cs;
         	} else {
         		launcher.getListener().getLogger().println("Fall back to config spec field...");
-        	}        	
-        }	
+        		ret = false;
+        	}
+        }
+        return ret;
     }
 
-    private void refreshLoadRules(VariableResolver<String> variableResolver, Launcher launcher) {
+    private boolean doExtractLoadRules(VariableResolver<String> variableResolver, Launcher launcher) {
+    	boolean ret = true;
     	// extract rules from config spec
-    	if (extractLoadRules) {
+    	if (isExtractLoadRules()) {
     		ConfigSpec cfgSpec = new ConfigSpec(configSpec, launcher.isUnix());
     		setLoadRules(cfgSpec.getLoadRulesString());
     	}
+        return ret;
     }
 
     private String getConfigSpecFromFile(String fileName, Launcher launcher) {
@@ -203,6 +223,28 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     public String getConfigSpecFileName() {
         return configSpecFileName;
     }
+
+    public String getConfigSpecFileName(VariableResolver<String> variableResolver) {
+    	if (variableResolver != null)
+    		return Util.replaceMacro(configSpecFileName, variableResolver);
+    	else
+    		return configSpecFileName;
+    }
+
+    public boolean isRefreshConfigSpec() {
+        return refreshConfigSpec;
+    }
+
+    public String getRefreshConfigSpecCommand() {
+        return refreshConfigSpecCommand;
+    }
+
+    public String getRefreshConfigSpecCommand(VariableResolver<String> variableResolver) {
+    	if (variableResolver != null)
+    		return Util.replaceMacro(refreshConfigSpecCommand, variableResolver);
+    	else
+    		return refreshConfigSpecCommand;
+    }    
     
     public String getConfigSpec() {
         return configSpec;
@@ -230,6 +272,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return new ClearCaseChangeLogParser();
     }
 
+    /**
+     * Adds the env variable for the ClearCase SCMs.
+     * <ul>
+     * <li>CLEARCASE_CSFILENAME - The name of the clearcase config spec file.</li>
+     * </ul>
+     */
     @Override
     public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
         super.buildEnvVars(build, env);
@@ -240,14 +288,20 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                 env.remove(CLEARCASE_VIEWPATH_ENVSTR);
             }
         }
+        if (isExtractConfigSpec()) {
+            @SuppressWarnings("unchecked")
+            VariableResolver.Union<String> variableResolver = new VariableResolver.Union<String>(new BuildVariableResolver(build, true),
+                                                                                                 new VariableResolver.ByMap<String>(env));        	
+        	env.put(CLEARCASE_CSFILENAME_ENVSTR, getConfigSpecFileName(variableResolver));
+        }
     }
 
     @Override
     protected void inspectConfigAction(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
     	Launcher launcher = cclauncher.getLauncher();
-    	//extractFromConfigSpec(variableResolver, launcher);
-    	refreshConfigSpec(variableResolver, launcher);
-    	refreshLoadRules(variableResolver, launcher);
+    	doRefreshConfigSpec(variableResolver, launcher);
+    	doExtractConfigSpec(variableResolver, launcher);
+    	doExtractLoadRules(variableResolver, launcher);
     	// verify
     	PrintStream logger = launcher.getListener().getLogger();
     	if (configSpec == null || configSpec.length() == 0) {
@@ -441,6 +495,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.label"),
                                                         req.getParameter("cc.getConfigSpecFromFile") != null,
                                                         req.getParameter("cc.configSpecFileName"),
+                                                        req.getParameter("cc.refreshConfigSpec") != null,
+                                                        req.getParameter("cc.refreshConfigSpecCommand"),
                                                         req.getParameter("cc.configspec"),
                                                         req.getParameter("cc.viewname"),
                                                         req.getParameter("cc.useupdate") != null,
