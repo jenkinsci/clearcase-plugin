@@ -142,11 +142,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             try {
 				cmdResult = launcher.launch(cmd.toCommandArray(), new String[0], null, logger, null).join();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e.printStackTrace(logger);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e.printStackTrace(logger);
 			}
         }
         return (cmdResult == 0);
