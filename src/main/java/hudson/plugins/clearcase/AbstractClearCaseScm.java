@@ -595,18 +595,36 @@ public abstract class AbstractClearCaseScm extends SCM {
     @Override
     protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
             SCMRevisionState baseline) throws IOException, InterruptedException {
+
+    	// [--> anb0s: HUDSON-8678]    	
+    	// check if build is running
+        if (project.isBuilding()) { 
+        	launcher.getListener().getLogger().println("Polling is disabled, because build is running...");
+        	return PollingResult.NO_CHANGES;
+        }
+        // [<-- anb0s: HUDSON-8678]
+
+        // check if first build
         if (isFirstBuild(baseline)) {
             return PollingResult.BUILD_NOW;
         }
-        AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;
-        
+
+        AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;        
         AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getSomeBuildWithWorkspace();
         if (build == null) {
             return PollingResult.BUILD_NOW;
         }
-        
+
+        ClearToolLauncher cclauncher = createClearToolLauncher(listener, workspace, launcher);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(listener, workspace, launcher), build);
+
+        // check if config spec was updated
+        boolean hasNewCS = hasNewConfigSpec(variableResolver, cclauncher);
+        if (hasNewCS) {
+        	return PollingResult.BUILD_NOW;
+        }
+
+        HistoryAction historyAction = createHistoryAction(variableResolver, cclauncher, build);
         Change change;
         String viewPath = getViewPath(variableResolver);
         String viewName = getViewName(variableResolver);
@@ -622,10 +640,12 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), change);
     }
-    
+
     protected abstract boolean isFirstBuild(SCMRevisionState baseline);
     
     public abstract SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException;
+
+    protected abstract boolean hasNewConfigSpec(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException;
     
     protected Date getBuildTime(Run<?, ?> lastBuild) {
         Date buildTime = lastBuild.getTimestamp().getTime();

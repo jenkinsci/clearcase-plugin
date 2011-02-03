@@ -369,4 +369,13 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 			throws IOException, InterruptedException {
 		// TODO Auto-generated method stub
 	}
+
+	@Override
+	protected boolean hasNewConfigSpec(
+			VariableResolver<String> variableResolver,
+			ClearToolLauncher cclauncher) throws IOException,
+			InterruptedException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

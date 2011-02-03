@@ -77,6 +77,7 @@ import javax.servlet.ServletException;
 
 import net.sf.json.JSONObject;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -99,8 +100,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private String configSpecFileName;
     private boolean refreshConfigSpec;
     private String refreshConfigSpecCommand;
-    private String configSpec;
     private final String branch;
+    private String configSpec;
     private final String label;
     private boolean doNotUpdateConfigSpec;
     private boolean useTimeRule;
@@ -133,7 +134,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @SuppressWarnings("deprecation")
 	private boolean doRefreshConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
-    	int cmdResult = 0;
+    	int cmdResult = 1;
         // execute refresh command
         if (isRefreshConfigSpec()) {
         	ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -153,8 +154,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private boolean doExtractConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
         boolean ret = true;
     	// get config spec from file
-        if (isExtractConfigSpec())
-        {
+        if (isExtractConfigSpec()) {
         	String cs = null;
         	cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
         	if (cs != null) {
@@ -309,6 +309,31 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     	if (loadRules == null || loadRules.length() == 0) {
     		logger.println("WARNING: load rules are empty!");
     	}
+    }
+
+    @Override
+    protected boolean hasNewConfigSpec(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
+        boolean ret = false;
+        if (isExtractConfigSpec())
+        {
+        	Launcher launcher = cclauncher.getLauncher();
+        	// refresh if needed
+        	doRefreshConfigSpec(variableResolver, launcher);
+        	String cs = null;
+        	// get config spec from file
+        	cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
+        	if (cs != null) {
+                ConfigSpec fileConfigSpec = new ConfigSpec(cs, launcher.isUnix());
+                ConfigSpec actualConfigSpec = new ConfigSpec(configSpec, launcher.isUnix());
+                //loadRulesDelta = getLoadRulesDelta(fileConfigSpec.getLoadRules(), launcher);
+                //needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());
+                ret = !actualConfigSpec.stripLoadRules().equals(fileConfigSpec.stripLoadRules());
+        	} else {
+        		//launcher.getListener().getLogger().println("Fall back to config spec field...");
+        		ret = false;
+        	}
+        }
+        return ret;
     }
 
     @Override
