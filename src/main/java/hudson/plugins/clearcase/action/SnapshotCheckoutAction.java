@@ -75,15 +75,16 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
                     launcher.getListener().fatalError(e.toString());
                     return false;
                 }
-            }
-        }
-        // Perform a full update of the view. to reevaluate config spec
-        if (!viewCreated) {
-            try {
-                cleartool.setcs(viewPath, SetcsOption.CURRENT, null);
-            } catch (IOException e) {
-                launcher.getListener().fatalError(e.toString());
-                return false;
+            } else {
+            	// [--> anb0s: HUDSON-8674]
+                // Perform a full update of the view. to reevaluate config spec
+                try {
+                    cleartool.setcs(viewPath, SetcsOption.CURRENT, null);
+                } catch (IOException e) {
+                    launcher.getListener().fatalError(e.toString());
+                    return false;
+                }
+            	// [<-- anb0s: HUDSON-8674]
             }
         }
         return true;
