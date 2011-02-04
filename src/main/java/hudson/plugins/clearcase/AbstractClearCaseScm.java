@@ -56,6 +56,7 @@ import hudson.util.VariableResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -596,22 +597,26 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
             SCMRevisionState baseline) throws IOException, InterruptedException {
 
+    	PrintStream logger = launcher.getListener().getLogger();
+
     	// [--> anb0s: HUDSON-8678]    	
     	// check if build is running
         if (project.isBuilding()) { 
-        	launcher.getListener().getLogger().println("Polling is disabled, because build is running...");
+        	logger.println("REASON: Build is running.");
         	return PollingResult.NO_CHANGES;
         }
         // [<-- anb0s: HUDSON-8678]
 
         // check if first build
         if (isFirstBuild(baseline)) {
+        	logger.println("REASON: First build.");
             return PollingResult.BUILD_NOW;
         }
 
         AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;        
         AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getSomeBuildWithWorkspace();
         if (build == null) {
+        	logger.println("REASON: Build and workspace not valid.");
             return PollingResult.BUILD_NOW;
         }
 
@@ -621,6 +626,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         // check if config spec was updated
         boolean hasNewCS = hasNewConfigSpec(variableResolver, cclauncher);
         if (hasNewCS) {
+        	logger.println("REASON: New config spec detected.");
         	return PollingResult.BUILD_NOW;
         }
 
