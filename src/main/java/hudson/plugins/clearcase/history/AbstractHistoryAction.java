@@ -80,9 +80,8 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
     @Override
     public List<? extends Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-        List<HistoryEntry> entries = runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
+    	List<HistoryEntry> entries = runLsHistory(false, time, viewPath, viewTag, branchNames, viewPaths);
         List<HistoryEntry> filtered = filterEntries(entries);
-
         List<? extends Entry> changelog = buildChangelog(viewPath, filtered);
         return changelog;
     }
@@ -99,15 +98,26 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
     @Override
     public boolean hasChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-        List<HistoryEntry> entries = runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
+        List<HistoryEntry> entries = runLsHistory(true, time, viewPath, viewTag, branchNames, viewPaths);
         List<HistoryEntry> filtered = filterEntries(entries);
         return filtered.size() > 0;
     }
 
-    private boolean needsHistory(String viewTag, String[] loadRules) throws IOException, InterruptedException {
-        return !ChangeSetLevel.NONE.equals(changeset)
-            || !cleartool.doesViewExist(viewTag)
-            || ArrayUtils.isEmpty(loadRules);
+    private boolean needsHistory(boolean forPolling, String viewTag, String[] loadRules) throws IOException, InterruptedException {
+    	// if for polling -> we need history
+    	if (forPolling)
+    		return true;
+    	// if for checkout, check if enabled
+    	if (ChangeSetLevel.BRANCH.equals(changeset) || ChangeSetLevel.ALL.equals(changeset)) 
+    		return true;
+    	return false;
+    	// TODO: why this?
+    	// if view not exist we should not execute history!
+    	// if load rules are empty we should not execute history
+    	//return !ChangeSetLevel.NONE.equals(changeset)
+    	//       || !cleartool.doesViewExist(viewTag)
+        //       || ArrayUtils.isEmpty(loadRules);
+    	
     }
 
     private String[] normalizeBranches(String[] branchNames) {
@@ -148,10 +158,10 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         }
     }
 
-    protected List<HistoryEntry> runLsHistory(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    protected List<HistoryEntry> runLsHistory(boolean forPolling, Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         Validate.notNull(viewPath);
         List<HistoryEntry> history = new ArrayList<HistoryEntry>();
-        if (needsHistory(viewTag, viewPaths)) {
+        if (needsHistory(forPolling, viewTag, viewPaths)) {
             if (isDynamicView) {
                cleartool.startView(viewTag);
             }

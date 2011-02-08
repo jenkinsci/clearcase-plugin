@@ -58,13 +58,14 @@ public interface ClearTool {
      * http://www.ipnom.com/ClearCase-Commands/describe.html for valid options
      * 
      * @param format
+     * @param viewPath
      * @param objectSelector
      * @return A reader to the command output
      * @throws IOException If cleartool throws an error code
      * @throws InterruptedException If the process is interrupted
      * @since 1.3
      */
-    Reader describe(String format, String objectSelector) throws IOException, InterruptedException;
+    Reader describe(String format, String viewPath, String objectSelector) throws IOException, InterruptedException;
 
     /**
      * Call diffbl using the two provided baselines (can be stream or baseline)
@@ -397,5 +398,7 @@ public interface ClearTool {
      * @param loadRules optional load rules, null if not used.
      */
     void update(String viewPath, String[] loadRules) throws IOException, InterruptedException;
+    
+    String getUpdtFileName();
 
 }

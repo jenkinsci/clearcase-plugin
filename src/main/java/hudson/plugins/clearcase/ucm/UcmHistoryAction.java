@@ -159,9 +159,9 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+    protected List<HistoryEntry> runLsHistory(boolean forPolling, Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
             InterruptedException {
-        List<HistoryEntry> history = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
+        List<HistoryEntry> history = super.runLsHistory(forPolling, sinceTime, viewPath, viewTag, branchNames, viewPaths);
         if (needsHistoryOnAllBranches()) {
             if (oldBaseline == null) {
                 return history;
@@ -191,7 +191,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
                     List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
                     for (String version : versions) {
                         try {
-                            parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + OutputFormat.COMMENT + OutputFormat.LINEEND, version)), history);
+                            parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + OutputFormat.COMMENT + OutputFormat.LINEEND, null, version)), history);
                         } catch (ParseException e) {
                             /* empty by design */
                         }

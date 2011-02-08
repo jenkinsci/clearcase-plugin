@@ -623,7 +623,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                                returnValue(Boolean.TRUE)));
                 }
             });
-        Reader reader = clearToolExec.describe("format", "stream:stream_selector@\\a_vob");
+        Reader reader = clearToolExec.describe("format",null,"stream:stream_selector@\\a_vob");
         assertNotNull("Returned console reader cannot be null", reader);
     }
     

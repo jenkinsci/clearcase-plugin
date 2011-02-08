@@ -91,6 +91,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 		 */
 		BRANCH("branch"),
 		/**
+		 * Changeset will be generated based only on changes logged in updt file (snapshot views)
+		 */
+		UPDT("updt"),
+		/**
 		 * Changeset will be generated based on changes done in current branch, and changes due to rebase
 		 */
 		ALL("all");
@@ -139,8 +143,9 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean recreateView;
     private final String viewPath;
     private ChangeSetLevel changeset;
+    private String updtFileName;
 
-    private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
+	private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
         if (null == normalizedViewName) {
             this.normalizedViewName = new ThreadLocal<String>();
         }
@@ -555,7 +560,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         boolean computeChangeLogAfterCheckout = false;
         boolean returnValue = true;
         if (build.getPreviousBuild() != null) {
-            if (checkoutAction.isViewValid(launcher, workspace, coNormalizedViewName)) {
+            if (!ChangeSetLevel.UPDT.equals(changeset) && checkoutAction.isViewValid(launcher, workspace, coNormalizedViewName)) {
                 // We need a valid view to determine the change log. For instance, on a new slave the view won't exist
                 returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
                         coNormalizedViewName, returnValue);
@@ -568,6 +573,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             throw new AbortException();
         }
         if (computeChangeLogAfterCheckout) {
+        	setUpdtFileName(checkoutAction.getUpdtFileName());
             returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
                     coNormalizedViewName, returnValue);
         }
@@ -793,7 +799,6 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         return normalized;
     }
-    
 
     public ChangeSetLevel getChangeset() {
         return changeset;
@@ -803,4 +808,11 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.changeset = changeset;
     }
 
+    public String getUpdtFileName() {
+		return updtFileName;
+	}
+
+	public void setUpdtFileName(String updtFileName) {
+		this.updtFileName = updtFileName;
+	}    
 }

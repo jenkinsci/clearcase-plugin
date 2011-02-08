@@ -130,4 +130,9 @@ public class DynamicCheckoutAction implements CheckOutAction {
         }
         return false;
     }
+
+	public String getUpdtFileName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

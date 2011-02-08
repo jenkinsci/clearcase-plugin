@@ -64,6 +64,7 @@ public abstract class ClearToolExec implements ClearTool {
     protected ClearToolLauncher launcher;
     protected VariableResolver<String> variableResolver;
     protected String optionalMkviewParameters;
+    protected String updtFileName;
 
     public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters) {
         this.variableResolver = variableResolver;
@@ -79,7 +80,7 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
-    public Reader describe(String format, String objectSelectors) throws IOException, InterruptedException {
+    public Reader describe(String format, String viewPath, String objectSelectors) throws IOException, InterruptedException {
         Validate.notNull(objectSelectors);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("desc");
@@ -87,8 +88,12 @@ public abstract class ClearToolExec implements ClearTool {
             cmd.add("-fmt", format);
         }
         cmd.addTokenized(objectSelectors);
+        FilePath workingDirectory = null;
+        if (viewPath != null) {
+            workingDirectory = new FilePath(getRootViewPath(launcher), viewPath);
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
+        launcher.run(cmd.toCommandArray(), null, baos, workingDirectory);
         Reader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
         baos.close();
         return reader;
@@ -786,7 +791,9 @@ public abstract class ClearToolExec implements ClearTool {
         if (configSpecFile != null) {
             configSpecFile.delete();
         }
-        
+
+        processUpdtFileName(output);
+
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + output);
         }
@@ -855,6 +862,27 @@ public abstract class ClearToolExec implements ClearTool {
             }
         }
 
-        runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, false, null);
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, false, null);
+
+        processUpdtFileName(output);
+    }
+    
+    void processUpdtFileName(String output) {
+        Pattern updtPattern = Pattern.compile("Log has been written to \"(.*)\".*");
+        String[] lines = output.split("\n");
+        for (String line : lines) {
+            Matcher matcher = updtPattern.matcher(line);
+            if (matcher.find() && matcher.groupCount() == 1) {
+            	setUpdtFileName(matcher.group(1));
+            }
+        }
+    }
+
+    public void setUpdtFileName(String updtFileName) {
+    	this.updtFileName = updtFileName;    	
+    }
+
+    public String getUpdtFileName() {
+    	return updtFileName;
     }
 }

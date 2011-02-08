@@ -47,6 +47,7 @@ import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.history.LabelFilter;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.plugins.clearcase.util.PathUtil;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
@@ -180,30 +181,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private String getConfigSpecFromFile(String fileName, Launcher launcher) {
     	String cs = null;    	
     	try {        		
-    		cs = readFileAsString(fileName);
+    		cs = PathUtil.readFileAsString(fileName);
 		} catch (IOException e) {
             //Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Cannot read file '" + fileName +"'", e);
             launcher.getListener().getLogger().println("ERROR: Cannot open config spec file '" + fileName + "'");
 		}
         return cs;
-    }
-
-    private static String readFileAsString(String filePath) throws java.io.IOException{
-        byte[] buffer = new byte[(int) new File(filePath).length()];
-        BufferedInputStream f = null;
-        try {
-            f = new BufferedInputStream(new FileInputStream(filePath));
-            f.read(buffer);
-        } finally {
-            if (f != null) {
-            	try {
-            		f.close();
-            	} catch (IOException ignored) {
-            		// no op
-            	}
-            }
-        }
-        return new String(buffer);
     }
 
     public String getBranch() {
@@ -339,8 +322,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     @Override
     protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         CheckOutAction action;
-        // moved to inspectConfigAction() because it's called before checkout and we need load rules refreshed
-        //extractFromConfigSpec(variableResolver, launcher.getLauncher().isUnix());
         String effectiveConfigSpec = Util.replaceMacro(configSpec, variableResolver);
         if (isUseDynamicView()) {
             action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
@@ -354,7 +335,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     @Override
     protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         ClearTool ct = createClearTool(variableResolver, launcher);
-        BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getDescriptor().getLogMergeTimeWindow());
+        BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getChangeset(), getDescriptor().getLogMergeTimeWindow(), getUpdtFileName());
 
         try {
             String viewName = generateNormalizedViewName(variableResolver);
@@ -538,7 +519,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.winDynStorageDir"),
                                                         req.getParameter("cc.unixDynStorageDir"),
                                                         req.getParameter("cc.viewpath"),
-                                                        ChangeSetLevel.fromString(req.getParameter("ucm.changeset"))
+                                                        ChangeSetLevel.fromString(req.getParameter("cc.changeset"))
                                                         );
             return scm;
         }

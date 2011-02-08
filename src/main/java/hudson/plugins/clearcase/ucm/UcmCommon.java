@@ -68,7 +68,7 @@ public class UcmCommon {
                 clearTool.getLauncher().getListener().getLogger().print("[WARNING] " + bl.getBaselineName() + " has a null component\n");
             }
         }
-        Reader reader = clearTool.describe("%[root_dir]p\\n", sb.toString().trim());
+        Reader reader = clearTool.describe("%[root_dir]p\\n", null, sb.toString().trim());
         BufferedReader br = new BufferedReader(reader);
         for(String line = br.readLine(); line != null; line = br.readLine()){
             String loadRule = StringUtils.isNotBlank(line) ? line.substring(1) : null;
@@ -179,7 +179,7 @@ public class UcmCommon {
     
     private static List<Baseline> getBaselinesDesc(ClearTool clearTool, String stream, String format) throws IOException,
             InterruptedException {
-        BufferedReader rd = new BufferedReader(clearTool.describe(format, "stream:" + stream));
+        BufferedReader rd = new BufferedReader(clearTool.describe(format, null, "stream:" + stream));
         List<String> baselines = new ArrayList<String>();
         try {
             for (String line = rd.readLine(); line != null; line = rd.readLine()) {
@@ -196,7 +196,7 @@ public class UcmCommon {
             rd.close();
         }
         List<Baseline> foundationBaselines = new ArrayList<Baseline>();
-        BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", StringUtils.join(baselines," ")));
+        BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", null, StringUtils.join(baselines," ")));
         Iterator<String> blIterator = baselines.iterator();
         for(String line = br.readLine(); line != null; line = br.readLine()){
             if (StringUtils.isNotBlank(line)) {
@@ -217,7 +217,7 @@ public class UcmCommon {
      */
     public static List<Component> getStreamComponentsDesc(ClearTool clearTool, String streamName) throws IOException, InterruptedException {
         List<Component> componentsDescList = new ArrayList<Component>();
-        Reader reader = clearTool.describe(null, "stream:" + streamName);
+        Reader reader = clearTool.describe(null, null, "stream:" + streamName);
         BufferedReader bufferedReader = new BufferedReader(reader);
         StringBuilder sb = new StringBuilder();
         while (bufferedReader.ready()) {
@@ -323,7 +323,7 @@ public class UcmCommon {
      * @throws InterruptedException
      */
     public static String getVersionDescription(ClearTool clearTool, String version, String format) throws IOException, InterruptedException {
-        Reader rd = clearTool.describe(format, version);
+        Reader rd = clearTool.describe(format, null, version);
         BufferedReader bufferedReader = new BufferedReader(rd);
         StringBuilder sb = new StringBuilder();
         while (bufferedReader.ready()) {

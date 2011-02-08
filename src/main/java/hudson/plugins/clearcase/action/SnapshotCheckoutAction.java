@@ -40,6 +40,7 @@ import org.apache.commons.lang.ArrayUtils;
 public class SnapshotCheckoutAction extends AbstractCheckoutAction {
 
     private final ConfigSpec configSpec;
+    private String updtFileName;
     
     public SnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath) {
         super(cleartool, loadRules, useUpdate, viewPath);
@@ -87,11 +88,17 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
             	// [<-- anb0s: HUDSON-8674]
             }
         }
+        updtFileName = cleartool.getUpdtFileName();
+        launcher.getListener().getLogger().println("updt file name: '" + updtFileName + "'");
         return true;
     }
 
     public ConfigSpec getConfigSpec() {
         return configSpec;
     }
+
+	public String getUpdtFileName() {		
+		return updtFileName;
+	}
 
 }

@@ -90,6 +90,7 @@
     <table>
       <f:radioBlock name="cc.changeset" title="No History" checked="${scm.changeset.name eq 'no'}" value="no"/>
       <f:radioBlock name="cc.changeset" title="Current branch" checked="${scm.changeset eq null || scm.changeset.name eq 'branch'}" value="branch"/>
+      <f:radioBlock name="cc.changeset" title="Use updt file" checked="${scm.changeset.name eq 'updt'}" value="updt"/>
     </table>
   </f:entry> 
 
