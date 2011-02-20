@@ -24,12 +24,12 @@
  */
 package hudson.plugins.clearcase; 
 
-import java.io.IOException;
-
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.util.VariableResolver;
+
+import java.io.IOException;
 
 public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
 

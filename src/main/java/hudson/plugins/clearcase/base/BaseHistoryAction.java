@@ -24,7 +24,12 @@
  */
 package hudson.plugins.clearcase.base;
 
-import static hudson.plugins.clearcase.util.OutputFormat.*;
+import static hudson.plugins.clearcase.util.OutputFormat.DATE_NUMERIC;
+import static hudson.plugins.clearcase.util.OutputFormat.EVENT;
+import static hudson.plugins.clearcase.util.OutputFormat.NAME_ELEMENTNAME;
+import static hudson.plugins.clearcase.util.OutputFormat.NAME_VERSIONID;
+import static hudson.plugins.clearcase.util.OutputFormat.OPERATION;
+import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.history.AbstractHistoryAction;
@@ -32,8 +37,8 @@ import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
-
 import hudson.scm.ChangeLogSet.Entry;
+
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;

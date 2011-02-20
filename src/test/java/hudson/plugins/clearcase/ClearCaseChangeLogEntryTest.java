@@ -24,12 +24,14 @@
  */
 package hudson.plugins.clearcase;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry.FileElement;
 import hudson.scm.EditType;
 
 import java.util.Calendar;
+
 import org.junit.Test;
 
 public class ClearCaseChangeLogEntryTest {

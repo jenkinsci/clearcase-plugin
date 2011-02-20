@@ -30,6 +30,7 @@
 package hudson.plugins.clearcase.history;
 
 import hudson.scm.ChangeLogSet;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;

@@ -24,6 +24,9 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.model.AbstractBuild;
+import hudson.scm.ChangeLogSet;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,9 +40,6 @@ import java.util.List;
 
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
-
-import hudson.model.AbstractBuild;
-import hudson.scm.ChangeLogSet;
 
 /**
  * ClearCase change log set.

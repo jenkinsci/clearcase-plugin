@@ -35,7 +35,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Run;
-import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.DefaultFilter;

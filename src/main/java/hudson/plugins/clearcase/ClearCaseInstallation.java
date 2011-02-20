@@ -46,7 +46,6 @@ import java.util.Collections;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
-import org.jvnet.localizer.ResourceBundleHolder;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;

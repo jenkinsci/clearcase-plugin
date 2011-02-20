@@ -24,10 +24,8 @@
  */
 package hudson.plugins.clearcase.util;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertEquals;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
-import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 
 import java.util.ArrayList;
 import java.util.Calendar;

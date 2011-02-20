@@ -1,9 +1,8 @@
 package hudson.plugins.clearcase;
 
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Descriptor.FormException;
+import hudson.model.AbstractBuild;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;

@@ -24,8 +24,18 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import static hudson.plugins.clearcase.util.OutputFormat.*;
-
+import static hudson.plugins.clearcase.util.OutputFormat.COMMENT;
+import static hudson.plugins.clearcase.util.OutputFormat.DATE_NUMERIC;
+import static hudson.plugins.clearcase.util.OutputFormat.EVENT;
+import static hudson.plugins.clearcase.util.OutputFormat.LINEEND;
+import static hudson.plugins.clearcase.util.OutputFormat.NAME_ELEMENTNAME;
+import static hudson.plugins.clearcase.util.OutputFormat.NAME_VERSIONID;
+import static hudson.plugins.clearcase.util.OutputFormat.OPERATION;
+import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_CONTRIBUTING;
+import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_HEADLINE;
+import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_STREAM;
+import static hudson.plugins.clearcase.util.OutputFormat.UCM_VERSION_ACTIVITY;
+import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.history.Filter;
