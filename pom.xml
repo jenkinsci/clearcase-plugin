@@ -9,9 +9,9 @@
 
   <artifactId>clearcase</artifactId>
   <packaging>hpi</packaging>
-  <name>Hudson ClearCase Plug-in</name>
+  <name>Jenkins ClearCase Plug-in</name>
   <version>1.3.6-SNAPSHOT</version>
-  <url>http://wiki.hudson-ci.org/display/HUDSON/ClearCase+Plugin</url>
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/ClearCase+Plugin</url>
   <licenses>
     <license>
       <name>MIT license</name>
@@ -20,7 +20,7 @@
   </licenses>
   <issueManagement>
   	<system>JIRA</system>
-  	<url>http://issues.hudson-ci.org</url>
+  	<url>http://issues.jenkins-ci.org</url>
   </issueManagement>
   <developers>
     <developer>
@@ -63,9 +63,9 @@
     </dependency>
   </dependencies>
   <scm>
-    <connection>scm:git:git://github.com/hudson/hudson-clearcase-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:hudson/hudson-clearcase-plugin.git</developerConnection>
-    <url>https://github.com/hudson/hudson-clearcase-plugin</url>
+    <connection>scm:git:git://github.com/jenkinsci/clearcase-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/clearcase-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/clearcase-plugin</url>
   </scm>
   <build>
     <plugins>
