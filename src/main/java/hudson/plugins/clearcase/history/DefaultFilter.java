@@ -45,6 +45,6 @@ public class DefaultFilter implements Filter {
     @Override
     public boolean requiresMinorEvents() {
         return false;
-}
+    }
 
 }
