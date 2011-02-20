@@ -156,4 +156,9 @@ public class HistoryEntry {
         return hash;
     }
 
+    public HistoryEntry normalize(String viewPath) {
+        element = StringUtils.removeStart(element, viewPath);
+        return this;
+    }
+
 }
