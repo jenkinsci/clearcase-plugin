@@ -86,6 +86,14 @@ public class UcmMakeBaseline extends Notifier {
 
     private final String commentPattern;
 
+    private final boolean promote;
+
+    private final String promotionLevel;
+
+    private final boolean demote;
+
+    private final String demotionLevel;
+
     private final boolean lockStream;
 
     private final boolean recommend;
@@ -102,6 +110,22 @@ public class UcmMakeBaseline extends Notifier {
 
     public String getCommentPattern() {
         return this.commentPattern;
+    }
+
+    public boolean isPromote() {
+        return this.promote;
+    }
+
+    public String getPromotionLevel() {
+        return this.promotionLevel;
+    }
+
+    public boolean isDemote() {
+        return this.demote;
+    }
+
+    public String getDemotionLevel() {
+        return this.demotionLevel;
     }
 
     public boolean isLockStream() {
@@ -156,10 +180,19 @@ public class UcmMakeBaseline extends Notifier {
 
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            Notifier n = new UcmMakeBaseline(req.getParameter("mkbl.namepattern"), req.getParameter("mkbl.commentpattern"),
-                    req.getParameter("mkbl.lock") != null, req.getParameter("mkbl.recommend") != null, req.getParameter("mkbl.fullBaseline") != null, req
-                            .getParameter("mkbl.identical") != null, req.getParameter("mkbl.rebaseDynamicView") != null, req
-                            .getParameter("mkbl.dynamicViewName"));
+            Notifier n = new UcmMakeBaseline
+                (req.getParameter("mkbl.namepattern"), 
+                 req.getParameter("mkbl.commentpattern"),
+                 req.getParameter("mkbl.lock") != null, 
+                 req.getParameter("mkbl.recommend") != null, 
+                 req.getParameter("mkbl.fullBaseline") != null, 
+                 req.getParameter("mkbl.identical") != null, 
+                 req.getParameter("mkbl.rebaseDynamicView") != null,
+                 req.getParameter("mkbl.dynamicViewName"),
+                 req.getParameter("mkbl.promote") != null,
+                 req.getParameter("mkbl.promotionLevel"),
+                 req.getParameter("mkbl.demote") != null,
+                 req.getParameter("mkbl.demotionLevel"));
             return n;
         }
 
@@ -175,7 +208,8 @@ public class UcmMakeBaseline extends Notifier {
     }
 
     public UcmMakeBaseline(final String namePattern, final String commentPattern, final boolean lock, final boolean recommend, final boolean fullBaseline,
-            final boolean identical, final boolean rebaseDynamicView, final String dynamicViewName) {
+                           final boolean identical, final boolean rebaseDynamicView, final String dynamicViewName,
+                           final boolean promote, final String promotionLevel, final boolean demote, final String demotionLevel) {
         this.namePattern = namePattern;
         this.commentPattern = commentPattern;
         this.lockStream = lock;
@@ -184,6 +218,10 @@ public class UcmMakeBaseline extends Notifier {
         this.identical = identical;
         this.rebaseDynamicView = rebaseDynamicView;
         this.dynamicViewName = dynamicViewName;
+        this.promote = promote;
+        this.promotionLevel = promotionLevel;
+        this.demote = demote;
+        this.demotionLevel = demotionLevel;
     }
 
     @Override
@@ -257,9 +295,11 @@ public class UcmMakeBaseline extends Notifier {
 
             Result result = build.getResult();
             if (result.equals(Result.SUCCESS)) {
-                // On success, promote all current baselines in stream
-                for (String baselineName : this.latestBaselines) {
-                    promoteBaselineToBuiltLevel(clearTool, baselineName);
+                if (this.promote) {
+                    // On success, promote all current baselines in stream
+                    for (String baselineName : this.latestBaselines) {
+                        promoteBaseline(clearTool, baselineName);
+                    }
                 }
                 if (this.recommend) {
                     recommendBaseline(clearTool, ucm.getStream());
@@ -271,7 +311,7 @@ public class UcmMakeBaseline extends Notifier {
                         rebaseDynamicView(clearTool, Util.replaceMacro(this.dynamicViewName, variableResolver), baseline);
                     }
                 }
-            } else if (result.equals(Result.FAILURE)) {
+            } else if (result.equals(Result.FAILURE) && this.demote) {
 
                 List<String> alreadyRejected = new ArrayList<String>();
 
@@ -290,7 +330,7 @@ public class UcmMakeBaseline extends Notifier {
                     if (realBaselineName == null) {
                         listener.getLogger().println("Couldn't find baseline name for " + baseline.getBaselineName());
                     } else {
-                        demoteBaselineToRejectedLevel(clearTool, realBaselineName);
+                        demoteBaseline(clearTool, realBaselineName);
                         alreadyRejected.add(realBaselineName);
                     }
                 }
@@ -337,14 +377,20 @@ public class UcmMakeBaseline extends Notifier {
         clearTool.recommendBaseline(stream);
     }
 
-    private void promoteBaselineToBuiltLevel(ClearTool clearTool, String baselineName)
+    private void promoteBaseline(ClearTool clearTool, String baselineName)
             throws InterruptedException, IOException {
-        clearTool.setBaselinePromotionLevel(baselineName, DefaultPromotionLevel.BUILT);
+        final String promotionLevel = 
+            StringUtils.isNotEmpty(this.promotionLevel) ?
+            this.promotionLevel: DefaultPromotionLevel.BUILT.toString();
+        clearTool.setBaselinePromotionLevel(baselineName, promotionLevel);
     }
 
-    private void demoteBaselineToRejectedLevel(ClearTool clearTool, String baselineName)
+    private void demoteBaseline(ClearTool clearTool, String baselineName)
             throws InterruptedException, IOException {
-        clearTool.setBaselinePromotionLevel(baselineName, DefaultPromotionLevel.REJECTED);
+        final String demotionLevel = 
+            StringUtils.isNotEmpty(this.demotionLevel) ?
+	    this.demotionLevel: DefaultPromotionLevel.REJECTED.toString();
+        clearTool.setBaselinePromotionLevel(baselineName, demotionLevel);
     }
 
     /**

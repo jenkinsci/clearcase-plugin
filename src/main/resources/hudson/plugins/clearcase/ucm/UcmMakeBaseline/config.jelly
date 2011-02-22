@@ -33,7 +33,29 @@
     <f:entry title="Baseline comment pattern" help="/plugin/clearcase/ucm/mkbl/comment.html">
         <f:textbox name="mkbl.commentpattern" value="${h.defaulted(instance.commentPattern, '${BUILD_TAG}')}" />       
     </f:entry>
-  	
+
+    <f:nested>
+        <table>
+            <f:optionalBlock name="mkbl.promote" title="Promote the baseline on success"
+                             checked="${h.defaultToTrue(instance.promote)}" help="/plugin/clearcase/ucm/mkbl/promote.html">
+                <f:entry title="Baseline promotion level" help="/plugin/clearcase/ucm/mkbl/promotion_level.html">
+                    <f:textbox name="mkbl.promotionLevel" value="${h.defaulted(instance.promotionLevel, 'BUILT')}" />
+                </f:entry>
+            </f:optionalBlock>
+        </table>
+    </f:nested>
+
+    <f:nested>
+        <table>
+            <f:optionalBlock name="mkbl.demote" title="Demote the baseline on failure"
+                             checked="${h.defaultToTrue(instance.demote)}" help="/plugin/clearcase/ucm/mkbl/demote.html">
+                <f:entry title="Baseline demotion level" help="/plugin/clearcase/ucm/mkbl/demotion_level.html">
+                    <f:textbox name="mkbl.demotionLevel" value="${h.defaulted(instance.demotionLevel, 'REJECTED')}" />
+                </f:entry>
+            </f:optionalBlock>
+        </table>
+    </f:nested>
+
 	<f:entry title="Lock stream" help="/plugin/clearcase/ucm/mkbl/lock.html">
         <f:checkbox name="mkbl.lock" checked="${instance.lockStream}"  />
     </f:entry>
