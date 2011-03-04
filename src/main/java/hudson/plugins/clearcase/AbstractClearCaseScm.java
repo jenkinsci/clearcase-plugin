@@ -132,6 +132,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private final boolean useUpdate;
     private final boolean removeViewOnRename;
     private String excludedRegions;
+    private boolean extractLoadRules;
     private String loadRules;
     //private boolean useRecurseForChangelog;
     //private boolean useRecurseForPolling;
@@ -181,9 +182,9 @@ public abstract class AbstractClearCaseScm extends SCM {
     
 
     public AbstractClearCaseScm(final String viewName, final String mkviewOptionalParam, final boolean filterOutDestroySubBranchEvent, final boolean useUpdate,
-            final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, final String loadRules,
-            final boolean useOtherLoadRulesForPolling, final String loadRulesForPolling,
-            final String multiSitePollBuffer, final boolean createDynView, final String winDynStorageDir, final String unixDynStorageDir,
+            final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, boolean extractLoadRules,
+            final String loadRules, final boolean useOtherLoadRulesForPolling, final String loadRulesForPolling, final String multiSitePollBuffer,
+            final boolean createDynView, final String winDynStorageDir, final String unixDynStorageDir,
             final boolean freezeCode, final boolean recreateView, final String viewPath, ChangeSetLevel changeset) {
         Validate.notNull(viewName);
         this.viewName = viewName;
@@ -194,6 +195,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.excludedRegions = excludedRegions;
         this.useDynamicView = useDynamicView;
         this.viewDrive = viewDrive;
+        this.extractLoadRules = extractLoadRules;
         this.loadRules = loadRules;
         this.useOtherLoadRulesForPolling = useOtherLoadRulesForPolling;
         this.loadRulesForPolling = loadRulesForPolling;
@@ -339,6 +341,10 @@ public abstract class AbstractClearCaseScm extends SCM {
         return viewDrive;
     }
 
+    public boolean isExtractLoadRules() {
+        return extractLoadRules;
+    }
+
     public String getLoadRules() {
         return loadRules;
     }
@@ -347,16 +353,16 @@ public abstract class AbstractClearCaseScm extends SCM {
         loadRules = ldRls;
     }
 
-    public boolean getUseOtherLoadRulesForPolling() {
+    public boolean isUseOtherLoadRulesForPolling() {
     	return useOtherLoadRulesForPolling;
     }
 
     /*
-    public boolean getUseRecurseForChangelog() {
+    public boolean isUseRecurseForChangelog() {
     	return useRecurseForChangelog;
     }
 
-    public boolean getUseRecurseForPolling() {
+    public boolean isUseRecurseForPolling() {
     	return useRecurseForPolling;
     }
     */
@@ -690,8 +696,10 @@ public abstract class AbstractClearCaseScm extends SCM {
             String viewName = getViewName(variableResolver);
             String[] branchNames = getBranchNames(variableResolver);
             // path names to check (= load rules)
+            // first get load rules from last baseline (polling)
         	String[] pathNames = ccBaseline.getLoadRules();
-        	if (useOtherLoadRulesForPolling || pathNames == null || pathNames.length == 0)
+        	// if load rules are atomatically extracted or other rules are used or load rules from last baseline are empty -> use from load rules field or from other rules
+        	if (extractLoadRules || useOtherLoadRulesForPolling || pathNames == null || pathNames.length == 0)
         		pathNames = getViewPaths(variableResolver, build, launcher, true);
         	if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewName, branchNames, pathNames)) {
         		change = Change.SIGNIFICANT;

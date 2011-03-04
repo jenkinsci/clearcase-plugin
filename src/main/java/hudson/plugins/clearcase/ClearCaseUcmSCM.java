@@ -83,8 +83,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             boolean filterOutDestroySubBranchEvent, boolean useUpdate, boolean rmviewonrename, String excludedRegions, String multiSitePollBuffer,
             String overrideBranchName, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, boolean freezeCode, boolean recreateView,
             boolean allocateViewName, String viewPath, boolean useManualLoadRules, ChangeSetLevel changeset) {
-        super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, usedynamicview, viewdrive, useManualLoadRules ? loadrules : null,
-              false, null, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, freezeCode, recreateView, viewPath, changeset);
+        super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, usedynamicview, viewdrive, false,
+        		useManualLoadRules ? loadrules : null, false, null, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, freezeCode,
+   				recreateView, viewPath, changeset);
         this.stream = shortenStreamName(stream);
         this.allocateViewName = allocateViewName;
         this.overrideBranchName = overrideBranchName;

@@ -940,7 +940,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 boolean rmviewonrename, String excludedRegions, boolean useDynamicView, String viewDrive, String loadRules, String multiSitePollBuffer,
                 boolean createDynView, String viewpath) {
             super(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, useDynamicView, viewDrive,
-                    loadRules, false, null, multiSitePollBuffer, createDynView, "", "", createDynView, createDynView, viewpath, ChangeSetLevel.defaultLevel());
+                    false, loadRules, false, null, multiSitePollBuffer, createDynView, "", "", createDynView, createDynView, viewpath, ChangeSetLevel.defaultLevel());
         }
 
         @Override

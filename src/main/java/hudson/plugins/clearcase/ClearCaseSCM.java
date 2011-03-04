@@ -56,10 +56,8 @@ import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetAddress;
@@ -78,7 +76,6 @@ import javax.servlet.ServletException;
 
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -106,7 +103,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private final String label;
     private boolean doNotUpdateConfigSpec;
     private boolean useTimeRule;
-    private boolean extractLoadRules;
 
     @DataBoundConstructor
     public ClearCaseSCM(String branch, String label, boolean extractConfigSpec, String configSpecFileName, boolean refreshConfigSpec, String refreshConfigSpecCommand, String configspec,
@@ -114,7 +110,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
             String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath, ChangeSetLevel changeset) {
         super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
-                viewdrive, loadRules, useOtherLoadRulesForPolling, loadRulesForPolling, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false, viewPath, changeset);
+                viewdrive, extractLoadRules, loadRules, useOtherLoadRulesForPolling, loadRulesForPolling, multiSitePollBuffer, createDynView, winDynStorageDir,
+                unixDynStorageDir, false, false, viewPath, changeset);
         this.branch = branch;
         this.label = label;
         this.extractConfigSpec = extractConfigSpec;
@@ -124,7 +121,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         this.configSpec = configspec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
-        this.extractLoadRules = extractLoadRules;
     }
 
     public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
@@ -237,10 +233,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     public boolean isUseTimeRule() {
         return useTimeRule;
-    }
-
-    public boolean isExtractLoadRules() {
-        return extractLoadRules;
     }
     
     @Override
