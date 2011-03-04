@@ -571,7 +571,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         context.checking(new Expectations() {
             {
-
                 one(historyAction).hasChanges(with(equal(mockedCalendar.getTime())), with(equal("viewname")), with(equal("viewname")),
                         with(equal(new String[] { "branch" })), with(equal(new String[] { "vob" })));
                 will(returnValue(true));
@@ -579,6 +578,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getParent(); will(returnValue(project));
                 allowing(build).getTimestamp(); will(returnValue(mockedCalendar));
                 allowing(computer).getName(); will(returnValue("test-node"));
@@ -607,6 +607,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getParent(); will(returnValue(project));
                 allowing(build).getTimestamp(); will(returnValue(mockedCalendar));
                 one(project).getLastBuild(); will(returnValue(build));
@@ -631,6 +632,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getBuiltOn(); will(returnValue(node));
                 ignoring(node).toComputer(); will(returnValue(computer));
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
@@ -653,6 +655,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testPollChangesFirstTime() throws Exception {
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 one(project).getSomeBuildWithWorkspace();
                 will(returnValue(null));
             }
@@ -678,6 +681,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getBuiltOn(); will(returnValue(node));
                 ignoring(node).toComputer(); will(returnValue(computer));
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
@@ -715,6 +719,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getBuiltOn(); will(returnValue(node));
                 ignoring(node).toComputer(); will(returnValue(computer));
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
@@ -747,6 +752,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getBuiltOn(); will(returnValue(node));
                 ignoring(node).toComputer(); will(returnValue(computer));
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
@@ -779,6 +785,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getBuiltOn(); will(returnValue(node));
                 ignoring(node).toComputer(); will(returnValue(computer));
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
@@ -813,6 +820,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         final MatrixBuild matrixBuild = classContext.mock(MatrixBuild.class);
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(matrixBuild).getBuiltOn(); will(returnValue(node));
                 ignoring(node).toComputer(); will(returnValue(computer));
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
@@ -846,6 +854,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getBuiltOn(); will(returnValue(node));
                 ignoring(node).toComputer(); will(returnValue(computer));
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
@@ -885,6 +894,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         });
         classContext.checking(new Expectations() {
             {
+            	ignoring(launcher).getListener();
                 ignoring(build).getBuiltOn(); will(returnValue(node));
                 ignoring(node).toComputer(); will(returnValue(computer));
                 ignoring(node).getNodeName(); will(returnValue("test-node"));
@@ -930,7 +940,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 boolean rmviewonrename, String excludedRegions, boolean useDynamicView, String viewDrive, String loadRules, String multiSitePollBuffer,
                 boolean createDynView, String viewpath) {
             super(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, useDynamicView, viewDrive,
-                    loadRules, multiSitePollBuffer, createDynView, "", "", createDynView, createDynView, viewpath, ChangeSetLevel.defaultLevel());
+                    loadRules, false, null, multiSitePollBuffer, createDynView, "", "", createDynView, createDynView, viewpath, ChangeSetLevel.defaultLevel());
         }
 
         @Override
@@ -975,7 +985,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         }
 
         @Override
-        protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
+        protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build, boolean useRecurse) {
             // TODO Auto-generated method stub
             return historyAction;
         }

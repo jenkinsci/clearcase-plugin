@@ -78,6 +78,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                     one(clearTool).mkview("viewpath", "viewname", null);
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\r\nspec\r\nload \\foo\r\n");
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -99,6 +100,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                     one(clearTool).mkview("viewpath", "viewname", null);
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -121,6 +123,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).rmviewtag("viewname");
                     one(clearTool).mkview("viewpath", "viewname", null);
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -145,6 +148,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                     one(clearTool).mkview("viewpath", "viewname", null);
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -179,6 +183,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).rmviewtag("viewname");
                     one(clearTool).mkview("viewpath", "viewname", null);
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -210,6 +215,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).doesViewExist("viewname"); will(returnValue(false));
                     one(clearTool).mkview("viewpath", "viewname", null);
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -234,6 +240,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).lscurrentview("viewpath"); will(returnValue("viewname"));
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
                     one(clearTool).setcs("viewpath", SetcsOption.CURRENT, null);
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -259,6 +266,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).rmview("viewpath");
                     one(clearTool).mkview("viewpath", "viewname", null);
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -283,6 +291,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
                     one(clearTool).setcs("viewpath", SetcsOption.CURRENT, null);
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -308,6 +317,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\n"));
                     one(clearTool).update("viewpath", new String[] {"/bar"});
                     one(clearTool).setcs("viewpath", SetcsOption.CURRENT, null);
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
@@ -333,6 +343,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
                     one(clearTool).catcs("viewname"); will(returnValue("configspec\nload /foo\nload /bar\n"));
                     one(clearTool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
                     one(clearTool).setcs("viewpath", SetcsOption.CURRENT, null);
+                    ignoring(clearTool).getUpdtFileName();
                     allowing(taskListener).getLogger(); will(returnValue(System.out));
                 }
             });
