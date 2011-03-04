@@ -110,11 +110,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @DataBoundConstructor
     public ClearCaseSCM(String branch, String label, boolean extractConfigSpec, String configSpecFileName, boolean refreshConfigSpec, String refreshConfigSpecCommand, String configspec,
-    		String viewTag, boolean useupdate, boolean extractLoadRules, String loadRules, boolean usedynamicview, String viewdrive,
+    		String viewTag, boolean useupdate, boolean extractLoadRules, String loadRules, boolean useOtherLoadRulesForPolling, String loadRulesForPolling, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
             String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath, ChangeSetLevel changeset) {
         super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
-                viewdrive, loadRules, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false, viewPath, changeset);
+                viewdrive, loadRules, useOtherLoadRulesForPolling, loadRulesForPolling, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false, viewPath, changeset);
         this.branch = branch;
         this.label = label;
         this.extractConfigSpec = extractConfigSpec;
@@ -129,7 +129,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
-        this(branch, label, false, null, false, null, configspec, viewTag, useupdate, false, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+        this(branch, label, false, null, false, null, configspec, viewTag, useupdate, false, loadRules, false, null, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
                 doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "", viewTag, null);
     }
 
@@ -327,15 +327,15 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
                     getNormalizedWinDynStorageDir(variableResolver), getNormalizedUnixDynStorageDir(variableResolver), build);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher()),isUseUpdate(), getViewPath(variableResolver)); 
+            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher(), false),isUseUpdate(), getViewPath(variableResolver)); 
         }
         return action;
     }
 
     @Override
-    protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+    protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build, boolean useRecurse) throws IOException, InterruptedException {
         ClearTool ct = createClearTool(variableResolver, launcher);
-        BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getChangeset(), getDescriptor().getLogMergeTimeWindow(), getUpdtFileName());
+        BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getChangeset(), useRecurse, getDescriptor().getLogMergeTimeWindow(), getUpdtFileName());
 
         try {
             String viewName = generateNormalizedViewName(variableResolver);
@@ -506,6 +506,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.useupdate") != null,
                                                         req.getParameter("cc.extractLoadRules") != null,                                                        
                                                         req.getParameter("cc.loadrules"),
+                                                        req.getParameter("cc.useOtherLoadRulesForPolling") != null,                                                        
+                                                        req.getParameter("cc.loadRulesForPolling"),
                                                         req.getParameter("cc.usedynamicview") != null,
                                                         req.getParameter("cc.viewdrive"),
                                                         req.getParameter("cc.mkviewoptionalparam"),
@@ -654,7 +656,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private AbstractClearCaseSCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date) throws IOException, InterruptedException {
         ClearCaseSCMRevisionState revisionState = new ClearCaseSCMRevisionState(date);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        revisionState.setLoadRules(getViewPaths(variableResolver, build, launcher));
+        revisionState.setLoadRules(getViewPaths(variableResolver, build, launcher, true));
         return revisionState; 
     }
 }

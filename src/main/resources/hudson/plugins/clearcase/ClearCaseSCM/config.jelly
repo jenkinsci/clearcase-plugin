@@ -76,6 +76,16 @@
 	</f:entry>
   </f:optionalBlock>
 
+  <f:optionalBlock name="cc.useOtherLoadRulesForPolling"
+                   title="Use other load rules for polling"
+                   help="/plugin/clearcase/base/use-other-load-rules-for-polling.html"
+                   checked="${scm.useOtherLoadRulesForPolling}" >   
+  <f:entry title="Load rules for polling" help="/plugin/clearcase/loadrules-for-polling.html">
+    <f:textarea name="cc.loadRulesForPolling" value="${scm.loadRulesForPolling}"
+    checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules for polling are mandatory')+'&amp;value='+escape(this.value)" />
+  </f:entry>
+  </f:optionalBlock>
+
   </table>
   </f:block>
 
