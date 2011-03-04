@@ -340,7 +340,7 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
-    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException, InterruptedException {
+    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor, boolean useRecurse) throws IOException, InterruptedException {
         Validate.notNull(pathsInView);
         Validate.notNull(viewPath);
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
@@ -348,7 +348,11 @@ public abstract class ClearToolExec implements ClearTool {
 
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lshistory");
-        cmd.add("-all");
+        if (useRecurse) {
+            cmd.add("-recurse");
+        } else {
+        	cmd.add("-all");
+        }
         cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
         cmd.add("-fmt", format);
         // cmd.addQuoted(format);

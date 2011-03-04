@@ -77,7 +77,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
 
     public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ClearCaseUCMSCMRevisionState oldBaseline,
             ClearCaseUCMSCMRevisionState newBaseline, ChangeSetLevel changeset) {
-        super(cleartool, useDynamicView, filter, changeset);
+        super(cleartool, useDynamicView, filter, changeset, false);
         this.oldBaseline = oldBaseline;
         this.newBaseline = newBaseline;
     }

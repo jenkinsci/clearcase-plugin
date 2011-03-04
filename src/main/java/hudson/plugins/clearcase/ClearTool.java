@@ -178,9 +178,11 @@ public interface ClearTool {
      * @param branch the name of the branch to get history events for; if null then history events for all branches are
      *            listed
      * @param pathsInView view paths that should be added to the lshistory command. The view paths must be relative.
+     * @param getMinor get minor changes like labeling etc.
+     * @param useRecurse if true use -recurse command, else use -all command (default)
      * @return Reader containing output from command
      */
-    Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException, InterruptedException;
+    Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor, boolean useRecurse) throws IOException, InterruptedException;
 
     /**
      * List attributes of a project

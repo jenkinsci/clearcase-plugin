@@ -233,7 +233,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
                                                        clearCaseUcmScmDescriptor);
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        UcmHistoryAction action = (UcmHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        UcmHistoryAction action = (UcmHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
     }
 }

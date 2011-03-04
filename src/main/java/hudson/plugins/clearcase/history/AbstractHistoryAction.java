@@ -55,12 +55,14 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     protected String extendedViewPath;
     protected boolean isDynamicView;
     private ChangeSetLevel changeset; 
+    boolean useRecurse;
 
-    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, Filter filter, ChangeSetLevel changeset) {
+    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, Filter filter, ChangeSetLevel changeset, boolean useRecurse) {
         this.cleartool = cleartool;
         this.filter = filter;
         this.isDynamicView = isDynamicView;
         this.changeset = changeset;
+        this.useRecurse = useRecurse;
     }
 
     protected abstract List<? extends Entry> buildChangelog(String viewPath, List<HistoryEntry> entries) throws IOException, InterruptedException;
@@ -110,14 +112,13 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     	// if for checkout, check if enabled
     	if (ChangeSetLevel.BRANCH.equals(changeset) || ChangeSetLevel.ALL.equals(changeset)) 
     		return true;
-    	return false;
     	// TODO: why this?
     	// if view not exist we should not execute history!
     	// if load rules are empty we should not execute history
-    	//return !ChangeSetLevel.NONE.equals(changeset)
-    	//       || !cleartool.doesViewExist(viewTag)
-        //       || ArrayUtils.isEmpty(loadRules);
-    	
+    	return !ChangeSetLevel.NONE.equals(changeset)
+    	       || !cleartool.doesViewExist(viewTag)
+               || ArrayUtils.isEmpty(loadRules);
+    	//return false;    	
     }
 
     private String[] normalizeBranches(String[] branchNames) {
@@ -167,7 +168,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
             }
             try {
                 for (String branchName : normalizeBranches(branchNames)) {
-                    BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewPath, branchName, viewPaths, (filter != null) && (filter.requiresMinorEvents())));
+                    BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewPath, branchName, viewPaths, (filter != null) && (filter.requiresMinorEvents()), useRecurse));
                     parseLsHistory(reader, history);
                     reader.close();
                 }

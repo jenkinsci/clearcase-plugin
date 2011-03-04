@@ -91,9 +91,9 @@ public class UcmHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("")));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchtwo")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchtwo")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\" \"mkelem\" \"activity\" ")));
                 }
             });
@@ -108,7 +108,7 @@ public class UcmHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" \"activity\" "
                                                       + "\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\"  \"mkelem\" \"activity\" ")));
@@ -126,7 +126,7 @@ public class UcmHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("cleartool: Error: Not an object in a vob: \"view.dat\".\n")));
                 }
             });
@@ -140,7 +140,7 @@ public class UcmHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\0\" \"create version\"  \"mkelem\" \"activity\" ")));
                 }
             });
@@ -154,7 +154,7 @@ public class UcmHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080326.110739\" \"username\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\" \"activity\" ")));
                 }
@@ -169,7 +169,7 @@ public class UcmHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080326.110739\" \"username\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\" \"activity\" ")));
                 }
@@ -187,7 +187,7 @@ public class UcmHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    ignoring(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    ignoring(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(reader));
                 }
             });
@@ -209,7 +209,7 @@ public class UcmHistoryActionTest {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal("\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\\"%[activity]p\\\" \\n%c\\n")),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)), with(any(boolean.class)));
+                                             with(any(String[].class)), with(any(boolean.class)), with(any(boolean.class)));
                     will(returnValue(new StringReader("")));
                 }
             });
@@ -228,7 +228,7 @@ public class UcmHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)));
+                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"user\"" +
@@ -250,7 +250,7 @@ public class UcmHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)));
+                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"user\"" +
@@ -299,7 +299,7 @@ public class UcmHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)));
+                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"username\" "+
@@ -333,7 +333,7 @@ public class UcmHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)));
+                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"username\"  " +
@@ -395,7 +395,7 @@ public class UcmHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)));
+                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)), with(equal(false)));
                     will(returnValue(lshistoryReader));
                     ignoring(cleartool).lsactivity(
                                                    with(equal("Release_3_3_jdk5.20080509.155359")), 
@@ -420,7 +420,7 @@ public class UcmHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(aNull(Date.class)), 
-                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)));
+                                             with(equal("IGNORED")), with(equal("Release_2_1_int")), with(equal(new String[]{"vobs/projects/Server"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080509.140451\" " +
                                                       "\"username\" " +
@@ -465,6 +465,7 @@ public class UcmHistoryActionTest {
                                              with(equal("stromp_be_builc")),
                                              with(equal("jcp_v13.1_be_int")),
                                              with(any(String[].class)),
+                                             with(any(boolean.class)),
                                              with(any(boolean.class)));
                     will(returnValue(new StringReader(
                                                       "\"20100120.114845\" \"lmiguet\" "

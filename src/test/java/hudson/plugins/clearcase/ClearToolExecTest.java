@@ -177,7 +177,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 }
             });
         Reader reader = clearToolExec.lshistory("FORMAT",
-                                                mockedCalendar.getTime(), "viewName","branch", new String[]{ "vob1", "vob2\n", "vob 3"}, false);
+                                                mockedCalendar.getTime(), "viewName","branch", new String[]{ "vob1", "vob2\n", "vob 3"}, false, false);
         assertNotNull("Returned console reader can not be null", reader);
     }
 
@@ -229,7 +229,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 }
             });
         Reader reader = clearToolExec.lshistory("FORMAT",
-                                                mockedCalendar.getTime(), "viewName","branch", new String[]{ "vob1", "vob2\n", "vob 3"}, false);
+                                                mockedCalendar.getTime(), "viewName","branch", new String[]{ "vob1", "vob2\n", "vob 3"}, false, false);
         assertNotNull("Returned console reader cannot be null", reader);
     }
 

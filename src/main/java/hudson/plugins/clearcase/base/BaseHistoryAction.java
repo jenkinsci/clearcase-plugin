@@ -61,16 +61,16 @@ public class BaseHistoryAction extends AbstractHistoryAction {
     private int maxTimeDifferenceMillis;
     private String updtFileName;
 
-    public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ChangeSetLevel changeset, int maxTimeDifferenceMillis, String updtFileName) {
-        super(cleartool, useDynamicView, filter, changeset);
+    public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ChangeSetLevel changeset, boolean useRecurse, int maxTimeDifferenceMillis, String updtFileName) {
+        super(cleartool, useDynamicView, filter, changeset, useRecurse);
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
         this.updtFileName = updtFileName;
     }
 
     public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, int maxTimeDifferenceMillis) {
-    	this(cleartool, useDynamicView, filter, null, maxTimeDifferenceMillis, null);
+    	this(cleartool, useDynamicView, filter, null, false, maxTimeDifferenceMillis, null);
     }
-    
+
     @Override
     protected List<? extends Entry> buildChangelog(String viewPath, List<HistoryEntry> entries) {
         List<ClearCaseChangeLogEntry> fullList = new ArrayList<ClearCaseChangeLogEntry>();

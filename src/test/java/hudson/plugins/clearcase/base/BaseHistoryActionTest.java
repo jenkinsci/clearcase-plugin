@@ -109,9 +109,9 @@ public class BaseHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchone")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("")));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchtwo")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branchtwo")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\" \"mkelem\" ")));
                 }
             });
@@ -126,7 +126,7 @@ public class BaseHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" "
                                                       + "\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\"  \"mkelem\" ")));
@@ -143,7 +143,7 @@ public class BaseHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("cleartool: Error: Not an object in a vob: \"view.dat\".\n")));
                 }
             });
@@ -157,7 +157,7 @@ public class BaseHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\0\" \"create version\"  \"mkelem\" ")));
                 }
             });
@@ -171,7 +171,7 @@ public class BaseHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
                 }
@@ -186,7 +186,7 @@ public class BaseHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    one(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\"")));
                 }
@@ -204,7 +204,7 @@ public class BaseHistoryActionTest {
         context.checking(new Expectations() {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
-                    ignoring(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)));
+                    ignoring(cleartool).lshistory(with(aNonNull(String.class)), with(aNull(Date.class)), with(equal("view")), with(equal("branch")), with(equal(new String[]{"vobpath"})), with(equal(false)), with(equal(false)));
                     will(returnValue(reader));
                 }
             });
@@ -227,7 +227,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)), with(equal(false)));
+                                             with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader("")));
                 }
             });
@@ -243,7 +243,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)), with(equal(false)));
+                                             with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"destroy sub-branch \"esmalling_branch\" of branch\"   \"mkelem\"\n")));
                 }
@@ -260,7 +260,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)), with(equal(false)));
+                                             with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" ")));
                 }
@@ -282,7 +282,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)), with(any(String.class)), with(any(String.class)), 
-                                             with(any(String[].class)), with(equal(false)));
+                                             with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\"  \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"create version\"   \"mkelem\"\n"
                                                       + "\"20070906.091705\"   \"egsperi\"  \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"   \"create version\"  \"mkelem\"\n")));
@@ -302,7 +302,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)),
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(reader));
                 }
             });
@@ -319,7 +319,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)),
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.084801\"   \"inttest2\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"create version\" \"mkelem\"\n\n"
                                                       + "\"20070825.084801\"   \"inttest3\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"create version\" \"mkelem\"\n\n"
@@ -342,7 +342,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(equal(VALID_HISTORY_FORMAT)),
                                              with(any(Date.class)),
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070830.084801\"   \"inttest2\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n"
                                                       + "\"20070830.084801\"   \"inttest3\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n\n")));
@@ -359,7 +359,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070830.084801\"   \"inttest3\"  \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n\n"
                                                       + "cleartool: Error: Branch type not found: \"sit_r6a\".\n"
@@ -380,7 +380,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new InputStreamReader(
                                                            AbstractClearCaseScm.class.getResourceAsStream( "ct-lshistory-1.log"))));
                 }
@@ -397,7 +397,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"create directory version\"  \"mkelem\"\n")));
                 }
@@ -416,7 +416,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.084801\" \"inttest14\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\" \"mkelem\"\n\n")));
                 }
@@ -442,7 +442,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\" \"create directory version\" \"mkelem\"\n")));
                 }
@@ -461,7 +461,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\" \"create directory version\"   \"mkelem\"\ntext\n\nend of comment")));
                 }
@@ -481,7 +481,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.085901\"   \"aname\"   \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\" \"create version\"   \"mkelem\"\nBUG8949")));
                 }
@@ -506,7 +506,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.085901\"   \"aname\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"   \"create version\"   \"mkelem\"\nBUG8949\nThis fixed the problem")));
                 }
@@ -531,7 +531,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.085901\"   \"aname\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\" \"create a version\"  \"mkelem\"\n")));
                 }
@@ -550,7 +550,7 @@ public class BaseHistoryActionTest {
                 {
                     allowing(cleartool).doesViewExist(with(equal("viewTag"))); will(returnValue(true));
                     one(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                             with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20070827.085901\" \"user\" \"/view/ralef_0.2_nightly/vobs/Tools/framework/util/QT.h\" \"/main/comain\" \"action\"   \"mkelem\"\n")));
                 }
@@ -602,7 +602,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).pwv(with(any(String.class)));
                     will(returnValue("Y:\\Hudson.SAP.ICI.7.6.Quick"));
                     allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                                  with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                                  with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20090909.151109\" \"nugarov\" " +
                                                       "\"Y:\\Hudson.SAP.ICI.7.6.Quick\\sapiciadapter\\Tools\\gplus_tt\\gplus_tt_config.py\" \"\\main\\dev-kiev-7.6\\10\" \"create version\" \"checkin\"\nvolatile")));
@@ -619,7 +619,7 @@ public class BaseHistoryActionTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
                                                               scm.getViewPath(variableResolver),
@@ -660,7 +660,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).pwv(with(any(String.class)));
                     will(returnValue("D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot"));
                     allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                                  with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                                  with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20090909.124752\" \"erustt\" " +
                                                       "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\apps\\esa\\ecl\\sot\\sot_impl\\src\\main\\java\\com\\ascom\\ecs3\\ecl\\sot\\nodeoperationstate\\OperationStateManagerImpl.java\" " +
@@ -688,7 +688,7 @@ public class BaseHistoryActionTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
 
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
@@ -731,7 +731,7 @@ public class BaseHistoryActionTest {
                     allowing(cleartool).pwv(with(any(String.class)));
                     will(returnValue("D:\\hudson\\jobs\\somejob\\workspace\\someview"));
                     allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)), 
-                                                  with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)));
+                                                  with(any(String.class)), with(any(String.class)), with(any(String[].class)), with(equal(false)), with(equal(false)));
                     will(returnValue(new StringReader(
                                                       "\"20090909.124752\" \"erustt\" " +
                                                       "\"D:\\hudson\\jobs\\somejob\\workspace\\someview\\some_vob\\path\\to\\file.java\" " +
@@ -753,7 +753,7 @@ public class BaseHistoryActionTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
 
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),
@@ -779,7 +779,7 @@ public class BaseHistoryActionTest {
                 exactly(2).of(cleartool).lshistory(with(any(String.class)),
                         with(any(Date.class)), with(any(String.class)),
                         with(any(String.class)), with(any(String[].class)),
-                        with(equal(true)));
+                        with(equal(true)), with(equal(false)));
                 will(returnValue(new InputStreamReader(
                         AbstractClearCaseScm.class.getResourceAsStream(
                         "ct-lshistory-label-1.log"))));
@@ -812,7 +812,7 @@ public class BaseHistoryActionTest {
                 exactly(2).of(cleartool).lshistory(with(any(String.class)),
                         with(any(Date.class)), with(any(String.class)),
                         with(any(String.class)), with(any(String[].class)),
-                        with(equal(true)));
+                        with(equal(true)), with(equal(false)));
                 will(onConsecutiveCalls(
                         returnValue(new InputStreamReader(
                             AbstractClearCaseScm.class
@@ -864,7 +864,7 @@ public class BaseHistoryActionTest {
                     will(returnValue("D:\\hudson\\jobs\\somejob\\workspace\\someview"));
                     allowing(cleartool).lshistory(with(any(String.class)), with(any(Date.class)),
                                                   with(any(String.class)), with(any(String.class)), 
-                                                  with(any(String[].class)), with(equal(true)));
+                                                  with(any(String[].class)), with(equal(true)), with(equal(false)));
                     will(returnValue(new InputStreamReader(
                             AbstractClearCaseScm.class
                             .getResourceAsStream("ct-lshistory-label-1.log"))));
@@ -880,7 +880,7 @@ public class BaseHistoryActionTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
 
         List<ClearCaseChangeLogEntry> entries =
             (List<ClearCaseChangeLogEntry>) action.getChanges(new Date(),

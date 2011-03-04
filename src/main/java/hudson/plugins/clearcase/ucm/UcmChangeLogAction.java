@@ -101,7 +101,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                 BufferedReader reader = new BufferedReader(cleartool.lshistory(
                                                                                historyHandler.getFormat() + COMMENT + LINEEND, time,
                                                                                viewName, branchNames[0], new String[] { fullpath },
-                                                                               filter.requiresMinorEvents()));
+                                                                               filter.requiresMinorEvents(), false));
                 history.addAll(parseHistory(reader, viewName));
                 reader.close();
                 ok = true; // At least one path was successful
