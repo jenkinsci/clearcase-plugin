@@ -493,7 +493,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (normalizedViewPath != null) {
             env.put(CLEARCASE_VIEWNAME_ENVSTR, normalizedViewPath);
             if(isUseDynamicView()) {
-                env.put("CLEARCASE_VIEWPATH_ENVSTR", viewDrive + File.separator + normalizedViewPath);
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + normalizedViewPath);
             } else {
                 String workspace = env.get("WORKSPACE");
                 if (workspace != null) {
