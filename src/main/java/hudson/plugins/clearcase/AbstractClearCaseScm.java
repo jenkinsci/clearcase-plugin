@@ -119,23 +119,23 @@ public abstract class AbstractClearCaseScm extends SCM {
     public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
 
     private String viewName;
-    private final String mkviewOptionalParam;
-    private final boolean filteringOutDestroySubBranchEvent;
+    private String mkviewOptionalParam;
+    private boolean filteringOutDestroySubBranchEvent;
     private transient ThreadLocal<String> normalizedViewName;
     private transient ThreadLocal<String> normalizedViewPath;
-    private final boolean useUpdate;
-    private final boolean removeViewOnRename;
+    private boolean useUpdate;
+    private boolean removeViewOnRename;
     private String excludedRegions;
-    private final String loadRules;
-    private final boolean useDynamicView;
-    private final String viewDrive;
+    private String loadRules;
+    private boolean useDynamicView;
+    private String viewDrive;
     private int multiSitePollBuffer;
-    private final boolean createDynView;
-    private final String winDynStorageDir;
-    private final String unixDynStorageDir;
-    private final boolean freezeCode;
-    private final boolean recreateView;
-    private final String viewPath;
+    private boolean createDynView;
+    private String winDynStorageDir;
+    private String unixDynStorageDir;
+    private boolean freezeCode;
+    private boolean recreateView;
+    private String viewPath;
     private ChangeSetLevel changeset;
 
     private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
