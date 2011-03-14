@@ -331,6 +331,9 @@ public abstract class ClearToolExec implements ClearTool {
                 throw exceptions.get(0);
             }
         }
+        if (StringUtils.isBlank(output)) {
+            throw new IOException("Unexpected output for command \"cleartool lsview -cview -s\":" + output);
+        }
         return output;
     }
 
