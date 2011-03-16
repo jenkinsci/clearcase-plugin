@@ -195,6 +195,10 @@ public class UcmCommon {
         } finally {
             rd.close();
         }
+        if (baselines.isEmpty()) {
+            throw new IOException("Unexpected output for command \"cleartool describe -fmt " +
+                                  format + " stream:" + stream + "\" or no available baseline found");
+        }
         List<Baseline> foundationBaselines = new ArrayList<Baseline>();
         BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", StringUtils.join(baselines," ")));
         Iterator<String> blIterator = baselines.iterator();
