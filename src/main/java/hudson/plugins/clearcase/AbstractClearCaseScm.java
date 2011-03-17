@@ -217,7 +217,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @param variableResolver
      * @param useDynamicView
      * @param launcher the command line launcher
-     * @return an action that can poll if there are any changes a ClearCase repository.
+     * @return an action that can poll if there are any changes a ClearCase repository. Never null.
      * @throws InterruptedException 
      * @throws IOException 
      */
