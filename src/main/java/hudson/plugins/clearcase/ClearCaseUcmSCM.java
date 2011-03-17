@@ -205,23 +205,12 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         UcmHistoryAction action;
         ClearCaseUCMSCMRevisionState oldBaseline = null;
         ClearCaseUCMSCMRevisionState newBaseline = null;
-        PrintStream logger = launcher.getListener().getLogger();
         if (build != null) {
-            try {
-                AbstractBuild<?, ?> previousBuild = (AbstractBuild<?, ?>) build.getPreviousBuild();
-                if (previousBuild != null) {
-                    oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
-                }
-                newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
-            } catch (IOException e) {
-                Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.SEVERE, "IOException when calculating revisions'", e);
-                e.printStackTrace(logger);
-                return null;
-            } catch (InterruptedException e) {
-                Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
-                e.printStackTrace(logger);
-                return null;
+            AbstractBuild<?, ?> previousBuild = (AbstractBuild<?, ?>) build.getPreviousBuild();
+            if (previousBuild != null) {
+                oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
             }
+            newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
         }
         if (isFreezeCode()) {
             action = new FreezeCodeUcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getStream(variableResolver), getViewDrive(), build, oldBaseline, newBaseline);
