@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase.action;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
@@ -8,12 +9,10 @@ import hudson.plugins.clearcase.ClearTool;
 
 import java.io.IOException;
 
-import org.jmock.Expectations;
-import org.jmock.Mockery;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
 
@@ -36,16 +35,11 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
 
     }
 
-    private Mockery context;
-
-    private ClearTool clearTool;
+    @Mock private ClearTool clearTool;
 
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        context = new JUnit4Mockery();
-
-        clearTool = context.mock(ClearTool.class);
     }
 
     @After
@@ -55,73 +49,77 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
 
     @Test
     public void firstTimeShouldCreate() throws Exception {
-        context.checking(new Expectations() {
-            {
-               one(clearTool).doesViewExist("aViewTag"); will(returnValue(false));
-               one(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
-            }
-        });
+        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.FALSE);
+        
         DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, true, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
+
+        verify(clearTool).doesViewExist("aViewTag");
+        verify(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
     }
     
     @Test
     public void secondTimeWithUseUpdateShouldDoNothing() throws Exception {
         workspace.child("path").mkdirs();
-        context.checking(new Expectations() {
-            {
-                one(clearTool).doesViewExist("aViewTag"); will(returnValue(true));
-                one(clearTool).lscurrentview("path"); will(returnValue("aViewTag"));
-            }
-        });
+        
+        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
+        when(clearTool.lscurrentview("path")).thenReturn("aViewTag");
+        
         DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, true, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
+        
+        verify(clearTool).doesViewExist("aViewTag");
+        verify(clearTool).lscurrentview("path");
     }
     
     @Test
     public void secondTimeWithoutUseUpdateRemoveThenCreateView() throws Exception {
         workspace.child("path").mkdirs();
-        context.checking(new Expectations() {
-            {
-                one(clearTool).doesViewExist("aViewTag"); will(returnValue(true));
-                one(clearTool).lscurrentview("path"); will(returnValue("aViewTag"));
-                one(clearTool).rmview("path");
-                one(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
-            }
-        });
+        
+        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
+        when(clearTool.lscurrentview("path")).thenReturn("aViewTag");
+        
         DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
+
+        verify(clearTool).rmview("path");
+        verify(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
+        verify(clearTool).doesViewExist("aViewTag");
+        verify(clearTool).lscurrentview("path");
     }
     
     @Test
     public void secondTimeWithInvalidViewShouldRmviewTagMoveFolderThenCreateView() throws Exception {
         workspace.child("path").mkdirs();
-        context.checking(new Expectations() {
-            {
-                one(clearTool).doesViewExist("aViewTag"); will(returnValue(true));
-                one(clearTool).lscurrentview("path"); will(returnValue("anotherViewTag"));
-                one(clearTool).rmviewtag("aViewTag");
-                one(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
-            }
-        });
+        
+        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
+        when(clearTool.lscurrentview("path")).thenReturn("anotherViewTag");
+        
         DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
         assertTrue("The existing path should have been renamed", workspace.child("path.keep.1").exists());
+        
+        verify(clearTool).doesViewExist("aViewTag");
+        verify(clearTool).lscurrentview("path");
+        verify(clearTool).rmviewtag("aViewTag");
+        verify(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
     }
     
     @Test
     public void ifRmViewTagIsNotSupportedCallRmTag() throws Exception {
         workspace.child("path").mkdirs();
-        context.checking(new Expectations() {
-            {
-                one(clearTool).doesViewExist("aViewTag"); will(returnValue(true));
-                one(clearTool).lscurrentview("path"); will(returnValue("anotherViewTag"));
-                one(clearTool).rmviewtag("aViewTag"); will(throwException(new IOException()));
-                one(clearTool).rmtag("aViewTag");
-                one(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
-            }
-        });
+        
+        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
+        when(clearTool.lscurrentview("path")).thenReturn("anotherViewTag");
+        doThrow(new IOException()).when(clearTool).rmviewtag("aViewTag");
+
         DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
+        
+        verify(clearTool).doesViewExist("aViewTag");
+        verify(clearTool).lscurrentview("path");
+        verify(clearTool).rmviewtag("aViewTag");
+        verify(clearTool).rmtag("aViewTag");
+        verify(clearTool).mkview("path", "aViewTag", "stream@\\pvob");
     }
 }

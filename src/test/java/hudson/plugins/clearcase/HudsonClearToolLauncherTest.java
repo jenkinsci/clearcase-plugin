@@ -24,6 +24,8 @@
  */
 package hudson.plugins.clearcase;
 
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
@@ -36,34 +38,23 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import org.jmock.Expectations;
-import org.jmock.Mockery;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
-    private Mockery classContext;
-    private Mockery context;
 
+    @Mock
     private BuildListener taskListener;
-    private Launcher launcher;
-    private Proc proc;
-    
+    @Mock
+    private Launcher      launcher;
+    @Mock
+    private Proc          proc;
+
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        context = new JUnit4Mockery();
-        classContext = new JUnit4Mockery() {
-                {
-                    setImposteriser(ClassImposteriser.INSTANCE);
-                }
-            };
-        launcher = classContext.mock(Launcher.class);
-        proc = classContext.mock(Proc.class);
-        taskListener = context.mock(BuildListener.class);
     }
 
     @After
@@ -74,102 +65,64 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
     @Test
     public void testClearToolLauncherImplWithNullStreams() throws Exception {
         final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
-
-        context.checking(new Expectations() {
-                {
-                    one(taskListener).getLogger();
-                    will(returnValue(mockedStream));
-                }
-            });
-        classContext.checking(new Expectations() {
-                {
-                    allowing(proc).join();
-                }
-            });
+        
+        when(taskListener.getLogger()).thenReturn(mockedStream);
 
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, null, null);
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
+        
+        verify(taskListener).getLogger();
+
+        
     }
 
     @Test
     public void testClearToolLauncherImplWithOutput() throws Exception {
         final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
-
-        context.checking(new Expectations() {
-                {
-                    one(taskListener).getLogger();
-                    will(returnValue(mockedStream));
-                }
-            });
-        classContext.checking(new Expectations() {
-                {
-                    allowing(proc).join();
-                }
-            });
         
+        when(taskListener.getLogger()).thenReturn(mockedStream);
+
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null);
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
+        
+        verify(taskListener).getLogger();
     }
 
-    @Test(expected=IOException.class)
+    @Test(expected = IOException.class)
     public void testBadReturnCode() throws Exception {
         final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
 
-        context.checking(new Expectations() {
-                {
-                    one(taskListener).getLogger(); will(returnValue(mockedStream));
-                    one(taskListener).fatalError(with(any(String.class)));
-                }
-            });
-        classContext.checking(new Expectations() {
-                {
-                    one(proc).join(); will(returnValue(1));
-                }
-            });
-
+        when(taskListener.getLogger()).thenReturn(mockedStream);
+        when(proc.join()).thenReturn(Integer.valueOf(1));
+        
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a", "b" }, null, new ByteArrayOutputStream(), null);
+        
+        verify(taskListener).getLogger();
+        verify(taskListener).fatalError(anyString());
+        verify(proc).join();
     }
 
     /**
-     * Assert that the Hudson cleartool launcher adds the clear tool exectuable
-     * to the command array.
+     * Assert that the Hudson cleartool launcher adds the clear tool exectuable to the command array.
      */
     @Test
     public void assertClearToolExecutableIsSet() throws Exception {
         final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
 
-        context.checking(new Expectations() {
-                {
-                    ignoring(taskListener).getLogger(); will(returnValue(mockedStream));
-                }
-            });
-        classContext.checking(new Expectations() {
-                {
-                    allowing(proc).join();
-                }
-            });
+        when(taskListener.getLogger()).thenReturn(mockedStream);
 
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "command" }, null, null, null);
-        classContext.assertIsSatisfied();
-        context.assertIsSatisfied();
     }
 
-
     public class HudsonClearToolLauncherDummy extends HudsonClearToolLauncher {
-        public HudsonClearToolLauncherDummy(String executable, String scmName, TaskListener listener,
-                                            FilePath workspace, Launcher launcher) {
+        public HudsonClearToolLauncherDummy(String executable, String scmName, TaskListener listener, FilePath workspace, Launcher launcher) {
             super(executable, scmName, listener, workspace, launcher);
         }
 
         @Override
-        public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out,
-                                    FilePath path) throws IOException {
+        public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out, FilePath path) throws IOException {
             return proc;
         }
     }

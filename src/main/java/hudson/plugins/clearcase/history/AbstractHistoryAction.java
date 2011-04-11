@@ -83,12 +83,12 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     }
 
     @Override
-    public List<? extends Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames,
+    public List<Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames,
             String[] viewPaths) throws IOException, InterruptedException {
-        List<? extends Entry> changelog;
+        List<Entry> changelog;
         if (needsLsHistoryForGetChanges(viewTag, viewPaths)) {
             List<HistoryEntry> historyEntries = runAndFilterLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
-            changelog = buildChangelog(viewPath, historyEntries);
+            changelog = (List<Entry>) buildChangelog(viewPath, historyEntries);
         } else {
             changelog = Collections.emptyList();
         }

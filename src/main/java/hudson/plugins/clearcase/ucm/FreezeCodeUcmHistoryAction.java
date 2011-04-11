@@ -64,7 +64,7 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
     }
     
     @Override
-    public List<? extends Entry> getChanges(Date time, String viewPath, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public List<Entry> getChanges(Date time, String viewPath, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> entries = new ArrayList<HistoryEntry>();
 
         // get latest baselines on the configured stream (set as an action on the build by the checkout operation)
@@ -103,7 +103,7 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
             entries = translateChangedVersionsToEnteries(changedVerionsList);
         }
         List<HistoryEntry> filtered = filterEntries(entries);
-        List<? extends Entry> changelog = buildChangelog(viewName, filtered);
+        List<Entry> changelog = buildChangelog(viewName, filtered);
         return changelog;
     }
 

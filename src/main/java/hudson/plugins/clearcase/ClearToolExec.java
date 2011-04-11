@@ -734,7 +734,6 @@ public abstract class ClearToolExec implements ClearTool {
                 exceptions.add(e);
             }
         }
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
         baos.close();
         String line = reader.readLine();
