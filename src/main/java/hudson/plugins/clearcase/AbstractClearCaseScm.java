@@ -586,11 +586,9 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException,
-            InterruptedException {
-        
+            InterruptedException {        
+    	boolean returnValue = true;
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
-
-        // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
         // inspect config spec
@@ -599,27 +597,34 @@ public abstract class AbstractClearCaseScm extends SCM {
         // Calculate revision state from the beginning, it will enable to reuse load rules
         build.addAction(calcRevisionsFromBuild(build, launcher, listener));
 
-        CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
-        
+        // Create actions
+        CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);        
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
-        
-        // Checkout code
-        String coNormalizedViewName = getViewName(variableResolver);
-
         build.addAction(new ClearCaseDataAction());
 
+        // get normalized view name
+        String coNormalizedViewName = getViewName(variableResolver);
+
+        // changelog actions
+        boolean computeChangeLogBeforeCheckout = false;
         boolean computeChangeLogAfterCheckout = false;
-        boolean returnValue = true;
+        // check if previuos build there
         if (build.getPreviousBuild() != null) {
-            if (!ChangeSetLevel.UPDT.equals(changeset) && checkoutAction.isViewValid(launcher, workspace, coNormalizedViewName)) {
-                // We need a valid view to determine the change log. For instance, on a new slave the view won't exist
-                returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
-                        coNormalizedViewName, returnValue);
-            } else {
-                // Otherwise, we just wait for the checkout to happen to set the view correctly.
-                computeChangeLogAfterCheckout = true;
+        	// We need a valid view to determine the change log. For instance, on a new slave the view won't exist
+        	boolean isViewValid = checkoutAction.isViewValid(launcher, workspace, coNormalizedViewName);        	
+            if (isViewValid) {
+            	if (!ChangeSetLevel.UPDT.equals(changeset)) {
+            		computeChangeLogBeforeCheckout = true;
+            	} else {
+            		computeChangeLogAfterCheckout = true;
+            	}                
             }
         }
+        if (computeChangeLogBeforeCheckout) {            
+            returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
+                    coNormalizedViewName, returnValue);        	
+        }
+        // --- CHECKOUT ---
         if (!checkoutAction.checkout(launcher, workspace, coNormalizedViewName)) {
             throw new AbortException();
         }
