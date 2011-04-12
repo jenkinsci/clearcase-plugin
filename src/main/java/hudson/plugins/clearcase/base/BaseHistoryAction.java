@@ -35,7 +35,6 @@ import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
-import hudson.plugins.clearcase.util.OutputFormat;
 import hudson.plugins.clearcase.util.PathUtil;
 
 import hudson.scm.ChangeLogSet.Entry;
@@ -136,13 +135,17 @@ public class BaseHistoryAction extends AbstractHistoryAction {
         	}
         }
         for (UpdtEntry entry : updtEntries) {
-            BufferedReader reader = new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, viewPath, entry.getObjectSelectorNewVersion()));
-            try {
-            	parseLsHistory(reader, history);
-            } catch (ParseException e) {
-                // no op
-            }            
-            reader.close();        	
+        	try {
+	            BufferedReader reader = new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, viewPath, entry.getObjectSelectorNewVersion()));
+	            try {
+	            	parseLsHistory(reader, history);
+	            } catch (ParseException e) {
+	                // no op
+	            }            
+	            reader.close();
+        	} catch (IOException e) {
+        		// skip describe errors
+        	}
         }
     	return history;
     }
