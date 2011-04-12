@@ -177,13 +177,13 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
     public void assertFormatContainsComment() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(
-                cleartool.lshistory(eq("\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\\"%[activity]p\\\" \\n%c\\n"), any(Date.class),
+                cleartool.lshistory(eq("\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\\"%[activity]Xp\\\" \\n%c\\n"), any(Date.class),
                         anyString(), anyString(), any(String[].class), anyBoolean())).thenReturn(new StringReader(""));
 
         UcmHistoryAction action = createUcmHistoryAction();
         action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         
-        verify(cleartool).lshistory(eq("\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\\"%[activity]p\\\" \\n%c\\n"), any(Date.class),
+        verify(cleartool).lshistory(eq("\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\\"%[activity]Xp\\\" \\n%c\\n"), any(Date.class),
                 anyString(), anyString(), any(String[].class), anyBoolean());
     }
 
