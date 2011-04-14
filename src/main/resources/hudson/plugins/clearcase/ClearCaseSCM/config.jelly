@@ -104,6 +104,15 @@
     </table>
   </f:entry> 
 
+  <!--f:entry title="Use lshistory -recurse">
+    <f:checkbox name="cc.useRecurseForChangelog" checked="${h.defaultToFalse(scm.useRecurseForChangelog)}" />
+    If checked: 'lshistory -recurse' will be used. It is optimized for small amount of folders and files.
+    But this causes long polling time if whole VOBs are used in load rules.
+    <p>
+    If not checked: 'lshistory -all' will be used (default). It is optimized for whole VOBs. But this will report ALL changings inside VOBs!!! 
+    </p>
+  </f:entry-->
+
   <f:entry title="Branch(es)" help="/plugin/clearcase/branch.html">
     <f:expandableTextbox name="cc.branch" value="${scm.branch}" />
   </f:entry>

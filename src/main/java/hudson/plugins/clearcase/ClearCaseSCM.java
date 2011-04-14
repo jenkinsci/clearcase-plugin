@@ -303,8 +303,23 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                 //loadRulesDelta = getLoadRulesDelta(fileConfigSpec.getLoadRules(), launcher);
                 //needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());
                 ret = !actualConfigSpec.stripLoadRules().equals(fileConfigSpec.stripLoadRules());
+                // Debug
+                if (ret)
+                {
+		            launcher.getListener().getLogger().println("*************************** D E B U G ****************************");
+		            launcher.getListener().getLogger().println("CSPEC changed = " + ret);
+		            String actualCS = actualConfigSpec.stripLoadRules().getRaw();          
+		            String fileCS = fileConfigSpec.stripLoadRules().getRaw();
+		            launcher.getListener().getLogger().println("*** ACTUAL CSPEC ***");
+		            launcher.getListener().getLogger().println(actualCS);
+		            launcher.getListener().getLogger().println("********************");
+		            launcher.getListener().getLogger().println("***  NEW  CSPEC  ***");
+		            launcher.getListener().getLogger().println(fileCS);
+		            launcher.getListener().getLogger().println("********************");
+		            launcher.getListener().getLogger().println("*************************** D E B U G ****************************");
+                }
         	} else {
-        		//launcher.getListener().getLogger().println("Fall back to config spec field...");
+        		launcher.getListener().getLogger().println("ERROR: extracted CSPEC is empty!");
         		ret = false;
         	}
         }
