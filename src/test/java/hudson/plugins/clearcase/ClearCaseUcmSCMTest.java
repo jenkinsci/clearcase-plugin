@@ -52,11 +52,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(Node.class)
+@PrepareForTest({Node.class, AbstractProject.class})
 public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     @Mock
     private ClearTool                                 cleartool;
-    @Mock
+    
     private AbstractProject                           project;
     @Mock
     private Build                                     build;
@@ -76,6 +76,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     public void setUp() throws Exception {
         createWorkspace();
         node = PowerMockito.mock(Node.class);
+        project = PowerMockito.mock(AbstractProject.class);
     }
 
     @After
@@ -196,7 +197,7 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         when(node.getNodeName()).thenReturn("test-node");
         when(build.getBuiltOn()).thenReturn(node);
         when(build.getProject()).thenReturn(project);
-        when(project.getName()).thenReturn("ClearCase");
+        when(project.getFullName()).thenReturn("ClearCase");
         when(build.getParent()).thenReturn(project);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
