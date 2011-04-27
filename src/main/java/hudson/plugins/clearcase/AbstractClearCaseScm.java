@@ -350,7 +350,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         String normalized = null;
         String v = getViewName();
         if (v != null) {
-            normalized = Util.replaceMacro(v.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_"), variableResolver);
+            normalized = Util.replaceMacro(v, variableResolver).replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
             setNormalizedViewName(normalized);
         }
         return normalized;
@@ -730,7 +730,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         String normalized = null;
         String viewPath = StringUtils.defaultIfEmpty(getViewPath(), getViewName());
         if (viewPath != null) {
-            normalized = Util.replaceMacro(viewPath.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_"), variableResolver);
+            normalized = Util.replaceMacro(viewPath, variableResolver).replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
             setNormalizedViewPath(normalized);
         }
         return normalized;

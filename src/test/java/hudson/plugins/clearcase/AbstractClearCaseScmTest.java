@@ -205,7 +205,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         when(build.getBuiltOn()).thenReturn(node);
         when(build.getProject()).thenReturn(project);
-        when(project.getName()).thenReturn("Hudson");
+        when(project.getFullName()).thenReturn("Hudson");
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
@@ -222,7 +222,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testViewNameMacrosUsingBuildEnv() throws IOException, InterruptedException {
         when(build.getBuiltOn()).thenReturn(node);
         when(build.getProject()).thenReturn(project);
-        when(project.getName()).thenReturn("Hudson");
+        when(project.getFullName()).thenReturn("Hudson");
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
@@ -298,7 +298,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(node.getNodeName()).thenReturn("test-node");
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
-        when(project.getName()).thenReturn("CCHudson");
+        when(project.getFullName()).thenReturn("CCHudson");
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname-${JOB_NAME}-${NODE_NAME}", "vob", "");
         Map<String, String> env = new HashMap<String, String>();
@@ -427,7 +427,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
         when(build.getProject()).thenReturn(project);
-        when(project.getName()).thenReturn("CCHudson");
+        when(project.getFullName()).thenReturn("CCHudson");
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "NODE_NAME", "test-node"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
@@ -548,13 +548,13 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     @Test
     public void assertPollChangesUsesNormalizedViewName() throws Exception {
         createWorkspace();
-        when(historyAction.hasChanges(any(Date.class), eq("view-CCHudson-test-node"), eq("view-CCHudson-test-node"), any(String[].class), any(String[].class)))
+        when(historyAction.hasChanges(any(Date.class), eq("view-MatrixProject_CCHudson-test-node"), eq("view-MatrixProject_CCHudson-test-node"), any(String[].class), any(String[].class)))
                 .thenReturn(Boolean.TRUE);
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
         when(build.getProject()).thenReturn(project);
-        when(project.getName()).thenReturn("CCHudson");
+        when(project.getFullName()).thenReturn("MatrixProject/CCHudson");
         when(project.getSomeBuildWithWorkspace()).thenReturn(build);
         when(build.getTimestamp()).thenReturn(Calendar.getInstance());
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
@@ -565,10 +565,10 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view-${JOB_NAME}-${NODE_NAME}", "vob", "");
         scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
-        verify(historyAction).hasChanges(any(Date.class), eq("view-CCHudson-test-node"), eq("view-CCHudson-test-node"), any(String[].class),
+        verify(historyAction).hasChanges(any(Date.class), eq("view-MatrixProject_CCHudson-test-node"), eq("view-MatrixProject_CCHudson-test-node"), any(String[].class),
                 any(String[].class));
     }
-
+    
     @Test
     public void testPollChangesFirstTime() throws Exception {
         when(project.getSomeBuildWithWorkspace()).thenReturn(null);
