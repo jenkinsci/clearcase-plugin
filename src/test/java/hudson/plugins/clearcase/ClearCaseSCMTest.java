@@ -182,14 +182,14 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
     @Test
     public void testIsDynamicView() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "", null, false, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "", null, false, false, false);
         assertTrue("The dynamic isn't correct", scm.isUseDynamicView());
         assertFalse("The use update isn't correct", scm.isUseUpdate());
     }
 
     @Test
     public void testGetViewDrive() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
         assertEquals("The view drive isn't correct", "/tmp/c", scm.getViewDrive());
     }
 
@@ -245,18 +245,17 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(clearCaseScmDescriptor.getLogMergeTimeWindow()).thenReturn(5);
         when(launcher.isUnix()).thenReturn(true);
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
-        when(cleartool.pwv("viewname-ClearCase")).thenReturn("/view/viewname-ClearCase");
+        when(cleartool.pwv("viewpath")).thenReturn("/view/viewpath");
 
-        ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "label", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false, false,
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branchone", "label", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false, false,
                 false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
-        assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
-        verify(build, atLeastOnce()).getParent();
+        assertEquals("The extended view path is incorrect", "/view/viewpath/", action.getExtendedViewPath());
         verify(clearCaseScmDescriptor, atLeastOnce()).getLogMergeTimeWindow();
-        verify(cleartool).pwv("viewname-ClearCase");
+        verify(cleartool).pwv("viewpath");
     }
 
     @Test
@@ -272,7 +271,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "ClearCase"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
-        ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "label", "${JOB_NAME}", "viewname-${JOB_NAME}", true, "vob", false, "/view", null, false, false,
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branchone", "label", "${JOB_NAME}", "viewname-${JOB_NAME}", true, "vob", false, "/view", null, false, false,
                 false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
@@ -316,7 +315,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(computer.getEnvironment()).thenReturn(new EnvVars());
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         Filter filters = scm.configureFilters(variableResolver, build, launcher);
         assertTrue("Minor events are required for label filtering to work", filters.requiresMinorEvents());

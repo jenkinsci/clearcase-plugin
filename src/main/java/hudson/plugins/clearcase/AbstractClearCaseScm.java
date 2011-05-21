@@ -37,12 +37,14 @@ import hudson.model.Node;
 import hudson.model.Run;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
+import hudson.plugins.clearcase.history.AbstractHistoryAction;
 import hudson.plugins.clearcase.history.DefaultFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
+import hudson.plugins.clearcase.ucm.UcmHistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.scm.ChangeLogSet;
@@ -613,7 +615,11 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     protected ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
-        return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
+        if (isUseDynamicView()) {
+            return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
+        } else {
+            return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
+        }
     }
 
     @Override
@@ -739,6 +745,23 @@ public abstract class AbstractClearCaseScm extends SCM {
     
     protected void setChangeset(ChangeSetLevel changeset) {
         this.changeset = changeset;
+    }
+
+    protected void setExtendedViewPath(VariableResolver<String> variableResolver, ClearTool ct, AbstractHistoryAction action) {
+        try {
+            String viewPath = getViewPath(variableResolver);
+            String pwv = ct.pwv(viewPath);
+            if (pwv != null) {
+                if (pwv.contains("/")) {
+                    pwv += "/";
+                } else {
+                    pwv += "\\";
+                }
+                action.setExtendedViewPath(pwv);
+            }
+        } catch (Exception e) {
+            Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
+        }
     }
 
 }

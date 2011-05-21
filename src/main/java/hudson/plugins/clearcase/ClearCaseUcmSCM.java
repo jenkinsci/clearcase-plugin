@@ -51,8 +51,6 @@ import hudson.util.VariableResolver;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 
@@ -188,6 +186,12 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
+    public ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
+        return super.createClearTool(variableResolver, launcher);
+    }
+    
+
+    @Override
     protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         CheckOutAction action;
         if (isUseDynamicView()) {
@@ -199,7 +203,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return action;
     }
 
-    protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+    protected UcmHistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         ClearTool ct = createClearTool(variableResolver, launcher);
         UcmHistoryAction action;
         ClearCaseUCMSCMRevisionState oldBaseline = null;
@@ -216,20 +220,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         } else {
             action = new UcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), oldBaseline, newBaseline, getChangeset());
         }
-        try {
-            String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
-
-            if (pwv != null) {
-                if (pwv.contains("/")) {
-                    pwv += "/";
-                } else {
-                    pwv += "\\";
-                }
-                action.setExtendedViewPath(pwv);
-            }
-        } catch (Exception e) {
-            Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
-        }
+        setExtendedViewPath(variableResolver, ct, action);
 
         return action;
     }
@@ -258,15 +249,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return new UcmSaveChangeLogAction();
     }
 
-    @Override
-    public ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
-        if (isUseDynamicView()) {
-            return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
-        } else {
-            return super.createClearTool(variableResolver, launcher);
-        }
-    }
-    
     public ClearTool createClearTool(AbstractBuild<?, ?> build, Launcher launcher) {
         BuildVariableResolver variableResolver = new BuildVariableResolver(build);
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(launcher.getListener(), build.getWorkspace(), launcher);
@@ -324,7 +306,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
         @Override
         public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            ClearCaseUcmSCM scm = new ClearCaseUcmSCM(req.getParameter("ucm.stream"),
+            AbstractClearCaseScm scm = new ClearCaseUcmSCM(req.getParameter("ucm.stream"),
                                                       req.getParameter("ucm.loadrules"),
                                                       req.getParameter("ucm.viewname"),
                                                       req.getParameter("ucm.usedynamicview") != null,

@@ -209,12 +209,11 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
         when(cleartool.pwv("viewname-ClearCase")).thenReturn("/view/viewname-ClearCase");
 
-        AbstractClearCaseScm scm = new ClearCaseUcmSCMDummy("stream:mystream", "somefile", "viewname-${JOB_NAME}", true, "/view", null, true, false, false,
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCMDummy("stream:mystream", "somefile", "viewname-${JOB_NAME}", true, "/view", null, true, false, false,
                 null, null, null, false, cleartool, clearCaseUcmScmDescriptor);
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        UcmHistoryAction action = (UcmHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
-        verify(build, atLeastOnce()).getParent();
+        UcmHistoryAction action = scm.createHistoryAction(variableResolver, clearToolLauncher, null);
         verify(cleartool).pwv("viewname-ClearCase");
         assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
     }
