@@ -567,7 +567,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;
         
-        AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getSomeBuildWithWorkspace();
+        AbstractBuild<?, ?> build = project.getSomeBuildWithWorkspace();
         if (build == null) {
             return PollingResult.BUILD_NOW;
         }

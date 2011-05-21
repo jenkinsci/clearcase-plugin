@@ -205,7 +205,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         ClearCaseUCMSCMRevisionState oldBaseline = null;
         ClearCaseUCMSCMRevisionState newBaseline = null;
         if (build != null) {
-            AbstractBuild<?, ?> previousBuild = (AbstractBuild<?, ?>) build.getPreviousBuild();
+            AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
             if (previousBuild != null) {
                 oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
             }

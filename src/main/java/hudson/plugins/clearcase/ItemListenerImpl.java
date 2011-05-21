@@ -84,7 +84,7 @@ public class ItemListenerImpl extends ItemListener {
                     StreamTaskListener listener = StreamTaskListener.fromStdout();
                     Launcher launcher = hudson.createLauncher(listener);
 
-                    AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getSomeBuildWithWorkspace();
+                    AbstractBuild<?, ?> build = project.getSomeBuildWithWorkspace();
 
                     if (build != null) {
                         VariableResolver<String> variableResolver = new JobNameOverrideBuildVariableResolver(oldName, build, ccScm.getBuildComputer(build));
