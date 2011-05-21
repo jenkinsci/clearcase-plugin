@@ -119,11 +119,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
 
     @Exported
     public boolean isIntegrationActivity() {
-        if (name.startsWith("deliver.")) {
-            return true;
-        } else {
-            return false;
-        }
+        return name.startsWith("deliver.");
     }
 
     public void addFile(File file) {
