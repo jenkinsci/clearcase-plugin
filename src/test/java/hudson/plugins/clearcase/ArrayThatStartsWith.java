@@ -8,9 +8,6 @@ public class ArrayThatStartsWith<T> extends ArgumentMatcher<T[]> {
     
     public ArrayThatStartsWith(T[] startsWith) {
         this.startsWith = startsWith;
-        if (!(startsWith instanceof Object[])) {
-            throw new IllegalArgumentException();
-        }
     }
 
     @Override
