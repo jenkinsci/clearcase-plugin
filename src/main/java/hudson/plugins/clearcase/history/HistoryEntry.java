@@ -139,7 +139,10 @@ public class HistoryEntry {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof HistoryEntry)) {
             return false;
         }
         final HistoryEntry other = (HistoryEntry) obj;
