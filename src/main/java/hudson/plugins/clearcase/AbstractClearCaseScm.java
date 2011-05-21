@@ -268,15 +268,11 @@ public abstract class AbstractClearCaseScm extends SCM {
         for (int i = 0; i < rules.length; i++) {
             String rule = rules[i];
             // Remove "load " from the string, just in case.
-            if (rule.startsWith("load ")) {
-                rule = rule.substring(5);
-            }
+            rule = StringUtils.removeStart(rule, "load ");
             // Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if
             // the view is not dynamic
             // the user normally enters a load rule beginning with those chars
-            while (rule.startsWith("\\") || rule.startsWith("/")) {
-                rule = rule.substring(1);
-            }
+            rule = StringUtils.stripStart(rule, "\\/");
             rules[i] = rule;
         }
         return rules;
