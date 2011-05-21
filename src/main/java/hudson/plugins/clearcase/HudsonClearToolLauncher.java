@@ -99,9 +99,7 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
 
         String[] cmdWithExec = new String[cmd.length + 1];
         cmdWithExec[0] = executable;
-        for (int i = 0; i < cmd.length; i++) {
-            cmdWithExec[i + 1] = cmd[i];
-        }
+        System.arraycopy(cmd, 0, cmdWithExec, 1, cmd.length);
 
         int r = getLaunchedProc(cmdWithExec, env, inputStream, out, path).join();
         if (r != 0) {
