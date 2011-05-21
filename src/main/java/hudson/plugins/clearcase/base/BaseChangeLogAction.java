@@ -86,7 +86,6 @@ public class BaseChangeLogAction implements ChangeLogAction {
                 reader.close();
             }
         } catch (ParseException ex) {
-            ;
         }
         ChangeLogEntryMerger entryMerger = new ChangeLogEntryMerger(maxTimeDifferenceMillis);
         return entryMerger.getMergedList(fullList);
