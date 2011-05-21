@@ -24,9 +24,18 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Matchers.notNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.AbstractClearCaseScm;
@@ -50,7 +59,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.jvnet.hudson.test.Bug;
 import org.mockito.Mock;
