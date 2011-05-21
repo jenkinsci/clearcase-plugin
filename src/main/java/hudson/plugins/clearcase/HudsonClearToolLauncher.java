@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Class for executing the cleartool commands in the Hudson instance.
  */
@@ -129,14 +131,6 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     }
 
     public String getCmdString(String[] cmd) {
-        StringBuilder builder = new StringBuilder();
-        for (String cmdParam : cmd) {
-            if (builder.length() > 0) {
-                builder.append(" ");
-            }
-            builder.append(cmdParam);
-        }
-
-        return builder.toString();
+        return StringUtils.join(cmd, ' ');
     }
 }
