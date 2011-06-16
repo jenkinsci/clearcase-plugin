@@ -24,8 +24,18 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import static hudson.plugins.clearcase.util.OutputFormat.*;
-
+import static hudson.plugins.clearcase.util.OutputFormat.COMMENT;
+import static hudson.plugins.clearcase.util.OutputFormat.DATE_NUMERIC;
+import static hudson.plugins.clearcase.util.OutputFormat.EVENT;
+import static hudson.plugins.clearcase.util.OutputFormat.LINEEND;
+import static hudson.plugins.clearcase.util.OutputFormat.NAME_ELEMENTNAME;
+import static hudson.plugins.clearcase.util.OutputFormat.NAME_VERSIONID;
+import static hudson.plugins.clearcase.util.OutputFormat.OPERATION;
+import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_CONTRIBUTING;
+import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_HEADLINE;
+import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_STREAM;
+import static hudson.plugins.clearcase.util.OutputFormat.UCM_VERSION_ACTIVITY;
+import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.ChangeLogAction;
 import hudson.plugins.clearcase.history.Filter;
@@ -52,38 +62,33 @@ import java.util.regex.Matcher;
 public class UcmChangeLogAction implements ChangeLogAction {
 
     // full lshistory output and parsing
-    private static final String[] HISTORY_FORMAT = { DATE_NUMERIC,
-                                                     NAME_ELEMENTNAME, NAME_VERSIONID, UCM_VERSION_ACTIVITY, EVENT,
-                                                     OPERATION, USER_ID };
-    private static final String[] ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE,
-                                                      UCM_ACTIVITY_STREAM, USER_ID, };
-    private static final String[] INTEGRATION_ACTIVITY_FORMAT = {
-        UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID,
-        UCM_ACTIVITY_CONTRIBUTING };
+    private static final String[]    HISTORY_FORMAT              = { DATE_NUMERIC, NAME_ELEMENTNAME, NAME_VERSIONID,
+            UCM_VERSION_ACTIVITY, EVENT, OPERATION, USER_ID     };
+    private static final String[]    ACTIVITY_FORMAT             = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM,
+            USER_ID,                                            };
+    private static final String[]    INTEGRATION_ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM,
+            USER_ID, UCM_ACTIVITY_CONTRIBUTING                  };
 
-    private ClearTool cleartool;
+    private ClearTool                cleartool;
 
-    private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(
-                                                                               HISTORY_FORMAT);
-    private SimpleDateFormat dateFormatter = new SimpleDateFormat(
-                                                                  "yyyyMMdd.HHmmss");
-    private Map<String, UcmActivity> activityNameToEntry = new HashMap<String, UcmActivity>();
-    private Filter filter;
+    private ClearToolFormatHandler   historyHandler              = new ClearToolFormatHandler(HISTORY_FORMAT);
+    private SimpleDateFormat         dateFormatter               = new SimpleDateFormat("yyyyMMdd.HHmmss");
+    private Map<String, UcmActivity> activityNameToEntry         = new HashMap<String, UcmActivity>();
+    private Filter                   filter;
 
     /**
      * Extended view path that should be removed file paths in entries.
      */
-    private String extendedViewPath;
+    private String                   extendedViewPath;
 
     public UcmChangeLogAction(ClearTool cleartool, List<Filter> filters) {
         this.cleartool = cleartool;
         this.filter = new FilterChain(filters);
-        }
+    }
 
     @Override
-    public List<UcmActivity> getChanges(Date time, String viewName,
-                                        String[] branchNames, String[] viewPaths) throws IOException,
-                                                                                         InterruptedException {
+    public List<UcmActivity> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths)
+            throws IOException, InterruptedException {
         // ISSUE-3097
         // Patched since this command must allow paths that do not contain
         // the specified branch name (happens, for instance, if changes has
@@ -98,10 +103,10 @@ public class UcmChangeLogAction implements ChangeLogAction {
                 // is the workspace root and the view will be checked out in a
                 // directory with the name of the view)
                 String fullpath = viewName + File.separator + path;
-                BufferedReader reader = new BufferedReader(cleartool.lshistory(
-                                                                               historyHandler.getFormat() + COMMENT + LINEEND, time,
-                                                                               viewName, branchNames[0], new String[] { fullpath },
-                                                                               filter.requiresMinorEvents(), false));
+                BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT
+                                                                                       + LINEEND, time, viewName,
+                                                                               branchNames[0],
+                                                                               new String[] { fullpath },
                 history.addAll(parseHistory(reader, viewName));
                 reader.close();
                 ok = true; // At least one path was successful
@@ -117,8 +122,8 @@ public class UcmChangeLogAction implements ChangeLogAction {
         }
     }
 
-    private List<UcmActivity> parseHistory(BufferedReader reader,
-                                           String viewname) throws InterruptedException, IOException {
+    private List<UcmActivity> parseHistory(BufferedReader reader, String viewname) throws InterruptedException,
+            IOException {
         List<UcmActivity> result = new ArrayList<UcmActivity>();
         try {
             StringBuilder commentBuilder = new StringBuilder();
@@ -149,8 +154,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
                     String fileName = matcher.group(2).trim();
                     if (extendedViewPath != null) {
                         if (fileName.startsWith(extendedViewPath)) {
-                            fileName = fileName.substring(extendedViewPath
-                                                          .length());
+                            fileName = fileName.substring(extendedViewPath.length());
                         }
                     }
 
@@ -170,25 +174,24 @@ public class UcmChangeLogAction implements ChangeLogAction {
                     historyEntry.setUser(matcher.group(7).trim());
 
                     if (filter.accept(historyEntry)) {
-                    String activityName = matcher.group(4);
+                        String activityName = matcher.group(4);
 
-                    UcmActivity activity = activityNameToEntry
-                        .get(activityName);
-                    if (activity == null) {
-                        activity = new UcmActivity();
-                        activity.setName(activityName);
-                        if (activityName.length() != 0) {
-                            callLsActivity(activity, viewname, 1);
-                        } else {
-                            activity.setHeadline("Unknown activity");
-                            activity.setUser("Unknown");
-                            activity.setStream("");
+                        UcmActivity activity = activityNameToEntry.get(activityName);
+                        if (activity == null) {
+                            activity = new UcmActivity();
+                            activity.setName(activityName);
+                            if (activityName.length() != 0) {
+                                callLsActivity(activity, viewname, 1);
+                            } else {
+                                activity.setHeadline("Unknown activity");
+                                activity.setUser("Unknown");
+                                activity.setStream("");
+                            }
+                            activityNameToEntry.put(activityName, activity);
+                            result.add(activity);
                         }
-                        activityNameToEntry.put(activityName, activity);
-                        result.add(activity);
-                    }
 
-                    activity.addFile(currentFile);
+                        activity.addFile(currentFile);
                     }
                 } else {
                     if (commentBuilder.length() > 0) {
@@ -202,17 +205,15 @@ public class UcmChangeLogAction implements ChangeLogAction {
                 currentFile.setComment(commentBuilder.toString());
             }
         } catch (ParseException ex) {
-            IOException ioe = new IOException(
-                                              "Could not parse cleartool output");
+            IOException ioe = new IOException("Could not parse cleartool output");
             ioe.setStackTrace(ex.getStackTrace());
             throw ioe;
         }
         return result;
     }
 
-    private void callLsActivity(UcmActivity activity, String viewname,
-                                int numberOfContributingActivitiesToFollow) throws IOException,
-                                                                                   InterruptedException {
+    private void callLsActivity(UcmActivity activity, String viewname, int numberOfContributingActivitiesToFollow)
+            throws IOException, InterruptedException {
         ClearToolFormatHandler handler = null;
         if (activity.isIntegrationActivity()) {
             handler = new ClearToolFormatHandler(INTEGRATION_ACTIVITY_FORMAT);
@@ -220,8 +221,8 @@ public class UcmChangeLogAction implements ChangeLogAction {
             handler = new ClearToolFormatHandler(ACTIVITY_FORMAT);
         }
 
-        BufferedReader reader = new BufferedReader(cleartool.lsactivity(
-                                                                        activity.getName(), handler.getFormat(), viewname));
+        BufferedReader reader = new BufferedReader(cleartool.lsactivity(activity.getName(), handler.getFormat(),
+                                                                        viewname));
 
         String line = reader.readLine();
         Matcher matcher = handler.checkLine(line);
@@ -230,22 +231,19 @@ public class UcmChangeLogAction implements ChangeLogAction {
             activity.setStream(matcher.group(2));
             activity.setUser(matcher.group(3));
 
-            if (activity.isIntegrationActivity()
-                && numberOfContributingActivitiesToFollow > 0) {
+            if (activity.isIntegrationActivity() && numberOfContributingActivitiesToFollow > 0) {
 
                 String contributingActivities = matcher.group(4);
 
                 for (String contributing : contributingActivities.split(" ")) {
 
                     UcmActivity subActivity = null;
-                    UcmActivity cachedActivity = activityNameToEntry
-                        .get(contributing);
+                    UcmActivity cachedActivity = activityNameToEntry.get(contributing);
 
                     if (cachedActivity == null) {
                         subActivity = new UcmActivity();
                         subActivity.setName(contributing);
-                        callLsActivity(subActivity, viewname,
-                                       --numberOfContributingActivitiesToFollow);
+                        callLsActivity(subActivity, viewname, --numberOfContributingActivitiesToFollow);
                         activityNameToEntry.put(contributing, subActivity);
                     } else {
                         /* do deep copy */
@@ -271,7 +269,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
     public void setExtendedViewPath(String path) {
         this.extendedViewPath = path;
     }
-    
+
     public String getExtendedViewPath() {
         return extendedViewPath;
     }

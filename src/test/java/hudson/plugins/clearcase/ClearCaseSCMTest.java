@@ -22,18 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package hudson.plugins.clearcase; 
+package hudson.plugins.clearcase;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 import hudson.EnvVars;
 import hudson.Launcher;
-import hudson.model.AbstractProject;
 import hudson.model.Build;
+import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
@@ -48,123 +45,107 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jmock.Expectations;
-import org.jmock.Mockery;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({Node.class, AbstractProject.class})
 public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
-    private Mockery classContext;
-    private Mockery context;
-    private ClearTool cleartool;
-    private AbstractProject project;
-    private Build build;
-    private Launcher launcher;
-    private ClearToolLauncher clearToolLauncher;
+    @Mock
+    private ClearTool                           cleartool;
+    
+    private AbstractProject                     project;
+    @Mock
+    private Build                               build;
+    @Mock
+    private Launcher                            launcher;
+    @Mock
+    private ClearToolLauncher                   clearToolLauncher;
+    @Mock
     private ClearCaseSCM.ClearCaseScmDescriptor clearCaseScmDescriptor;
-    private Node node;
-    private Computer computer;
+
+    private Node                                node;
+    @Mock
+    private Computer                            computer;
+
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        classContext = new JUnit4Mockery() {
-                {
-                    setImposteriser(ClassImposteriser.INSTANCE);
-                }
-            };
-        project = classContext.mock(AbstractProject.class);
-        build = classContext.mock(Build.class);
-        launcher = classContext.mock(Launcher.class);
-        computer = classContext.mock(Computer.class);
-        clearCaseScmDescriptor = classContext.mock(ClearCaseSCM.ClearCaseScmDescriptor.class);
-        context = new JUnit4Mockery();
-        cleartool = context.mock(ClearTool.class);
-        clearToolLauncher = context.mock(ClearToolLauncher.class);
-        node = classContext.mock(Node.class);
-        
+        node = PowerMockito.mock(Node.class);
+        project = PowerMockito.mock(AbstractProject.class);
     }
+
     @After
     public void tearDown() throws Exception {
         deleteWorkspace();
     }
-    
+
     @Test
     public void testCreateChangeLogParser() {
         AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false, false);
         assertNotNull("The change log parser is null", scm.createChangeLogParser());
         assertNotSame("The change log parser is re-used", scm.createChangeLogParser(), scm.createChangeLogParser());
     }
-    
+
     @Test
     public void testSnapshotBuildEnvVars() throws IOException, InterruptedException {
-        classContext.checking(new Expectations() {
-                {
-                    ignoring(build).getBuiltOn(); will(returnValue(node));
-                    ignoring(node).toComputer(); will(returnValue(computer));
-                    ignoring(node).getNodeName(); will(returnValue("test-node"));
-                    ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
-                    ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
-                    
-                    ignoring(build).getParent(); will(returnValue(project));
-                    ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
-                }
-            });
-        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", false, "",
-                                                         null, false, false,false, "", "", false, false, cleartool,
-                                                         clearCaseScmDescriptor, computer, "viewpath");
+        when(build.getBuiltOn()).thenReturn(node);
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
+        when(computer.getSystemProperties()).thenReturn(System.getProperties());
+
+        when(build.getParent()).thenReturn(project);
+        when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false, false, "", "",
+                false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
         scm.generateNormalizedViewName(build);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWTAG wasn't set", "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWTAG_ENVSTR));
         assertEquals("The env var VIEWNAME wasn't set", "viewpath", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
-        assertEquals("The env var VIEWPATH wasn't set", "/hudson/jobs/job/workspace" + File.separator +"viewpath", env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
+        assertEquals("The env var VIEWPATH wasn't set", "/hudson/jobs/job/workspace" + File.separator + "viewpath",
+                env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
     @Test
     public void testDynamicBuildEnvVars() throws IOException, InterruptedException {
-        classContext.checking(new Expectations() {
-                {
-                    ignoring(build).getBuiltOn(); will(returnValue(node));
-                    ignoring(node).toComputer(); will(returnValue(computer));
-                    ignoring(node).getNodeName(); will(returnValue("test-node"));
-                    ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
-                    ignoring(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test")));
-                    ignoring(computer).getSystemProperties(); will(returnValue(System.getProperties()));
-                    
-                    ignoring(build).getParent(); will(returnValue(project));
-                    ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
-                }
-            });
-        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", true, "/views",
-                                                         null, false, false,false, "", "", false, false, cleartool,
-                                                         clearCaseScmDescriptor, computer, "viewpath");
+        when(build.getBuiltOn()).thenReturn(node);
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
+        when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
+        when(computer.getSystemProperties()).thenReturn(System.getProperties());
+
+        when(build.getParent()).thenReturn(project);
+        when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", true, "/views", null, false, false, false, "",
+                "", false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWTAG wasnt set", "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWTAG_ENVSTR));
         assertEquals("The env var VIEWNAME wasnt set", "viewpath", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
-        assertEquals("The env var VIEWPATH wasnt set", "/views" + File.separator +"viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
+        assertEquals("The env var VIEWPATH wasnt set", "/views" + File.separator + "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
     @Test
     public void testDynamicBuildEnvVarsNoViewDrive() {
-        classContext.checking(new Expectations() {
-                {
-                    ignoring(build).getBuiltOn(); will(returnValue(node));
-                    ignoring(node).toComputer(); will(returnValue(computer));
-                    ignoring(node).getNodeName(); will(returnValue("test-node"));
-                    ignoring(build).getParent(); will(returnValue(project));
-                    ignoring(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
-                }
-            });
-        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", true, null,
-                                                         null, false, false,false, "", "", false, false, cleartool,
-                                                         clearCaseScmDescriptor, computer, "viewpath");
+        when(build.getBuiltOn()).thenReturn(node);
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(build.getParent()).thenReturn(project);
+        when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", true, null, null, false, false, false, "", "",
+                false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         Map<String, String> env = new HashMap<String, String>();
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWTAG wasnt set", "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWTAG_ENVSTR));
@@ -174,141 +155,124 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
     @Test
     public void testGetBranch() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false,false);
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false, false);
         assertEquals("The branch isn't correct", "branch", scm.getBranch());
     }
-    
+
     @Test
     public void testGetLabel() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false,false);
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false, false);
         assertEquals("The label isn't correct", "label", scm.getLabel());
     }
+
     @Test
     public void testGetConfigSpec() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false,false);
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false, false);
         assertEquals("The config spec isn't correct", "configspec", scm.getConfigSpec());
     }
 
     @Test
     public void testIsUseUpdate() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false,false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false, false);
         assertTrue("The isUpdate isn't correct", scm.isUseUpdate());
-        
-        scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", false, "", false, "", null, false, false,false);
+
+        scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", false, "", false, "", null, false, false, false);
         assertFalse("The isUpdate isn't correct", scm.isUseUpdate());
     }
 
     @Test
     public void testIsDynamicView() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "", null, false, false,false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "", null, false, false, false);
         assertTrue("The dynamic isn't correct", scm.isUseDynamicView());
         assertFalse("The use update isn't correct", scm.isUseUpdate());
     }
 
     @Test
     public void testGetViewDrive() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
         assertEquals("The view drive isn't correct", "/tmp/c", scm.getViewDrive());
     }
 
     @Test
     public void testGetBranchNames() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
-        assertArrayEquals("The branch name array is incorrect", new String[]{"branchone", "branchtwo"}, scm.getBranchNames(EMPTY_VARIABLE_RESOLVER));
-    }
-    
-    @Test
-    public void testGetLabelNames() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "labelone labeltwo", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
-        assertArrayEquals("The label name array is incorrect", new String[]{"labelone", "labeltwo"}, scm.getLabelNames(EMPTY_VARIABLE_RESOLVER));
+        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,
+                false);
+        assertArrayEquals("The branch name array is incorrect", new String[] { "branchone", "branchtwo" }, scm.getBranchNames(EMPTY_VARIABLE_RESOLVER));
     }
 
+    @Test
+    public void testGetLabelNames() {
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "labelone labeltwo", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
+        assertArrayEquals("The label name array is incorrect", new String[] { "labelone", "labeltwo" }, scm.getLabelNames(EMPTY_VARIABLE_RESOLVER));
+    }
 
     @Test
     public void assertEmptyBranchIsReturnedAsABranch() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
-        assertArrayEquals("The branch name array is incorrect", new String[]{""}, scm.getBranchNames(EMPTY_VARIABLE_RESOLVER));
+        AbstractClearCaseScm scm = new ClearCaseSCM("", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
+        assertArrayEquals("The branch name array is incorrect", new String[] { "" }, scm.getBranchNames(EMPTY_VARIABLE_RESOLVER));
     }
 
     @Test
     public void assertEmptyLabelIsReturnedAsALabel() {
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
-        assertArrayEquals("The label name array is incorrect", new String[]{""}, scm.getLabelNames(EMPTY_VARIABLE_RESOLVER));
+        ClearCaseSCM scm = new ClearCaseSCM("branch", "", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
+        assertArrayEquals("The label name array is incorrect", new String[] { "" }, scm.getLabelNames(EMPTY_VARIABLE_RESOLVER));
     }
 
     @Test
     public void assertBranchWithSpaceWorks() {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branch\\ one", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,false);
-        assertArrayEquals("The branch name array is incorrect", new String[]{"branch one"}, scm.getBranchNames(EMPTY_VARIABLE_RESOLVER));
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch\\ one", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
+        assertArrayEquals("The branch name array is incorrect", new String[] { "branch one" }, scm.getBranchNames(EMPTY_VARIABLE_RESOLVER));
     }
 
     @Test
     public void testGetViewPaths() throws Exception {
-        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "label", "configspec", "viewname", true, "load tmp", true, "", null, false, false,false);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branchone branchtwo", "label", "configspec", "viewname", true, "load tmp", true, "", null, false, false,
+                false);
         assertEquals("The view paths string is incorrect", "tmp", scm.getViewPaths(null, null, launcher)[0]);
     }
 
     @Test
     public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
-        classContext.checking(new Expectations() {
-                {
-                    ignoring(build).getBuiltOn(); will(returnValue(node));
-                    ignoring(node).toComputer(); will(returnValue(computer));
-                    ignoring(node).getNodeName(); will(returnValue("test-node"));
-                    allowing(build).getProject(); will(returnValue(project));
-                    allowing(project).getName(); will(returnValue("ClearCase"));
-                    allowing(build).getBuildVariables(); will(returnValue(new HashMap()));
-                    allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "ClearCase")));
-                    allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
-                    atLeast(1).of(build).getParent(); will(returnValue(project));
-                    atLeast(1).of(clearCaseScmDescriptor).getLogMergeTimeWindow(); will(returnValue(5));
-                    allowing(launcher).isUnix(); will(returnValue(true));
-                }
-            });
-        context.checking(new Expectations() {
-                {
-                    allowing(clearToolLauncher).getLauncher();
-                    will(returnValue(launcher));
-                    one(cleartool).pwv("viewname-ClearCase");
-                    will(returnValue("/view/viewname-ClearCase"));
-                    allowing(cleartool).startView("viewname-ClearCase");
-                    allowing(cleartool).mountVobs();
-                }
-            });
-        
-        ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "label", "configspec", "viewname-${JOB_NAME}", true, "vob",
-                                                 true, "/view", null, false, false, false, null, null,
-                                                 false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+        when(build.getBuiltOn()).thenReturn(node);
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(build.getProject()).thenReturn(project);
+        when(project.getFullName()).thenReturn("ClearCase");
+        when(build.getBuildVariables()).thenReturn(new HashMap());
+        when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "ClearCase"));
+        when(computer.getSystemProperties()).thenReturn(System.getProperties());
+        when(build.getParent()).thenReturn(project);
+        when(clearCaseScmDescriptor.getLogMergeTimeWindow()).thenReturn(5);
+        when(launcher.isUnix()).thenReturn(true);
+        when(clearToolLauncher.getLauncher()).thenReturn(launcher);
+        when(cleartool.pwv("viewpath")).thenReturn("/view/viewpath");
+
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branchone", "label", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false, false,
+                false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
-        assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
+        assertEquals("The extended view path is incorrect", "/view/viewpath/", action.getExtendedViewPath());
+        verify(clearCaseScmDescriptor, atLeastOnce()).getLogMergeTimeWindow();
+        verify(cleartool).pwv("viewpath");
     }
 
     @Test
     public void assertConfigSpecCanUseVariables() throws Exception {
-        classContext.checking(new Expectations() {
-            {
-                ignoring(build).getBuiltOn(); will(returnValue(node));
-                ignoring(node).toComputer(); will(returnValue(computer));
-                ignoring(node).getNodeName(); will(returnValue("test-node"));
-                allowing(build).getProject(); will(returnValue(project));
-                allowing(project).getName(); will(returnValue("ClearCase"));
-                allowing(build).getParent(); will(returnValue(project));
-                allowing(launcher).isUnix(); will(returnValue(true));
-                allowing(build).getBuildVariables(); will(returnValue(new HashMap<Object, Object>()));
-                allowing(build).getEnvironment(with(any(LogTaskListener.class))); will(returnValue(new EnvVars("JOB_NAME", "ClearCase")));
-                allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
-            }
-        });
-        context.checking(new Expectations() {
-            {
-                allowing(clearToolLauncher).getLauncher(); will(returnValue(launcher));
-            }
-        });
-        ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "label", "${JOB_NAME}", "viewname-${JOB_NAME}", true, "vob", false, "/view", null, false, false, false,
-                null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+        when(build.getBuiltOn()).thenReturn(node);
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(build.getProject()).thenReturn(project);
+        when(project.getFullName()).thenReturn("ClearCase");
+        when(build.getParent()).thenReturn(project);
+        when(launcher.isUnix()).thenReturn(true);
+        when(build.getBuildVariables()).thenReturn(new HashMap<Object, Object>());
+        when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "ClearCase"));
+        when(computer.getSystemProperties()).thenReturn(System.getProperties());
+        when(clearToolLauncher.getLauncher()).thenReturn(launcher);
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branchone", "label", "${JOB_NAME}", "viewname-${JOB_NAME}", true, "vob", false, "/view", null, false, false,
+                false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         SnapshotCheckoutAction action = (SnapshotCheckoutAction) scm.createCheckOutAction(variableResolver, clearToolLauncher, build);
@@ -317,57 +281,43 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
     @Test
     public void assertLabelCanUseVariables() throws Exception {
-        classContext.checking(new Expectations() {
+        when(build.getBuiltOn()).thenReturn(node);
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(build.getProject()).thenReturn(project);
+        when(project.getName()).thenReturn("ClearCase");
+        when(build.getParent()).thenReturn(project);
+        when(launcher.isUnix()).thenReturn(true);
+        when(build.getBuildVariables()).thenReturn(new HashMap<String, String>() {
             {
-                ignoring(build).getBuiltOn(); will(returnValue(node));
-                ignoring(node).toComputer(); will(returnValue(computer));
-                ignoring(node).getNodeName(); will(returnValue("test-node"));
-                allowing(build).getProject(); will(returnValue(project));
-                allowing(project).getName(); will(returnValue("ClearCase"));
-                allowing(build).getParent(); will(returnValue(project));
-                allowing(launcher).isUnix(); will(returnValue(true));
-                allowing(build).getBuildVariables(); will(returnValue(new HashMap<String, String>() { { put("PLATFORM", "17"); } }));
-                allowing(computer).getEnvironment(); will(returnValue(new EnvVars("PARALLEL", "YES")));
-                allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
+                put("PLATFORM", "17");
             }
         });
-        context.checking(new Expectations() {
-            {
-                allowing(clearToolLauncher).getLauncher(); will(returnValue(launcher));
-            }
-        });
-        ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "${PLATFORM}_REQUEST BUILD_PARALLEL_${PARALLEL}", "configspec", "viewname", true, "vob", false, "/view", null, false, false, false,
-                null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+        when(computer.getEnvironment()).thenReturn(new EnvVars("PARALLEL", "YES"));
+        when(computer.getSystemProperties()).thenReturn(System.getProperties());
+        when(clearToolLauncher.getLauncher()).thenReturn(launcher);
+        ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "${PLATFORM}_REQUEST BUILD_PARALLEL_${PARALLEL}", "configspec", "viewname", true, "vob", false,
+                "/view", null, false, false, false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        assertArrayEquals("Variables haven't been resolved in label",
-                new String[] { "17_REQUEST", "BUILD_PARALLEL_YES" },
-                scm.getLabelNames(variableResolver));
+        assertArrayEquals("Variables haven't been resolved in label", new String[] { "17_REQUEST", "BUILD_PARALLEL_YES" }, scm.getLabelNames(variableResolver));
     }
 
     @Test
     public void assertLabelRequiresMinorEvents() throws IOException, InterruptedException {
-        classContext.checking(new Expectations() {
-            {
-                ignoring(build).getBuiltOn(); will(returnValue(node));
-                ignoring(node).toComputer(); will(returnValue(computer));
-                ignoring(node).getNodeName(); will(returnValue("test-node"));
-                allowing(build).getProject(); will(returnValue(project));
-                allowing(project).getName(); will(returnValue("ClearCase"));
-                allowing(build).getParent(); will(returnValue(project));
-                allowing(launcher).isUnix(); will(returnValue(true));
-                allowing(build).getBuildVariables(); will(returnValue(new HashMap<String, String>()));
-                allowing(computer).getEnvironment(); will(returnValue(new EnvVars()));
-                allowing(computer).getSystemProperties(); will(returnValue(System.getProperties()));
-            }
-        });
-        context.checking(new Expectations() {
-            {
-                allowing(clearToolLauncher).getLauncher(); will(returnValue(launcher));
-            }
-        });
-        ClearCaseSCM scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
+        when(build.getBuiltOn()).thenReturn(node);
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(build.getProject()).thenReturn(project);
+        when(project.getName()).thenReturn("ClearCase");
+        when(build.getParent()).thenReturn(project);
+        when(launcher.isUnix()).thenReturn(true);
+        when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
+        when(computer.getEnvironment()).thenReturn(new EnvVars());
+        when(computer.getSystemProperties()).thenReturn(System.getProperties());
+        when(clearToolLauncher.getLauncher()).thenReturn(launcher);
+        AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false, false);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         Filter filters = scm.configureFilters(variableResolver, build, launcher);
-        assertTrue("Minor events are required for label filtering to work", filters.requiresMinorEvents() );
+        assertTrue("Minor events are required for label filtering to work", filters.requiresMinorEvents());
     }
 }

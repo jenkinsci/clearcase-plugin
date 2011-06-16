@@ -35,7 +35,6 @@ import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ucm.UcmCommon;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;

@@ -27,6 +27,7 @@ package hudson.plugins.clearcase.ucm;
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -118,11 +119,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
 
     @Exported
     public boolean isIntegrationActivity() {
-        if (name.startsWith("deliver.")) {
-            return true;
-        } else {
-            return false;
-        }
+        return name.startsWith("deliver.");
     }
 
     public void addFile(File file) {

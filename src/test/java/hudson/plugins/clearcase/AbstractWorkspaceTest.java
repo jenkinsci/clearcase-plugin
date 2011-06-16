@@ -31,13 +31,21 @@ import hudson.util.VariableResolver;
 import java.io.File;
 import java.util.Collections;
 
+import org.junit.Before;
+import org.mockito.MockitoAnnotations;
+
 public abstract class AbstractWorkspaceTest {
-    
+
+    @Before
+    public void initMocks() {
+        MockitoAnnotations.initMocks(this);
+    }
+
     @SuppressWarnings("unchecked")
     protected final static VariableResolver<String> EMPTY_VARIABLE_RESOLVER = new VariableResolver.ByMap<String>(Collections.EMPTY_MAP);
 
-    protected File parentFile;
-    protected FilePath workspace;
+    protected File                                  parentFile;
+    protected FilePath                              workspace;
 
     public void createWorkspace() throws Exception {
         parentFile = Util.createTempDir();

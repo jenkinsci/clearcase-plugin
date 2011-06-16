@@ -1,1 +1,3 @@
-This plugin provides Clearcase Integration to Hudson.
+This plugin provides Clearcase Integration to Jenkins.
+
+http://wiki.jenkins-ci.org/display/JENKINS/ClearCase+Plugin

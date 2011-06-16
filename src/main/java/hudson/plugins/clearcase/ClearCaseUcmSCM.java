@@ -52,11 +52,8 @@ import hudson.util.VariableResolver;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 
@@ -193,6 +190,12 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
+    public ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
+        return super.createClearTool(variableResolver, launcher);
+    }
+    
+
+    @Override
     protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         CheckOutAction action;
         if (isUseDynamicView()) {
@@ -204,46 +207,24 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return action;
     }
 
-    protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build, boolean useRecurse) throws IOException, InterruptedException {
+    protected UcmHistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build, boolean useRecurse) throws IOException, InterruptedException {
         ClearTool ct = createClearTool(variableResolver, launcher);
         UcmHistoryAction action;
         ClearCaseUCMSCMRevisionState oldBaseline = null;
         ClearCaseUCMSCMRevisionState newBaseline = null;
-        PrintStream logger = launcher.getListener().getLogger();
         if (build != null) {
-            try {
-                AbstractBuild<?, ?> previousBuild = (AbstractBuild<?, ?>) build.getPreviousBuild();
-                if (previousBuild != null) {
-                    oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
-                }
-                newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
-            } catch (IOException e) {
-                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "IOException when calculating revisions'", e);
-                return null;
-            } catch (InterruptedException e) {
-                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
-                return null;
+            AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
+            if (previousBuild != null) {
+                oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
             }
+            newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
         }
         if (isFreezeCode()) {
             action = new FreezeCodeUcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getStream(variableResolver), getViewDrive(), build, oldBaseline, newBaseline);
         } else {
             action = new UcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), oldBaseline, newBaseline, getChangeset());
         }
-        try {
-            String pwv = ct.pwv(generateNormalizedViewName((BuildVariableResolver) variableResolver));
-
-            if (pwv != null) {
-                if (pwv.contains("/")) {
-                    pwv += "/";
-                } else {
-                    pwv += "\\";
-                }
-                action.setExtendedViewPath(pwv);
-            }
-        } catch (Exception e) {
-            Logger.getLogger(ClearCaseUcmSCM.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
-        }
+        setExtendedViewPath(variableResolver, ct, action);
 
         return action;
     }
@@ -272,15 +253,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return new UcmSaveChangeLogAction();
     }
 
-    @Override
-    public ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
-        if (isUseDynamicView()) {
-            return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
-        } else {
-            return super.createClearTool(variableResolver, launcher);
-        }
-    }
-    
     public ClearTool createClearTool(AbstractBuild<?, ?> build, Launcher launcher) {
         BuildVariableResolver variableResolver = new BuildVariableResolver(build);
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(launcher.getListener(), build.getWorkspace(), launcher);
@@ -338,7 +310,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
         @Override
         public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            ClearCaseUcmSCM scm = new ClearCaseUcmSCM(req.getParameter("ucm.stream"),
+            AbstractClearCaseScm scm = new ClearCaseUcmSCM(req.getParameter("ucm.stream"),
                                                       req.getParameter("ucm.loadrules"),
                                                       req.getParameter("ucm.viewname"),
                                                       req.getParameter("ucm.usedynamicview") != null,

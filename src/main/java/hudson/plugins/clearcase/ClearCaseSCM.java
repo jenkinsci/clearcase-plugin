@@ -67,8 +67,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -344,20 +342,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         ClearTool ct = createClearTool(variableResolver, launcher);
         BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getChangeset(), useRecurse, getDescriptor().getLogMergeTimeWindow(), getUpdtFileName());
 
-        try {
-            String viewName = generateNormalizedViewName(variableResolver);
-            String pwv = ct.pwv(viewName);
-            if (pwv != null) {
-                if (pwv.contains("/")) {
-                    pwv += "/";
-                } else {
-                    pwv += "\\";
-                }
-                action.setExtendedViewPath(pwv);
-            }
-        } catch (Exception e) {
-            Logger.getLogger(ClearCaseSCM.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
-        }
+        setExtendedViewPath(variableResolver, ct, action);
 
         return action;
     }
@@ -398,15 +383,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             filter = new FilterChain(filters);
         }
         return filter;
-    }
-
-    @Override
-    protected ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
-        if (isUseDynamicView()) {
-            return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
-        } else {
-            return super.createClearTool(variableResolver, launcher);
-        }
     }
 
     /**

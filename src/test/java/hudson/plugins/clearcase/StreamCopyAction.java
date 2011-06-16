@@ -28,33 +28,36 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.hamcrest.Description;
-import org.jmock.api.Action;
-import org.jmock.api.Invocation;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 /**
  * JMock action to feed an OutputStream with data.
  * 
  * @author Erik Ramfelt
  */
-public class StreamCopyAction implements Action {
+public class StreamCopyAction implements Answer<Boolean> {
     private InputStream inputStream;
     private int parameterIndex;
+    private Boolean returnValue;
 
-    public StreamCopyAction(int parameterIndex, InputStream inputStream) {
+    public StreamCopyAction(int parameterIndex, InputStream inputStream, Boolean returnValue) {
         this.inputStream = inputStream;
         this.parameterIndex = parameterIndex;
+        this.returnValue = returnValue;
     }
 
     public void describeTo(Description description) {
     }
 
-    public Object invoke(Invocation invocation) throws Throwable {
+    @Override
+    public Boolean answer(InvocationOnMock invocation) throws Throwable {
         int read = inputStream.read();
         while (read != -1) {
-            ((OutputStream) invocation.getParameter(parameterIndex)).write(read);
+            ((OutputStream) invocation.getArguments()[parameterIndex]).write(read);
             read = inputStream.read();
         }
         inputStream.close();
-        return null;
+        return returnValue;
     }
 }

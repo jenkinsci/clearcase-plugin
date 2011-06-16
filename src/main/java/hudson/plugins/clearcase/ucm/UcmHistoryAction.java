@@ -83,8 +83,8 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<? extends Entry> buildChangelog(String viewPath, List<HistoryEntry> entries) throws IOException, InterruptedException {
-        List<UcmActivity> result = new ArrayList<UcmActivity>();
+    protected List<Entry> buildChangelog(String viewPath, List<HistoryEntry> entries) throws IOException, InterruptedException {
+        List<Entry> result = new ArrayList<Entry>();
         Map<String, UcmActivity> activityMap = new HashMap<String, UcmActivity>();
 
         for (HistoryEntry entry : entries) {
@@ -109,8 +109,8 @@ public class UcmHistoryAction extends AbstractHistoryAction {
             activity.addFile(currentFile);
         }
 
-        for (UcmActivity activity : result) {
-            callLsActivity(activityMap, activity, viewPath, 3);
+        for (Entry activity : result) {
+            callLsActivity(activityMap, (UcmActivity) activity, viewPath, 3);
         }
 
         return result;

@@ -39,76 +39,91 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Check out action for dynamic views. This will not update any files from the repository as it is a dynamic view. The
- * class will make sure that the configured config spec is the same as the one for the dynamic view.
+ * Check out action for dynamic views. This will not update any files from the
+ * repository as it is a dynamic view. The class will make sure that the
+ * configured config spec is the same as the one for the dynamic view.
  */
 public class DynamicCheckoutAction implements CheckOutAction {
 
-    private ClearTool cleartool;
-    private String configSpec;
-    private boolean doNotUpdateConfigSpec;
-    private boolean useTimeRule;
-    private boolean createDynView;
-    private String winDynStorageDir;
-    private String unixDynStorageDir;
+    private ClearTool           cleartool;
+    private String              configSpec;
+    private boolean             updateConfigSpec;
+    private boolean             useTimeRule;
+    private boolean             createView;
+    private String              winStorageDir;
+    private String              unixStorageDir;
     private AbstractBuild<?, ?> build;
 
-    public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec, boolean useTimeRule, boolean createDynView,
-            String winDynStorageDir, String unixDynStorageDir, AbstractBuild<?, ?> build) {
+    public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec,
+            boolean useTimeRule, boolean createView, String winStorageDir, String unixStorageDir,
+            AbstractBuild<?, ?> build) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
-        this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
+        this.updateConfigSpec = !doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
-        this.createDynView = createDynView;
-        this.winDynStorageDir = winDynStorageDir;
-        this.unixDynStorageDir = unixDynStorageDir;
+        this.createView = createView;
+        this.winStorageDir = winStorageDir;
+        this.unixStorageDir = unixStorageDir;
         this.build = build;
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        if (createDynView) {
-            // Remove current view
-            if (cleartool.doesViewExist(viewTag)) {
-                try {
-                    cleartool.rmviewtag(viewTag);
-                } catch (Exception ex) {
-                    cleartool.logRedundantCleartoolError(null, ex);
-                }
-            }
-            // Now, make the view.
-            String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixDynStorageDir : winDynStorageDir;
-            cleartool.mkview(viewTag, viewTag, null, dynStorageDir);
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException,
+            InterruptedException {
+        if (createView) {
+            createView(viewTag);
         }
+        startView(viewTag);
 
-        cleartool.startView(viewTag);
         String currentConfigSpec = cleartool.catcs(viewTag).trim();
-        String tempConfigSpec;
-        String effectiveConfigSpec = "";
 
-        if (useTimeRule) {
-            tempConfigSpec = PathUtil.convertPathForOS("time " + getTimeRule() + "\n" + configSpec + "\nend time\n", launcher);
-        } else {
-            tempConfigSpec = PathUtil.convertPathForOS(configSpec, launcher);
-        }
-
-        if (!doNotUpdateConfigSpec) {
-            if (!tempConfigSpec.trim().replaceAll("\r\n", "\n").equals(currentConfigSpec)) {
-                cleartool.setcs(viewTag, SetcsOption.CONFIGSPEC, tempConfigSpec);
-                effectiveConfigSpec = tempConfigSpec;
-            } else {
-                cleartool.setcs(viewTag, SetcsOption.CURRENT, null);
-                effectiveConfigSpec = currentConfigSpec;
-            }
-        } else {
-            effectiveConfigSpec = currentConfigSpec;
+        if (updateConfigSpec) {
+            currentConfigSpec = updateConfigSpec(launcher, viewTag, currentConfigSpec);
         }
 
         // add config spec to dataAction
         ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
-        if (dataAction != null)
-            dataAction.setCspec(effectiveConfigSpec);
+        if (dataAction != null) {
+            dataAction.setCspec(currentConfigSpec);
+        }
 
         return true;
+    }
+
+    private String updateConfigSpec(Launcher launcher, String viewTag, String currentConfigSpec) throws IOException,
+            InterruptedException {
+        String futureConfigSpec = PathUtil.convertPathForOS(getConfigSpec(), launcher);
+        if (currentAndFutureConfigSpecAreEquals(currentConfigSpec, futureConfigSpec)) {
+            cleartool.setcs(viewTag, SetcsOption.CURRENT, null);
+        } else {
+            cleartool.setcs(viewTag, SetcsOption.CONFIGSPEC, futureConfigSpec);
+        }
+        return futureConfigSpec;
+    }
+
+    private boolean currentAndFutureConfigSpecAreEquals(String current, String future) {
+        return future.trim().replaceAll("\r\n", "\n").equals(current);
+    }
+
+    private String getConfigSpec() {
+        if (useTimeRule) {
+            return "time " + getTimeRule() + "\n" + configSpec + "\nend time\n";
+        } else {
+            return configSpec;
+        }
+    }
+
+    private void startView(String viewTag) throws IOException, InterruptedException {
+        cleartool.startView(viewTag);
+    }
+
+    private void createView(String viewTag) throws IOException, InterruptedException {
+        // Remove current view
+        if (cleartool.doesViewExist(viewTag)) {
+            cleartool.rmviewtag(viewTag);
+        }
+        // Now, make the view.
+        String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixStorageDir : winStorageDir;
+        cleartool.mkview(viewTag, viewTag, null, dynStorageDir);
     }
 
     public String getTimeRule() {
@@ -123,9 +138,10 @@ public class DynamicCheckoutAction implements CheckOutAction {
     }
 
     @Override
-    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException,
+            InterruptedException {
         if (cleartool.doesViewExist(viewTag)) {
-            cleartool.startView(viewTag);
+            startView(viewTag);
             return true;
         }
         return false;

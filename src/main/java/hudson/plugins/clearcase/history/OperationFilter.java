@@ -28,6 +28,7 @@ package hudson.plugins.clearcase.history;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.lang.ArrayUtils;
 
 /**

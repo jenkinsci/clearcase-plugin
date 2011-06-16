@@ -139,7 +139,10 @@ public class HistoryEntry {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof HistoryEntry)) {
             return false;
         }
         final HistoryEntry other = (HistoryEntry) obj;
@@ -154,6 +157,11 @@ public class HistoryEntry {
         int hash = 5;
         hash = 17 * hash + (this.line != null ? this.line.hashCode() : 0);
         return hash;
+    }
+
+    public HistoryEntry normalize(String viewPath) {
+        element = StringUtils.removeStart(element, viewPath);
+        return this;
     }
 
 }

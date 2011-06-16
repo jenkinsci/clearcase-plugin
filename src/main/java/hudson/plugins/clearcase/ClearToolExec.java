@@ -182,11 +182,15 @@ public abstract class ClearToolExec implements ClearTool {
         }
         // Remove leading file separator, we don't need it when using add_loadrules
         String quotedLR = ConfigSpec.cleanLoadRule(loadRule, getLauncher().getLauncher().isUnix());
-        if (quotedLR.startsWith("\"") && quotedLR.endsWith("\"")) {
+        if (isQuoted(quotedLR)) {
             return "\"" + quotedLR.substring(2);
         } else {
             return quotedLR.substring(1);
         }
+    }
+
+    private boolean isQuoted(String quotedLR) {
+        return quotedLR.charAt(0) == '"' && quotedLR.endsWith("\"");
     }
 
     public ClearToolLauncher getLauncher() {
@@ -335,6 +339,9 @@ public abstract class ClearToolExec implements ClearTool {
             } else {
                 throw exceptions.get(0);
             }
+        }
+        if (StringUtils.isBlank(output)) {
+            throw new IOException("Unexpected output for command \"cleartool lsview -cview -s\":" + output);
         }
         return output;
     }
@@ -740,7 +747,6 @@ public abstract class ClearToolExec implements ClearTool {
                 exceptions.add(e);
             }
         }
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
         baos.close();
         String line = reader.readLine();

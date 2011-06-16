@@ -41,6 +41,6 @@ public class FileFilter extends FieldFilter {
     @Override
     public boolean requiresMinorEvents() {
         return false;
-}
+    }
 
 }

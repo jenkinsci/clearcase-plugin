@@ -24,6 +24,10 @@
  */
 package hudson.plugins.clearcase.ucm;
 
+import hudson.model.AbstractBuild;
+import hudson.plugins.clearcase.ClearCaseChangeLogSet;
+import hudson.scm.ChangeLogSet;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -32,10 +36,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.kohsuke.stapler.export.Exported;
-
-import hudson.model.AbstractBuild;
-import hudson.plugins.clearcase.ClearCaseChangeLogSet;
-import hudson.scm.ChangeLogSet;
 
 /**
  * UCM ClearCase change log set.

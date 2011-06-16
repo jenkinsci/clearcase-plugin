@@ -24,15 +24,14 @@
  */
 package hudson.plugins.clearcase;
 
-import java.io.File;
-
-import java.io.IOException;
-
-import org.xml.sax.SAXException;
-
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.xml.sax.SAXException;
 
 /***********************************************************************************************************************
  * ClearCase change log parser.

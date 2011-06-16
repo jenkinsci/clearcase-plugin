@@ -4,7 +4,7 @@ import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_CONTRIBUTI
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_HEADLINE;
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_STREAM;
 import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
 import org.junit.Test;

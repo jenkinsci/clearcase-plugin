@@ -35,15 +35,16 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Run;
-import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
 import hudson.plugins.clearcase.action.CheckOutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
+import hudson.plugins.clearcase.history.AbstractHistoryAction;
 import hudson.plugins.clearcase.history.DefaultFilter;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
 import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
+import hudson.plugins.clearcase.ucm.UcmHistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.scm.ChangeLogSet;
@@ -125,12 +126,12 @@ public abstract class AbstractClearCaseScm extends SCM {
     public static final String CLEARCASE_VIEWPATH_ENVSTR = "CLEARCASE_VIEWPATH";
 
     private String viewName;
-    private final String mkviewOptionalParam;
-    private final boolean filteringOutDestroySubBranchEvent;
+    private String mkviewOptionalParam;
+    private boolean filteringOutDestroySubBranchEvent;
     private transient ThreadLocal<String> normalizedViewName;
     private transient ThreadLocal<String> normalizedViewPath;
-    private final boolean useUpdate;
-    private final boolean removeViewOnRename;
+    private boolean useUpdate;
+    private boolean removeViewOnRename;
     private String excludedRegions;
     private boolean extractLoadRules;
     private String loadRules;
@@ -138,15 +139,15 @@ public abstract class AbstractClearCaseScm extends SCM {
     //private boolean useRecurseForPolling;
     private boolean useOtherLoadRulesForPolling;    
     private String loadRulesForPolling;
-    private final boolean useDynamicView;
-    private final String viewDrive;
+    private boolean useDynamicView;
+    private String viewDrive;
     private int multiSitePollBuffer;
-    private final boolean createDynView;
-    private final String winDynStorageDir;
-    private final String unixDynStorageDir;
-    private final boolean freezeCode;
-    private final boolean recreateView;
-    private final String viewPath;
+    private boolean createDynView;
+    private String winDynStorageDir;
+    private String unixDynStorageDir;
+    private boolean freezeCode;
+    private boolean recreateView;
+    private String viewPath;
     private ChangeSetLevel changeset;
     private String updtFileName;
 
@@ -247,7 +248,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @param variableResolver
      * @param useDynamicView
      * @param launcher the command line launcher
-     * @return an action that can poll if there are any changes a ClearCase repository.
+     * @return an action that can poll if there are any changes a ClearCase repository. Never null.
      * @throws InterruptedException 
      * @throws IOException 
      */
@@ -314,15 +315,11 @@ public abstract class AbstractClearCaseScm extends SCM {
         for (int i = 0; i < rules.length; i++) {
             String rule = rules[i];
             // Remove "load " from the string, just in case.
-            if (rule.startsWith("load ")) {
-                rule = rule.substring(5);
-            }
+            rule = StringUtils.removeStart(rule, "load ");
             // Remove "\\", "\" or "/" from the load rule. (bug#1706) Only if
             // the view is not dynamic
             // the user normally enters a load rule beginning with those chars
-            while (rule.startsWith("\\") || rule.startsWith("/")) {
-                rule = rule.substring(1);
-            }
+            rule = StringUtils.stripStart(rule, "\\/");
             rules[i] = rule;
         }
         return rules;
@@ -431,7 +428,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         String normalized = null;
         String v = getViewName();
         if (v != null) {
-            normalized = Util.replaceMacro(v.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_"), variableResolver);
+            normalized = Util.replaceMacro(v, variableResolver).replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
             setNormalizedViewName(normalized);
         }
         return normalized;
@@ -574,7 +571,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (normalizedViewPath != null) {
             env.put(CLEARCASE_VIEWNAME_ENVSTR, normalizedViewPath);
             if(isUseDynamicView()) {
-                env.put("CLEARCASE_VIEWPATH_ENVSTR", viewDrive + File.separator + normalizedViewPath);
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + normalizedViewPath);
             } else {
                 String workspace = env.get("WORKSPACE");
                 if (workspace != null) {
@@ -677,8 +674,9 @@ public abstract class AbstractClearCaseScm extends SCM {
             return PollingResult.BUILD_NOW;
         }
 
-        AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;        
-        AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) project.getSomeBuildWithWorkspace();
+        AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;
+        
+        AbstractBuild<?, ?> build = project.getSomeBuildWithWorkspace();
         if (build == null) {
         	logger.println("REASON: Build and workspace not valid.");
             return PollingResult.BUILD_NOW;
@@ -746,7 +744,11 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     protected ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
-        return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
+        if (isUseDynamicView()) {
+            return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
+        } else {
+            return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
+        }
     }
 
     @Override
@@ -859,7 +861,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         String normalized = null;
         String viewPath = StringUtils.defaultIfEmpty(getViewPath(), getViewName());
         if (viewPath != null) {
-            normalized = Util.replaceMacro(viewPath.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_"), variableResolver);
+            normalized = Util.replaceMacro(viewPath, variableResolver).replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
             setNormalizedViewPath(normalized);
         }
         return normalized;
@@ -871,6 +873,23 @@ public abstract class AbstractClearCaseScm extends SCM {
     
     protected void setChangeset(ChangeSetLevel changeset) {
         this.changeset = changeset;
+    }
+
+    protected void setExtendedViewPath(VariableResolver<String> variableResolver, ClearTool ct, AbstractHistoryAction action) {
+        try {
+            String viewPath = getViewPath(variableResolver);
+            String pwv = ct.pwv(viewPath);
+            if (pwv != null) {
+                if (pwv.contains("/")) {
+                    pwv += "/";
+                } else {
+                    pwv += "\\";
+                }
+                action.setExtendedViewPath(pwv);
+            }
+        } catch (Exception e) {
+            Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
+        }
     }
 
     public String getUpdtFileName() {

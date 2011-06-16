@@ -24,9 +24,11 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import hudson.plugins.clearcase.ucm.UcmActivity.File;
+
 import java.util.Calendar;
+
 import org.junit.Test;
 
 public class UcmChangeLogParserTest {

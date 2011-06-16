@@ -30,6 +30,7 @@
 package hudson.plugins.clearcase.history;
 
 import hudson.scm.ChangeLogSet;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -61,7 +62,7 @@ public interface HistoryAction {
      * @param viewPaths optional vob paths
      * @return List of changes
      */
-    public List<? extends ChangeLogSet.Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+    public List<ChangeLogSet.Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
             InterruptedException;
 
 }

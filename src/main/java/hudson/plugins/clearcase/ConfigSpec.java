@@ -49,7 +49,7 @@ public class ConfigSpec {
             return true;
         if (obj == null)
             return false;
-        if (getClass() != obj.getClass())
+        if (!(obj instanceof ConfigSpec))
             return false;
         ConfigSpec other = (ConfigSpec) obj;
         if (isUnix != other.isUnix)

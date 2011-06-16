@@ -24,11 +24,7 @@
  */
 package hudson.plugins.clearcase; 
 
-import java.io.IOException;
-
-import hudson.model.AbstractBuild;
 import hudson.model.Computer;
-import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.util.VariableResolver;
 
 public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
@@ -77,12 +73,6 @@ public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
     @Override
     public Computer getCurrentComputer() {
         return overrideComputer;
-    }
-    
-    @Override
-    public HistoryAction createHistoryAction(
-                                             VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, boolean useRecurse) throws IOException, InterruptedException {
-        return super.createHistoryAction(variableResolver, launcher, null, useRecurse);
     }
     
     @Override

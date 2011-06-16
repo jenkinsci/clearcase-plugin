@@ -24,18 +24,17 @@
  */
 package hudson.plugins.clearcase.ucm;
 
+import hudson.model.AbstractBuild;
+import hudson.scm.ChangeLogParser;
+
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
-
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
-
-import hudson.model.AbstractBuild;
-import hudson.scm.ChangeLogParser;
 
 /**
  * ClearCase change log parser.

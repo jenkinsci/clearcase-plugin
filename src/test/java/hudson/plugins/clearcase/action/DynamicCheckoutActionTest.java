@@ -24,163 +24,157 @@
  */
 package hudson.plugins.clearcase.action;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.contains;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearCaseDataAction;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
+import hudson.plugins.clearcase.ClearToolLauncher;
 
-import org.jmock.Expectations;
-import org.jmock.Mockery;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
+import java.io.IOException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.mockito.Mock;
 
 public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
 
-    private Mockery classContext;
-    private Mockery context;
-
-    private ClearTool clearTool;
-    private Launcher launcher;
+    @Mock
+    private ClearTool           clearTool;
+    @Mock
+    private ClearToolLauncher   ctLauncher;
+    @Mock
+    private Launcher            launcher;
+    @Mock
     private AbstractBuild<?, ?> abstractBuild;
+    @Mock
     private ClearCaseDataAction clearCaseDataAction;
 
     @Before
     public void setUp() throws Exception {
         createWorkspace();
-        context = new JUnit4Mockery();
-        classContext = new JUnit4Mockery() {
-                {
-                    setImposteriser(ClassImposteriser.INSTANCE);
-                }
-            };
-
-        launcher = classContext.mock(Launcher.class);
-        clearTool = context.mock(ClearTool.class);
-        abstractBuild = classContext.mock(AbstractBuild.class);
-        clearCaseDataAction = classContext.mock(ClearCaseDataAction.class);
     }
 
     @After
     public void teardown() throws Exception {
         deleteWorkspace();
     }
+
+    @Test
+    public void testCreateViewFirstTime() throws IOException, InterruptedException {
+        when(clearTool.doesViewExist("viewname")).thenReturn(false);
+        when(clearTool.getLauncher()).thenReturn(ctLauncher);
+        when(ctLauncher.getLauncher()).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(true);
+        when(clearTool.catcs("viewname")).thenReturn("other configspec");
+
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, true, null,
+                                                                 null, abstractBuild);
+        assertTrue(action.checkout(launcher, workspace, "viewname"));
+
+        verify(clearTool).doesViewExist("viewname");
+        verify(clearTool).mkview("viewname", "viewname", null, null);
+    }
     
+    @Test
+    public void testCreateViewSecondTime() throws IOException, InterruptedException {
+        when(clearTool.doesViewExist("viewname")).thenReturn(true);
+        when(clearTool.getLauncher()).thenReturn(ctLauncher);
+        when(ctLauncher.getLauncher()).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(true);
+        when(clearTool.catcs("viewname")).thenReturn("other configspec");
+
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, true, null,
+                                                                 null, abstractBuild);
+        assertTrue(action.checkout(launcher, workspace, "viewname"));
+
+        verify(clearTool).doesViewExist("viewname");
+        verify(clearTool).rmviewtag("viewname");
+        verify(clearTool).mkview("viewname", "viewname", null, null);
+    }
+
     @Test
     public void testChangeInConfigSpecOnUnix() throws Exception {
-        context.checking(new Expectations() {
-                {
-                    one(clearTool).startView("viewname");
-                    one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                    one(clearTool).setcs("viewname", SetcsOption.CONFIGSPEC, "config\nspec");
-                }
-            });
-        classContext.checking(new Expectations() {
+        when(clearTool.catcs("viewname")).thenReturn("other configspec");
+        when(launcher.isUnix()).thenReturn(true);
+        when(abstractBuild.getAction(ClearCaseDataAction.class)).thenReturn(clearCaseDataAction);
 
-                {
-                    ignoring(launcher).isUnix(); will(returnValue(true));
-                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
-                    ignoring(clearCaseDataAction).setCspec("config\nspec");
-                }
-            });
-
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false, null, null, abstractBuild);
-        boolean success = action.checkout(launcher, workspace, "viewname");
-        assertTrue("Checkout method did not return true.", success);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false, null,
+                                                                 null, abstractBuild);
+        assertTrue("Checkout method did not return true.", action.checkout(launcher, workspace, "viewname"));
+        verify(clearTool).startView("viewname");
+        verify(clearTool).catcs("viewname");
+        verify(clearTool).setcs("viewname", SetcsOption.CONFIGSPEC, "config\nspec");
     }
-    
+
     @Test
     public void testChangeInConfigSpec() throws Exception {
-        context.checking(new Expectations() {
-                {
-                    one(clearTool).startView("viewname");
-                    one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                    one(clearTool).setcs("viewname", SetcsOption.CONFIGSPEC, "config\r\nspec");
-                }
-            });
-        classContext.checking(new Expectations() {
-                {
-                    ignoring(launcher).isUnix(); will(returnValue(false));
-                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
-                    ignoring(clearCaseDataAction).setCspec("config\r\nspec");
-                }
-            });
+        when(clearTool.catcs("viewname")).thenReturn("other configspec");
+        when(launcher.isUnix()).thenReturn(false);
+        when(abstractBuild.getAction(ClearCaseDataAction.class)).thenReturn(clearCaseDataAction);
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false, false, false, null, null, abstractBuild);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", false, false, false,
+                                                                 null, null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
+
         assertTrue("Checkout method did not return true.", success);
+        verify(clearTool).startView("viewname");
+        verify(clearTool).catcs("viewname");
+        verify(clearTool).setcs("viewname", SetcsOption.CONFIGSPEC, "config\r\nspec");
     }
-    
+
     @Test
     public void testChangeInConfigSpecDoNotResetConfigSpecEnabled() throws Exception {
-        context.checking(new Expectations() {
-                {
-                    one(clearTool).startView("viewname");
-                    one(clearTool).catcs("viewname"); will(returnValue("other configspec"));
-                }
-            });
-        classContext.checking(new Expectations() {
-                {
-                    ignoring(launcher).isUnix(); will(returnValue(false));
-                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
-                    ignoring(clearCaseDataAction).setCspec("other configspec");
-                }
-            });
+        when(clearTool.catcs("viewname")).thenReturn("other configspec");
+        when(launcher.isUnix()).thenReturn(false);
+        when(abstractBuild.getAction(ClearCaseDataAction.class)).thenReturn(clearCaseDataAction);
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true, false, false, null, null, abstractBuild);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\r\nspec", true, false, false, null,
+                                                                 null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
+
         assertTrue("Checkout method did not return true.", success);
+        verify(clearTool).startView("viewname");
+        verify(clearTool).catcs("viewname");
     }
 
     @Test
     public void testNoChangeInConfigSpec() throws Exception {
-        context.checking(new Expectations() {
-                {
-                    one(clearTool).startView("viewname");
-                    one(clearTool).catcs("viewname"); will(returnValue("config\nspec"));
-                    one(clearTool).setcs("viewname", SetcsOption.CURRENT, null);
-                }
-            });
-        classContext.checking(new Expectations() {
-                {
-                    ignoring(launcher).isUnix(); will(returnValue(false));
-                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
-                    ignoring(clearCaseDataAction).setCspec("config\nspec");
-                }
-            });
+        when(clearTool.catcs("viewname")).thenReturn("config\nspec");
+        when(launcher.isUnix()).thenReturn(false);
+        when(abstractBuild.getAction(ClearCaseDataAction.class)).thenReturn(clearCaseDataAction);
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false, null, null, abstractBuild);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, false, false, null,
+                                                                 null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
+
         assertTrue("Checkout method did not return true.", success);
+        verify(clearTool).startView("viewname");
+        verify(clearTool).catcs("viewname");
+        verify(clearTool).setcs("viewname", SetcsOption.CURRENT, null);
     }
 
     @Test
     public void testUseTimeRule() throws Exception {
-        context.checking(new Expectations() {
-                {
-                    one(clearTool).startView("viewname");
-                    one(clearTool).catcs("viewname"); will(returnValue("config\nspec"));
-                    one(clearTool).setcs(with(equal("viewname")), with(equal(SetcsOption.CONFIGSPEC)), with(containsString("time ")));
-                }
-            });
-        classContext.checking(new Expectations() {
-                {
-                    ignoring(launcher).isUnix(); will(returnValue(false));
-                    ignoring(abstractBuild).getAction(ClearCaseDataAction.class); will(returnValue(clearCaseDataAction));
-                    ignoring(clearCaseDataAction).setCspec(with(containsString("time ")));
-                }
-            });
+        when(clearTool.catcs("viewname")).thenReturn("config\nspec");
+        when(launcher.isUnix()).thenReturn(false);
+        when(abstractBuild.getAction(ClearCaseDataAction.class)).thenReturn(clearCaseDataAction);
 
-        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, true, false, null, null, abstractBuild);
+        DynamicCheckoutAction action = new DynamicCheckoutAction(clearTool, "config\nspec", false, true, false, null,
+                                                                 null, abstractBuild);
         boolean success = action.checkout(launcher, workspace, "viewname");
         assertTrue("Checkout method did not return true.", success);
+
+        verify(clearTool).startView("viewname");
+        verify(clearTool).catcs("viewname");
+        verify(clearTool).setcs(eq("viewname"), eq(SetcsOption.CONFIGSPEC), contains("time "));
     }
 
 }

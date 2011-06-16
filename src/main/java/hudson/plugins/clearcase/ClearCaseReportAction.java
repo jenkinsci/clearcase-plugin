@@ -1,9 +1,9 @@
 package hudson.plugins.clearcase;
 
-import java.util.List;
-
 import hudson.model.Action;
 import hudson.model.AbstractBuild;
+
+import java.util.List;
 
 public class ClearCaseReportAction implements Action {
 

@@ -81,7 +81,12 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
         Validate.notEmpty(viewPath);
         FilePath filePath = new FilePath(workspace, viewPath);
         boolean viewPathExists = filePath.exists();
-        return cleartool.doesViewExist(viewTag) && viewPathExists && viewTag.equals(cleartool.lscurrentview(viewPath));
+        try {
+            String currentViewTag = cleartool.lscurrentview(viewPath);
+            return cleartool.doesViewExist(viewTag) && viewPathExists && viewTag.equals(currentViewTag);
+        } catch (IOException e) {
+            return false;
+        }
     }
     /**
      * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be created

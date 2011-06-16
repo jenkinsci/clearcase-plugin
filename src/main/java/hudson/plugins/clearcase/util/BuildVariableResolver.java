@@ -89,7 +89,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
             }
             LogTaskListener ltl = new LogTaskListener(LOGGER, Level.INFO);
             if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
-                return build.getProject().getName();
+                return build.getProject().getFullName();
             }
             
             if ("HOST".equals(key)) {
