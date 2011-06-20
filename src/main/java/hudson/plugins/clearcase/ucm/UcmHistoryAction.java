@@ -159,9 +159,9 @@ public class UcmHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<HistoryEntry> runLsHistory(boolean forPolling, Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+    protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
             InterruptedException {
-        List<HistoryEntry> history = super.runLsHistory(forPolling, sinceTime, viewPath, viewTag, branchNames, viewPaths);
+        List<HistoryEntry> history = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
         if (needsHistoryOnAllBranches()) {
             if (oldBaseline == null) {
                 return history;

@@ -56,7 +56,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
         action.getChanges(new Date(), "IGNORED", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         verify(cleartool).lshistory(eq("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]Xp\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n"), any(Date.class),
-                anyString(), anyString(), any(String[].class), anyBoolean());
+                anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean());
     }
 
     @Test
@@ -76,7 +76,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         assertEquals("There should be 0 activity", 0, activities.size());
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
@@ -100,7 +100,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         assertEquals("Activity user is incorrect", "bob", activity.getUser());
 
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
         verify(cleartool).lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull());
     }
 
@@ -135,7 +135,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         assertEquals("Name of second sub activity is incorrect", "maven2_Release_3_3.20080421.163355", subActivities.get(1).getName());
 
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
         verify(cleartool).lsactivity(eq("deliver.Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull());
         verify(cleartool).lsactivity(eq("maven2_Release_3_3.20080421.154619"), (String) notNull(), (String) notNull());
         verify(cleartool).lsactivity(eq("maven2_Release_3_3.20080421.163355"), (String) notNull(), (String) notNull());
@@ -155,7 +155,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
         action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
         lshistoryReader.ready();
 
     }
@@ -175,7 +175,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
 
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
 
         lsactivityReader.ready();
     }

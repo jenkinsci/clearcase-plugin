@@ -77,8 +77,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     }
 
     @Override
-    public HistoryAction createHistoryAction(
-                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, boolean useRecurse) throws IOException, InterruptedException {   
+    public HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, boolean useRecurse) throws IOException, InterruptedException {   
 
         return super.createHistoryAction(variableResolver, launcher, null, useRecurse);
     }
