@@ -52,7 +52,7 @@
         			<t:editTypeIcon type="${element.editType}" />
         		</j:if>
         	</td>
-        	<td>${element.file}@${element.version} - ${element.action}</td>
+        	<td>${element.file}@@${element.version} - ${element.action}</td>
         </tr>
       </j:forEach>
     </j:forEach>
