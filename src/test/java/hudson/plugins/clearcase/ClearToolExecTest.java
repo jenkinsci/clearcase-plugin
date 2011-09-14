@@ -441,6 +441,19 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testDescribeObjectSelectorWithSpaces() throws Exception {
+        when(
+                ccLauncher.run(eq(new String[] { "desc", "-fmt", "format", "D:\\slave-ci\\workspace\\jobname\\view\\vob1\\component\\path@@\\main\branch\\67\\A path with spaces.p12\\main\\branch\\1" }), any(InputStream.class),
+                        any(OutputStream.class), (FilePath) isNull())).thenAnswer(
+                new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-desc-1.log"), Boolean.TRUE));
+
+        Reader reader = clearToolExec.describe("format", "D:\\slave-ci\\workspace\\jobname\\view\\vob1\\component\\path@@\\main\branch\\67\\A path with spaces.p12\\main\\branch\\1");
+        assertNotNull("Returned console reader cannot be null", reader);
+        verify(ccLauncher).run(eq(new String[] { "desc", "-fmt", "format", "D:\\slave-ci\\workspace\\jobname\\view\\vob1\\component\\path@@\\main\branch\\67\\A path with spaces.p12\\main\\branch\\1" }), any(InputStream.class),
+                any(OutputStream.class), (FilePath) isNull());
+    }
+
+    @Test
     public void assertLsactivityReturnsReader() throws Exception {
         workspace.child("viewName").mkdirs();
         when(ccLauncher.getWorkspace()).thenReturn(workspace);

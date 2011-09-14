@@ -79,14 +79,14 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
-    public Reader describe(String format, String objectSelectors) throws IOException, InterruptedException {
-        Validate.notNull(objectSelectors);
+    public Reader describe(String format, String objectSelector) throws IOException, InterruptedException {
+        Validate.notNull(objectSelector);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("desc");
         if (StringUtils.isNotBlank(format)) {
             cmd.add("-fmt", format);
         }
-        cmd.addTokenized(objectSelectors);
+        cmd.add(objectSelector);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, null);
         Reader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
@@ -114,7 +114,7 @@ public abstract class ClearToolExec implements ClearTool {
             throw new IOException("Couldn't create a temporary file", e);
         }
         OutputStream out = new FileOutputStream(tmpFile);
-        
+
         FilePath workingDirectory = launcher.getWorkspace();
         if (viewPath != null) {
             workingDirectory = workingDirectory.child(viewPath);
@@ -127,7 +127,7 @@ public abstract class ClearToolExec implements ClearTool {
         out.close();
         return new InputStreamReader(new FileInputStream(tmpFile));
     }
-    
+
     @Override
     public boolean doesStreamExist(String streamSelector) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -234,7 +234,7 @@ public abstract class ClearToolExec implements ClearTool {
      * @return The root view path
      */
     protected abstract FilePath getRootViewPath(ClearToolLauncher launcher);
-    
+
     public Properties getViewData(String viewTag) throws IOException, InterruptedException {
         Properties resPrp = new Properties();
         ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -310,7 +310,7 @@ public abstract class ClearToolExec implements ClearTool {
         baos.close();
         return reader;
     }
-    
+
     public String lsbl(String baselineName, String format) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsbl");
@@ -384,7 +384,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         return returnReader;
     }
-    
+
     public String lsproject(String viewTag, String format) throws InterruptedException, IOException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsproject");
@@ -405,7 +405,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         return output;
     }
-    
+
     public String lsstream(String stream, String viewTag, String format) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsstream");
@@ -443,7 +443,7 @@ public abstract class ClearToolExec implements ClearTool {
         }
         return new ArrayList<String>();
     }
-    
+
     public List<Baseline> mkbl(String name, String viewTag, String comment, boolean fullBaseline, boolean identical, List<String> components, String dDependsOn, String aDependsOn) throws IOException, InterruptedException {
         Validate.notNull(viewTag);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
@@ -468,14 +468,14 @@ public abstract class ClearToolExec implements ClearTool {
         if (CollectionUtils.isNotEmpty(components)) {
         	cmd.add("-comp", StringUtils.join(components, ','));
         }
-        
+
         if (StringUtils.isNotEmpty(dDependsOn)) {
             cmd.add("-ddepends_on", dDependsOn);
         }
         if (StringUtils.isNotEmpty(aDependsOn)) {
             cmd.add("-adepends_on", aDependsOn);
         }
-        
+
         cmd.add(name);
 
         String output = runAndProcessOutput(cmd, null, null, false, null);
@@ -498,7 +498,7 @@ public abstract class ClearToolExec implements ClearTool {
     public void mklabel(String viewName, String label) throws IOException, InterruptedException {
         throw new AbortException();
     }
-    
+
     public void mkstream(String parentStream, String stream) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
 
@@ -615,11 +615,11 @@ public abstract class ClearToolExec implements ClearTool {
         reader.close();
         return views;
     }
-    
+
     public void setBaselinePromotionLevel(String baselineName, DefaultPromotionLevel promotionLevel) throws IOException, InterruptedException {
         setBaselinePromotionLevel(baselineName, promotionLevel.toString());
     }
-    
+
     public void setBaselinePromotionLevel(String baselineName, String promotionLevel) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
 
@@ -633,7 +633,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         runAndProcessOutput(cmd, null, null, false, null);
     }
-    
+
     public String pwv(String viewPath) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("pwv");
@@ -645,7 +645,7 @@ public abstract class ClearToolExec implements ClearTool {
             return null;
         }
     }
-    
+
     public void rebaseDynamic(String viewTag, String baseline) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("rebase");
@@ -655,7 +655,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-force");
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
-    
+
     public void recommendBaseline(String streamSelector) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("chstream");
@@ -699,7 +699,7 @@ public abstract class ClearToolExec implements ClearTool {
         }
 
     }
-    
+
     public void rmtag(String viewTag) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("rmtag");
@@ -755,7 +755,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     * 
+     *
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     @Override
@@ -792,7 +792,7 @@ public abstract class ClearToolExec implements ClearTool {
         if (configSpecFile != null) {
             configSpecFile.delete();
         }
-        
+
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + output);
         }
@@ -800,13 +800,13 @@ public abstract class ClearToolExec implements ClearTool {
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     * 
+     *
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     public void setcsCurrent(String viewPath) throws IOException, InterruptedException {
         setcs(viewPath, SetcsOption.CURRENT, null);
     }
-    
+
     /**
      * Synchronize the dynamic view with the latest recommended baseline for the stream. 1. Set the config spec on the
      * view (Removed call to chstream - based on
@@ -822,7 +822,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.addTokenized(viewTags);
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
-    
+
     public void unlock(String comment, String objectSelector) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
 
