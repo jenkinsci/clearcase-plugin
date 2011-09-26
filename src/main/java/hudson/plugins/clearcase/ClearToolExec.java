@@ -30,6 +30,7 @@ import hudson.Util;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
+import hudson.plugins.clearcase.util.DeleteOnCloseFileInputStream;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -125,7 +126,7 @@ public abstract class ClearToolExec implements ClearTool {
         } catch (InterruptedException e) {
         }
         out.close();
-        return new InputStreamReader(new FileInputStream(tmpFile));
+        return new InputStreamReader(new DeleteOnCloseFileInputStream(tmpFile));
     }
 
     @Override
