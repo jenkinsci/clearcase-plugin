@@ -315,6 +315,7 @@ public class UcmCommon {
                 versionList.add(line.trim());
             }
         }
+        br.close();
 
         return versionList;
     }
