@@ -96,6 +96,25 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
+    public Reader describe(String format, String[] objectSelectors) throws IOException, InterruptedException {
+        Validate.notNull(objectSelectors);
+	Validate.isTrue(objectSelectors.length > 0);
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("desc");
+        if (StringUtils.isNotBlank(format)) {
+            cmd.add("-fmt", format);
+        }
+	for (String selector: objectSelectors) {
+	    cmd.add(selector);
+	}
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        launcher.run(cmd.toCommandArray(), null, baos, null);
+        Reader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
+        baos.close();
+        return reader;
+    }
+
+    @Override
     public Reader diffbl(EnumSet<DiffBlOptions> type, String baseline1, String baseline2, String viewPath) throws IOException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("diffbl");
