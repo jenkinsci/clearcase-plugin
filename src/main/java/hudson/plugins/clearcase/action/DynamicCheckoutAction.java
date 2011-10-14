@@ -50,20 +50,18 @@ public class DynamicCheckoutAction implements CheckOutAction {
     private boolean             updateConfigSpec;
     private boolean             useTimeRule;
     private boolean             createView;
-    private String              winStorageDir;
-    private String              unixStorageDir;
+    private String              storageDir;
     private AbstractBuild<?, ?> build;
 
     public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec,
-            boolean useTimeRule, boolean createView, String winStorageDir, String unixStorageDir,
+            boolean useTimeRule, boolean createView, String storageDir,
             AbstractBuild<?, ?> build) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
         this.updateConfigSpec = !doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
         this.createView = createView;
-        this.winStorageDir = winStorageDir;
-        this.unixStorageDir = unixStorageDir;
+        this.storageDir = storageDir;
         this.build = build;
     }
 
@@ -122,8 +120,7 @@ public class DynamicCheckoutAction implements CheckOutAction {
             cleartool.rmviewtag(viewTag);
         }
         // Now, make the view.
-        String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixStorageDir : winStorageDir;
-        cleartool.mkview(viewTag, viewTag, null, dynStorageDir);
+        cleartool.mkview(viewTag, viewTag, null, storageDir);
     }
 
     public String getTimeRule() {

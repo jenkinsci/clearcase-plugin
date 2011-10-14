@@ -57,8 +57,6 @@ import hudson.util.VariableResolver;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -80,7 +78,7 @@ import org.kohsuke.stapler.framework.io.ByteBuffer;
 
 /**
  * Base ClearCase SCM. This SCM is for base ClearCase repositories.
- * 
+ *
  * @author Erik Ramfelt
  */
 
@@ -161,9 +159,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         String effectiveConfigSpec = Util.replaceMacro(configSpec, variableResolver);
         if (isUseDynamicView()) {
             action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
-                    getNormalizedWinDynStorageDir(variableResolver), getNormalizedUnixDynStorageDir(variableResolver), build);
+                    getNormalizedStorageDir(variableResolver, launcher.getLauncher().isUnix()), build);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher()),isUseUpdate(), getViewPath(variableResolver)); 
+            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher()),isUseUpdate(), getViewPath(variableResolver));
         }
         return action;
     }
@@ -185,7 +183,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     /**
      * Split the branch names into a string array.
-     * 
+     *
      * @param branchString string containing none or several branches
      * @return a string array (never empty)
      */
@@ -218,12 +216,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     /**
      * ClearCase SCM descriptor
-     * 
+     *
      * @author Erik Ramfelt
      */
     public static class ClearCaseScmDescriptor extends SCMDescriptor<ClearCaseSCM> implements ModelObject {
         private static final int DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW = 5;
-        
+
         private int changeLogMergeTimeWindow = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
         private String defaultViewName;
         private String defaultViewPath;
@@ -259,18 +257,14 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         public String getDefaultViewName() {
             return StringUtils.defaultString(defaultViewName, "${USER_NAME}_${NODE_NAME}_${JOB_NAME}_hudson");
         }
-        
+
         public String getDefaultViewPath() {
             return StringUtils.defaultString(defaultViewPath, "view");
         }
 
         public String getDefaultWinDynStorageDir() {
             if (defaultWinDynStorageDir == null) {
-                try {
-                    return "\\\\" + InetAddress.getLocalHost().getHostName() + DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
-                } catch (UnknownHostException e) {
-                    return "";
-                }
+                return "\\\\${HOST}" + DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
             } else {
                 return defaultWinDynStorageDir;
             }
@@ -375,7 +369,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         /**
          * Raises an error if the parameter value isnt set.
-         * 
+         *
          * @throws IOException
          * @throws ServletException
          */
@@ -420,26 +414,26 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             save();
         }
     }
-    
+
     @Override
     protected boolean isFirstBuild(SCMRevisionState baseline) {
         return baseline == null || !(baseline instanceof ClearCaseSCMRevisionState);
     }
-    
+
     @Override
     public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException {
         return createRevisionState(build, launcher, taskListener, build.getTime());
     }
-    
+
     @Override
     public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException {
         return createRevisionState(build, launcher, taskListener, new Date());
     }
-    
+
     private AbstractClearCaseSCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date) throws IOException, InterruptedException {
         ClearCaseSCMRevisionState revisionState = new ClearCaseSCMRevisionState(date);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         revisionState.setLoadRules(getViewPaths(variableResolver, build, launcher));
-        return revisionState; 
+        return revisionState;
     }
 }

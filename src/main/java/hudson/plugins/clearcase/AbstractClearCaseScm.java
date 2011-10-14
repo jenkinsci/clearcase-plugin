@@ -358,24 +358,8 @@ public abstract class AbstractClearCaseScm extends SCM {
         return winDynStorageDir;
     }
 
-    public String getNormalizedWinDynStorageDir(VariableResolver<String> variableResolver) {
-        if (variableResolver != null) {
-            return Util.replaceMacro(getWinDynStorageDir(), variableResolver);
-        } else {
-            return getWinDynStorageDir();
-        }
-    }
-
     public String getUnixDynStorageDir() {
         return unixDynStorageDir;
-    }
-
-    public String getNormalizedUnixDynStorageDir(VariableResolver<String> variableResolver) {
-        if (variableResolver != null) {
-            return Util.replaceMacro(getUnixDynStorageDir(), variableResolver);
-        } else {
-            return getUnixDynStorageDir();
-        }
     }
 
     public boolean isFreezeCode() {
@@ -761,6 +745,23 @@ public abstract class AbstractClearCaseScm extends SCM {
             }
         } catch (Exception e) {
             Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
+        }
+    }
+
+    protected String getStorageDir(boolean unix) {
+        if (unix) {
+            return unixDynStorageDir;
+        } else {
+            return winDynStorageDir;
+        }
+    }
+
+    protected String getNormalizedStorageDir(VariableResolver<String> variableResolver, boolean unix) {
+        String storageDir = getStorageDir(unix);
+        if (variableResolver != null) {
+            return Util.replaceMacro(storageDir, variableResolver);
+        } else {
+            return storageDir;
         }
     }
 

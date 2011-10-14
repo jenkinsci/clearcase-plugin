@@ -54,20 +54,18 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
     private ClearTool cleartool;
     private String stream;
     private boolean createDynView;
-    private String winDynStorageDir;
-    private String unixDynStorageDir;
+    private String storageDir;
     private AbstractBuild build;
     private boolean freezeCode;
     private boolean recreateView;
 
-    public UcmDynamicCheckoutAction(ClearTool cleartool, String stream, boolean createDynView, String winDynStorageDir, String unixDynStorageDir,
+    public UcmDynamicCheckoutAction(ClearTool cleartool, String stream, boolean createDynView, String storageDir,
             AbstractBuild build, boolean freezeCode, boolean recreateView) {
         super();
         this.cleartool = cleartool;
         this.stream = stream;
         this.createDynView = createDynView;
-        this.winDynStorageDir = winDynStorageDir;
-        this.unixDynStorageDir = unixDynStorageDir;
+        this.storageDir = storageDir;
         this.build = build;
         this.freezeCode = freezeCode;
         this.recreateView = recreateView;
@@ -159,8 +157,7 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
     private void prepareBuildStreamAndViews(String viewTag, String stream) throws IOException, InterruptedException {
         // verify that view exists on the configured stream and start it
         if (!cleartool.doesViewExist(getConfiguredStreamViewName())) {
-            String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixDynStorageDir : winDynStorageDir;
-            cleartool.mkview(null, getConfiguredStreamViewName(), stream, dynStorageDir);
+            cleartool.mkview(null, getConfiguredStreamViewName(), stream, storageDir);
         }
         cleartool.startView(getConfiguredStreamViewName());
 
@@ -175,14 +172,13 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
     }
 
     private void prepareView(String viewTag, String stream) throws IOException, InterruptedException {
-        String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixDynStorageDir : winDynStorageDir;
         if (cleartool.doesViewExist(viewTag)) {
             if (recreateView) {
                 cleartool.rmviewtag(viewTag);
-                cleartool.mkview(null, viewTag, stream, dynStorageDir);
+                cleartool.mkview(null, viewTag, stream, storageDir);
             }
         } else {
-            cleartool.mkview(null, viewTag, stream, dynStorageDir);
+            cleartool.mkview(null, viewTag, stream, storageDir);
         }
     }
 
