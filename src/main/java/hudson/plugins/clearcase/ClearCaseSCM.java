@@ -159,9 +159,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         String effectiveConfigSpec = Util.replaceMacro(configSpec, variableResolver);
         if (isUseDynamicView()) {
             action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
-                    getNormalizedStorageDir(variableResolver, launcher.getLauncher().isUnix()), build);
+                    getNormalizedStorageDir(variableResolver, launcher.isUnix()), build);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher()),isUseUpdate(), getViewPath(variableResolver));
+            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher()),isUseUpdate(), getViewPath(variableResolver));
         }
         return action;
     }

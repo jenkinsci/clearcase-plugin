@@ -195,7 +195,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         CheckOutAction action;
         if (isUseDynamicView()) {
             action = new UcmDynamicCheckoutAction(createClearTool(variableResolver, launcher), getStream(variableResolver), isCreateDynView(),
-                    getNormalizedStorageDir(variableResolver, launcher.getLauncher().isUnix()), build, isFreezeCode(), isRecreateView());
+                    getNormalizedStorageDir(variableResolver, launcher.isUnix()), build, isFreezeCode(), isRecreateView());
         } else {
             action = new UcmSnapshotCheckoutAction(createClearTool(variableResolver, launcher), getStream(variableResolver), getViewPaths(variableResolver, build, launcher.getLauncher()), isUseUpdate(), getViewPath(variableResolver));
         }

@@ -131,4 +131,9 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     public String getCmdString(String[] cmd) {
         return StringUtils.join(cmd, ' ');
     }
+
+    @Override
+    public boolean isUnix() {
+        return launcher.isUnix();
+    }
 }

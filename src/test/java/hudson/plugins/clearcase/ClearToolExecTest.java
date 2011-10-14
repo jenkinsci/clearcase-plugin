@@ -280,7 +280,6 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
 
         clearToolExec.setcsTag("viewTag", SetcsOption.CONFIGSPEC, "configspec");
 
-        verify(ccLauncher).getLauncher();
         verify(ccLauncher).run(argThat(new ArrayThatStartsWith<String>(new String[] { "setcs", "-tag", "viewTag" })), (InputStream) notNull(),
                 (OutputStream) notNull(), (FilePath) isNull());
     }

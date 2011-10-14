@@ -196,7 +196,7 @@ public abstract class ClearToolExec implements ClearTool {
             return loadRule;
         }
         // Remove leading file separator, we don't need it when using add_loadrules
-        String quotedLR = ConfigSpec.cleanLoadRule(loadRule, getLauncher().getLauncher().isUnix());
+        String quotedLR = ConfigSpec.cleanLoadRule(loadRule, getLauncher().isUnix());
         if (isQuoted(quotedLR)) {
             return "\"" + quotedLR.substring(2);
         } else {
@@ -581,7 +581,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         // add the default storage directory only if gpath/hpath are not set (only for windows)
         if (!isOptionalParamContainsHost && StringUtils.isNotEmpty(defaultStorageDir)) {
-            String separator = PathUtil.fileSepForOS(getLauncher().getLauncher().isUnix());
+            String separator = PathUtil.fileSepForOS(getLauncher().isUnix());
             String viewStorageDir = defaultStorageDir + separator + viewTag;
             String base = viewStorageDir;
             FilePath fp = new FilePath(getLauncher().getLauncher().getChannel(), viewStorageDir);
@@ -802,7 +802,7 @@ public abstract class ClearToolExec implements ClearTool {
         FilePath configSpecFile = null;
         if (option == SetcsOption.CONFIGSPEC) {
             configSpecFile = launcher.getWorkspace().createTextTempFile("configspec", ".txt", configSpec);
-            cmd.add(PathUtil.convertPathForOS(configSpecFile.absolutize().getRemote(), launcher.getLauncher().isUnix()));
+            cmd.add(PathUtil.convertPathForOS(configSpecFile.absolutize().getRemote(), launcher.isUnix()));
         }
         FilePath workingDirectory = null;
         if (viewPath != null) {

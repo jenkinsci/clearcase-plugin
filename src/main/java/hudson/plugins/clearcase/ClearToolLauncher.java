@@ -91,4 +91,6 @@ public interface ClearToolLauncher {
     Launcher getLauncher();
 
     String getCmdString(String[] cmd);
+
+    boolean isUnix();
 }
