@@ -1,8 +1,9 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ * Copyright (c) 2007-2011, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer,
+ *                          Krzysztof Malinowski
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -87,6 +88,10 @@ public class ClearCaseChangeLogEntryTest {
         FileElement element = new FileElement();
         element.setOperation("checkin");
         assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
+        element.setOperation("mklabel");
+        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
+        element.setOperation("rmlabel");
+        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
     }
 
     @Test
@@ -100,5 +105,23 @@ public class ClearCaseChangeLogEntryTest {
     public void testFileElementUnknownEditType() {
         FileElement element = new FileElement();
         assertNull("Edit type was not null", element.getEditType());
+    }
+    
+    @Test
+    public void testFileElementGetPath() {
+        FileElement element = new FileElement();
+        element.setFile("file1");
+        element.setVersion("/main/1");
+        assertEquals("Element path is incorrect", 
+                element.getPath(), "file1@@/main/1");
+    }
+    
+    @Test
+    public void testGetAffectedFilesCount() {
+        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
+        entry.addElement(new FileElement("file1", "/main/1", "", "checkin"));
+        entry.addElement(new FileElement("file2", "/main/2", "", "checkin"));
+        assertEquals("Wrong count of affected files", 
+                entry.getAffectedFiles().size(), 2);
     }
 }
