@@ -44,9 +44,9 @@ import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
-import hudson.plugins.clearcase.ucm.UcmHistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
+import hudson.plugins.clearcase.viewstorage.ViewStorageFactory;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.PollingResult;
 import hudson.scm.PollingResult.Change;
@@ -133,12 +133,25 @@ public abstract class AbstractClearCaseScm extends SCM {
     private String viewDrive;
     private int multiSitePollBuffer;
     private boolean createDynView;
+    /**
+     * Deprecated.
+     * @see ViewStorageFactory
+     */
+    @Deprecated
     private String winDynStorageDir;
+    /**
+     * Deprecated.
+     * @see ViewStorageFactory
+     */
+    @Deprecated
     private String unixDynStorageDir;
     private boolean freezeCode;
     private boolean recreateView;
     private String viewPath;
     private ChangeSetLevel changeset;
+    private ViewStorageFactory viewStorageFactory;
+
+
 
     private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
         if (null == normalizedViewName) {
@@ -173,8 +186,8 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     public AbstractClearCaseScm(final String viewName, final String mkviewOptionalParam, final boolean filterOutDestroySubBranchEvent, final boolean useUpdate,
             final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, final String loadRules,
-            final String multiSitePollBuffer, final boolean createDynView, final String winDynStorageDir, final String unixDynStorageDir,
-            final boolean freezeCode, final boolean recreateView, final String viewPath, ChangeSetLevel changeset) {
+            final String multiSitePollBuffer, final boolean createDynView, final boolean freezeCode, final boolean recreateView,
+            final String viewPath, ChangeSetLevel changeset, ViewStorageFactory viewStorageFactory) {
         Validate.notNull(viewName);
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
@@ -195,12 +208,11 @@ public abstract class AbstractClearCaseScm extends SCM {
             this.multiSitePollBuffer = 0;
         }
         this.createDynView = createDynView;
-        this.winDynStorageDir = winDynStorageDir;
-        this.unixDynStorageDir = unixDynStorageDir;
         this.freezeCode = freezeCode;
         this.recreateView = recreateView;
         this.viewPath = StringUtils.defaultIfEmpty(viewPath, viewName);
         this.changeset = changeset;
+        this.viewStorageFactory = viewStorageFactory;
     }
 
     /**
@@ -280,6 +292,13 @@ public abstract class AbstractClearCaseScm extends SCM {
         return rules;
     }
 
+    public ViewStorageFactory getViewStorageFactory() {
+        if (viewStorageFactory == null) {
+            viewStorageFactory = ViewStorageFactory.getDefault();
+        }
+        return viewStorageFactory;
+    }
+
     public boolean isUseDynamicView() {
         return useDynamicView;
     }
@@ -352,14 +371,6 @@ public abstract class AbstractClearCaseScm extends SCM {
             setNormalizedViewName(normalized);
         }
         return normalized;
-    }
-
-    public String getWinDynStorageDir() {
-        return winDynStorageDir;
-    }
-
-    public String getUnixDynStorageDir() {
-        return unixDynStorageDir;
     }
 
     public boolean isFreezeCode() {
@@ -731,6 +742,14 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.changeset = changeset;
     }
 
+    // compatibility with earlier plugins
+    public Object readResolve() {
+        if (viewStorageFactory == null) {
+            viewStorageFactory = new ViewStorageFactory(null, winDynStorageDir, unixDynStorageDir);
+        }
+        return this;
+    }
+
     protected void setExtendedViewPath(VariableResolver<String> variableResolver, ClearTool ct, AbstractHistoryAction action) {
         try {
             String viewPath = getViewPath(variableResolver);
@@ -745,23 +764,6 @@ public abstract class AbstractClearCaseScm extends SCM {
             }
         } catch (Exception e) {
             Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
-        }
-    }
-
-    protected String getStorageDir(boolean unix) {
-        if (unix) {
-            return unixDynStorageDir;
-        } else {
-            return winDynStorageDir;
-        }
-    }
-
-    protected String getNormalizedStorageDir(VariableResolver<String> variableResolver, boolean unix) {
-        String storageDir = getStorageDir(unix);
-        if (variableResolver != null) {
-            return Util.replaceMacro(storageDir, variableResolver);
-        } else {
-            return storageDir;
         }
     }
 

@@ -56,6 +56,7 @@ import java.util.TimeZone;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 public class ClearToolExecTest extends AbstractWorkspaceTest {
@@ -366,9 +367,12 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 ccLauncher.run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "viewpath" }), (InputStream) isNull(), (OutputStream) isNull(),
                         (FilePath) isNull())).thenReturn(Boolean.TRUE);
 
-        clearToolExec.mkview("viewpath", "viewName", null);
+        MkViewParameters p = new MkViewParameters();
+        p.setViewPath("viewpath");
+        p.setViewTag("viewName");
+        clearToolExec.mkview(p);
 
-        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "viewpath" }), (InputStream) isNull(), (OutputStream) isNull(),
+        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName","-stgloc", "-auto",  "viewpath" }), (InputStream) isNull(), (OutputStream) isNull(),
                 (FilePath) isNull());
     }
 
@@ -378,9 +382,13 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 ccLauncher.run(eq(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", "-tag", "viewName", "viewpath" }), (InputStream) isNull(),
                         (OutputStream) isNull(), (FilePath) isNull())).thenReturn(Boolean.TRUE);
 
-        clearToolExec.mkview("viewpath", "viewName", "streamSelector");
+        MkViewParameters p = new MkViewParameters();
+        p.setViewPath("viewpath");
+        p.setViewTag("viewName");
+        p.setStreamSelector("streamSelector");
+        clearToolExec.mkview(p);
 
-        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", "-tag", "viewName", "viewpath" }), (InputStream) isNull(),
+        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", "-tag", "viewName", "-stgloc", "-auto", "viewpath" }), (InputStream) isNull(),
                 (OutputStream) isNull(), (FilePath) isNull());
     }
 
@@ -391,9 +399,13 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         (InputStream) isNull(), (OutputStream) isNull(), (FilePath) isNull())).thenReturn(Boolean.TRUE);
 
         clearToolExec = new ClearToolSnapshot(resolver, ccLauncher, "-anextraparam -anotherparam");
-        clearToolExec.mkview("viewpath", "viewName", null);
+        MkViewParameters p = new MkViewParameters();
+        p.setViewPath("viewpath");
+        p.setViewTag("viewName");
+        p.setAdditionalParameters("-anextraparam -anotherparam");
+        clearToolExec.mkview(p);
 
-        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "-anextraparam", "-anotherparam", "viewpath" }),
+        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "-anextraparam", "-anotherparam", "-stgloc", "-auto", "viewpath" }),
                 (InputStream) isNull(), (OutputStream) isNull(), (FilePath) isNull());
     }
 
@@ -404,10 +416,15 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         "viewpath" }), (InputStream) isNull(), (OutputStream) isNull(), (FilePath) isNull())).thenReturn(Boolean.TRUE);
 
         clearToolExec = new ClearToolSnapshot(resolver, ccLauncher, "-anextraparam -anotherparam");
-        clearToolExec.mkview("viewpath", "viewName", "streamSelector");
+        MkViewParameters p = new MkViewParameters();
+        p.setViewPath("viewpath");
+        p.setViewTag("viewName");
+        p.setStreamSelector("streamSelector");
+        p.setAdditionalParameters("-anextraparam -anotherparam");
+        clearToolExec.mkview(p);
 
         verify(ccLauncher).run(
-                eq(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", "-tag", "viewName", "-anextraparam", "-anotherparam", "viewpath" }),
+                eq(new String[] { "mkview", "-snapshot", "-stream", "streamSelector", "-tag", "viewName", "-anextraparam", "-anotherparam", "-stgloc", "-auto", "viewpath" }),
                 (InputStream) isNull(), (OutputStream) isNull(), (FilePath) isNull());
     }
 
@@ -419,9 +436,13 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         when(resolver.resolve("COMPUTERNAME")).thenReturn("Test");
 
         clearToolExec = new ClearToolSnapshot(resolver, ccLauncher, "-anextraparam $COMPUTERNAME");
-        clearToolExec.mkview("viewpath", "viewName", null);
+        MkViewParameters p = new MkViewParameters();
+        p.setViewPath("viewpath");
+        p.setViewTag("viewName");
+        p.setAdditionalParameters("-anextraparam $COMPUTERNAME");
+        clearToolExec.mkview(p);
 
-        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "-anextraparam", "Test", "viewpath" }), (InputStream) isNull(),
+        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "-anextraparam", "Test", "-stgloc", "-auto", "viewpath" }), (InputStream) isNull(),
                 (OutputStream) isNull(), (FilePath) isNull());
         verify(resolver, atLeastOnce()).resolve("COMPUTERNAME");
     }

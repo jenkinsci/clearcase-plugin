@@ -30,7 +30,10 @@ import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.ClearCaseDataAction;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
+import hudson.plugins.clearcase.MkViewParameters;
+import hudson.plugins.clearcase.ViewType;
 import hudson.plugins.clearcase.util.PathUtil;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -50,18 +53,18 @@ public class DynamicCheckoutAction implements CheckOutAction {
     private boolean             updateConfigSpec;
     private boolean             useTimeRule;
     private boolean             createView;
-    private String              storageDir;
+    private ViewStorage         viewStorage;
     private AbstractBuild<?, ?> build;
 
     public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec,
-            boolean useTimeRule, boolean createView, String storageDir,
+            boolean useTimeRule, boolean createView, ViewStorage viewStorage,
             AbstractBuild<?, ?> build) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
         this.updateConfigSpec = !doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
         this.createView = createView;
-        this.storageDir = storageDir;
+        this.viewStorage = viewStorage;
         this.build = build;
     }
 
@@ -120,7 +123,12 @@ public class DynamicCheckoutAction implements CheckOutAction {
             cleartool.rmviewtag(viewTag);
         }
         // Now, make the view.
-        cleartool.mkview(viewTag, viewTag, null, storageDir);
+        MkViewParameters params = new MkViewParameters();
+        params.setType(ViewType.Dynamic);
+        params.setViewPath(viewTag);
+        params.setViewTag(viewTag);
+        params.setViewStorage(viewStorage);
+        cleartool.mkview(params);
     }
 
     public String getTimeRule() {

@@ -32,7 +32,10 @@ import hudson.plugins.clearcase.Baseline;
 import hudson.plugins.clearcase.ClearCaseDataAction;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
+import hudson.plugins.clearcase.MkViewParameters;
+import hudson.plugins.clearcase.ViewType;
 import hudson.plugins.clearcase.ucm.UcmCommon;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -54,18 +57,18 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
     private ClearTool cleartool;
     private String stream;
     private boolean createDynView;
-    private String storageDir;
     private AbstractBuild build;
     private boolean freezeCode;
     private boolean recreateView;
+    private ViewStorage viewStorage;
 
-    public UcmDynamicCheckoutAction(ClearTool cleartool, String stream, boolean createDynView, String storageDir,
+    public UcmDynamicCheckoutAction(ClearTool cleartool, String stream, boolean createDynView, ViewStorage viewStorage,
             AbstractBuild build, boolean freezeCode, boolean recreateView) {
         super();
         this.cleartool = cleartool;
         this.stream = stream;
         this.createDynView = createDynView;
-        this.storageDir = storageDir;
+        this.viewStorage = viewStorage;
         this.build = build;
         this.freezeCode = freezeCode;
         this.recreateView = recreateView;
@@ -157,7 +160,12 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
     private void prepareBuildStreamAndViews(String viewTag, String stream) throws IOException, InterruptedException {
         // verify that view exists on the configured stream and start it
         if (!cleartool.doesViewExist(getConfiguredStreamViewName())) {
-            cleartool.mkview(null, getConfiguredStreamViewName(), stream, storageDir);
+            MkViewParameters params = new MkViewParameters();
+            params.setType(ViewType.Dynamic);
+            params.setViewTag(getConfiguredStreamViewName());
+            params.setStreamSelector(stream);
+            params.setViewStorage(viewStorage);
+            cleartool.mkview(params);
         }
         cleartool.startView(getConfiguredStreamViewName());
 
@@ -172,13 +180,17 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
     }
 
     private void prepareView(String viewTag, String stream) throws IOException, InterruptedException {
+        MkViewParameters params = new MkViewParameters();
+        params.setViewTag(viewTag);
+        params.setStreamSelector(stream);
+        params.setViewStorage(viewStorage);
         if (cleartool.doesViewExist(viewTag)) {
             if (recreateView) {
                 cleartool.rmviewtag(viewTag);
-                cleartool.mkview(null, viewTag, stream, storageDir);
+                cleartool.mkview(params);
             }
         } else {
-            cleartool.mkview(null, viewTag, stream, storageDir);
+            cleartool.mkview(params);
         }
     }
 

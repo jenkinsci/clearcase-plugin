@@ -81,7 +81,6 @@ public class BuildVariableResolver implements VariableResolver<String> {
         this.restricted = restricted;
     }
     
-    @Override
     public String resolve(String key) {
         try {
             if (systemProperties == null) {

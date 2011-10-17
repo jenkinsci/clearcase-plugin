@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package hudson.plugins.clearcase; 
+package hudson.plugins.clearcase;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
@@ -35,7 +35,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     private ClearTool cleartool;
     private ClearCaseScmDescriptor clearCaseScmDescriptor;
     private Computer overrideComputer;
-    
+
     public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname,
                              boolean useupdate, String loadRules, boolean usedynamicview,
                              String viewdrive, String mkviewoptionalparam,
@@ -51,7 +51,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
              createDynView, cleartool,
              clearCaseScmDescriptor, null, viewname);
     }
-    
+
     public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname,
                              boolean useupdate, String loadRules, boolean usedynamicview,
                              String viewdrive, String mkviewoptionalparam,
@@ -64,12 +64,12 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              Computer overrideComputer, String viewPath) {
         super(branch, label, configspec, viewname, useupdate, loadRules, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, "", "", viewPath, null);
+              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, viewPath, null, null);
         this.cleartool = cleartool;
         this.clearCaseScmDescriptor = clearCaseScmDescriptor;
         this.overrideComputer = overrideComputer;
     }
-    
+
     @Override
     protected ClearTool createClearTool(VariableResolver variableResolver,
                                         ClearToolLauncher launcher) {
@@ -78,11 +78,11 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
 
     @Override
     public HistoryAction createHistoryAction(
-                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) throws IOException, InterruptedException {   
+                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) throws IOException, InterruptedException {
 
         return super.createHistoryAction(variableResolver, launcher, null);
     }
-    
+
     @Override
     public ClearCaseScmDescriptor getDescriptor() {
         return clearCaseScmDescriptor;

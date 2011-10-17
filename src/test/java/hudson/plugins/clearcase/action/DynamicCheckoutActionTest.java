@@ -24,9 +24,11 @@
  */
 package hudson.plugins.clearcase.action;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.contains;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import hudson.Launcher;
@@ -36,12 +38,14 @@ import hudson.plugins.clearcase.ClearCaseDataAction;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ClearToolLauncher;
+import hudson.plugins.clearcase.MkViewParameters;
 
 import java.io.IOException;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
@@ -79,7 +83,10 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         assertTrue(action.checkout(launcher, workspace, "viewname"));
 
         verify(clearTool).doesViewExist("viewname");
-        verify(clearTool).mkview("viewname", "viewname", null, null);
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(clearTool).mkview(argument.capture());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("viewname", argument.getValue().getViewPath());
     }
 
     @Test
@@ -95,7 +102,10 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
 
         verify(clearTool).doesViewExist("viewname");
         verify(clearTool).rmviewtag("viewname");
-        verify(clearTool).mkview("viewname", "viewname", null, null);
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(clearTool).mkview(argument.capture());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("viewname", argument.getValue().getViewPath());
     }
 
     @Test

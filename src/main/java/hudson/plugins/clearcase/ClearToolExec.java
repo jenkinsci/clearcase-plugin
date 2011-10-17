@@ -27,16 +27,15 @@ package hudson.plugins.clearcase;
 import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Util;
+import hudson.plugins.clearcase.util.DeleteOnCloseFileInputStream;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.VariableResolver;
-import hudson.plugins.clearcase.util.DeleteOnCloseFileInputStream;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -532,6 +531,10 @@ public abstract class ClearToolExec implements ClearTool {
         baos.close();
     }
 
+    /**
+     * @see Use ClearToolExec#mkview(MkViewParameters) instead
+     */
+    @Deprecated
     public void mkview(String viewPath, String viewTag, String streamSelector) throws IOException, InterruptedException {
         Validate.notEmpty(viewPath);
         boolean isOptionalParamContainsHost = false;
@@ -545,7 +548,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-tag");
         cmd.add(viewTag);
 
-        if ((optionalMkviewParameters != null) && (optionalMkviewParameters.length() > 0)) {
+        if (StringUtils.isNotEmpty(optionalMkviewParameters)) {
             String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
             cmd.addTokenized(variabledResolvedParams);
             isOptionalParamContainsHost = optionalMkviewParameters.contains("-host");
@@ -561,6 +564,7 @@ public abstract class ClearToolExec implements ClearTool {
     /**
      * for dynamic views : viewPath == viewTag
      */
+    @Deprecated
     public void mkview(String viewPath, String viewTag, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
 
@@ -596,6 +600,43 @@ public abstract class ClearToolExec implements ClearTool {
             cmd.add(viewStorageDir);
         }
 
+        launcher.run(cmd.toCommandArray(), null, null, null);
+    }
+    
+    public void mkview(MkViewParameters parameters) throws IOException, InterruptedException {
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("mkview");
+        if (parameters.getType() == ViewType.Snapshot) {
+            cmd.add("-snapshot");
+        }
+        if (parameters.getStreamSelector() != null) {
+            cmd.add("-stream");
+            cmd.add(parameters.getStreamSelector());
+        }
+        cmd.add("-tag");
+        cmd.add(parameters.getViewTag());
+
+        boolean isMetadataLocationDefinedInAdditionalParameters = false;
+        if (StringUtils.isNotEmpty(optionalMkviewParameters)) {
+            String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
+            cmd.addTokenized(variabledResolvedParams);
+            isMetadataLocationDefinedInAdditionalParameters =  variabledResolvedParams.contains("-host")
+                                                            || variabledResolvedParams.contains("-vws");
+        }
+
+        // add the default storage directory only if gpath/hpath are not set (only for windows)
+        switch (parameters.getType()) {
+        case Snapshot:
+            if (!isMetadataLocationDefinedInAdditionalParameters) {
+                cmd.add(parameters.getViewStorage().getCommandArguments());
+            }
+            cmd.add(parameters.getViewPath());
+            break;
+        case Dynamic:
+            
+            break;
+        default:
+        }
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
 

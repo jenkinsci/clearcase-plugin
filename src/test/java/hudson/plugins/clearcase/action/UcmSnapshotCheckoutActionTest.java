@@ -24,12 +24,14 @@
  */
 package hudson.plugins.clearcase.action;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.MkViewParameters;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 
 import java.util.List;
@@ -38,6 +40,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
@@ -65,11 +68,15 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
 
         verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).mkview("viewpath", "viewname", "stream");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
         verify(cleartool).update("viewpath", new String[] { "loadrule" });
     }
 
@@ -79,12 +86,16 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
 
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).rmviewtag("viewname");
-        verify(cleartool).mkview("viewpath", "viewname", "stream");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
         verify(cleartool).update("viewpath", new String[] { "loadrule" });
     }
 
@@ -96,7 +107,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
         boolean checkout = action.checkout(launcher, workspace, "viewname");
         List<FilePath> directories = workspace.listDirectories();
         boolean foundRenamedDirectory = false;
@@ -110,7 +121,11 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         Assert.assertTrue("The existing path should have been renamed.", foundRenamedDirectory);
         Assert.assertTrue("Checkout should succeed.", checkout);
         verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).mkview("viewpath", "viewname", "stream");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
         verify(cleartool).update("viewpath", new String[] { "loadrule" });
     }
 
@@ -123,7 +138,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
         boolean checkout = action.checkout(launcher, workspace, "viewname");
         List<FilePath> directories = workspace.listDirectories();
         boolean foundRenamedDirectory = false;
@@ -139,7 +154,11 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).rmviewtag("viewname");
-        verify(cleartool).mkview("viewpath", "viewname", "stream");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
         verify(cleartool).update("viewpath", new String[] { "loadrule" });
     }
 
@@ -154,7 +173,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
 
         verify(cleartool).doesViewExist("viewname");
@@ -177,7 +196,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
 
         verify(cleartool).doesViewExist("viewname");
@@ -197,7 +216,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
         
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/", "abcd" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/", "abcd" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
@@ -217,7 +236,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/", "abcd" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/", "abcd" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
@@ -233,10 +252,14 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule", "another\t loadrule" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule", "another\t loadrule" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).mkview("viewpath", "viewname", "stream");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
         verify(cleartool).update("viewpath", new String[] { "loadrule", "another\t loadrule" });
     }
 
@@ -261,7 +284,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "vobs/base" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "vobs/base" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
@@ -275,11 +298,15 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.FALSE);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "\\ \\Windows", "\\\\C:\\System32" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "\\ \\Windows", "\\\\C:\\System32" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).mkview("viewpath", "viewname", "stream");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
         verify(cleartool).update("viewpath", new String[] { "\\ \\Windows", "\\\\C:\\System32" });
     }
 
@@ -288,11 +315,15 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).mkview("viewpath", "viewname", "stream");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
         verify(cleartool, atLeastOnce()).update("viewpath", new String[] { "loadrule" });
     }
 
@@ -304,12 +335,16 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, false, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, false, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).rmview("viewpath");
-        verify(cleartool).mkview("viewpath", "viewname", "stream");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
         verify(cleartool, atLeastOnce()).update("viewpath", new String[] { "loadrule" });
         verify(cleartool).lscurrentview("viewpath");
     }
@@ -325,7 +360,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
         
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "foo", "bar" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "foo", "bar" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
@@ -346,7 +381,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "bar" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "bar" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
@@ -389,7 +424,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         workspace.child("viewpath").mkdirs();
 
-        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "PRODUCT", "COTS\\NUnit" }, true, "viewpath");
+        CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "PRODUCT", "COTS\\NUnit" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");

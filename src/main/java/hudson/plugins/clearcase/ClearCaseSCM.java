@@ -47,6 +47,8 @@ import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.history.LabelFilter;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
+import hudson.plugins.clearcase.viewstorage.ViewStorageFactory;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
@@ -95,9 +97,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     @DataBoundConstructor
     public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
-            String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath, ChangeSetLevel changeset) {
+            String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String viewPath, ChangeSetLevel changeset, ViewStorageFactory viewStorageFactory) {
         super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, (!usedynamicview) && useupdate, rmviewonrename, excludedRegions, usedynamicview,
-                viewdrive, loadRules, multiSitePollBuffer, createDynView, winDynStorageDir, unixDynStorageDir, false, false, viewPath, changeset);
+                viewdrive, loadRules, multiSitePollBuffer, createDynView, false, false, viewPath, changeset, viewStorageFactory);
         this.branch = branch;
         this.label = label;
         this.configSpec = configspec;
@@ -105,10 +107,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         this.useTimeRule = useTimeRule;
     }
 
-    public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive,
-            String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
-        this(branch, label, configspec, viewTag, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
-                doNotUpdateConfigSpec, rmviewonrename, "", null, false, false, "", "", viewTag, null);
+    public ClearCaseSCM(String branch, String label, String configspec, String viewTag, boolean useupdate, String loadRules, boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
+            boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename) {
+        this(branch, label, configspec, viewTag, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, rmviewonrename, null, null, false, false, "viewpath", ChangeSetLevel.defaultLevel(), null);
     }
 
     public String getBranch() {
@@ -157,11 +158,12 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         CheckOutAction action;
         String effectiveConfigSpec = Util.replaceMacro(configSpec, variableResolver);
+        ViewStorage viewStorage = getViewStorageFactory().create(variableResolver, launcher.isUnix(), getViewName(variableResolver));
         if (isUseDynamicView()) {
             action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
-                    getNormalizedStorageDir(variableResolver, launcher.isUnix()), build);
+                    viewStorage, build);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher()),isUseUpdate(), getViewPath(variableResolver));
+            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher()),isUseUpdate(), getViewPath(variableResolver), viewStorage);
         }
         return action;
     }
@@ -302,6 +304,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         @Override
         public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            ViewStorageFactory viewStorageFactory = req.bindJSON(ViewStorageFactory.class, formData.getJSONObject("viewStorage"));
             AbstractClearCaseScm scm = new ClearCaseSCM(
                                                         req.getParameter("cc.branch"),
                                                         req.getParameter("cc.label"),
@@ -319,10 +322,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         fixEmpty(req.getParameter("cc.multiSitePollBuffer")),
                                                         req.getParameter("cc.useTimeRule") != null,
                                                         req.getParameter("cc.createDynView") != null,
-                                                        req.getParameter("cc.winDynStorageDir"),
-                                                        req.getParameter("cc.unixDynStorageDir"),
                                                         req.getParameter("cc.viewpath"),
-                                                        ChangeSetLevel.fromString(req.getParameter("ucm.changeset"))
+                                                        ChangeSetLevel.fromString(req.getParameter("ucm.changeset")),
+                                                        viewStorageFactory
                                                         );
             return scm;
         }

@@ -284,6 +284,8 @@ public interface ClearTool {
      * @param launcher launcher for launching the command
      */
     void mkview(String viewPath, String viewTag, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException;
+    
+    void mkview(MkViewParameters params) throws IOException, InterruptedException;
 
     /**
      * Mounts all VOBs.
