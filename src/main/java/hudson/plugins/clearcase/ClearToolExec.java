@@ -921,7 +921,35 @@ public abstract class ClearToolExec implements ClearTool {
                 cmd.add(fixLoadRule(loadRule));
             }
         }
+        List<IOException> exceptions = new ArrayList<IOException>();
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, true, exceptions);
 
-        runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, false, null);
+        if (!exceptions.isEmpty()) {
+            // Work around for a CCase bug with hijacked directories:
+            // in the case where a directory was hijacked, CCase is not able to 
+            // remove it when it is not empty, we detect this and remove
+            // the hijacked directories explicitly, then we relaunch the update.
+
+            String[] lines = output.split("\n");
+            Pattern removePattern = Pattern.compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
+            int nb_forced = 0;
+            for (String line : lines) {
+                Matcher matcher = removePattern.matcher(line);
+                if (matcher.find() && matcher.groupCount() == 1) {
+                    String directory = matcher.group(1);
+                    getLauncher().getListener().getLogger().println("Forcing removal of hijacked directory: " + directory);
+                    filePath.child(directory).deleteRecursive();
+                    nb_forced += 1;
+                }
+            }
+            if (nb_forced == 0) {
+                // Exception was unrelated to hijacked directories, throw it
+                throw exceptions.get(0);
+            } else {
+                // We forced some hijacked directory removal, relaunch update
+                getLauncher().getListener().getLogger().println("Relaunching update after removal of hijacked directories");
+                update(viewPath, loadRules);
+            }
+        }
     }
 }
