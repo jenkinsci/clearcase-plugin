@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,6 +60,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 public abstract class ClearToolExec implements ClearTool {
+
+    private static final Pattern PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern.compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
 
     private transient Pattern viewListPattern;
     protected ClearToolLauncher launcher;
@@ -602,7 +605,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         launcher.run(cmd.toCommandArray(), null, null, null);
     }
-    
+
     public void mkview(MkViewParameters parameters) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkview");
@@ -633,7 +636,7 @@ public abstract class ClearToolExec implements ClearTool {
             cmd.add(parameters.getViewPath());
             break;
         case Dynamic:
-            
+
             break;
         default:
         }
@@ -925,31 +928,42 @@ public abstract class ClearToolExec implements ClearTool {
         String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, true, exceptions);
 
         if (!exceptions.isEmpty()) {
-            // Work around for a CCase bug with hijacked directories:
-            // in the case where a directory was hijacked, CCase is not able to 
-            // remove it when it is not empty, we detect this and remove
-            // the hijacked directories explicitly, then we relaunch the update.
+            handleHijackedDirectoryCCBug(viewPath, filePath, exceptions, output);
+        }
+    }
 
-            String[] lines = output.split("\n");
-            Pattern removePattern = Pattern.compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
-            int nb_forced = 0;
-            for (String line : lines) {
-                Matcher matcher = removePattern.matcher(line);
-                if (matcher.find() && matcher.groupCount() == 1) {
-                    String directory = matcher.group(1);
-                    getLauncher().getListener().getLogger().println("Forcing removal of hijacked directory: " + directory);
-                    filePath.child(directory).deleteRecursive();
-                    nb_forced += 1;
-                }
+    /**
+     * Work around for a CCase bug with hijacked directories:
+     * in the case where a directory was hijacked, cleartool is not able to
+     * remove it when it is not empty, we detect this and remove
+     * the hijacked directories explicitly, then we relaunch the update.
+     * @param viewPath
+     * @param filePath
+     * @param exceptions
+     * @param output
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private void handleHijackedDirectoryCCBug(String viewPath, FilePath filePath, List<IOException> exceptions, String output) throws IOException, InterruptedException {
+        String[] lines = output.split("\n");
+        int nbRemovedDirectories = 0;
+        PrintStream logger = getLauncher().getListener().getLogger();
+        for (String line : lines) {
+            Matcher matcher = PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY.matcher(line);
+            if (matcher.find() && matcher.groupCount() == 1) {
+                String directory = matcher.group(1);
+                logger.println("Forcing removal of hijacked directory: " + directory);
+                filePath.child(directory).deleteRecursive();
+                nbRemovedDirectories++;
             }
-            if (nb_forced == 0) {
-                // Exception was unrelated to hijacked directories, throw it
-                throw exceptions.get(0);
-            } else {
-                // We forced some hijacked directory removal, relaunch update
-                getLauncher().getListener().getLogger().println("Relaunching update after removal of hijacked directories");
-                update(viewPath, loadRules);
-            }
+        }
+        if (nbRemovedDirectories == 0) {
+            // Exception was unrelated to hijacked directories, throw it
+            throw exceptions.get(0);
+        } else {
+            // We forced some hijacked directory removal, relaunch update
+            logger.println("Relaunching update after removal of hijacked directories");
+            update(viewPath, null);
         }
     }
 }
