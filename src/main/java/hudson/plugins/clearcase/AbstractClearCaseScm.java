@@ -135,6 +135,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private String excludedRegions;
     private boolean extractLoadRules;
     private String loadRules;
+    // TODO: anb0s: activate later
     //private boolean useRecurseForChangelog;
     //private boolean useRecurseForPolling;
     private boolean useOtherLoadRulesForPolling;    
@@ -656,9 +657,8 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
             SCMRevisionState baseline) throws IOException, InterruptedException {
 
-    	PrintStream logger = launcher.getListener().getLogger();
+    	PrintStream logger = listener.getLogger();
 
-    	/*
     	// [--> anb0s: HUDSON-8678]    	
     	// check if build is running
         if (project.isBuilding()) { 
@@ -666,7 +666,6 @@ public abstract class AbstractClearCaseScm extends SCM {
         	return PollingResult.NO_CHANGES;
         }
         // [<-- anb0s: HUDSON-8678]
-        */
 
         // check if first build
         if (isFirstBuild(baseline)) {
@@ -701,18 +700,22 @@ public abstract class AbstractClearCaseScm extends SCM {
             // path names to check (= load rules)
             // first get load rules from last baseline (polling)
         	String[] pathNames = ccBaseline.getLoadRules();
+        	//logger.println("load rules from last baseline: " + pathNames.toString());
         	// if load rules are atomatically extracted or other rules are used or load rules from last baseline are empty -> use from load rules field or from other rules
-        	if (extractLoadRules || useOtherLoadRulesForPolling || pathNames == null || pathNames.length == 0)
+        	if (extractLoadRules || useOtherLoadRulesForPolling || pathNames == null || pathNames.length == 0) {
         		pathNames = getViewPaths(variableResolver, build, launcher, true);
+        		//logger.println("load rules from config: " + pathNames.toString());
+        	}
         	if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewName, branchNames, pathNames)) {
         		change = Change.SIGNIFICANT;
         	} //else {
         	//	change = Change.NONE;
         	//}
-        } //else {
+        } else {
             // Error when calculating the new baseline => Probably clearcase server error, not launching the build
-          //  change = Change.NONE;
-        //}
+        	logger.println("WARNING: cannot createHistoryAction!");
+            change = Change.NONE;
+        }
         return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), change);
     }
 
