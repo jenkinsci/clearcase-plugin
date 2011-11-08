@@ -103,7 +103,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     private boolean useTimeRule;
 
     @DataBoundConstructor
-    public ClearCaseSCM(String branch, String label, boolean extractConfigSpec, String configSpecFileName, boolean refreshConfigSpec, String refreshConfigSpecCommand, String configspec,
+    public ClearCaseSCM(String branch, String label, boolean extractConfigSpec, String configSpecFileName, boolean refreshConfigSpec, String refreshConfigSpecCommand, String configSpec,
     		String viewTag, boolean useupdate, boolean extractLoadRules, String loadRules, boolean useOtherLoadRulesForPolling, String loadRulesForPolling, boolean usedynamicview, String viewdrive,
             String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions,
             String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, String winDynStorageDir, String unixDynStorageDir, String viewPath, ChangeSetLevel changeset) {
@@ -116,7 +116,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         this.configSpecFileName = configSpecFileName;
         this.refreshConfigSpec = refreshConfigSpec;
         this.refreshConfigSpecCommand = refreshConfigSpecCommand;
-        this.configSpec = configspec;
+        this.configSpec = configSpec;
         this.doNotUpdateConfigSpec = doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
     }
@@ -225,6 +225,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return configSpec;
     }
 
+    public String setConfigSpec(String scpec) {
+        return configSpec = scpec;
+    }
+
     public boolean isDoNotUpdateConfigSpec() {
         return doNotUpdateConfigSpec;
     }
@@ -287,35 +291,46 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     @Override
     protected boolean hasNewConfigSpec(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
         boolean ret = false;
+    	Launcher launcher = cclauncher.getLauncher();
+        // get user configured config spec
+        ConfigSpec actualConfigSpec = new ConfigSpec(configSpec, launcher.isUnix());
+        // get real view config spec
+        ClearTool cleartool=createClearTool(variableResolver, cclauncher);
+        launcher.getListener().getLogger().println("*************************** get view CSPEC ***********************");
+        ConfigSpec viewConfigSpec = new ConfigSpec(cleartool.catcs(getViewName(variableResolver)), launcher.isUnix());
+        launcher.getListener().getLogger().println("******************************************************************");
+        // first check configured (expected or default) config spec with CATCS
+        boolean configuredCSEqualsCatcs = actualConfigSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules());
+        if (!configuredCSEqualsCatcs) {        	
+        	launcher.getListener().getLogger().println("WARNING: CSPEC configured != catcs (view)");
+        	ret = true;
+        }
         if (isExtractConfigSpec())
         {
-        	Launcher launcher = cclauncher.getLauncher();
         	// refresh if needed
         	doRefreshConfigSpec(variableResolver, launcher);
-        	String cs = null;
         	// get config spec from file
+        	String cs = null;
         	cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
         	if (cs != null) {
+        		// get new config spec
                 ConfigSpec fileConfigSpec = new ConfigSpec(cs, launcher.isUnix());
-                ConfigSpec actualConfigSpec = new ConfigSpec(configSpec, launcher.isUnix());
                 //loadRulesDelta = getLoadRulesDelta(fileConfigSpec.getLoadRules(), launcher);
-                //needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());
-                ret = !actualConfigSpec.stripLoadRules().equals(fileConfigSpec.stripLoadRules());
+                //needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());                
+                ret = !viewConfigSpec.stripLoadRules().equals(fileConfigSpec.stripLoadRules());
                 // Debug
+	            launcher.getListener().getLogger().println("INFO: CSPEC changed = " + ret);
                 if (ret)
                 {
-		            launcher.getListener().getLogger().println("*************************** D E B U G ****************************");
-		            launcher.getListener().getLogger().println("CSPEC changed = " + ret);
-		            String actualCS = actualConfigSpec.stripLoadRules().getRaw();          
+		            String viewCS = viewConfigSpec.stripLoadRules().getRaw();
 		            String fileCS = fileConfigSpec.stripLoadRules().getRaw();
-		            launcher.getListener().getLogger().println("*** ACTUAL CSPEC ***");
-		            launcher.getListener().getLogger().println(actualCS);
-		            launcher.getListener().getLogger().println("********************");
-		            launcher.getListener().getLogger().println("***  NEW  CSPEC  ***");
+		            launcher.getListener().getLogger().println("*** CATCS CSPEC ***");
+		            launcher.getListener().getLogger().println(viewCS);
+    	            launcher.getListener().getLogger().println("******************************************************************");
+		            launcher.getListener().getLogger().println("***  FILE CSPEC ***");
 		            launcher.getListener().getLogger().println(fileCS);
-		            launcher.getListener().getLogger().println("********************");
-		            launcher.getListener().getLogger().println("*************************** D E B U G ****************************");
-                }
+    	            launcher.getListener().getLogger().println("******************************************************************");
+                }                
         	} else {
         		launcher.getListener().getLogger().println("ERROR: extracted CSPEC is empty!");
         		ret = false;
