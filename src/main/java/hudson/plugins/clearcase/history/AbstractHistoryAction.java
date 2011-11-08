@@ -124,26 +124,6 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         return filterEntries(historyEntries);
     }
 
-    /* TODO: anb0s: CHECK: as replaced by two separate methods:
-     * needsLsHistoryForGetChanges
-     * needsLsHistoryForHasChanges
-    private boolean needsHistory(boolean forPolling, String viewTag, String[] loadRules) throws IOException, InterruptedException {
-    	// if for polling -> we need history
-    	if (forPolling)
-    		return true;
-    	// if for checkout, check if enabled
-    	if (ChangeSetLevel.BRANCH.equals(changeset) || ChangeSetLevel.ALL.equals(changeset)) 
-    		return true;
-    	// TODO: why this?
-    	// if view not exist we should not execute history!
-    	// if load rules are empty we should not execute history
-    	return !ChangeSetLevel.NONE.equals(changeset)
-    	       || !cleartool.doesViewExist(viewTag)
-               || ArrayUtils.isEmpty(loadRules);
-    	//return false;    	
-    }
-	*/
-
     private String[] normalizeBranches(String[] branchNames) {
         if (ArrayUtils.isEmpty(branchNames)) {
             // If no branch was specified lshistory should be called
@@ -218,22 +198,23 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         return historyEntries;
     }
 
-    private boolean needsLsHistoryForGetChanges(String viewTag, String[] loadRules) throws IOException,
+    protected boolean needsLsHistoryForGetChanges(String viewTag, String[] loadRules) throws IOException,
             InterruptedException {
-        		// check if right changeset level is enabled
-        return 	((changeset == null) || ChangeSetLevel.BRANCH.equals(changeset) || ChangeSetLevel.ALL.equals(changeset)) &&
+        		// check if right changeset level is enabled (all changesets except NONE needs LsHistory call)
+    			// it is also true if runLsHistory will call another method, e.g. not lshistory, but parse update files
+    			// or call other cleartool method to get the history!
+        return 	!ChangeSetLevel.NONE.equals(changeset) &&
         		// if view not exist we should not execute history!
                 cleartool.doesViewExist(viewTag) &&
                 // if load rules are empty we should not execute history    	
                 !ArrayUtils.isEmpty(loadRules);
     }
 
-    private boolean needsLsHistoryForHasChanges(String viewTag, String[] loadRules) throws IOException,
-            InterruptedException {
-		// if view not exist we should not execute history!
-        return cleartool.doesViewExist(viewTag) &&
-        // if load rules are empty we should not execute history
-        !ArrayUtils.isEmpty(loadRules);        
+    private boolean needsLsHistoryForHasChanges(String viewTag, String[] loadRules) throws IOException, InterruptedException {
+				// if view not exist we should not execute history!
+        return	cleartool.doesViewExist(viewTag) &&
+        		// if load rules are empty we should not execute history
+        		!ArrayUtils.isEmpty(loadRules);        
     }
 
     private void prepareViewForHistory(String viewTag) throws IOException, InterruptedException {

@@ -89,7 +89,7 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
             }
         }
         updtFileName = cleartool.getUpdtFileName();
-        launcher.getListener().getLogger().println("INFO: updt file name: '" + updtFileName + "'");
+        launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFileName + "'");
         return true;
     }
 

@@ -280,11 +280,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     	// verify
     	PrintStream logger = launcher.getListener().getLogger();
     	if (configSpec == null || configSpec.length() == 0) {
-    		logger.println("WARNING: config spec is empty!");
+    		logger.println("[WARNING] config spec is empty!");
     	}
     	String loadRules = getLoadRules();
     	if (loadRules == null || loadRules.length() == 0) {
-    		logger.println("WARNING: load rules are empty!");
+    		logger.println("[WARNING] load rules are empty!");
     	}
     }
 
@@ -302,7 +302,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         // first check configured (expected or default) config spec with CATCS
         boolean configuredCSEqualsCatcs = actualConfigSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules());
         if (!configuredCSEqualsCatcs) {        	
-        	launcher.getListener().getLogger().println("WARNING: CSPEC configured != catcs (view)");
+        	launcher.getListener().getLogger().println("[WARNING] CSPEC configured != catcs (view)");
         	ret = true;
         }
         if (isExtractConfigSpec())
@@ -319,7 +319,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                 //needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());                
                 ret = !viewConfigSpec.stripLoadRules().equals(fileConfigSpec.stripLoadRules());
                 // Debug
-	            launcher.getListener().getLogger().println("INFO: CSPEC changed = " + ret);
+	            launcher.getListener().getLogger().println("[INFO] CSPEC changed = " + ret);
                 if (ret)
                 {
 		            String viewCS = viewConfigSpec.stripLoadRules().getRaw();

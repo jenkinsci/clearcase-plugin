@@ -586,6 +586,9 @@ public abstract class AbstractClearCaseScm extends SCM {
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException,
             InterruptedException {        
     	boolean returnValue = true;
+    	
+    	PrintStream logger = listener.getLogger();
+    	
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
@@ -618,7 +621,11 @@ public abstract class AbstractClearCaseScm extends SCM {
             	}                
             }
         }
-        if (computeChangeLogBeforeCheckout) {            
+
+       	logger.println("[INFO] computeChangeLogBeforeCheckout = " + computeChangeLogBeforeCheckout);
+       	logger.println("[INFO] computeChangeLogAfterCheckout  = " + computeChangeLogAfterCheckout);
+
+        if (computeChangeLogBeforeCheckout) {
             returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
                     coNormalizedViewName, returnValue);        	
         }
@@ -659,7 +666,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     	PrintStream logger = listener.getLogger();
 
-    	// [--> anb0s: HUDSON-8678]    	
+    	// [--> anb0s: HUDSON-8678]
     	// check if build is running
         if (project.isBuilding()) { 
         	logger.println("REASON: Build is running.");
@@ -713,7 +720,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         	//}
         } else {
             // Error when calculating the new baseline => Probably clearcase server error, not launching the build
-        	logger.println("WARNING: cannot createHistoryAction!");
+        	logger.println("[WARNING] cannot createHistoryAction!");
             change = Change.NONE;
         }
         return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), change);

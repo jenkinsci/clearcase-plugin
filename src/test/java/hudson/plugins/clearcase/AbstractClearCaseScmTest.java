@@ -320,6 +320,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testFirstBuild() throws Exception {
 
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(taskListener.getLogger()).thenReturn(System.out);
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
@@ -351,6 +352,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         when(checkOutAction.isViewValid(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(taskListener.getLogger()).thenReturn(System.out);
         when(historyAction.getChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }), eq(new String[] { "vob" })))
                 .thenReturn(list);
         when(build.getBuiltOn()).thenReturn(node);
@@ -394,6 +396,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         when(checkOutAction.isViewValid(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(taskListener.getLogger()).thenReturn(System.out);
 
         when(historyAction.getChanges(eq(bufferedDate), eq("viewpath"), eq("viewname"), eq(new String[] { "branch" }), eq(new String[] { "vob" }))).thenReturn(
                 list);
@@ -426,6 +429,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         when(checkOutAction.isViewValid(launcher, workspace, "viewname-CCHudson-test-node")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname-CCHudson-test-node")).thenReturn(Boolean.TRUE);
+        when(taskListener.getLogger()).thenReturn(System.out);
         when(
                 historyAction.getChanges(any(Date.class), eq("viewname-CCHudson-test-node"), eq("viewname-CCHudson-test-node"), any(String[].class),
                         any(String[].class))).thenReturn(new ArrayList<ChangeLogSet.Entry>());
@@ -458,6 +462,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         when(checkOutAction.isViewValid(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(taskListener.getLogger()).thenReturn(System.out);
 
         when(historyAction.getChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }), eq(new String[] { "vob" })))
                 .thenReturn(null);
@@ -494,6 +499,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         mockedCalendar.setTimeInMillis(100000);
         when(checkOutAction.isViewValid(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(taskListener.getLogger()).thenReturn(System.out);
 
         when(
                 historyAction.getChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branchone", "branchtwo" }),
