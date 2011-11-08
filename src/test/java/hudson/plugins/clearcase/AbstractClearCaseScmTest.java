@@ -53,8 +53,10 @@ import hudson.scm.SCMRevisionState;
 import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -87,8 +89,11 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     @Mock
     private Computer                          computer;
 
-    private Node                              node;
+    @Mock
+    private TaskListener                      listener;
 
+    private Node                              node;
+    
     @Mock
     private CheckOutAction                    checkOutAction;
     @Mock
@@ -520,11 +525,10 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testPollChanges() throws Exception {
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.setTimeInMillis(400000);
+        when(taskListener.getLogger()).thenReturn(System.out);
         when(build.getTimestamp()).thenReturn(mockedCalendar);
         when(build.getParent()).thenReturn(project);
         when(node.getNodeName()).thenReturn("test-node");
-
-            	ignoring(launcher).getListener();
         AbstractClearCaseScmDummy scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         scm.setFirstBuild(true);
         PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, null);
@@ -538,10 +542,9 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.setTimeInMillis(1000000);
         final Date bufferedDate = new Date(mockedCalendar.getTimeInMillis() - (1000 * 60 * 5));
+        when(taskListener.getLogger()).thenReturn(System.out);        
         when(build.getTimestamp()).thenReturn(mockedCalendar);
         when(build.getParent()).thenReturn(project);
-
-            	ignoring(launcher).getListener();
         AbstractClearCaseScmDummy scm = new AbstractClearCaseScmDummy("viewname", "", false, false, false, "", false, "", "vob", "5", false, "viewpath");
         scm.setFirstBuild(true);
         PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, null);
@@ -553,6 +556,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         createWorkspace();
         when(historyAction.hasChanges(any(Date.class), eq("view-MatrixProject_CCHudson-test-node"), eq("view-MatrixProject_CCHudson-test-node"), any(String[].class), any(String[].class)))
                 .thenReturn(Boolean.TRUE);
+        when(taskListener.getLogger()).thenReturn(System.out);        
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
@@ -565,8 +569,6 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
         when(scmRevisionState.getBuildTime()).thenReturn(new Date());
         when(scmRevisionState.getLoadRules()).thenReturn(new String[] {});
-
-            	ignoring(launcher).getListener();
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view-${JOB_NAME}-${NODE_NAME}", "vob", "");
         scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
         verify(historyAction).hasChanges(any(Date.class), eq("view-MatrixProject_CCHudson-test-node"), eq("view-MatrixProject_CCHudson-test-node"), any(String[].class),
@@ -576,8 +578,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     @Test
     public void testPollChangesFirstTime() throws Exception {
         when(project.getSomeBuildWithWorkspace()).thenReturn(null);
-            	ignoring(launcher).getListener();
-
+        when(taskListener.getLogger()).thenReturn(System.out);        
         AbstractClearCaseScmDummy scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, null);
         assertEquals("The first time should always have a significant change", PollingResult.BUILD_NOW, pr);
@@ -590,8 +591,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         mockedCalendar.setTimeInMillis(400000);
         when(historyAction.hasChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }), any(String[].class)))
                 .thenReturn(Boolean.FALSE);
-        // TODO: anb0s: 
-        //when(launcher.getListener()).thenReturn();
+        when(taskListener.getLogger()).thenReturn(System.out);        
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
@@ -622,12 +622,10 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         list.add(new String[] { "A" });
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.setTimeInMillis(400000);
-
+        when(taskListener.getLogger()).thenReturn(System.out);        
         when(
                 historyAction.hasChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branchone", "branchtwo" }),
                         eq(new String[] { "vob" }))).thenReturn(Boolean.TRUE);
-        // TODO: anb0s: 
-        //ignoring(launcher).getListener();                        
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
@@ -652,11 +650,10 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     @Test
     public void testPollChangesMultipleVobPaths() throws Exception {
         final Calendar mockedCalendar = Calendar.getInstance();
+        when(taskListener.getLogger()).thenReturn(System.out);        
         when(
                 historyAction.hasChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }), eq(new String[] { "vob1",
                         "vob2/vob2-1", "vob\\ 3" }))).thenReturn(Boolean.TRUE);
-        // TODO: anb0s: 
-       	ignoring(launcher).getListener();                        
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
@@ -681,10 +678,9 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testPollChangesNoBranch() throws Exception {
         branchArray = new String[] { "" };
         final Calendar mockedCalendar = Calendar.getInstance();
+        when(taskListener.getLogger()).thenReturn(System.out);        
         when(historyAction.hasChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "" }), (String[]) isNull())).thenReturn(
                 Boolean.FALSE);
-        // TODO: anb0s:
-        // ignoring(launcher).getListener();                
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
@@ -708,9 +704,9 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     public void testPollChangesWithMatrixProject() throws Exception {
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.setTimeInMillis(400000);
+        when(taskListener.getLogger()).thenReturn(System.out);       
         when(historyAction.hasChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }), (String[]) isNull()))
                 .thenReturn(Boolean.TRUE);
-            	ignoring(launcher).getListener();
 
         MatrixBuild matrixBuild = mock(MatrixBuild.class);
         MatrixProject matrixProject = PowerMockito.mock(MatrixProject.class);
@@ -739,7 +735,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         // Must initiate a pollChanges() or checkout() to update the normalizedViewName
         createWorkspace();
         final Calendar mockedCalendar = Calendar.getInstance();
-            	ignoring(launcher).getListener();
+        when(taskListener.getLogger()).thenReturn(System.out);        
 
         when(historyAction.hasChanges(any(Date.class), anyString(), anyString(), any(String[].class), any(String[].class))).thenReturn(Boolean.TRUE);
 
@@ -772,9 +768,9 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         // Must initiate a pollChanges() or checkout() to update the normalizedViewName
         createWorkspace();
         final Calendar mockedCalendar = Calendar.getInstance();
+        when(taskListener.getLogger()).thenReturn(System.out);        
         when(historyAction.hasChanges(any(Date.class), anyString(), anyString(), any(String[].class), any(String[].class))).thenReturn(Boolean.TRUE);
-            	ignoring(launcher).getListener();
-        
+                        
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
