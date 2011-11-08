@@ -116,12 +116,12 @@ public class BaseHistoryAction extends AbstractHistoryAction {
     }
 
     @Override
-    protected List<HistoryEntry> runLsHistory(boolean forPolling, Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    protected List<HistoryEntry> runLsHistory(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
     	List<HistoryEntry> entries = null;
-    	if (!forPolling && ChangeSetLevel.UPDT.equals(getChangeset()) && fixEmpty(getUpdtFileName()) != null) {
+    	if (ChangeSetLevel.UPDT.equals(getChangeset()) && fixEmpty(getUpdtFileName()) != null) {
     		entries = parseUpdt(getUpdtFileName(), viewPath);
     	} else {
-    		entries = super.runLsHistory(forPolling, time, viewPath, viewTag, branchNames, viewPaths);
+    		entries = super.runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
     	}
     	return entries;
     }
@@ -140,7 +140,7 @@ public class BaseHistoryAction extends AbstractHistoryAction {
         }
         for (UpdtEntry entry : updtEntries) {
         	try {
-	            BufferedReader reader = new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, viewPath, entry.getObjectSelectorNewVersion()));
+	            BufferedReader reader = new BufferedReader(cleartool.describe(getLsHistoryFormat(), viewPath, entry.getObjectSelectorNewVersion()));
 	            try {
 	            	parseLsHistory(reader, history);
 	            } catch (ParseException e) {

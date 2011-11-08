@@ -87,8 +87,6 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     @Override
     public List<Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames,
             String[] viewPaths) throws IOException, InterruptedException {
-        // TODO: anb0s: 1st parameter "false" pass to runAndFilterLsHistory
-    	//List<HistoryEntry> entries = runLsHistory(false, time, viewPath, viewTag, branchNames, viewPaths);
         List<Entry> changelog;
         if (needsLsHistoryForGetChanges(viewTag, viewPaths)) {
             List<HistoryEntry> historyEntries = runAndFilterLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
@@ -112,8 +110,6 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     @Override
     public boolean hasChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths)
             throws IOException, InterruptedException {
-        // TODO: anb0s: 1st paremeter true pass to runAndFilterLsHistory
-        //List<HistoryEntry> entries = runLsHistory(true, time, viewPath, viewTag, branchNames, viewPaths);
         if (needsLsHistoryForHasChanges(viewTag, viewPaths)) {
             List<HistoryEntry> historyEntries = runAndFilterLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
             return historyEntries.size() > 0;
@@ -126,8 +122,11 @@ public abstract class AbstractHistoryAction implements HistoryAction {
             String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> historyEntries = runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
         return filterEntries(historyEntries);
+    }
 
-    /* TODO: anb0s: was replaced by two separate methods
+    /* TODO: anb0s: CHECK: as replaced by two separate methods:
+     * needsLsHistoryForGetChanges
+     * needsLsHistoryForHasChanges
     private boolean needsHistory(boolean forPolling, String viewTag, String[] loadRules) throws IOException, InterruptedException {
     	// if for polling -> we need history
     	if (forPolling)
@@ -143,6 +142,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
                || ArrayUtils.isEmpty(loadRules);
     	//return false;    	
     }
+	*/
 
     private String[] normalizeBranches(String[] branchNames) {
         if (ArrayUtils.isEmpty(branchNames)) {
@@ -179,10 +179,6 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         return line.startsWith("cleartool: Error:");
     }
 
-    /* TODO: anb0s: 
-    protected List<HistoryEntry> runLsHistory(boolean forPolling, Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
-    */ 
-
     private boolean startOfLsHistoryEntry(Matcher matcher) {
         return matcher != null;
     }
@@ -213,9 +209,6 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         Validate.notNull(viewPath);
         List<HistoryEntry> historyEntries;
         
-        // TODO: anb0s: 
-        //if (needsHistory(forPolling, viewTag, viewPaths)) {
-        
         prepareViewForHistory(viewTag);
         try {
             historyEntries = retrieveHistoryEntries(time, viewPath, branchNames, viewPaths);
@@ -227,13 +220,20 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
     private boolean needsLsHistoryForGetChanges(String viewTag, String[] loadRules) throws IOException,
             InterruptedException {
-        return !ChangeSetLevel.NONE.equals(changeset) && cleartool.doesViewExist(viewTag)
-                && !ArrayUtils.isEmpty(loadRules);
+        		// check if right changeset level is enabled
+        return 	((changeset == null) || ChangeSetLevel.BRANCH.equals(changeset) || ChangeSetLevel.ALL.equals(changeset)) &&
+        		// if view not exist we should not execute history!
+                cleartool.doesViewExist(viewTag) &&
+                // if load rules are empty we should not execute history    	
+                !ArrayUtils.isEmpty(loadRules);
     }
 
     private boolean needsLsHistoryForHasChanges(String viewTag, String[] loadRules) throws IOException,
             InterruptedException {
-        return cleartool.doesViewExist(viewTag) && !ArrayUtils.isEmpty(loadRules);
+		// if view not exist we should not execute history!
+        return cleartool.doesViewExist(viewTag) &&
+        // if load rules are empty we should not execute history
+        !ArrayUtils.isEmpty(loadRules);        
     }
 
     private void prepareViewForHistory(String viewTag) throws IOException, InterruptedException {
@@ -246,8 +246,6 @@ public abstract class AbstractHistoryAction implements HistoryAction {
             String[] viewPaths) throws IOException, InterruptedException, ParseException {
         List<HistoryEntry> historyEntries = new ArrayList<HistoryEntry>();
         for (String branchName : normalizeBranches(branchNames)) {
-            //TODO: anb0s: 
-            //BufferedReader reader = new BufferedReader(cleartool.lshistory(getHistoryFormatHandler().getFormat() + COMMENT + LINEEND, time, viewPath, branchName, viewPaths, (filter != null) && (filter.requiresMinorEvents()), useRecurse));
             BufferedReader bufferedReader = getLsHistoryBufferedReader(time, viewPath, viewPaths, branchName);
             parseLsHistory(bufferedReader, historyEntries);
             bufferedReader.close();
@@ -262,10 +260,10 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
     private Reader getLsHistoryReader(Date time, String viewPath, String[] viewPaths, String branchName)
             throws IOException, InterruptedException {
-        return cleartool.lshistory(getLsHistoryFormat(), time, viewPath, branchName, viewPaths, needMinorEvents());
+        return cleartool.lshistory(getLsHistoryFormat(), time, viewPath, branchName, viewPaths, needMinorEvents(), useRecurse);
     }
 
-    private String getLsHistoryFormat() {
+    public String getLsHistoryFormat() {
         return MessageFormat.format("{0}{1}{2}", getHistoryFormatHandler().getFormat(), COMMENT, LINEEND);
     }
 
