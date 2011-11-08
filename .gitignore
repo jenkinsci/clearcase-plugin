@@ -4,5 +4,4 @@ work
 .classpath
 .project
 .settings
-mvn.bat
-mvn_cmd.bat
+mvn*.bat
