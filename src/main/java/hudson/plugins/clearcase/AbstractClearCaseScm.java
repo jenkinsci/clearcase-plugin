@@ -94,7 +94,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 		 * Changeset will be generated based on changes done in current branch, and changes due to rebase
 		 */
 		ALL("all");
-		
+
 		private String name;
 		private ChangeSetLevel(String name) {
 			this.name = name;
@@ -107,10 +107,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 			}
 			return ChangeSetLevel.defaultLevel();
 		}
-		
+
 		public String getName() {
 		    return name;
-		} 
+		}
 		public static ChangeSetLevel defaultLevel() {
 			return ChangeSetLevel.BRANCH;
 		}
@@ -159,7 +159,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         return this.normalizedViewName;
     }
-    
+
     private synchronized ThreadLocal<String> getNormalizedViewPathThreadLocalWrapper() {
         if (normalizedViewPath == null) {
             normalizedViewPath = new ThreadLocal<String>();
@@ -174,7 +174,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected String getNormalizedViewName() {
         return getNormalizedViewNameThreadLocalWrapper().get();
     }
-    
+
     protected void setNormalizedViewPath(String normalizedViewPath) {
         getNormalizedViewPathThreadLocalWrapper().set(normalizedViewPath);
     }
@@ -182,7 +182,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected String getNormalizedViewPath() {
         return getNormalizedViewPathThreadLocalWrapper().get();
     }
-    
+
 
     public AbstractClearCaseScm(final String viewName, final String mkviewOptionalParam, final boolean filterOutDestroySubBranchEvent, final boolean useUpdate,
             final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, final String loadRules,
@@ -217,29 +217,29 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     /**
      * Create a CheckOutAction that will be used by the checkout method.
-     * 
+     *
      * @param launcher the command line launcher
      * @return an action that can check out code from a ClearCase repository.
-     * @throws InterruptedException 
-     * @throws IOException 
+     * @throws InterruptedException
+     * @throws IOException
      */
     protected abstract CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
     /**
      * Create a HistoryAction that will be used by the pollChanges() and checkout() method.
-     * 
+     *
      * @param variableResolver
      * @param useDynamicView
      * @param launcher the command line launcher
      * @return an action that can poll if there are any changes a ClearCase repository. Never null.
-     * @throws InterruptedException 
-     * @throws IOException 
+     * @throws InterruptedException
+     * @throws IOException
      */
     protected abstract HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
     /**
      * Create a SaveChangeLog action that is used to save a change log
-     * 
+     *
      * @param launcher the command line launcher
      * @return an action that can save a change log to the Hudson changlog file
      */
@@ -247,7 +247,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     /**
      * Return string array containing the branch names that should be used when polling for changes.
-     * 
+     *
      * @return a string array, can not be empty
      * @deprecated use {@link #getBranchNames(VariableResolver)} instead
      */
@@ -255,10 +255,10 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String[] getBranchNames(){
         return getBranchNames(new VariableResolver.ByMap<String>(new HashMap<String, String>()));
     }
-    
+
     /**
      * Return string array containing the branch names that should be used when polling for changes.
-     * 
+     *
      * @return a string array, can not be empty
      */
     public abstract String[] getBranchNames(VariableResolver<String> variableResolver);
@@ -269,11 +269,11 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @param build TODO
      * @param launcher TODO
      * @return string array that will be used by the lshistory command and for constructing the config spec, etc.
-     * @throws InterruptedException 
-     * @throws IOException 
+     * @throws InterruptedException
+     * @throws IOException
      */
     public String[] getViewPaths(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
-        String loadRules = getLoadRules();
+        String loadRules = getLoadRules(variableResolver);
         if (StringUtils.isBlank(loadRules)) {
             return null;
         }
@@ -314,6 +314,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     public String getLoadRules() {
         return loadRules;
+    }
+
+    public String getLoadRules(VariableResolver<String> variableResolver) {
+        return Util.replaceMacro(loadRules, variableResolver);
     }
 
     public boolean isCreateDynView() {
@@ -362,7 +366,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String getViewName() {
         return viewName;
     }
-    
+
     public String getViewName(VariableResolver<String> variableResolver) {
         String normalized = null;
         String v = getViewName();
@@ -417,7 +421,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * </ul>
      * This way it will be easier to add new jobs without trying to find an unique view name. It will also replace
      * invalid chars from a view name.
-     * 
+     *
      * @param build the project to get the name from
      * @return a string containing no invalid chars.
      */
@@ -442,7 +446,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     /**
      * Returns the user configured optional params that will be used in when creating a new view.
-     * 
+     *
      * @return string containing optional mkview parameters.
      */
     public String getMkviewOptionalParam() {
@@ -458,7 +462,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * <p>
      * "Usually, CC admins have a CC trigger, fires on an uncheckout event, that destroys empty branches."
      * </p>
-     * 
+     *
      * @return true if the "Destroyed branch" event should be filtered out or not; false otherwise
      */
     public boolean isFilteringOutDestroySubBranchEvent() {
@@ -501,15 +505,15 @@ public abstract class AbstractClearCaseScm extends SCM {
             InterruptedException {
         // Calculate revision state from the beginning, it will enable to reuse load rules
         build.addAction(calcRevisionsFromBuild(build, launcher, listener));
-        
+
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
         CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
-        
+
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
-        
+
         // Checkout code
         String coNormalizedViewName = getViewName(variableResolver);
 
@@ -563,12 +567,12 @@ public abstract class AbstractClearCaseScm extends SCM {
             return PollingResult.BUILD_NOW;
         }
         AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;
-        
+
         AbstractBuild<?, ?> build = project.getSomeBuildWithWorkspace();
         if (build == null) {
             return PollingResult.BUILD_NOW;
         }
-        
+
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(listener, workspace, launcher), build);
         Change change;
@@ -583,11 +587,11 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), change);
     }
-    
+
     protected abstract boolean isFirstBuild(SCMRevisionState baseline);
-    
+
     public abstract SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException;
-    
+
     protected Date getBuildTime(Run<?, ?> lastBuild) {
         Date buildTime = lastBuild.getTimestamp().getTime();
         if (getMultiSitePollBuffer() != 0) {
@@ -599,7 +603,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     /**
      * Creates a Hudson clear tool launcher.
-     * 
+     *
      * @param listener listener to write command output to
      * @param workspace the workspace for the job
      * @param launcher actual launcher to launch commands with
@@ -678,7 +682,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                 }
             }
         }
-        
+
         String filterRegexp = "";
         String[] viewPaths = getViewPaths(variableResolver, build, launcher);
         if (viewPaths != null) {
@@ -710,7 +714,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                     tempFilterRules += "|" + Pattern.quote(loadRule) + "$";
                 }
             }
-    
+
             // Adding tweak for ignoring leading slashes or Windows drives in case of strange situations using setview.
             if (StringUtils.isNotEmpty(tempFilterRules)) {
                 filterRegexp = tempFilterRules.substring(1);
@@ -722,7 +726,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String getViewPath() {
         return StringUtils.defaultString(viewPath, viewName);
     }
-    
+
     public String getViewPath(VariableResolver<String> variableResolver) {
         String normalized = null;
         String viewPath = StringUtils.defaultIfEmpty(getViewPath(), getViewName());
@@ -732,12 +736,12 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         return normalized;
     }
-    
+
 
     public ChangeSetLevel getChangeset() {
         return changeset;
     }
-    
+
     protected void setChangeset(ChangeSetLevel changeset) {
         this.changeset = changeset;
     }
