@@ -28,6 +28,9 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ConfigSpec;
+import hudson.plugins.clearcase.MkViewParameters;
+import hudson.plugins.clearcase.ViewType;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -42,7 +45,7 @@ import org.apache.commons.lang.Validate;
  * Check out action that will check out files into a snapshot view.
  */
 public abstract class AbstractCheckoutAction implements CheckOutAction {
-    
+
 
     public static class LoadRulesDelta {
         private final Set<String> removed;
@@ -67,13 +70,15 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
     protected final String[] loadRules;
     protected final boolean useUpdate;
     protected final String viewPath;
-    
-    public AbstractCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate, String viewPath) {
+    protected final ViewStorage viewStorage;
+
+    public AbstractCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
         Validate.notNull(cleartool);
         this.cleartool = cleartool;
         this.loadRules = loadRules;
         this.useUpdate = useUpdate;
         this.viewPath = viewPath;
+        this.viewStorage = viewStorage;
     }
 
     @Override
@@ -124,11 +129,17 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
             }
         }
         if (doViewCreation) {
-            cleartool.mkview(viewPath, viewTag, streamSelector);
+            MkViewParameters params = new MkViewParameters();
+            params.setType(ViewType.Snapshot);
+            params.setViewPath(viewPath);
+            params.setViewTag(viewTag);
+            params.setStreamSelector(streamSelector);
+            params.setViewStorage(viewStorage);
+            cleartool.mkview(params);
         }
         return doViewCreation;
     }
-    
+
     private void rmviewtag(String viewTag) throws InterruptedException, IOException{
         try {
             cleartool.rmviewtag(viewTag);

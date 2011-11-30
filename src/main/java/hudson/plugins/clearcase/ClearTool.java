@@ -67,6 +67,19 @@ public interface ClearTool {
     Reader describe(String format, String objectSelector) throws IOException, InterruptedException;
 
     /**
+     * Call the cleartool describe with the provided format on the specified object selectors
+     * See http://www.ipnom.com/ClearCase-Commands/describe.html for valid options
+     * 
+     * @param format
+     * @param objectSelectors
+     * @return A reader to the command output
+     * @throws IOException If cleartool throws an error code
+     * @throws InterruptedException If the process is interrupted
+     * @since 1.3
+     */
+    Reader describe(String format, String[] objectSelectors) throws IOException, InterruptedException;
+
+    /**
      * Call diffbl using the two provided baselines (can be stream or baseline)
      * 
      * @param options see http://www.ipnom.com/ClearCase-Commands/diffbl.html
@@ -271,6 +284,8 @@ public interface ClearTool {
      * @param launcher launcher for launching the command
      */
     void mkview(String viewPath, String viewTag, String streamSelector, String defaultStorageDir) throws IOException, InterruptedException;
+    
+    void mkview(MkViewParameters params) throws IOException, InterruptedException;
 
     /**
      * Mounts all VOBs.

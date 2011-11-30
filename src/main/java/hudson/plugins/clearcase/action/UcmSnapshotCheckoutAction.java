@@ -29,6 +29,7 @@ import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ConfigSpec;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
 
@@ -37,8 +38,8 @@ import org.apache.commons.lang.ArrayUtils;
 public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
 
     private final String streamSelector;
-    public UcmSnapshotCheckoutAction(ClearTool cleartool, String streamSelector, String[] loadRules, boolean useUpdate, String viewPath) {
-        super(cleartool, loadRules, useUpdate, viewPath);
+    public UcmSnapshotCheckoutAction(ClearTool cleartool, String streamSelector, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
+        super(cleartool, loadRules, useUpdate, viewPath, viewStorage);
         this.streamSelector = streamSelector;
     }
 

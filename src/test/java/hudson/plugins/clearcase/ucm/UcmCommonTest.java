@@ -28,7 +28,8 @@ public class UcmCommonTest extends AbstractWorkspaceTest {
 
     @Test
     public void testGenerateLoadRulesFromBaselinesOneBaseline() throws Exception {
-        when(cleartool.describe("%[root_dir]p\\n", "component:comp1@\\pvob")).thenReturn(new StringReader("/vob/comp1"));
+        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob"}))).
+	    thenReturn(new StringReader("/vob/comp1"));
         when(cleartool.getLauncher()).thenReturn(launcher);
         when(launcher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);
@@ -38,12 +39,12 @@ public class UcmCommonTest extends AbstractWorkspaceTest {
         String[] loadRules = UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", baselines);
         assertTrue(loadRules.length == 1);
         assertEquals("vob/comp1", loadRules[0]);
-        verify(cleartool).describe("%[root_dir]p\\n", "component:comp1@\\pvob");
+        verify(cleartool).describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob"}));
     }
 
     @Test
     public void testGenerateLoadRulesFromBaselinesMultiBaseline() throws Exception {
-        when(cleartool.describe("%[root_dir]p\\n", "component:comp1@\\pvob component:comp2@\\otherpvob")).thenReturn(
+        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob", "component:comp2@\\otherpvob"}))).thenReturn(
                 new StringReader("/vob/comp1\n/othervob/comp2"));
         when(cleartool.getLauncher()).thenReturn(launcher);
         when(launcher.getListener()).thenReturn(listener);
@@ -57,6 +58,6 @@ public class UcmCommonTest extends AbstractWorkspaceTest {
         assertTrue(loadRules.length == 2);
         assertEquals("vob/comp1", loadRules[0]);
         assertEquals("othervob/comp2", loadRules[1]);
-        verify(cleartool).describe("%[root_dir]p\\n", "component:comp1@\\pvob component:comp2@\\otherpvob");
+        verify(cleartool).describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob", "component:comp2@\\otherpvob"}));
     }
 }
