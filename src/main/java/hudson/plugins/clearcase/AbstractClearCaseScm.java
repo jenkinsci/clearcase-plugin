@@ -549,6 +549,9 @@ public abstract class AbstractClearCaseScm extends SCM {
         @SuppressWarnings("unchecked") Run prevBuild = build.getPreviousBuild();
         Date lastBuildTime = getBuildTime(prevBuild);
         HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build);
+        if (historyAction == null) {
+            throw new IOException("Unexpected error when creating historyAction");
+        }
         changelogEntries = historyAction.getChanges(lastBuildTime, getViewPath(variableResolver), coNormalizedViewName, getBranchNames(variableResolver), getViewPaths(variableResolver, build, launcher));
         // Save change log
         if (CollectionUtils.isEmpty(changelogEntries)) {
