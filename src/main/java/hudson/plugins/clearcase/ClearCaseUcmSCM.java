@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,6 +74,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     private static final String STREAM_PREFIX = "stream:";
 
     private final static String AUTO_ALLOCATE_VIEW_NAME = "${STREAM}_${JOB_NAME}_bs_hudson_view";
+    
+    private final static Logger LOGGER = Logger.getLogger(ClearCaseUcmSCM.class.getName());
 
     private final String stream;
     private final String overrideBranchName;
@@ -218,9 +221,18 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         ClearCaseUCMSCMRevisionState oldBaseline = null;
         ClearCaseUCMSCMRevisionState newBaseline = null;
         if (build != null) {
-            AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
-            if (previousBuild != null) {
-                oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
+            try {
+                AbstractBuild<?, ?> previousBuild = (AbstractBuild<?, ?>) build.getPreviousBuild();
+                if (previousBuild != null) {
+                    oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
+                }
+                newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "IOException when calculating revisions'", e);
+                return null;
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
+                return null;
             }
             newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
         }
