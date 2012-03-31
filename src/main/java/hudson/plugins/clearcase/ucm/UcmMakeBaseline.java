@@ -302,7 +302,7 @@ public class UcmMakeBaseline extends Notifier {
                     }
                 }
                 if (this.recommend) {
-                    recommendBaseline(clearTool, ucm.getStream());
+                    recommendBaseline(clearTool, ucm.getStream(variableResolver));
                 }
 
                 // Rebase a dynamic view
