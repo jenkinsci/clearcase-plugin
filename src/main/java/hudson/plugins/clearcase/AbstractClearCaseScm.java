@@ -563,10 +563,14 @@ public abstract class AbstractClearCaseScm extends SCM {
     @Override
     protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
             SCMRevisionState baseline) throws IOException, InterruptedException {
+        AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;
+        if (project.isBuilding() && !project.isConcurrentBuild()) { 
+            listener.getLogger().println("REASON: Build is running.");
+            return new PollingResult(baseline, baseline, Change.NONE);
+        }
         if (isFirstBuild(baseline)) {
             return PollingResult.BUILD_NOW;
         }
-        AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;
 
         AbstractBuild<?, ?> build = project.getSomeBuildWithWorkspace();
         if (build == null) {
