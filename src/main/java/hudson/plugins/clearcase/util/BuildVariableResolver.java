@@ -106,6 +106,9 @@ public class BuildVariableResolver implements VariableResolver<String> {
             if ("USER_NAME".equals(key)) {
                 return (String) systemProperties.get("user.name");
             }
+            if ("WORKSPACE_NAME".equals(key)) {
+                return build.getWorkspace().getName();
+            }
             Map<String, String> buildVariables = build.getBuildVariables();
             if (buildVariables.containsKey(key)) {
                 return buildVariables.get(key);
