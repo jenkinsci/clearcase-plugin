@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase.util;
 
 import hudson.EnvVars;
+import hudson.FilePath;
 import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
@@ -106,8 +107,16 @@ public class BuildVariableResolver implements VariableResolver<String> {
             if ("USER_NAME".equals(key)) {
                 return (String) systemProperties.get("user.name");
             }
-            if ("WORKSPACE_NAME".equals(key)) {
-                return build.getWorkspace().getName();
+            if ("DASH_WORKSPACE_NUMBER".equals(key)) {
+                FilePath workspace = build.getWorkspace();
+                if (workspace == null) {
+                    return "";
+                }
+                String[] split = workspace.getName().split("@");
+                if (split.length > 1) {
+                    return "-" + split[split.length - 1];
+                }
+                return "";
             }
             Map<String, String> buildVariables = build.getBuildVariables();
             if (buildVariables.containsKey(key)) {

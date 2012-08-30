@@ -257,7 +257,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         }
 
         public String getDefaultViewName() {
-            return StringUtils.defaultString(defaultViewName, "${USER_NAME}_${NODE_NAME}_${JOB_NAME}_hudson");
+            String instanceId = Hudson.getInstance().getDisplayName();
+            return StringUtils.defaultString(defaultViewName, instanceId +"_${USER_NAME}_${NODE_NAME}_${JOB_NAME}${DASH_WORKSPACE_NUMBER}");
         }
 
         public String getDefaultViewPath() {
