@@ -36,5 +36,10 @@ public interface CheckOutAction {
 
     boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
     
+    /**
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
     boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
+
+    boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException;
 }

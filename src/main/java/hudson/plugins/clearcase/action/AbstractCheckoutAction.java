@@ -81,8 +81,16 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
         this.viewStorage = viewStorage;
     }
 
+    /**
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
     @Override
     public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        return isViewValid(workspace, viewTag);
+    }
+
+    @Override
+    public boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException {
         Validate.notEmpty(viewPath);
         FilePath filePath = new FilePath(workspace, viewPath);
         boolean viewPathExists = filePath.exists();

@@ -522,7 +522,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         boolean computeChangeLogAfterCheckout = false;
         boolean returnValue = true;
         if (build.getPreviousBuild() != null) {
-            if (checkoutAction.isViewValid(launcher, workspace, coNormalizedViewName)) {
+            if (checkoutAction.isViewValid(workspace, coNormalizedViewName)) {
                 // We need a valid view to determine the change log. For instance, on a new slave the view won't exist
                 returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
                         coNormalizedViewName, returnValue);
@@ -578,21 +578,30 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        HistoryAction historyAction = createHistoryAction(variableResolver, createClearToolLauncher(listener, workspace, launcher), build);
+        ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
+        HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build);
         Change change;
         String viewPath = getViewPath(variableResolver);
-        String viewName = getViewName(variableResolver);
+        String viewTag = getViewName(variableResolver);
         String[] branchNames = getBranchNames(variableResolver);
 
         if (historyAction == null) {
             // Error when calculating the new baseline => Probably clearcase server error, not launching the build
             change = Change.NONE;
-        } else if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewName, branchNames, ccBaseline.getLoadRules())) {
+        } else if (isViewInvalid(build, variableResolver, clearToolLauncher, workspace, viewTag)) {
+            // View became invalid (tag removed...)
+            change = Change.INCOMPARABLE;
+        } else if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewTag, branchNames, ccBaseline.getLoadRules())) {
             change = Change.SIGNIFICANT;
         } else {
             change = Change.NONE;
         }
         return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), change);
+    }
+
+    private boolean isViewInvalid(AbstractBuild<?,?> build, VariableResolver<String> variableResolver, ClearToolLauncher clearToolLauncher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
+        return !checkoutAction.isViewValid(workspace, viewTag);
     }
 
     protected abstract boolean isFirstBuild(SCMRevisionState baseline);

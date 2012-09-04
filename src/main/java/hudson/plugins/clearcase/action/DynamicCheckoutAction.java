@@ -142,8 +142,17 @@ public class DynamicCheckoutAction implements CheckOutAction {
         return formatter.format(nowDate).toLowerCase();
     }
 
+    /**
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
     @Override
     public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException,
+            InterruptedException {
+                return isViewValid(workspace, viewTag);
+            }
+
+    @Override
+    public boolean isViewValid(FilePath workspace, String viewTag) throws IOException,
             InterruptedException {
         if (cleartool.doesViewExist(viewTag)) {
             startView(viewTag);
