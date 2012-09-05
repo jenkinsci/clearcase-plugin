@@ -107,7 +107,6 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
 
         DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
-        assertTrue("The existing path should have been renamed", workspace.child("path.keep.1").exists());
 
         verify(clearTool).doesViewExist("aViewTag");
         verify(clearTool).lscurrentview("path");

@@ -109,16 +109,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
         boolean checkout = action.checkout(launcher, workspace, "viewname");
-        List<FilePath> directories = workspace.listDirectories();
-        boolean foundRenamedDirectory = false;
-        for (FilePath directory : directories) {
-            if (directory.getName().contains("viewpath.keep.")) {
-                foundRenamedDirectory = true;
-                break;
-            }
-        }
 
-        Assert.assertTrue("The existing path should have been renamed.", foundRenamedDirectory);
         Assert.assertTrue("Checkout should succeed.", checkout);
         verify(cleartool).doesViewExist("viewname");
         ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
@@ -140,16 +131,6 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         CheckOutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
         boolean checkout = action.checkout(launcher, workspace, "viewname");
-        List<FilePath> directories = workspace.listDirectories();
-        boolean foundRenamedDirectory = false;
-        for (FilePath directory : directories) {
-            if (directory.getName().contains("viewpath.keep.")) {
-                foundRenamedDirectory = true;
-                break;
-            }
-        }
-
-        Assert.assertTrue("The existing path should have been renamed.", foundRenamedDirectory);
         Assert.assertTrue("Checkout should succeed.", checkout);
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");

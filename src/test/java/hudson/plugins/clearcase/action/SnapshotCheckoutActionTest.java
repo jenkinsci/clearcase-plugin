@@ -128,16 +128,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
         boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
-        List<FilePath> directories = workspace.listDirectories();
-        boolean foundRenamedDirectory = false;
-        for (FilePath directory : directories) {
-            if (directory.getName().contains("viewpath.keep.")) {
-                foundRenamedDirectory = true;
-                break;
-            }
-        }
 
-        Assert.assertTrue("The existing path should have been renamed.", foundRenamedDirectory);
         Assert.assertTrue("Checkout should succeed.", checkoutResult);
 
         verify(cleartool).doesViewExist("viewname");
@@ -160,16 +151,6 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
         boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
-        List<FilePath> directories = workspace.listDirectories();
-        boolean foundRenamedDirectory = false;
-        for (FilePath directory : directories) {
-            if (directory.getName().contains("viewpath.keep.")) {
-                foundRenamedDirectory = true;
-                break;
-            }
-        }
-
-        Assert.assertTrue("The existing path should have been renamed.", foundRenamedDirectory);
         Assert.assertTrue("Checkout should succeed.", checkoutResult);
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
