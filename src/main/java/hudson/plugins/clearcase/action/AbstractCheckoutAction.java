@@ -125,7 +125,7 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
                         cleartool.rmview(viewPath);
                     }
                 } else {
-                    filePath.renameTo(getUnusedFilePath(workspace, viewPath));
+                    cleartool.rmview(viewPath);
                     rmviewtag(viewTag);
                 }
             } else {
@@ -133,7 +133,7 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
             }
         } else {
             if (viewPathExists) {
-                filePath.renameTo(getUnusedFilePath(workspace, viewPath));
+                cleartool.rmview(viewPath);
             }
         }
         if (doViewCreation) {
@@ -177,13 +177,4 @@ public abstract class AbstractCheckoutAction implements CheckOutAction {
         return new AbstractCheckoutAction.LoadRulesDelta(removedLoadRules, addedLoadRules);
     }
 
-    private FilePath getUnusedFilePath(FilePath workspace, String viewName) throws IOException, InterruptedException {
-        for (int i = 1; i < Integer.MAX_VALUE; i++) {
-            FilePath result = new FilePath(workspace, viewName + ".keep." + i);
-            if (!result.exists()) {
-                return result;
-            }
-        }
-        return null;
-    }
 }
