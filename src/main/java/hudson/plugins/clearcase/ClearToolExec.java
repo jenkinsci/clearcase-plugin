@@ -55,18 +55,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 public abstract class ClearToolExec implements ClearTool {
 
-    private static final Pattern PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern.compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
+    private static final Pattern       PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern
+                                                                                            .compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
 
-    private transient Pattern viewListPattern;
-    protected ClearToolLauncher launcher;
+    private transient Pattern          viewListPattern;
+    protected ClearToolLauncher        launcher;
     protected VariableResolver<String> variableResolver;
-    protected String optionalMkviewParameters;
+    protected String                   optionalMkviewParameters;
 
     public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters) {
         this.variableResolver = variableResolver;
@@ -78,7 +80,7 @@ public abstract class ClearToolExec implements ClearTool {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("catcs");
         cmd.add("-tag", viewTag);
-        return runAndProcessOutput(cmd, null, null, false, null);
+        return runAndProcessOutput(cmd, null, null, false, null, true);
     }
 
     @Override
@@ -91,7 +93,7 @@ public abstract class ClearToolExec implements ClearTool {
         }
         cmd.add(objectSelector);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
+        launcher.run(cmd.toCommandArray(), null, baos, null, true);
         Reader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
         baos.close();
         return reader;
@@ -100,17 +102,17 @@ public abstract class ClearToolExec implements ClearTool {
     @Override
     public Reader describe(String format, String[] objectSelectors) throws IOException, InterruptedException {
         Validate.notNull(objectSelectors);
-	Validate.isTrue(objectSelectors.length > 0);
+        Validate.isTrue(objectSelectors.length > 0);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("desc");
         if (StringUtils.isNotBlank(format)) {
             cmd.add("-fmt", format);
         }
-	for (String selector: objectSelectors) {
-	    cmd.add(selector);
-	}
+        for (String selector : objectSelectors) {
+            cmd.add(selector);
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, null);
+        launcher.run(cmd.toCommandArray(), null, baos, null, true);
         Reader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
         baos.close();
         return reader;
@@ -142,7 +144,7 @@ public abstract class ClearToolExec implements ClearTool {
             workingDirectory = workingDirectory.child(viewPath);
         }
         try {
-            launcher.run(cmd.toCommandArray(), null, out, workingDirectory);
+            launcher.run(cmd.toCommandArray(), null, out, workingDirectory, true);
         } catch (IOException e) {
         } catch (InterruptedException e) {
         }
@@ -160,7 +162,7 @@ public abstract class ClearToolExec implements ClearTool {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try {
-            launcher.run(cmd.toCommandArray(), null, baos, null);
+            launcher.run(cmd.toCommandArray(), null, baos, null, true);
         } catch (Exception e) {
             // empty by design
         }
@@ -176,7 +178,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            return launcher.run(cmd.toCommandArray(), null, baos, null);
+            return launcher.run(cmd.toCommandArray(), null, baos, null, true);
         } catch (IOException e) {
             return false;
         }
@@ -187,7 +189,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("endview");
         cmd.add(viewTag);
 
-        String output = runAndProcessOutput(cmd, null, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null, true);
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to end view tag: " + output);
         }
@@ -269,7 +271,7 @@ public abstract class ClearToolExec implements ClearTool {
         IOException exception = null;
         List<IOException> exceptions = new ArrayList<IOException>();
 
-        String output = runAndProcessOutput(cmd, null, null, true, exceptions);
+        String output = runAndProcessOutput(cmd, null, null, true, exceptions, true);
         // handle the use case in which view doesn't exist and therefore error is thrown
         if (!exceptions.isEmpty() && !output.contains("No matching entries found for view")) {
             throw exceptions.get(0);
@@ -299,7 +301,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        launcher.run(cmd.toCommandArray(), null, baos, null);
+        launcher.run(cmd.toCommandArray(), null, baos, null, true);
         String cleartoolResult = baos.toString();
         if (cleartoolResult.contains("cleartool: Error")) {
             return false;
@@ -327,7 +329,7 @@ public abstract class ClearToolExec implements ClearTool {
         FilePath filePath = getRootViewPath(launcher).child(viewPath);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        launcher.run(cmd.toCommandArray(), null, baos, filePath);
+        launcher.run(cmd.toCommandArray(), null, baos, filePath, true);
         InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
         baos.close();
         return reader;
@@ -341,7 +343,7 @@ public abstract class ClearToolExec implements ClearTool {
             cmd.add(format);
         }
         cmd.add(baselineName);
-        return runAndProcessOutput(cmd, null, null, false, null);
+        return runAndProcessOutput(cmd, null, null, false, null, true);
     }
 
     @Override
@@ -349,7 +351,7 @@ public abstract class ClearToolExec implements ClearTool {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsview", "-cview", "-s");
         List<IOException> exceptions = new ArrayList<IOException>();
-        String output = runAndProcessOutput(cmd, null, getLauncher().getWorkspace().child(viewPath), true, exceptions);
+        String output = runAndProcessOutput(cmd, null, getLauncher().getWorkspace().child(viewPath), true, exceptions, true);
         if (!exceptions.isEmpty()) {
             if (output.contains("cleartool: Error: Cannot get view info for current view: not a ClearCase object.")) {
                 output = null;
@@ -364,7 +366,8 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
-    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException, InterruptedException {
+    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException,
+            InterruptedException {
         Validate.notNull(pathsInView);
         Validate.notNull(viewPath);
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
@@ -397,7 +400,7 @@ public abstract class ClearToolExec implements ClearTool {
         Reader returnReader = null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            launcher.run(cmd.toCommandArray(), null, baos, filePath);
+            launcher.run(cmd.toCommandArray(), null, baos, filePath, true);
         } catch (IOException e) {
             // We don't care if Clearcase returns an error code, we will process it afterwards
         }
@@ -418,7 +421,7 @@ public abstract class ClearToolExec implements ClearTool {
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            launcher.run(cmd.toCommandArray(), null, baos, null);
+            launcher.run(cmd.toCommandArray(), null, baos, null, true);
         } catch (IOException e) {
             // We don't care if Clearcase returns an error code, we will process it afterwards
         }
@@ -439,7 +442,7 @@ public abstract class ClearToolExec implements ClearTool {
         if (StringUtils.isNotEmpty(stream)) {
             cmd.add(stream);
         }
-        return runAndProcessOutput(cmd, null, null, false, null);
+        return runAndProcessOutput(cmd, null, null, false, null, true);
     }
 
     public List<String> lsview(boolean onlyActiveDynamicViews) throws IOException, InterruptedException {
@@ -448,7 +451,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("lsview");
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
+        if (launcher.run(cmd.toCommandArray(), null, baos, null, true)) {
             return parseListOutput(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), onlyActiveDynamicViews);
         }
         return new ArrayList<String>();
@@ -460,13 +463,14 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("lsvob");
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        if (launcher.run(cmd.toCommandArray(), null, baos, null)) {
+        if (launcher.run(cmd.toCommandArray(), null, baos, null, true)) {
             return parseListOutput(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())), onlyMounted);
         }
         return new ArrayList<String>();
     }
 
-    public List<Baseline> mkbl(String name, String viewTag, String comment, boolean fullBaseline, boolean identical, List<String> components, String dDependsOn, String aDependsOn) throws IOException, InterruptedException {
+    public List<Baseline> mkbl(String name, String viewTag, String comment, boolean fullBaseline, boolean identical, List<String> components,
+            String dDependsOn, String aDependsOn) throws IOException, InterruptedException {
         Validate.notNull(viewTag);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("mkbl");
@@ -488,7 +492,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         // Make baseline only for specified components
         if (CollectionUtils.isNotEmpty(components)) {
-        	cmd.add("-comp", StringUtils.join(components, ','));
+            cmd.add("-comp", StringUtils.join(components, ','));
         }
 
         if (StringUtils.isNotEmpty(dDependsOn)) {
@@ -500,7 +504,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         cmd.add(name);
 
-        String output = runAndProcessOutput(cmd, null, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null, true);
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to make baseline, reason: " + output);
         }
@@ -508,7 +512,7 @@ public abstract class ClearToolExec implements ClearTool {
         Pattern pattern = Pattern.compile("Created baseline \"(.+?)\" in component \"(.+?)\"");
         Matcher matcher = pattern.matcher(output);
         List<Baseline> createdBaselinesList = new ArrayList<Baseline>();
-        while (matcher.find() && matcher.groupCount() == 2 ) {
+        while (matcher.find() && matcher.groupCount() == 2) {
             String baseline = matcher.group(1);
             String component = matcher.group(2);
             createdBaselinesList.add(new Baseline(baseline, component));
@@ -530,7 +534,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add(stream);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        launcher.run(cmd.toCommandArray(), null, baos, null);
+        launcher.run(cmd.toCommandArray(), null, baos, null, true);
         baos.close();
     }
 
@@ -561,7 +565,7 @@ public abstract class ClearToolExec implements ClearTool {
             cmd.add(viewPath);
         }
 
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        launcher.run(cmd.toCommandArray(), null, null, null, false);
     }
 
     /**
@@ -603,7 +607,7 @@ public abstract class ClearToolExec implements ClearTool {
             cmd.add(viewStorageDir);
         }
 
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        launcher.run(cmd.toCommandArray(), null, null, null, false);
     }
 
     public void mkview(MkViewParameters parameters) throws IOException, InterruptedException {
@@ -623,8 +627,7 @@ public abstract class ClearToolExec implements ClearTool {
         if (StringUtils.isNotEmpty(optionalMkviewParameters)) {
             String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
             cmd.addTokenized(variabledResolvedParams);
-            isMetadataLocationDefinedInAdditionalParameters =  variabledResolvedParams.contains("-host")
-                                                            || variabledResolvedParams.contains("-vws");
+            isMetadataLocationDefinedInAdditionalParameters = variabledResolvedParams.contains("-host") || variabledResolvedParams.contains("-vws");
         }
 
         // add the default storage directory only if gpath/hpath are not set (only for windows)
@@ -640,7 +643,7 @@ public abstract class ClearToolExec implements ClearTool {
             break;
         default:
         }
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        launcher.run(cmd.toCommandArray(), null, null, null, true);
     }
 
     public void mountVobs() throws IOException, InterruptedException {
@@ -650,7 +653,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-all");
 
         try {
-            launcher.run(cmd.toCommandArray(), null, baos, null);
+            launcher.run(cmd.toCommandArray(), null, baos, null, true);
         } catch (IOException ex) {
             logRedundantCleartoolError(cmd.toCommandArray(), ex);
         } finally {
@@ -695,7 +698,7 @@ public abstract class ClearToolExec implements ClearTool {
 
         cmd.add(baselineName);
 
-        runAndProcessOutput(cmd, null, null, false, null);
+        runAndProcessOutput(cmd, null, null, false, null, true);
     }
 
     public String pwv(String viewPath) throws IOException, InterruptedException {
@@ -704,7 +707,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-root");
         FilePath vp = getRootViewPath(launcher).child(viewPath);
         if (vp.exists()) {
-            return runAndProcessOutput(cmd, null, vp, false, null);
+            return runAndProcessOutput(cmd, null, vp, false, null, true);
         } else {
             return null;
         }
@@ -736,7 +739,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add(viewPath);
 
         FilePath workspace = launcher.getWorkspace();
-        String output = runAndProcessOutput(cmd, null, workspace, false, null);
+        String output = runAndProcessOutput(cmd, null, workspace, false, null, true);
 
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view: " + output);
@@ -756,7 +759,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-tag");
         cmd.add(viewTag);
 
-        String output = runAndProcessOutput(cmd, null, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null, true);
 
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view tag: " + output);
@@ -769,7 +772,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("rmtag");
         cmd.add("-view");
         cmd.add(viewTag);
-        String output = runAndProcessOutput(cmd, null, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null, true);
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view tag: " + output);
         }
@@ -783,24 +786,24 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-uuid");
         cmd.add(viewUuid);
 
-        String output = runAndProcessOutput(cmd, null, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null, true);
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view: " + output);
         }
 
     }
 
-    protected String runAndProcessOutput(ArgumentListBuilder cmd, InputStream in, FilePath workFolder, boolean catchExceptions, List<IOException> exceptions)
-            throws IOException, InterruptedException {
+    protected String runAndProcessOutput(ArgumentListBuilder cmd, InputStream in, FilePath workFolder, boolean catchExceptions, List<IOException> exceptions,
+            boolean log) throws IOException, InterruptedException {
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            launcher.run(cmd.toCommandArray(), in, baos, workFolder);
+            launcher.run(cmd.toCommandArray(), in, baos, workFolder, log);
         } catch (IOException e) {
             if (!catchExceptions) {
                 throw e;
-            } else {
-                exceptions.add(e);
             }
+            exceptions.add(e);
         }
         BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
         baos.close();
@@ -819,7 +822,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     *
+     * 
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     @Override
@@ -852,7 +855,8 @@ public abstract class ClearToolExec implements ClearTool {
         if (viewPath != null) {
             workingDirectory = new FilePath(getRootViewPath(launcher), viewPath);
         }
-        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), workingDirectory, false, null);
+        getLauncher().getListener().getLogger().println("Running cleartool setcs, this operation may take a while");
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), workingDirectory, false, null, false);
         if (configSpecFile != null) {
             configSpecFile.delete();
         }
@@ -864,7 +868,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     *
+     * 
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     public void setcsCurrent(String viewPath) throws IOException, InterruptedException {
@@ -872,8 +876,7 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     /**
-     * Synchronize the dynamic view with the latest recommended baseline for the stream. 1. Set the config spec on the
-     * view (Removed call to chstream - based on
+     * Synchronize the dynamic view with the latest recommended baseline for the stream. 1. Set the config spec on the view (Removed call to chstream - based on
      * http://www.nabble.com/-clearcase-plugin--Use-of-chstream--generate-is-not-necessary-td25118511.html
      */
     public void setcsTag(String viewTag, SetcsOption option, String configSpec) throws IOException, InterruptedException {
@@ -884,7 +887,7 @@ public abstract class ClearToolExec implements ClearTool {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("startview");
         cmd.addTokenized(viewTags);
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        launcher.run(cmd.toCommandArray(), null, null, null, true);
     }
 
     public void unlock(String comment, String objectSelector) throws IOException, InterruptedException {
@@ -893,7 +896,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("unlock");
         cmd.add(objectSelector);
 
-        launcher.run(cmd.toCommandArray(), null, null, null);
+        launcher.run(cmd.toCommandArray(), null, null, null, true);
     }
 
     public void unregisterView(String uuid) throws IOException, InterruptedException {
@@ -903,7 +906,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-uuid");
         cmd.add(uuid);
 
-        String output = runAndProcessOutput(cmd, null, null, false, null);
+        String output = runAndProcessOutput(cmd, null, null, false, null, true);
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to unregister view: " + output);
         }
@@ -912,12 +915,16 @@ public abstract class ClearToolExec implements ClearTool {
 
     @Override
     public void update(String viewPath, String[] loadRules) throws IOException, InterruptedException {
-        FilePath filePath = getLauncher().getWorkspace().child(viewPath);
+        FilePath workspace = getLauncher().getWorkspace();
+        FilePath filePath = workspace.child(viewPath);
+        Date now = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssZ");
+        FilePath logFile = workspace.child(sdf.format(now) + ".updt");
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("update");
         cmd.add("-force");
         cmd.add("-overwrite");
-        cmd.add("-log", "NUL");
+        cmd.add("-log", logFile.getRemote());
         if (!ArrayUtils.isEmpty(loadRules)) {
             cmd.add("-add_loadrules");
             for (String loadRule : loadRules) {
@@ -925,18 +932,31 @@ public abstract class ClearToolExec implements ClearTool {
             }
         }
         List<IOException> exceptions = new ArrayList<IOException>();
-        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, true, exceptions);
-
+        getLauncher().getListener().getLogger().println("Running cleartool update, this operation may take a while");
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, true, exceptions, false);
+        if (logFile.exists()) {
+            InputStream is = null;
+            InputStreamReader reader = null;
+            try {
+                is = logFile.read();
+                reader = new InputStreamReader(is);
+                while (reader.ready()) {
+                    launcher.getListener().getLogger().write(reader.read());
+                }
+            } finally {
+                IOUtils.closeQuietly(reader);
+                IOUtils.closeQuietly(is);
+            }
+        }
         if (!exceptions.isEmpty()) {
             handleHijackedDirectoryCCBug(viewPath, filePath, exceptions, output);
         }
     }
 
     /**
-     * Work around for a CCase bug with hijacked directories:
-     * in the case where a directory was hijacked, cleartool is not able to
-     * remove it when it is not empty, we detect this and remove
-     * the hijacked directories explicitly, then we relaunch the update.
+     * Work around for a CCase bug with hijacked directories: in the case where a directory was hijacked, cleartool is not able to remove it when it is not
+     * empty, we detect this and remove the hijacked directories explicitly, then we relaunch the update.
+     * 
      * @param viewPath
      * @param filePath
      * @param exceptions
@@ -944,7 +964,8 @@ public abstract class ClearToolExec implements ClearTool {
      * @throws IOException
      * @throws InterruptedException
      */
-    private void handleHijackedDirectoryCCBug(String viewPath, FilePath filePath, List<IOException> exceptions, String output) throws IOException, InterruptedException {
+    private void handleHijackedDirectoryCCBug(String viewPath, FilePath filePath, List<IOException> exceptions, String output) throws IOException,
+            InterruptedException {
         String[] lines = output.split("\n");
         int nbRemovedDirectories = 0;
         PrintStream logger = getLauncher().getListener().getLogger();

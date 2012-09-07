@@ -3,23 +3,23 @@ package hudson.plugins.clearcase;
 import org.apache.commons.lang.ObjectUtils;
 import org.mockito.ArgumentMatcher;
 
-public class ArrayThatStartsWith<T> extends ArgumentMatcher<T[]> {
-
-    private T[] startsWith;
+public class ArrayThatEndsWith<T> extends ArgumentMatcher<T[]> {
+    private T[] endsWith;
     
-    public ArrayThatStartsWith(T[] startsWith) {
-        this.startsWith = startsWith;
+    public ArrayThatEndsWith(T[] endsWith) {
+        this.endsWith = endsWith;
     }
 
     @Override
     public boolean matches(Object item) {
         if (item instanceof Object[]) {
             Object[] arr = (Object[]) item;
-            if (arr.length < startsWith.length) {
+            if (arr.length < endsWith.length) {
                 return false;
             }
-            for (int i = 0; i < startsWith.length; i++) {
-                if (!ObjectUtils.equals(startsWith[i], arr[i])) {
+            int startIndex = arr.length - endsWith.length;
+            for (int i = 0; i < endsWith.length; i++) {
+                if (!ObjectUtils.equals(endsWith[i], arr[startIndex + i])) {
                     return false;
                 }
             }
