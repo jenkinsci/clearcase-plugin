@@ -350,7 +350,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.setTimeInMillis(100000);
 
-        when(checkOutAction.isViewValid(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(checkOutAction.isViewValid(workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(taskListener.getLogger()).thenReturn(System.out);
         when(historyAction.getChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }), eq(new String[] { "vob" })))
@@ -370,7 +370,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
 
         assertTrue("The first time should always return true", hasChanges);
-        verify(checkOutAction).isViewValid(launcher, workspace, "viewname");
+        verify(checkOutAction).isViewValid(workspace, "viewname");
         verify(checkOutAction).checkout(launcher, workspace, "viewname");
         verify(historyAction).getChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }),
                 eq(new String[] { "vob" }));
@@ -394,7 +394,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         mockedCalendar.setTimeInMillis(1000000);
         final Date bufferedDate = new Date(mockedCalendar.getTimeInMillis() - (1000 * 60 * 5));
 
-        when(checkOutAction.isViewValid(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(checkOutAction.isViewValid(workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(taskListener.getLogger()).thenReturn(System.out);
 
@@ -415,7 +415,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", false, false, false, "", false, "", "vob", "5", false, "viewpath");
         boolean hasChanges = scm.checkout(build, launcher, workspace, taskListener, changelogFile);
         assertTrue("The first time should always return true", hasChanges);
-        verify(checkOutAction).isViewValid(launcher, workspace, "viewname");
+        verify(checkOutAction).isViewValid(workspace, "viewname");
         verify(checkOutAction).checkout(launcher, workspace, "viewname");
         verify(historyAction).getChanges(eq(bufferedDate), eq("viewpath"), eq("viewname"), eq(new String[] { "branch" }), eq(new String[] { "vob" }));
         verify(saveChangeLogAction).saveChangeLog(changelogFile, list);
@@ -427,7 +427,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         workspace.child("viewname-CCHudson").mkdirs();
         final File changelogFile = new File(parentFile, "changelog.xml");
 
-        when(checkOutAction.isViewValid(launcher, workspace, "viewname-CCHudson-test-node")).thenReturn(Boolean.TRUE);
+        when(checkOutAction.isViewValid(workspace, "viewname-CCHudson-test-node")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname-CCHudson-test-node")).thenReturn(Boolean.TRUE);
         when(taskListener.getLogger()).thenReturn(System.out);
         when(
@@ -448,7 +448,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname-${JOB_NAME}-${NODE_NAME}", "vob", "");
         scm.checkout(build, launcher, workspace, taskListener, changelogFile);
 
-        verify(checkOutAction).isViewValid(launcher, workspace, "viewname-CCHudson-test-node");
+        verify(checkOutAction).isViewValid(workspace, "viewname-CCHudson-test-node");
         verify(checkOutAction).checkout(launcher, workspace, "viewname-CCHudson-test-node");
     }
 
@@ -460,7 +460,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.setTimeInMillis(100000);
 
-        when(checkOutAction.isViewValid(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(checkOutAction.isViewValid(workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(taskListener.getLogger()).thenReturn(System.out);
 
@@ -482,7 +482,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         FilePath changeLogFilePath = new FilePath(changelogFile);
         assertTrue("The change log file is empty", changeLogFilePath.length() > 5);
-        verify(checkOutAction).isViewValid(launcher, workspace, "viewname");
+        verify(checkOutAction).isViewValid(workspace, "viewname");
         verify(checkOutAction).checkout(launcher, workspace, "viewname");
         verify(historyAction).getChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }),
                 eq(new String[] { "vob" }));
@@ -497,7 +497,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         final Calendar mockedCalendar = Calendar.getInstance();
         mockedCalendar.setTimeInMillis(100000);
-        when(checkOutAction.isViewValid(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
+        when(checkOutAction.isViewValid(workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(checkOutAction.checkout(launcher, workspace, "viewname")).thenReturn(Boolean.TRUE);
         when(taskListener.getLogger()).thenReturn(System.out);
 
@@ -521,7 +521,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         FilePath changeLogFilePath = new FilePath(changelogFile);
         assertTrue("The change log file is empty", changeLogFilePath.length() > 5);
-        verify(checkOutAction).isViewValid(launcher, workspace, "viewname");
+        verify(checkOutAction).isViewValid(workspace, "viewname");
         verify(checkOutAction).checkout(launcher, workspace, "viewname");
         verify(historyAction).getChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branchone", "branchtwo" }),
                 eq(new String[] { "vob" }));
@@ -575,6 +575,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
         when(scmRevisionState.getBuildTime()).thenReturn(new Date());
         when(scmRevisionState.getLoadRules()).thenReturn(new String[] {});
+        when(checkOutAction.isViewValid(any(FilePath.class), anyString())).thenReturn(true);
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view-${JOB_NAME}-${NODE_NAME}", "vob", "");
         scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
         verify(historyAction).hasChanges(any(Date.class), eq("view-MatrixProject_CCHudson-test-node"), eq("view-MatrixProject_CCHudson-test-node"), any(String[].class),
@@ -611,6 +612,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
         when(scmRevisionState.getBuildTime()).thenReturn(mockedCalendar.getTime());
         when(scmRevisionState.getLoadRules()).thenReturn(new String[] { "vob" });
+        when(checkOutAction.isViewValid(any(FilePath.class), anyString())).thenReturn(true);
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
@@ -643,6 +645,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(project.getSomeBuildWithWorkspace()).thenReturn(build);
         when(scmRevisionState.getBuildTime()).thenReturn(mockedCalendar.getTime());
         when(scmRevisionState.getLoadRules()).thenReturn(new String[] { "vob" });
+        when(checkOutAction.isViewValid(any(FilePath.class), anyString())).thenReturn(true);
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
         PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
@@ -671,7 +674,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(project.getSomeBuildWithWorkspace()).thenReturn(build);
         when(scmRevisionState.getBuildTime()).thenReturn(mockedCalendar.getTime());
         when(scmRevisionState.getLoadRules()).thenReturn(new String[] { "vob1", "vob2/vob2-1", "vob\\ 3" });
-
+        when(checkOutAction.isViewValid(any(FilePath.class), anyString())).thenReturn(true);
+        
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob1\nvob2/vob2-1\nvob\\ 3", "");
         scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
         verify(historyAction).hasChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "branch" }),
@@ -698,7 +702,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(project.getSomeBuildWithWorkspace()).thenReturn(build);
         when(scmRevisionState.getBuildTime()).thenReturn(mockedCalendar.getTime());
         when(scmRevisionState.getLoadRules()).thenReturn(null);
-
+        when(checkOutAction.isViewValid(any(FilePath.class), anyString())).thenReturn(true);
+        
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", "");
         scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
         verify(historyAction).hasChanges(eq(mockedCalendar.getTime()), eq("viewname"), eq("viewname"), eq(new String[] { "" }), (String[]) isNull());
@@ -728,6 +733,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(matrixBuild.getTimestamp()).thenReturn(mockedCalendar);
         when(scmRevisionState.getBuildTime()).thenReturn(mockedCalendar.getTime());
         when(scmRevisionState.getLoadRules()).thenReturn(null);
+        when(checkOutAction.isViewValid(any(FilePath.class), anyString())).thenReturn(true);
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "", "");
         scm.compareRemoteRevisionWith(matrixProject, launcher, workspace, taskListener, scmRevisionState);
@@ -820,7 +826,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
                 boolean rmviewonrename, String excludedRegions, boolean useDynamicView, String viewDrive, String loadRules, String multiSitePollBuffer,
                 boolean createDynView, String viewpath) {
             super(viewName, mkviewOptionalParam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, useDynamicView, viewDrive,
-                    false, loadRules, false, null, multiSitePollBuffer, createDynView, "", "", createDynView, createDynView, viewpath, ChangeSetLevel.defaultLevel());
+                    false, loadRules, false, null, multiSitePollBuffer, createDynView, createDynView, createDynView, viewpath, ChangeSetLevel.defaultLevel(), null);
         }
 
         @Override

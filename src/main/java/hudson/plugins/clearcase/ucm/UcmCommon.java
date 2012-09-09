@@ -44,7 +44,7 @@ import org.apache.commons.lang.StringUtils;
  * @author kyosi
  */
 public class UcmCommon {
-    
+
     /**
      * Takes a list of baselines as argument, and return the load rules for all components matching these baselines
      * @param clearTool
@@ -59,16 +59,16 @@ public class UcmCommon {
             return null;
         }
         List<String> loadRules = new ArrayList<String>();
-        StringBuilder sb = new StringBuilder();
+        List<String> components = new ArrayList<String>();
         for (Baseline bl : baselines) {
             String componentName = bl.getComponentName();
             if (componentName != null) {
-                sb.append("component:").append(componentName).append(" ");
+                components.add("component:" + componentName);
             } else {
                 clearTool.getLauncher().getListener().getLogger().print("[WARNING] " + bl.getBaselineName() + " has a null component\n");
             }
         }
-        Reader reader = clearTool.describe("%[root_dir]p\\n", null, sb.toString().trim());
+        Reader reader = clearTool.describe("%[root_dir]p\\n", (String[])components.toArray(new String[components.size()]));
         BufferedReader br = new BufferedReader(reader);
         for(String line = br.readLine(); line != null; line = br.readLine()){
             String loadRule = StringUtils.isNotBlank(line) ? line.substring(1) : null;
@@ -78,7 +78,7 @@ public class UcmCommon {
         }
         return loadRules.toArray(new String[loadRules.size()]);
     }
-    
+
     /**
      * @param clearToolLauncher
      * @param isUseDynamicView
@@ -150,7 +150,7 @@ public class UcmCommon {
 
     /**
      * Get the component binding to the baseline
-     * 
+     *
      * @param clearToolLauncher
      * @param filePath
      * @param blName the baseline name like 'deskCore_3.2-146_2008-11-14_18-07-22.3543@\P_ORC'
@@ -168,15 +168,15 @@ public class UcmCommon {
 
         return new Baseline(componentName, isNotLabeled);
     }
-    
+
     public static List<Baseline> getLatestBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
         return getBaselinesDesc(clearTool, stream, "%[latest_bls]Xp\\n");
     }
-    
+
     public static List<Baseline> getFoundationBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
         return getBaselinesDesc(clearTool, stream, "%[found_bls]Xp\\n");
     }
-    
+
     private static List<Baseline> getBaselinesDesc(ClearTool clearTool, String stream, String format) throws IOException,
             InterruptedException {
         BufferedReader rd = new BufferedReader(clearTool.describe(format, null, "stream:" + stream));
@@ -200,7 +200,7 @@ public class UcmCommon {
                                   format + " stream:" + stream + "\" or no available baseline found");
         }
         List<Baseline> foundationBaselines = new ArrayList<Baseline>();
-        BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", null, StringUtils.join(baselines," ")));
+        BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", (String[])baselines.toArray(new String[baselines.size()])));
         Iterator<String> blIterator = baselines.iterator();
         for(String line = br.readLine(); line != null; line = br.readLine()){
             if (StringUtils.isNotBlank(line)) {
@@ -211,7 +211,7 @@ public class UcmCommon {
         }
         return foundationBaselines;
     }
-    
+
     /**
      * @param clearToolLauncher
      * @param streamName
@@ -315,6 +315,7 @@ public class UcmCommon {
                 versionList.add(line.trim());
             }
         }
+        br.close();
 
         return versionList;
     }

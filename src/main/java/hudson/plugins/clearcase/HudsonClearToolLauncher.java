@@ -30,10 +30,17 @@ import hudson.Proc;
 import hudson.model.TaskListener;
 import hudson.util.ForkOutputStream;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -42,11 +49,11 @@ import org.apache.commons.lang.StringUtils;
 public class HudsonClearToolLauncher implements ClearToolLauncher {
 
     private final TaskListener listener;
-    private final FilePath workspace;
-    private final Launcher launcher;
+    private final FilePath     workspace;
+    private final Launcher     launcher;
 
-    private final String scmName;
-    private final String executable;
+    private final String       scmName;
+    private final String       executable;
 
     public HudsonClearToolLauncher(String executable, String scmName, TaskListener listener, FilePath workspace, Launcher launcher) {
         this.executable = executable;
@@ -75,8 +82,7 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, FilePath filePath, boolean logCommand) throws IOException,
             InterruptedException {
         String ccVerbose = System.getenv("HUDSON_CLEARCASE_VERBOSE");
-        ccVerbose = (ccVerbose != null) ? ccVerbose : "";
-        logCommand = logCommand || ccVerbose.equals("1");
+        logCommand |= StringUtils.equals("1", ccVerbose);
 
         OutputStream out = outputStream;
         FilePath path = filePath;
@@ -86,33 +92,52 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
             path = workspace;
         }
 
-        if (out == null) {
-            out = listener.getLogger();
-        } else {
-            out = new ForkOutputStream(out, listener.getLogger());
+        File logFile = null;
+        try {
+            PrintStream logger;
+            if (logCommand) {
+                logger = listener.getLogger();
+            } else {
+                logFile = File.createTempFile("cleartool", "log");
+                logger = new PrintStream(logFile);
+            }
+            if (out == null) {
+                out = logger;
+            } else {
+                out = new ForkOutputStream(out, logger);
+            }
+
+            String[] cmdWithExec = new String[cmd.length + 1];
+            cmdWithExec[0] = executable;
+            System.arraycopy(cmd, 0, cmdWithExec, 1, cmd.length);
+
+            int r = getLaunchedProc(cmdWithExec, env, inputStream, out, path).join();
+            if (r != 0) {
+                if (!logCommand) {
+                    printToLogger(logFile);
+                }
+                listener.fatalError(scmName + " failed. exit code=" + r);
+                throw new IOException("cleartool did not return the expected exit code. Command line=\"" + getCmdString(cmd) + "\", actual exit code=" + r);
+            }
+        } finally {
+            if (logFile != null && logFile.exists()) {
+                logFile.delete();
+            }
         }
-
-        if (logCommand) {
-            String logStr = "\nRunning ClearCase command: " + getCmdString(cmd) + "\n\n";
-            listener.getLogger().write(logStr.getBytes());
-        }
-
-        String[] cmdWithExec = new String[cmd.length + 1];
-        cmdWithExec[0] = executable;
-        System.arraycopy(cmd, 0, cmdWithExec, 1, cmd.length);
-
-        int r = getLaunchedProc(cmdWithExec, env, inputStream, out, path).join();
-        if (r != 0) {
-            listener.fatalError(scmName + " failed. exit code=" + r);
-            throw new IOException("cleartool did not return the expected exit code. Command line=\"" + getCmdString(cmd) + "\", actual exit code=" + r);
-        }
-
-        if (logCommand) {
-            String logStr = "\n=============================================================== \n";
-            listener.getLogger().write(logStr.getBytes());
-        }
-
         return true;
+    }
+
+    private void printToLogger(File logFile) throws FileNotFoundException, IOException {
+        FileReader fileReader = new FileReader(logFile);
+        BufferedReader br = new BufferedReader(fileReader);
+        try {
+            while (br.ready()) {
+                listener.getLogger().println(br.readLine());
+            }
+        } finally {
+            IOUtils.closeQuietly(br);
+            IOUtils.closeQuietly(fileReader);
+        }
     }
 
     /**
@@ -130,5 +155,10 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
 
     public String getCmdString(String[] cmd) {
         return StringUtils.join(cmd, ' ');
+    }
+
+    @Override
+    public boolean isUnix() {
+        return launcher.isUnix();
     }
 }

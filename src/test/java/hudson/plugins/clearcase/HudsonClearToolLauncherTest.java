@@ -69,7 +69,7 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
         when(taskListener.getLogger()).thenReturn(mockedStream);
 
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
-        launcherImpl.run(new String[] { "a" }, null, null, null);
+        launcherImpl.run(new String[] { "a" }, null, null, null, true);
         
         verify(taskListener).getLogger();
 
@@ -83,7 +83,7 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
         when(taskListener.getLogger()).thenReturn(mockedStream);
 
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
-        launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null);
+        launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null, true);
         
         verify(taskListener).getLogger();
     }

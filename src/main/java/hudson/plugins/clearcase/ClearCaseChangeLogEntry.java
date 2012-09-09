@@ -1,8 +1,9 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
- *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer
+ * Copyright (c) 2007-2011, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+ *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer,
+ *                          Krzysztof Malinowski
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +27,7 @@ package hudson.plugins.clearcase;
 
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.ChangeLogSet.AffectedFile;
 import hudson.scm.EditType;
 
 import java.text.ParseException;
@@ -163,6 +165,11 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @Override
+    public Collection<? extends AffectedFile> getAffectedFiles() {
+        return files;
+    }
+
+    @Override
     @Exported
     public String getMsg() {
         return comment;
@@ -177,7 +184,7 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     }
 
     @ExportedBean(defaultVisibility = 999)
-    public static class FileElement {
+    public static class FileElement implements ChangeLogSet.AffectedFile {
         private String name = "";
         private String version = "";
         private String action = "";
@@ -235,10 +242,16 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
                 return EditType.ADD;
             } else if (operation.equalsIgnoreCase("rmelem")) {
                 return EditType.DELETE;
-            } else if (operation.equalsIgnoreCase("checkin")) {
+            } else if (operation.equalsIgnoreCase("checkin")
+                    || operation.equalsIgnoreCase("mklabel")
+                    || operation.equalsIgnoreCase("rmlabel")) {
                 return EditType.EDIT;
             }
             return null;
+        }
+
+        public String getPath() {
+            return String.format("%s@@%s", name, version);
         }
     }
 }

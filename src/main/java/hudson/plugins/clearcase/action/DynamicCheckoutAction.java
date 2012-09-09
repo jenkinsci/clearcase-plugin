@@ -30,7 +30,10 @@ import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.ClearCaseDataAction;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
+import hudson.plugins.clearcase.MkViewParameters;
+import hudson.plugins.clearcase.ViewType;
 import hudson.plugins.clearcase.util.PathUtil;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -50,20 +53,18 @@ public class DynamicCheckoutAction implements CheckOutAction {
     private boolean             updateConfigSpec;
     private boolean             useTimeRule;
     private boolean             createView;
-    private String              winStorageDir;
-    private String              unixStorageDir;
+    private ViewStorage         viewStorage;
     private AbstractBuild<?, ?> build;
 
     public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec,
-            boolean useTimeRule, boolean createView, String winStorageDir, String unixStorageDir,
+            boolean useTimeRule, boolean createView, ViewStorage viewStorage,
             AbstractBuild<?, ?> build) {
         this.cleartool = cleartool;
         this.configSpec = configSpec;
         this.updateConfigSpec = !doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
         this.createView = createView;
-        this.winStorageDir = winStorageDir;
-        this.unixStorageDir = unixStorageDir;
+        this.viewStorage = viewStorage;
         this.build = build;
     }
 
@@ -122,8 +123,12 @@ public class DynamicCheckoutAction implements CheckOutAction {
             cleartool.rmviewtag(viewTag);
         }
         // Now, make the view.
-        String dynStorageDir = cleartool.getLauncher().getLauncher().isUnix() ? unixStorageDir : winStorageDir;
-        cleartool.mkview(viewTag, viewTag, null, dynStorageDir);
+        MkViewParameters params = new MkViewParameters();
+        params.setType(ViewType.Dynamic);
+        params.setViewPath(viewTag);
+        params.setViewTag(viewTag);
+        params.setViewStorage(viewStorage);
+        cleartool.mkview(params);
     }
 
     public String getTimeRule() {
@@ -137,8 +142,17 @@ public class DynamicCheckoutAction implements CheckOutAction {
         return formatter.format(nowDate).toLowerCase();
     }
 
+    /**
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
     @Override
     public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException,
+            InterruptedException {
+                return isViewValid(workspace, viewTag);
+            }
+
+    @Override
+    public boolean isViewValid(FilePath workspace, String viewTag) throws IOException,
             InterruptedException {
         if (cleartool.doesViewExist(viewTag)) {
             startView(viewTag);

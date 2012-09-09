@@ -36,7 +36,8 @@
 	<ol>
 		<li><tt>${NODE_NAME}</tt> is replaced with the name of the node</li>
 		<li><tt>${JOB_NAME}</tt> is replaced with the name of the job</li>
-		<li><tt>${USER_NAME}</tt> is replaced with the name of the user that is running Hudson</li>
+		<li><tt>${USER_NAME}</tt> is replaced with the name of the user that is running Hudson/Jenkins</li>
+		<li><tt>${DASH_WORKSPACE_NUMBER}</tt> is replaced by the number of the workspace if it isn't the primary workspace on the slave. This allows to execute several concurrent builds of the same job on the same slave.</li>
 	</ol>
   </p>
   <p>
