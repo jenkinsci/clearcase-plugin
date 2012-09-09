@@ -51,19 +51,19 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
     public void assertFormatContainsComment() throws Exception {
         when(
                 cleartool.lshistory(eq("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]Xp\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n"), any(Date.class),
-                        anyString(), anyString(), any(String[].class), anyBoolean())).thenReturn(new StringReader(""));
+                        anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean())).thenReturn(new StringReader(""));
 
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
         action.getChanges(new Date(), "IGNORED", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         verify(cleartool).lshistory(eq("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]Xp\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n"), any(Date.class),
-                anyString(), anyString(), any(String[].class), anyBoolean());
+                anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean());
     }
 
     @Test
     public void assertDestroySubBranchEventIsIgnored() throws Exception {
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
-                        + "vobs/projects/Server" }), eq(Boolean.FALSE))).thenReturn(
+                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"\" " + "\"destroy sub-branch \"esmalling_branch\" of branch\" "
                         + "\"checkin\" \"username\" "));
@@ -76,14 +76,14 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         assertEquals("There should be 0 activity", 0, activities.size());
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
     public void assertParsingOfNonIntegrationActivity() throws Exception {
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
-                        + "vobs/projects/Server" }), eq(Boolean.FALSE))).thenReturn(
+                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"Release_3_3_jdk5.20080509.155359\" " + "\"create directory version\" "
                         + "\"checkin\" \"username\" "));
@@ -100,7 +100,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         assertEquals("Activity user is incorrect", "bob", activity.getUser());
 
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
         verify(cleartool).lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull());
     }
 
@@ -108,7 +108,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
     public void assertParsingOfIntegrationActivity() throws Exception {
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
-                        + "vobs/projects/Server" }), eq(Boolean.FALSE))).thenReturn(
+                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"deliver.Release_3_3_jdk5.20080509.155359\" "
                         + "\"create directory version\" " + "\"checkin\" \"username\" "));
@@ -135,7 +135,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         assertEquals("Name of second sub activity is incorrect", "maven2_Release_3_3.20080421.163355", subActivities.get(1).getName());
 
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
         verify(cleartool).lsactivity(eq("deliver.Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull());
         verify(cleartool).lsactivity(eq("maven2_Release_3_3.20080421.154619"), (String) notNull(), (String) notNull());
         verify(cleartool).lsactivity(eq("maven2_Release_3_3.20080421.163355"), (String) notNull(), (String) notNull());
@@ -148,14 +148,14 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
                 + "\"checkin\" \"username\" ");
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
-                        + "vobs/projects/Server" }), eq(Boolean.FALSE))).thenReturn(lshistoryReader);
+                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(lshistoryReader);
         when(cleartool.lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull())).thenReturn(
                 new StringReader("\"Convert to Java 6\" " + "\"Release_3_3_jdk5\" " + "\"bob\" "));
 
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
         action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
         lshistoryReader.ready();
 
     }
@@ -165,7 +165,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         final StringReader lsactivityReader = new StringReader("\"Convert to Java 6\" " + "\"Release_3_3_jdk5\" " + "\"bob\" ");
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
-                        + "vobs/projects/Server" }), eq(Boolean.FALSE))).thenReturn(
+                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"Release_3_3_jdk5.20080509.155359\" " + "\"create directory version\" "
                         + "\"checkin\" \"username\" "));
@@ -175,7 +175,7 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
 
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE));
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
 
         lsactivityReader.ready();
     }

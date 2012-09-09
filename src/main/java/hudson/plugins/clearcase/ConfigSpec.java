@@ -74,6 +74,14 @@ public class ConfigSpec {
         return rules;
     }
 
+    public String getLoadRulesString() {
+    	String rawRules = new String();
+    	for (String rule : getLoadRules()) {
+    		rawRules += "load " + rule + PathUtil.newLineForOS(isUnix); 
+    	}
+    	return rawRules;
+    }
+
     public String getRaw() {
         return raw;
     }

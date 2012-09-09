@@ -24,8 +24,10 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.BuildListener;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
@@ -51,6 +53,7 @@ import hudson.scm.SCM;
 import hudson.util.VariableResolver;
 import hudson.util.ListBoxModel;
 
+import java.io.File;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -86,8 +89,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             boolean filterOutDestroySubBranchEvent, boolean useUpdate, boolean rmviewonrename, String excludedRegions, String multiSitePollBuffer,
             String overrideBranchName, boolean createDynView, boolean freezeCode, boolean recreateView, boolean allocateViewName, String viewPath,
             boolean useManualLoadRules, ChangeSetLevel changeset, ViewStorageFactory viewStorageFactory) {
-        super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, usedynamicview, viewdrive, useManualLoadRules ? loadrules : null,
-                multiSitePollBuffer, createDynView, freezeCode, recreateView, viewPath, changeset, viewStorageFactory);
+        super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, usedynamicview, viewdrive,
+        false, useManualLoadRules ? loadrules : null, false, null, multiSitePollBuffer, createDynView,freezeCode, recreateView, viewPath, changeset,
+        viewStorageFactory);
         this.stream = shortenStreamName(stream);
         this.allocateViewName = allocateViewName;
         this.overrideBranchName = overrideBranchName;
@@ -215,7 +219,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return action;
     }
 
-    protected UcmHistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+    protected UcmHistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build, boolean useRecurse) throws IOException, InterruptedException {
         ClearTool ct = createClearTool(variableResolver, launcher);
         UcmHistoryAction action;
         ClearCaseUCMSCMRevisionState oldBaseline = null;
@@ -379,4 +383,20 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             return scm;
         }
     }
+
+	@Override
+	protected void inspectConfigAction(
+			VariableResolver<String> variableResolver, ClearToolLauncher launcher)
+			throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	protected boolean hasNewConfigSpec(
+			VariableResolver<String> variableResolver,
+			ClearToolLauncher cclauncher) throws IOException,
+			InterruptedException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

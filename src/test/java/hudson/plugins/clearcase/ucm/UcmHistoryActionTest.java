@@ -83,9 +83,9 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
     @Test
     public void assertSeparateBranchCommands() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE)))
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
                 .thenReturn(new StringReader(""));
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE)))
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
                 .thenReturn(
                         new StringReader(
                                 "\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\" \"mkelem\" \"activity\" "));
@@ -94,14 +94,14 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branchone", "branchtwo" }, new String[] { "vobpath" });
 
         assertTrue("The getChanges() method did not report a change", hasChange);
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
     public void assertSuccessfulParse() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE)))
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
                 .thenReturn(
                         new StringReader(
                                 "\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" \"activity\" "
@@ -111,58 +111,58 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
 
         assertTrue("The getChanges() method did not report a change", hasChange);
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
     public void assertIgnoringErrors() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE))).thenReturn(
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("cleartool: Error: Not an object in a vob: \"view.dat\".\n"));
 
         UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DefaultFilter(), null, null, null);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
 
         assertFalse("The getChanges() method reported a change", hasChange);
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
     public void assertIgnoringVersionZero() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE))).thenReturn(
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader(
                         "\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\0\" \"create version\"  \"mkelem\" \"activity\" "));
         UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DefaultFilter(), null, null, null);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
         assertFalse("The getChanges() method reported a change", hasChange);
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
     public void assertIgnoringDestroySubBranchEvent() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE)))
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
                 .thenReturn(
                         new StringReader(
                                 "\"20080326.110739\" \"username\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\" \"activity\" "));
         UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DestroySubBranchFilter(), null, null, null);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
         assertFalse("The getChanges() method reported a change", hasChange);
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
     public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE)))
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
                 .thenReturn(
                         new StringReader(
                                 "\"20080326.110739\" \"username\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\" \"activity\" "));
         UcmHistoryAction action = createUcmHistoryAction();
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
         assertTrue("The getChanges() method reported a change", hasChange);
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test(expected = IOException.class)
@@ -170,7 +170,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         final StringReader reader = new StringReader(
                 "\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\1\" \"create version\"  \"mkelem\" \"activity\" ");
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE))).thenReturn(
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 reader).thenReturn(reader);
 
         UcmHistoryAction action = createUcmHistoryAction();
@@ -186,13 +186,13 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(
                 cleartool.lshistory(eq("\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\\"%[activity]Xp\\\" \\n%c\\n"), any(Date.class),
-                        anyString(), anyString(), any(String[].class), anyBoolean())).thenReturn(new StringReader(""));
+                        anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean())).thenReturn(new StringReader(""));
 
         UcmHistoryAction action = createUcmHistoryAction();
         action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         
         verify(cleartool).lshistory(eq("\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\\"%[activity]Xp\\\" \\n%c\\n"), any(Date.class),
-                anyString(), anyString(), any(String[].class), anyBoolean());
+                anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean());
     }
 
     private UcmHistoryAction createUcmHistoryAction() {
@@ -204,7 +204,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                        eq(Boolean.FALSE))).thenReturn(
+                        eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"user\"" + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"destroy sub-branch \"esmalling_branch\" of branch\" "
                         + "\"checkin\" \"activity\" "));
@@ -215,7 +215,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
                 new String[] { "vobs/projects/Server" });
         assertEquals("There should be 0 activity", 0, activities.size());
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                eq(Boolean.FALSE));
+                eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
@@ -223,7 +223,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                        eq(Boolean.FALSE))).thenReturn(
+                        eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"user\"" + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/activityA/2\" " + "\"create version\" " + "\"checkin\" \"activityA\" " + "\"20080509.140451\" "
                         + "\"user\"" + "\"vobs/projects/Client//config-admin-client\" " + "\"/main/Product/Release_3_3_int/activityB/2\" "
@@ -240,7 +240,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
                 new String[] { "vobs/projects/Server" });
         assertEquals("There should be 1 activity", 1, activities.size());
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                eq(Boolean.FALSE));
+                eq(Boolean.FALSE), eq(Boolean.FALSE));
         verify(cleartool, times(0)).lsactivity(eq("activityA"), (String) notNull(), (String) notNull());
         verify(cleartool).lsactivity(eq("activityB"), (String) notNull(), (String) notNull());
     }
@@ -251,7 +251,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                        eq(Boolean.FALSE))).thenReturn(
+                        eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"username\" " + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"create directory version\" " + "\"checkin\"  "
                         + "\"Release_3_3_jdk5.20080509.155359\" "));
@@ -268,7 +268,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         assertEquals("Activity stream is incorrect", "Release_3_3_jdk5", activity.getStream());
         assertEquals("Activity user is incorrect", "bob", activity.getUser());
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                eq(Boolean.FALSE));
+                eq(Boolean.FALSE), eq(Boolean.FALSE));
         verify(cleartool).lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull());
     }
 
@@ -277,7 +277,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                        eq(Boolean.FALSE))).thenReturn(
+                        eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"username\"  " + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"create directory version\" " + "\"checkin\" "
                         + "\"deliver.Release_3_3_jdk5.20080509.155359\" "));
@@ -305,7 +305,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         assertEquals("Name of second sub activity is incorrect", "maven2_Release_3_3.20080421.163355", subActivities.get(1).getName());
 
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                eq(Boolean.FALSE));
+                eq(Boolean.FALSE), eq(Boolean.FALSE));
         verify(cleartool).lsactivity(eq("deliver.Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull());
         verify(cleartool).lsactivity(eq("maven2_Release_3_3.20080421.154619"), (String) notNull(), (String) notNull());
         verify(cleartool).lsactivity(eq("maven2_Release_3_3.20080421.154619"), (String) notNull(), (String) notNull());
@@ -319,7 +319,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                        eq(Boolean.FALSE))).thenReturn(lshistoryReader);
+                        eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(lshistoryReader);
 
         when(cleartool.lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull())).thenReturn(
                 new StringReader("\"Convert to Java 6\" " + "\"Release_3_3_jdk5\" " + "\"bob\" "));
@@ -327,7 +327,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         UcmHistoryAction action = createUcmHistoryAction();
         action.getChanges(null, "IGNORED", "viewTag", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                eq(Boolean.FALSE));
+                eq(Boolean.FALSE), eq(Boolean.FALSE));
         lshistoryReader.ready();
     }
 
@@ -337,7 +337,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                        eq(Boolean.FALSE))).thenReturn(
+                        eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
                 new StringReader("\"20080509.140451\" " + "\"username\" " + "\"vobs/projects/Server//config-admin-client\" "
                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"create directory version\" " + "\"checkin\"  "
                         + "\"Release_3_3_jdk5.20080509.155359\" "));
@@ -346,7 +346,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         UcmHistoryAction action = createUcmHistoryAction();
         action.getChanges(null, "IGNORED", "viewTag", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("IGNORED"), eq("Release_2_1_int"), eq(new String[] { "vobs/projects/Server" }),
-                eq(Boolean.FALSE));
+                eq(Boolean.FALSE), eq(Boolean.FALSE));
         lsactivityReader.ready();
     }
 
@@ -359,7 +359,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.FALSE);
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("stromp_be_builc"), eq("jcp_v13.1_be_int"), any(String[].class), anyBoolean()))
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("stromp_be_builc"), eq("jcp_v13.1_be_int"), any(String[].class), anyBoolean(), anyBoolean()))
                 .thenReturn(
                         new StringReader(
                                 "\"20100120.114845\" \"lmiguet\" "

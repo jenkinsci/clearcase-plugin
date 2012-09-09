@@ -28,8 +28,7 @@ public class UcmCommonTest extends AbstractWorkspaceTest {
 
     @Test
     public void testGenerateLoadRulesFromBaselinesOneBaseline() throws Exception {
-        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob"}))).
-	    thenReturn(new StringReader("/vob/comp1"));
+        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob"}))).thenReturn(new StringReader("/vob/comp1"));
         when(cleartool.getLauncher()).thenReturn(launcher);
         when(launcher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);
@@ -44,8 +43,7 @@ public class UcmCommonTest extends AbstractWorkspaceTest {
 
     @Test
     public void testGenerateLoadRulesFromBaselinesMultiBaseline() throws Exception {
-        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob", "component:comp2@\\otherpvob"}))).thenReturn(
-                new StringReader("/vob/comp1\n/othervob/comp2"));
+        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob", "component:comp2@\\otherpvob"}))).thenReturn(new StringReader("/vob/comp1\n/othervob/comp2"));
         when(cleartool.getLauncher()).thenReturn(launcher);
         when(launcher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);

@@ -65,7 +65,7 @@ import org.kohsuke.stapler.StaplerRequest;
 public class ClearCaseInstallation extends ToolInstallation implements NodeSpecific<ClearCaseInstallation> {
 
     public final static String NAME = "ClearCase";
-    public final static String CLEARTOOL_EXE = "bin/cleartool";
+    public final static String CLEARTOOL_EXE = "bin/cleartool.cmd";
     public final static String CLEARTOOL_EXE_FALLBACK = "cleartool";
 
     @DataBoundConstructor

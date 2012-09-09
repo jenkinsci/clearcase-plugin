@@ -240,17 +240,17 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
     @Test
     public void assertSeparateBranchCommands() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE)))
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
                 .thenReturn(new StringReader(""));
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE)))
+        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
                 .thenReturn(new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\" \"mkelem\" "));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 0);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branchone", "branchtwo" }, new String[] { "vobpath" });
 
         assertTrue("The getChanges() method did not report a change", hasChange);
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     @Test
@@ -286,19 +286,19 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
     }
 
     private Reader cleartoolLsHistoryWithStandardInput() throws IOException, InterruptedException {
-        return cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        return cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     private Reader cleartoolLsHistoryWithValidHistoryFormat() throws IOException, InterruptedException {
-        return cleartool.lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE));
+        return cleartool.lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     private Reader cleartoolLsHistoryWithAnyHistoryFormat() throws IOException, InterruptedException {
-        return cleartool.lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE));
+        return cleartool.lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     private Reader cleartoolLsHistoryWithAnyHistoryFormatAndMinorEvents() throws IOException, InterruptedException {
-        return cleartool.lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE));
+        return cleartool.lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE), eq(Boolean.FALSE));
     }
 
     private Date getDate(int year, int month, int day, int hour, int min, int sec) {
@@ -358,7 +358,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
 
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver), scm.generateNormalizedViewName(variableResolver),
                 scm.getBranchNames(variableResolver), scm.getViewPaths(null, null, launcher));
@@ -407,7 +407,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver), scm.generateNormalizedViewName(variableResolver),
                 scm.getBranchNames(variableResolver), scm.getViewPaths(null, null, launcher));
         assertEquals("Number of history entries are incorrect", 1, entries.size());
@@ -489,7 +489,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, labelFilter, 1000);
         assertTrue("Label changes are not detected.", action.hasChanges(new Date(), "viewPath", "viewTag", new String[0], new String[] { "vob1" }));
 
-        verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE));
+        verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE), eq(Boolean.FALSE));
     }
 
     @Test
@@ -516,7 +516,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
 
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver),
                 scm.generateNormalizedViewName((BuildVariableResolver) variableResolver), scm.getBranchNames(variableResolver),
@@ -549,7 +549,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         labelFilter = new LabelFilter("USER1_TEST");
         action = new BaseHistoryAction(cleartool, false, labelFilter, 1000);
         assertFalse("Changes were found for non-existing label.", action.hasChanges(new Date(), "viewPath", "viewTag", new String[0], new String[] { "vob1" }));
-        verify(cleartool, times(2)).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE));
+        verify(cleartool, times(2)).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE), eq(Boolean.FALSE));
     }
 
     @Test
@@ -727,7 +727,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
 
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver),
                 scm.generateNormalizedViewName((BuildVariableResolver) variableResolver), scm.getBranchNames(variableResolver),
@@ -751,18 +751,18 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
     }
 
     private Reader verifyCleartoolLsHistoryWithStandardInput() throws IOException, InterruptedException {
-        return verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE));
+        return verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     private Reader verifyCleartoolLsHistoryWithValidHistoryFormat() throws IOException, InterruptedException {
-        return verify(cleartool).lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE));
+        return verify(cleartool).lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     private Reader verifyCleartoolLsHistoryWithAnyHistoryFormat() throws IOException, InterruptedException {
-        return verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE));
+        return verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
     private Reader verifyCleartoolLsHistoryWithAnyHistoryFormatAndMinorEvents() throws IOException, InterruptedException {
-        return verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE));
+        return verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE), eq(Boolean.FALSE));
     }
 }

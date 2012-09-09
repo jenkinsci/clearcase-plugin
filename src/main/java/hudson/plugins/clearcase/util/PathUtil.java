@@ -24,6 +24,11 @@
  */
 package hudson.plugins.clearcase.util;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import hudson.Launcher;
 
 public abstract class PathUtil {
@@ -67,4 +72,21 @@ public abstract class PathUtil {
         }
     }
 
+    public static String readFileAsString(String filePath) throws java.io.IOException{
+        byte[] buffer = new byte[(int) new File(filePath).length()];
+        BufferedInputStream f = null;
+        try {
+            f = new BufferedInputStream(new FileInputStream(filePath));
+            f.read(buffer);
+        } finally {
+            if (f != null) {
+            	try {
+            		f.close();
+            	} catch (IOException ignored) {
+            		// no op
+            	}
+            }
+        }
+        return new String(buffer);
+    }    
 }

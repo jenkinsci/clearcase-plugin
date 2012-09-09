@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase.base;
 
+import static hudson.Util.fixEmpty;
 import static hudson.plugins.clearcase.util.OutputFormat.DATE_NUMERIC;
 import static hudson.plugins.clearcase.util.OutputFormat.EVENT;
 import static hudson.plugins.clearcase.util.OutputFormat.NAME_ELEMENTNAME;
@@ -32,17 +33,25 @@ import static hudson.plugins.clearcase.util.OutputFormat.OPERATION;
 import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
 import hudson.plugins.clearcase.ClearCaseChangeLogEntry;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
+import hudson.plugins.clearcase.UpdtEntry;
 import hudson.plugins.clearcase.history.AbstractHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
+import hudson.plugins.clearcase.util.PathUtil;
 import hudson.scm.ChangeLogSet.Entry;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
+
+import org.apache.commons.lang.Validate;
 
 /**
  * @author hlyh
@@ -53,10 +62,16 @@ public class BaseHistoryAction extends AbstractHistoryAction {
 
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
     private int maxTimeDifferenceMillis;
+    private String updtFileName;
+
+    public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ChangeSetLevel changeset, boolean useRecurse, int maxTimeDifferenceMillis, String updtFileName) {
+        super(cleartool, useDynamicView, filter, changeset, useRecurse);
+        this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
+        this.updtFileName = updtFileName;
+    }
 
     public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, int maxTimeDifferenceMillis) {
-        super(cleartool, useDynamicView, filter, null);
-        this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
+    	this(cleartool, useDynamicView, filter, null, false, maxTimeDifferenceMillis, null);
     }
 
     @Override
@@ -99,4 +114,48 @@ public class BaseHistoryAction extends AbstractHistoryAction {
         entry.setOperation(matcher.group(6).trim());
         return entry;
     }
+
+    @Override
+    protected List<HistoryEntry> runLsHistory(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    	List<HistoryEntry> entries = null;
+    	if (ChangeSetLevel.UPDT.equals(getChangeset()) && fixEmpty(getUpdtFileName()) != null) {
+    		entries = parseUpdt(getUpdtFileName(), viewPath);
+    	} else {
+    		entries = super.runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
+    	}
+    	return entries;
+    }
+
+    protected List<HistoryEntry> parseUpdt(String updtFileName, String viewPath) throws IOException, InterruptedException {
+    	Validate.notNull(updtFileName);
+    	List<HistoryEntry> history = new ArrayList<HistoryEntry>();
+    	String updtFile = PathUtil.readFileAsString(updtFileName);
+    	List<UpdtEntry> updtEntries = new ArrayList<UpdtEntry>();
+        String[] lines = updtFile.split("\n");
+        for (String line : lines) {
+        	UpdtEntry entry = UpdtEntry.getEntryFromLine(line);
+        	if (entry.getState() == UpdtEntry.State.NEW || entry.getState() == UpdtEntry.State.UPDATED) {
+        		updtEntries.add(entry);
+        	}
+        }
+        for (UpdtEntry entry : updtEntries) {
+        	try {
+	            BufferedReader reader = new BufferedReader(cleartool.describe(getLsHistoryFormat(), viewPath, entry.getObjectSelectorNewVersion()));
+	            try {
+	            	parseLsHistory(reader, history);
+	            } catch (ParseException e) {
+	                // no op
+	            }            
+	            reader.close();
+        	} catch (IOException e) {
+        		// skip describe errors
+        	}
+        }
+    	return history;
+    }
+    
+    public String getUpdtFileName() {
+    	return updtFileName;
+    }
+
 }

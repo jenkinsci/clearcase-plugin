@@ -58,12 +58,14 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     protected String extendedViewPath;
     protected boolean isDynamicView;
     private ChangeSetLevel changeset;
+    boolean useRecurse;
 
-    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, Filter filter, ChangeSetLevel changeset) {
+    public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, Filter filter, ChangeSetLevel changeset, boolean useRecurse) {
         this.cleartool = cleartool;
         this.filter = filter;
         this.isDynamicView = isDynamicView;
         this.changeset = changeset;
+        this.useRecurse = useRecurse;
     }
 
     protected abstract List<? extends Entry> buildChangelog(String viewPath, List<HistoryEntry> entries)
@@ -186,6 +188,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
             String[] viewPaths) throws IOException, InterruptedException {
         Validate.notNull(viewPath);
         List<HistoryEntry> historyEntries;
+        
         prepareViewForHistory(viewTag);
         try {
             historyEntries = retrieveHistoryEntries(time, viewPath, branchNames, viewPaths);
@@ -195,15 +198,23 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         return historyEntries;
     }
 
-    private boolean needsLsHistoryForGetChanges(String viewTag, String[] loadRules) throws IOException,
+    protected boolean needsLsHistoryForGetChanges(String viewTag, String[] loadRules) throws IOException,
             InterruptedException {
-        return !ChangeSetLevel.NONE.equals(changeset) && cleartool.doesViewExist(viewTag)
-                && !ArrayUtils.isEmpty(loadRules);
+        		// check if right changeset level is enabled (all changesets except NONE needs LsHistory call)
+    			// it is also true if runLsHistory will call another method, e.g. not lshistory, but parse update files
+    			// or call other cleartool method to get the history!
+        return 	!ChangeSetLevel.NONE.equals(changeset) &&
+        		// if view not exist we should not execute history!
+                cleartool.doesViewExist(viewTag) &&
+                // if load rules are empty we should not execute history    	
+                !ArrayUtils.isEmpty(loadRules);
     }
 
-    private boolean needsLsHistoryForHasChanges(String viewTag, String[] loadRules) throws IOException,
-            InterruptedException {
-        return cleartool.doesViewExist(viewTag) && !ArrayUtils.isEmpty(loadRules);
+    private boolean needsLsHistoryForHasChanges(String viewTag, String[] loadRules) throws IOException, InterruptedException {
+				// if view not exist we should not execute history!
+        return	cleartool.doesViewExist(viewTag) &&
+        		// if load rules are empty we should not execute history
+        		!ArrayUtils.isEmpty(loadRules);        
     }
 
     private void prepareViewForHistory(String viewTag) throws IOException, InterruptedException {
@@ -230,10 +241,10 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
     private Reader getLsHistoryReader(Date time, String viewPath, String[] viewPaths, String branchName)
             throws IOException, InterruptedException {
-        return cleartool.lshistory(getLsHistoryFormat(), time, viewPath, branchName, viewPaths, needMinorEvents());
+        return cleartool.lshistory(getLsHistoryFormat(), time, viewPath, branchName, viewPaths, needMinorEvents(), useRecurse);
     }
 
-    private String getLsHistoryFormat() {
+    public String getLsHistoryFormat() {
         return MessageFormat.format("{0}{1}{2}", getHistoryFormatHandler().getFormat(), COMMENT, LINEEND);
     }
 

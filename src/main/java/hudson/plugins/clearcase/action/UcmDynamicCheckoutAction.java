@@ -228,4 +228,9 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
         return false;
     }
 
+	public String getUpdtFileName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

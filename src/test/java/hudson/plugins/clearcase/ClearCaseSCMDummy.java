@@ -62,7 +62,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor,
                              Computer overrideComputer, String viewPath) {
-        super(branch, label, configspec, viewname, useupdate, loadRules, usedynamicview,
+        super(branch, label, false, null, false, null, configspec, viewname, useupdate, false, loadRules, false, null, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
               rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, viewPath, null, null);
         this.cleartool = cleartool;
@@ -77,10 +77,8 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     }
 
     @Override
-    public HistoryAction createHistoryAction(
-                                                VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build) throws IOException, InterruptedException {
-
-        return super.createHistoryAction(variableResolver, launcher, null);
+    public HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, boolean useRecurse) throws IOException, InterruptedException {   
+        return super.createHistoryAction(variableResolver, launcher, null, useRecurse);
     }
 
     @Override

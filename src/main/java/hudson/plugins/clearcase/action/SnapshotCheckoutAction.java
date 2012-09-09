@@ -41,6 +41,7 @@ import org.apache.commons.lang.ArrayUtils;
 public class SnapshotCheckoutAction extends AbstractCheckoutAction {
 
     private final ConfigSpec configSpec;
+    private String updtFileName;
 
     public SnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
         super(cleartool, loadRules, useUpdate, viewPath, viewStorage);
@@ -76,22 +77,29 @@ public class SnapshotCheckoutAction extends AbstractCheckoutAction {
                     launcher.getListener().fatalError(e.toString());
                     return false;
                 }
+            } else {
+            	// [--> anb0s: HUDSON-8674]
+                // Perform a full update of the view. to reevaluate config spec
+                try {
+                    cleartool.setcs(viewPath, SetcsOption.CURRENT, null);
+                } catch (IOException e) {
+                    launcher.getListener().fatalError(e.toString());
+                    return false;
+                }
+            	// [<-- anb0s: HUDSON-8674]
             }
         }
-        // Perform a full update of the view. to reevaluate config spec
-        if (!viewCreated) {
-            try {
-                cleartool.setcs(viewPath, SetcsOption.CURRENT, null);
-            } catch (IOException e) {
-                launcher.getListener().fatalError(e.toString());
-                return false;
-            }
-        }
+        updtFileName = cleartool.getUpdtFileName();
+        launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFileName + "'");
         return true;
     }
 
     public ConfigSpec getConfigSpec() {
         return configSpec;
     }
+
+	public String getUpdtFileName() {		
+		return updtFileName;
+	}
 
 }

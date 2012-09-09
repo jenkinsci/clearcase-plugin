@@ -154,7 +154,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         "vob2", "\"vob 3\"" }), any(InputStream.class), any(OutputStream.class), (FilePath) notNull(), eq(true))).thenAnswer(
                 new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lshistory-1.log"), Boolean.TRUE));
 
-        Reader reader = clearToolExec.lshistory("FORMAT", mockedCalendar.getTime(), "viewName", "branch", new String[] { "vob1", "vob2\n", "vob 3" }, false);
+        Reader reader = clearToolExec.lshistory("FORMAT", mockedCalendar.getTime(), "viewName", "branch", new String[] { "vob1", "vob2\n", "vob 3" }, false, false);
         assertNotNull("Returned console reader can not be null", reader);
         verify(ccLauncher).getWorkspace();
         verify(ccLauncher).run(
@@ -192,7 +192,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 ccLauncher.run(eq(new String[] { "lshistory", "-all", "-since", formattedDate, "-fmt", "FORMAT", "-branch", "brtype:branch", "-nco", "vob1",
                         "vob2", "\"vob 3\"" }), any(InputStream.class), any(OutputStream.class), (FilePath) notNull(), eq(true))).thenThrow(new IOException());
 
-        Reader reader = clearToolExec.lshistory("FORMAT", mockedCalendar.getTime(), "viewName", "branch", new String[] { "vob1", "vob2\n", "vob 3" }, false);
+        Reader reader = clearToolExec.lshistory("FORMAT", mockedCalendar.getTime(), "viewName", "branch", new String[] { "vob1", "vob2\n", "vob 3" }, false, false);
         assertNotNull("Returned console reader cannot be null", reader);
         verify(ccLauncher).getWorkspace();
         verify(ccLauncher).run(
@@ -493,7 +493,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         any(OutputStream.class), (FilePath) isNull(), eq(true))).thenAnswer(
                 new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-desc-1.log"), Boolean.TRUE));
 
-        Reader reader = clearToolExec.describe("format", "stream:stream_selector@\\a_vob");
+        Reader reader = clearToolExec.describe("format", null, "stream:stream_selector@\\a_vob");
         assertNotNull("Returned console reader cannot be null", reader);
         verify(ccLauncher).run(eq(new String[] { "desc", "-fmt", "format", "stream:stream_selector@\\a_vob" }), any(InputStream.class),
                 any(OutputStream.class), (FilePath) isNull(), eq(true));
@@ -507,7 +507,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                         any(InputStream.class), any(OutputStream.class), (FilePath) isNull(), eq(true))).thenAnswer(
                 new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-desc-1.log"), Boolean.TRUE));
 
-        Reader reader = clearToolExec.describe("format",
+        Reader reader = clearToolExec.describe("format", null,
                 "D:\\slave-ci\\workspace\\jobname\\view\\vob1\\component\\path@@\\main\branch\\67\\A path with spaces.p12\\main\\branch\\1");
         assertNotNull("Returned console reader cannot be null", reader);
         verify(ccLauncher).run(

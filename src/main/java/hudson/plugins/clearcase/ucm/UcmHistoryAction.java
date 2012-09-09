@@ -77,7 +77,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
 
     public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ClearCaseUCMSCMRevisionState oldBaseline,
             ClearCaseUCMSCMRevisionState newBaseline, ChangeSetLevel changeset) {
-        super(cleartool, useDynamicView, filter, changeset);
+        super(cleartool, useDynamicView, filter, changeset, false);
         this.oldBaseline = oldBaseline;
         this.newBaseline = newBaseline;
     }
@@ -191,7 +191,7 @@ public class UcmHistoryAction extends AbstractHistoryAction {
                     List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
                     for (String version : versions) {
                         try {
-                            parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + OutputFormat.COMMENT + OutputFormat.LINEEND, version)), history);
+                            parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + OutputFormat.COMMENT + OutputFormat.LINEEND, null, version)), history);
                         } catch (ParseException e) {
                             /* empty by design */
                         }

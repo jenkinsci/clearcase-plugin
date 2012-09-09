@@ -42,4 +42,6 @@ public interface CheckOutAction {
     boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
 
     boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException;
+
+    String getUpdtFileName();    
 }

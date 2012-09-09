@@ -44,7 +44,7 @@ import org.apache.commons.lang.StringUtils;
  * @author kyosi
  */
 public class UcmCommon {
-    
+
     /**
      * Takes a list of baselines as argument, and return the load rules for all components matching these baselines
      * @param clearTool
@@ -59,7 +59,7 @@ public class UcmCommon {
             return null;
         }
         List<String> loadRules = new ArrayList<String>();
-	List<String> components = new ArrayList<String>();
+        List<String> components = new ArrayList<String>();
         for (Baseline bl : baselines) {
             String componentName = bl.getComponentName();
             if (componentName != null) {
@@ -78,7 +78,7 @@ public class UcmCommon {
         }
         return loadRules.toArray(new String[loadRules.size()]);
     }
-    
+
     /**
      * @param clearToolLauncher
      * @param isUseDynamicView
@@ -150,7 +150,7 @@ public class UcmCommon {
 
     /**
      * Get the component binding to the baseline
-     * 
+     *
      * @param clearToolLauncher
      * @param filePath
      * @param blName the baseline name like 'deskCore_3.2-146_2008-11-14_18-07-22.3543@\P_ORC'
@@ -168,18 +168,18 @@ public class UcmCommon {
 
         return new Baseline(componentName, isNotLabeled);
     }
-    
+
     public static List<Baseline> getLatestBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
         return getBaselinesDesc(clearTool, stream, "%[latest_bls]Xp\\n");
     }
-    
+
     public static List<Baseline> getFoundationBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
         return getBaselinesDesc(clearTool, stream, "%[found_bls]Xp\\n");
     }
-    
+
     private static List<Baseline> getBaselinesDesc(ClearTool clearTool, String stream, String format) throws IOException,
             InterruptedException {
-        BufferedReader rd = new BufferedReader(clearTool.describe(format, "stream:" + stream));
+        BufferedReader rd = new BufferedReader(clearTool.describe(format, null, "stream:" + stream));
         List<String> baselines = new ArrayList<String>();
         try {
             for (String line = rd.readLine(); line != null; line = rd.readLine()) {
@@ -211,7 +211,7 @@ public class UcmCommon {
         }
         return foundationBaselines;
     }
-    
+
     /**
      * @param clearToolLauncher
      * @param streamName
@@ -221,7 +221,7 @@ public class UcmCommon {
      */
     public static List<Component> getStreamComponentsDesc(ClearTool clearTool, String streamName) throws IOException, InterruptedException {
         List<Component> componentsDescList = new ArrayList<Component>();
-        Reader reader = clearTool.describe(null, "stream:" + streamName);
+        Reader reader = clearTool.describe(null, null, "stream:" + streamName);
         BufferedReader bufferedReader = new BufferedReader(reader);
         StringBuilder sb = new StringBuilder();
         while (bufferedReader.ready()) {
@@ -328,7 +328,7 @@ public class UcmCommon {
      * @throws InterruptedException
      */
     public static String getVersionDescription(ClearTool clearTool, String version, String format) throws IOException, InterruptedException {
-        Reader rd = clearTool.describe(format, version);
+        Reader rd = clearTool.describe(format, null, version);
         BufferedReader bufferedReader = new BufferedReader(rd);
         StringBuilder sb = new StringBuilder();
         while (bufferedReader.ready()) {

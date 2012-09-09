@@ -88,4 +88,9 @@ public class UcmSnapshotCheckoutAction extends AbstractCheckoutAction {
         }
         return true;
     }
+
+	public String getUpdtFileName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

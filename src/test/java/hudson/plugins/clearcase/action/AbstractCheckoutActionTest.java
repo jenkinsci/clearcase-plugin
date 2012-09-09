@@ -35,6 +35,10 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
             return false;
         }
 
+    	public String getUpdtFileName() {
+    		// TODO Auto-generated method stub
+    		return null;
+    	}
     }
 
     @Mock private ClearTool clearTool;
