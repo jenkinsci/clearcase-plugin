@@ -33,7 +33,7 @@ import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.plugins.clearcase.ClearCaseSCM.ClearCaseScmDescriptor;
-import hudson.plugins.clearcase.action.CheckOutAction;
+import hudson.plugins.clearcase.action.CheckoutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.action.UcmDynamicCheckoutAction;
 import hudson.plugins.clearcase.action.UcmSnapshotCheckoutAction;
@@ -205,8 +205,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
 
     @Override
-    protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
-        CheckOutAction action;
+    protected CheckoutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+        CheckoutAction action;
         ClearTool clearTool = createClearTool(variableResolver, launcher);
         String stream2 = getStream(variableResolver);
         ViewStorage viewStorage = getViewStorageFactory().create(variableResolver, launcher.isUnix(), getViewName(variableResolver));
@@ -383,20 +383,4 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             return scm;
         }
     }
-
-	@Override
-	protected void inspectConfigAction(
-			VariableResolver<String> variableResolver, ClearToolLauncher launcher)
-			throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	protected boolean hasNewConfigSpec(
-			VariableResolver<String> variableResolver,
-			ClearToolLauncher cclauncher) throws IOException,
-			InterruptedException {
-		// TODO Auto-generated method stub
-		return false;
-	}
 }

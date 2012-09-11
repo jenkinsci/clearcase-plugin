@@ -26,22 +26,47 @@ package hudson.plugins.clearcase.action;
 
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
+
+import org.apache.commons.lang.Validate;
 
 /**
  * Action for performing check outs from ClearCase.
  */
-public interface CheckOutAction {
+public abstract class CheckoutAction {
 
-    boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
+    private ClearTool cleartool;
+
+    private ViewStorage viewStorage;
+
+    public CheckoutAction(ClearTool cleartool, ViewStorage viewStorage) {
+        Validate.notNull(cleartool);
+        this.cleartool = cleartool;
+        this.viewStorage = viewStorage;
+    }
+
+    public abstract boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
     
     /**
      * @deprecated Use {@link #isViewValid(FilePath,String)} instead
      */
-    boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
+    @Deprecated
+    public abstract boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
 
-    boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException;
+    public abstract boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException;
 
-    String getUpdtFileName();    
+    public String getUpdtFileName() {
+        return null;
+    }
+    
+    public ClearTool getCleartool() {
+        return cleartool;
+    }
+
+    public ViewStorage getViewStorage() {
+        return viewStorage;
+    }
 }

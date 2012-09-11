@@ -46,28 +46,26 @@ import java.util.TimeZone;
  * repository as it is a dynamic view. The class will make sure that the
  * configured config spec is the same as the one for the dynamic view.
  */
-public class DynamicCheckoutAction implements CheckOutAction {
+public class BaseDynamicCheckoutAction extends CheckoutAction {
 
-    private ClearTool           cleartool;
     private String              configSpec;
     private boolean             updateConfigSpec;
     private boolean             useTimeRule;
     private boolean             createView;
-    private ViewStorage         viewStorage;
     private AbstractBuild<?, ?> build;
 
-    public DynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec,
+    public BaseDynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec,
             boolean useTimeRule, boolean createView, ViewStorage viewStorage,
             AbstractBuild<?, ?> build) {
-        this.cleartool = cleartool;
+        super(cleartool, viewStorage);
         this.configSpec = configSpec;
         this.updateConfigSpec = !doNotUpdateConfigSpec;
         this.useTimeRule = useTimeRule;
         this.createView = createView;
-        this.viewStorage = viewStorage;
         this.build = build;
     }
 
+    @Override
     public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException,
             InterruptedException {
         if (createView) {
@@ -75,7 +73,7 @@ public class DynamicCheckoutAction implements CheckOutAction {
         }
         startView(viewTag);
 
-        String currentConfigSpec = cleartool.catcs(viewTag).trim();
+        String currentConfigSpec = getCleartool().catcs(viewTag).trim();
 
         if (updateConfigSpec) {
             currentConfigSpec = updateConfigSpec(launcher, viewTag, currentConfigSpec);
@@ -94,9 +92,9 @@ public class DynamicCheckoutAction implements CheckOutAction {
             InterruptedException {
         String futureConfigSpec = PathUtil.convertPathForOS(getConfigSpec(), launcher);
         if (currentAndFutureConfigSpecAreEquals(currentConfigSpec, futureConfigSpec)) {
-            cleartool.setcs(viewTag, SetcsOption.CURRENT, null);
+            getCleartool().setcs(viewTag, SetcsOption.CURRENT, null);
         } else {
-            cleartool.setcs(viewTag, SetcsOption.CONFIGSPEC, futureConfigSpec);
+            getCleartool().setcs(viewTag, SetcsOption.CONFIGSPEC, futureConfigSpec);
         }
         return futureConfigSpec;
     }
@@ -114,21 +112,21 @@ public class DynamicCheckoutAction implements CheckOutAction {
     }
 
     private void startView(String viewTag) throws IOException, InterruptedException {
-        cleartool.startView(viewTag);
+        getCleartool().startView(viewTag);
     }
 
     private void createView(String viewTag) throws IOException, InterruptedException {
         // Remove current view
-        if (cleartool.doesViewExist(viewTag)) {
-            cleartool.rmviewtag(viewTag);
+        if (getCleartool().doesViewExist(viewTag)) {
+            getCleartool().rmviewtag(viewTag);
         }
         // Now, make the view.
         MkViewParameters params = new MkViewParameters();
         params.setType(ViewType.Dynamic);
         params.setViewPath(viewTag);
         params.setViewTag(viewTag);
-        params.setViewStorage(viewStorage);
-        cleartool.mkview(params);
+        params.setViewStorage(getViewStorage());
+        getCleartool().mkview(params);
     }
 
     public String getTimeRule() {
@@ -145,6 +143,7 @@ public class DynamicCheckoutAction implements CheckOutAction {
     /**
      * @deprecated Use {@link #isViewValid(FilePath,String)} instead
      */
+    @Deprecated
     @Override
     public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException,
             InterruptedException {
@@ -154,15 +153,10 @@ public class DynamicCheckoutAction implements CheckOutAction {
     @Override
     public boolean isViewValid(FilePath workspace, String viewTag) throws IOException,
             InterruptedException {
-        if (cleartool.doesViewExist(viewTag)) {
+        if (getCleartool().doesViewExist(viewTag)) {
             startView(viewTag);
             return true;
         }
         return false;
     }
-
-	public String getUpdtFileName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

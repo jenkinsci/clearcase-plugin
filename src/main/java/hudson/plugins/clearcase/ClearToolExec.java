@@ -60,8 +60,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import com.sun.jna.StringArray;
-
 public abstract class ClearToolExec implements ClearTool {
 
     private static final Pattern       PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern
@@ -71,7 +69,7 @@ public abstract class ClearToolExec implements ClearTool {
     protected ClearToolLauncher        launcher;
     protected VariableResolver<String> variableResolver;
     protected String                   optionalMkviewParameters;
-    protected String				   updtFileName;
+    protected String				           updtFileName;
 
     public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters) {
         this.variableResolver = variableResolver;
@@ -85,6 +83,11 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-tag", viewTag);
         return runAndProcessOutput(cmd, null, null, false, null, true);
     }
+    
+    @Override
+    public Reader describe(String format, String objectSelector) throws IOException, InterruptedException {
+        return describe(format, null, objectSelector);
+    }
 
     @Override
     public Reader describe(String format, String viewPath, String objectSelector) throws IOException, InterruptedException {
@@ -94,7 +97,6 @@ public abstract class ClearToolExec implements ClearTool {
         if (StringUtils.isNotBlank(format)) {
             cmd.add("-fmt", format);
         }
-        //
         cmd.add(objectSelector);
         FilePath workingDirectory = null;
         if (viewPath != null) {
@@ -116,14 +118,10 @@ public abstract class ClearToolExec implements ClearTool {
         if (StringUtils.isNotBlank(format)) {
             cmd.add("-fmt", format);
         }
-        //cmd.addTokenized(objectSelectors);
         for (String selector : objectSelectors) {
             cmd.add(selector);
         }
         FilePath workingDirectory = null;
-        /*if (viewPath != null) {
-            workingDirectory = new FilePath(getRootViewPath(launcher), viewPath);
-        }*/
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         launcher.run(cmd.toCommandArray(), null, baos, workingDirectory, true);
         Reader reader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
@@ -377,6 +375,12 @@ public abstract class ClearToolExec implements ClearTool {
         }
         return output;
     }
+    
+    @Override
+    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException,
+            InterruptedException {
+        return lshistory(format, lastBuildDate, viewPath, branch, pathsInView, getMinor);
+    }
 
     @Override
     public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor, boolean useRecurse) throws IOException,
@@ -389,7 +393,7 @@ public abstract class ClearToolExec implements ClearTool {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lshistory");
         if (useRecurse) {
-            cmd.add("-recurse");
+          cmd.add("-recurse");
         } else {
         	cmd.add("-all");
         }
@@ -839,7 +843,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     *
+     * 
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     @Override
@@ -887,7 +891,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     *
+     * 
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     public void setcsCurrent(String viewPath) throws IOException, InterruptedException {
@@ -970,11 +974,11 @@ public abstract class ClearToolExec implements ClearTool {
         if (!exceptions.isEmpty()) {
             handleHijackedDirectoryCCBug(viewPath, filePath, exceptions, output);
         } else {
-        	processUpdtFileName(output);
+        	  processUpdtFileName(output);
         }
     }
 
-    void processUpdtFileName(String output) {
+    private void processUpdtFileName(String output) {
         Pattern updtPattern = Pattern.compile("Log has been written to \"(.*)\".*");
         String[] lines = output.split("\n");
         for (String line : lines) {
@@ -996,7 +1000,7 @@ public abstract class ClearToolExec implements ClearTool {
     /**
      * Work around for a CCase bug with hijacked directories: in the case where a directory was hijacked, cleartool is not able to remove it when it is not
      * empty, we detect this and remove the hijacked directories explicitly, then we relaunch the update.
-     *
+     * 
      * @param viewPath
      * @param filePath
      * @param exceptions

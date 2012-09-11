@@ -33,7 +33,7 @@ import hudson.model.Build;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
-import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
+import hudson.plugins.clearcase.action.BaseSnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
@@ -275,7 +275,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        SnapshotCheckoutAction action = (SnapshotCheckoutAction) scm.createCheckOutAction(variableResolver, clearToolLauncher, build);
+        BaseSnapshotCheckoutAction action = (BaseSnapshotCheckoutAction) scm.createCheckOutAction(variableResolver, clearToolLauncher, build);
         assertEquals("Variables haven't been resolved in config spec", "ClearCase", action.getConfigSpec().getRaw());
     }
 

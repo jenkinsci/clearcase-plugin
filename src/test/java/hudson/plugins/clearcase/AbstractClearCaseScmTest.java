@@ -40,7 +40,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.plugins.clearcase.ClearToolLauncher;
-import hudson.plugins.clearcase.action.CheckOutAction;
+import hudson.plugins.clearcase.action.CheckoutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.scm.ChangeLogParser;
@@ -95,7 +95,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     private Node                              node;
     
     @Mock
-    private CheckOutAction                    checkOutAction;
+    private CheckoutAction                    checkOutAction;
     @Mock
     private HistoryAction                     historyAction;
 
@@ -865,7 +865,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         }
 
         @Override
-        protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
+        protected CheckoutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) {
             // TODO Auto-generated method stub
             return checkOutAction;
         }

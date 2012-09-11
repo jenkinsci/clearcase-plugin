@@ -75,11 +75,11 @@ public class ConfigSpec {
     }
 
     public String getLoadRulesString() {
-    	String rawRules = new String();
+      StringBuilder sb = new StringBuilder();
     	for (String rule : getLoadRules()) {
-    		rawRules += "load " + rule + PathUtil.newLineForOS(isUnix); 
+    		sb.append("load " + rule + PathUtil.newLineForOS(isUnix)); 
     	}
-    	return rawRules;
+    	return sb.toString();
     }
 
     public String getRaw() {

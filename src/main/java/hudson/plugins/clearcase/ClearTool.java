@@ -52,6 +52,19 @@ public interface ClearTool {
      * @return a string containing the config spec
      */
     String catcs(String viewTag) throws IOException, InterruptedException;
+    
+        /**
+     * Call the cleartool describe with the provided format on the specified object selector See
+     * http://www.ipnom.com/ClearCase-Commands/describe.html for valid options
+     * 
+     * @param format
+     * @param objectSelector
+     * @return A reader to the command output
+     * @throws IOException If cleartool throws an error code
+     * @throws InterruptedException If the process is interrupted
+     * @since 1.3
+     */
+    Reader describe(String format, String objectSelector) throws IOException, InterruptedException;
 
     /**
      * Call the cleartool describe with the provided format on the specified object selector See
@@ -182,6 +195,21 @@ public interface ClearTool {
      * @throws InterruptedException
      */
     String lscurrentview(String viewPath) throws IOException, InterruptedException;
+
+    /**
+     * Returns Reader containing output from lshistory.
+     *
+     * @param format format that should be used by the lshistory command
+     * @param lastBuildDate lists events recorded since (that is, at or after) the specified date-time
+     * @param viewPath the name of the view
+     * @param branch the name of the branch to get history events for; if null then history events for all branches are
+     *            listed
+     * @param pathsInView view paths that should be added to the lshistory command. The view paths must be relative.
+     * @param getMinor get minor changes like labeling etc.
+     * @param useRecurse if true use -recurse command, else use -all command (default)
+     * @return Reader containing output from command
+     */
+    Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException, InterruptedException;
 
     /**
      * Returns Reader containing output from lshistory.

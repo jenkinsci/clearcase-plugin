@@ -68,7 +68,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
 
-        AbstractCheckoutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", false), new String[] { "foo" }, false,
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", false), new String[] { "foo" }, false,
                 "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
 
@@ -88,7 +88,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
 
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
 
         verify(cleartool).doesViewExist("viewname");
@@ -107,7 +107,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
 
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
         boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
 
         Assert.assertTrue("Build should succeed.", checkoutResult);
@@ -130,7 +130,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
 
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
         boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
 
         Assert.assertTrue("Checkout should succeed.", checkoutResult);
@@ -154,7 +154,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
         when(launcher.getListener()).thenReturn(taskListener);
 
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath", null);
         boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
         Assert.assertTrue("Checkout should succeed.", checkoutResult);
         verify(cleartool).doesViewExist("viewname");
@@ -176,7 +176,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
 
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "foo" }, true, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "foo" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
 
         verify(cleartool).doesViewExist("viewname");
@@ -199,7 +199,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
 
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, true, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
 
         verify(cleartool).doesViewExist("viewname");
@@ -219,7 +219,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
         
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, false, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, false, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
@@ -244,7 +244,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
 
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "foo" }, true, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "foo" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
@@ -267,7 +267,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
         
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo", "/bar" }, true, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo", "/bar" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");
@@ -290,7 +290,7 @@ public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(launcher.getListener()).thenReturn(taskListener);
         when(cleartool.getUpdtFileName()).thenReturn(null);
 
-        CheckOutAction action = new SnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "bar" }, true, "viewpath", null);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "bar" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
         
         verify(cleartool).doesViewExist("viewname");

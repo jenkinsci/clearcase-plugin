@@ -35,7 +35,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Run;
-import hudson.plugins.clearcase.action.CheckOutAction;
+import hudson.plugins.clearcase.action.CheckoutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
 import hudson.plugins.clearcase.history.AbstractHistoryAction;
 import hudson.plugins.clearcase.history.DefaultFilter;
@@ -135,9 +135,6 @@ public abstract class AbstractClearCaseScm extends SCM {
     private String excludedRegions;
     private boolean extractLoadRules;
     private String loadRules;
-    // TODO: anb0s: activate later
-    //private boolean useRecurseForChangelog;
-    //private boolean useRecurseForPolling;
     private boolean useOtherLoadRulesForPolling;
     private String loadRulesForPolling;
     private boolean useDynamicView;
@@ -225,9 +222,6 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.recreateView = recreateView;
         this.viewPath = StringUtils.defaultIfEmpty(viewPath, viewName);
         this.changeset = changeset;
-        // TODO: option
-        //this.useRecurseForChangelog = false;
-        //this.useRecurseForPolling = true;
         this.viewStorageFactory = viewStorageFactory;
     }
 
@@ -239,7 +233,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @throws InterruptedException
      * @throws IOException
      */
-    protected abstract CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException;
+    protected abstract CheckoutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
     /**
      * inspect config action that will be used by the checkout method.
@@ -250,7 +244,9 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @throws InterruptedException
      * @throws IOException
      */
-    protected abstract void inspectConfigAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher) throws IOException, InterruptedException;
+    protected void inspectConfigAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher)
+			throws IOException, InterruptedException {
+	  }
 
     /**
      * Create a HistoryAction that will be used by the pollChanges() and checkout() method.
@@ -314,12 +310,10 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @throws IOException
      */
     public String[] getViewPaths(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher, boolean forPolling) throws IOException, InterruptedException {
-    	// [--> anb0s: HUDSON-8497]
         String loadRules = getLoadRules(variableResolver, forPolling);
         if (StringUtils.isBlank(loadRules)) {
             return null;
         }
-        // [<-- anb0s: HUDSON-8497]
 
         String[] rules = loadRules.split("[\\r\\n]+");
         for (int i = 0; i < rules.length; i++) {
@@ -375,28 +369,16 @@ public abstract class AbstractClearCaseScm extends SCM {
     	return useOtherLoadRulesForPolling;
     }
 
-    /*
-    public boolean isUseRecurseForChangelog() {
-    	return useRecurseForChangelog;
-    }
-
-    public boolean isUseRecurseForPolling() {
-    	return useRecurseForPolling;
-    }
-    */
-
     public String getLoadRulesForPolling() {
     	return loadRulesForPolling;
     }
 
-	// [--> anb0s: HUDSON-8497]
     public String getLoadRules(VariableResolver<String> variableResolver, boolean forPolling) {
     	if (useOtherLoadRulesForPolling && forPolling)
     		return Util.replaceMacro(loadRulesForPolling, variableResolver);
     	else
     		return Util.replaceMacro(loadRules, variableResolver);
     }
-    // [<-- anb0s: HUDSON-8497]
 
     public boolean isCreateDynView() {
         return createDynView;
@@ -592,7 +574,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         build.addAction(calcRevisionsFromBuild(build, launcher, listener));
 
         // Create actions
-        CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
+        CheckoutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
         SaveChangeLogAction saveChangeLogAction = createSaveChangeLogAction(clearToolLauncher);
         build.addAction(new ClearCaseDataAction());
 
@@ -721,7 +703,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     private boolean isViewInvalid(AbstractBuild<?,?> build, VariableResolver<String> variableResolver, ClearToolLauncher clearToolLauncher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        CheckOutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
+        CheckoutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
         return !checkoutAction.isViewValid(workspace, viewTag);
     }
 
@@ -729,7 +711,9 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     public abstract SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException;
 
-    protected abstract boolean hasNewConfigSpec(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException;
+    protected boolean hasNewConfigSpec(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
+        return false;
+    }
 
     protected Date getBuildTime(Run<?, ?> lastBuild) {
         Date buildTime = lastBuild.getTimestamp().getTime();
@@ -910,10 +894,10 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     public String getUpdtFileName() {
-		return updtFileName;
-	}
+        return updtFileName;
+    }
 
-	public void setUpdtFileName(String updtFileName) {
-		this.updtFileName = updtFileName;
-	}
+    public void setUpdtFileName(String updtFileName) {
+        this.updtFileName = updtFileName;
+    }
 }

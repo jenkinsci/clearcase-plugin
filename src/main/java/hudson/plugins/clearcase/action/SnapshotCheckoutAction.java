@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
+ * Copyright (c) 2007-2010, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
  *                          Henrik Lynggaard, Peter Liljenberg, Andrew Bayer, Vincent Latombe
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,79 +27,148 @@ package hudson.plugins.clearcase.action;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
-import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ConfigSpec;
+import hudson.plugins.clearcase.MkViewParameters;
+import hudson.plugins.clearcase.ViewType;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.Validate;
+
 
 /**
  * Check out action that will check out files into a snapshot view.
  */
-public class SnapshotCheckoutAction extends AbstractCheckoutAction {
+public abstract class SnapshotCheckoutAction extends CheckoutAction {
 
-    private final ConfigSpec configSpec;
-    private String updtFileName;
-
-    public SnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
-        super(cleartool, loadRules, useUpdate, viewPath, viewStorage);
-        this.configSpec = configSpec;
+    public static class LoadRulesDelta {
+        private final Set<String> removed;
+        private final Set<String> added;
+        public LoadRulesDelta(Set<String> removed, Set<String> added) {
+            super();
+            this.removed = removed;
+            this.added = added;
+        }
+        public String[] getAdded() {
+            return added.toArray(new String[added.size()]);
+        }
+        public String[] getRemoved() {
+            return removed.toArray(new String[removed.size()]);
+        }
+        public boolean isEmpty() {
+            return added.isEmpty() && removed.isEmpty();
+        }
     }
 
-    public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        boolean viewCreated = cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, null);
+    protected final String[] loadRules;
+    protected final boolean useUpdate;
+    protected final String viewPath;
+    public SnapshotCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
+        super(cleartool, viewStorage);
+        this.loadRules = loadRules;
+        this.useUpdate = useUpdate;
+        this.viewPath = viewPath;
+    }
 
-        // At this stage, we have a valid view and a valid path
-        boolean needSetCs = true;
-        AbstractCheckoutAction.LoadRulesDelta loadRulesDelta = null;
-        if (!viewCreated) {
-            ConfigSpec viewConfigSpec = new ConfigSpec(cleartool.catcs(viewTag), launcher.isUnix());
-            loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
-            needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());
+    /**
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
+    @Override
+    @Deprecated
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        return isViewValid(workspace, viewTag);
+    }
+
+    @Override
+    public boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        Validate.notEmpty(viewPath);
+        FilePath filePath = new FilePath(workspace, viewPath);
+        boolean viewPathExists = filePath.exists();
+        try {
+            String currentViewTag = getCleartool().lscurrentview(viewPath);
+            return getCleartool().doesViewExist(viewTag) && viewPathExists && viewTag.equals(currentViewTag);
+        } catch (IOException e) {
+            return false;
         }
-
-        if (needSetCs) {
-            try {
-                cleartool.setcs(viewPath, SetcsOption.CONFIGSPEC, configSpec.setLoadRules(loadRules).getRaw());
-            } catch (IOException e) {
-                launcher.getListener().fatalError(e.toString());
-                return false;
-            }
-        } else {
-            String[] addedLoadRules = loadRulesDelta.getAdded();
-            if (!ArrayUtils.isEmpty(addedLoadRules)) {
-                // Config spec haven't changed, but there are new load rules
-                try {
-                    cleartool.update(viewPath, addedLoadRules);
-                } catch (IOException e) {
-                    launcher.getListener().fatalError(e.toString());
-                    return false;
+    }
+    /**
+     * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be created
+     * @param workspace The job's workspace
+     * @param viewTag The view identifier on server. Must be unique on server
+     * @param viewPath The workspace relative path of the view
+     * @param streamSelector The stream selector, using streamName[@pvob] format
+     * @return true if a mkview has been done, false if a view existed and is reused
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String viewTag, String viewPath, String streamSelector) throws IOException, InterruptedException {
+        Validate.notEmpty(viewPath);
+        FilePath filePath = new FilePath(workspace, viewPath);
+        boolean viewPathExists = filePath.exists();
+        boolean doViewCreation = true;
+        if (getCleartool().doesViewExist(viewTag)) {
+            if (viewPathExists) {
+                if (viewTag.equals(getCleartool().lscurrentview(viewPath))) {
+                    if (useUpdate) {
+                        doViewCreation = false;
+                    } else {
+                        getCleartool().rmview(viewPath);
+                    }
+                } else {
+                    getCleartool().rmview(viewPath);
+                    rmviewtag(viewTag);
                 }
             } else {
-            	// [--> anb0s: HUDSON-8674]
-                // Perform a full update of the view. to reevaluate config spec
-                try {
-                    cleartool.setcs(viewPath, SetcsOption.CURRENT, null);
-                } catch (IOException e) {
-                    launcher.getListener().fatalError(e.toString());
-                    return false;
-                }
-            	// [<-- anb0s: HUDSON-8674]
+                rmviewtag(viewTag);
+            }
+        } else {
+            if (viewPathExists) {
+                getCleartool().rmview(viewPath);
             }
         }
-        updtFileName = cleartool.getUpdtFileName();
-        launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFileName + "'");
-        return true;
+        if (doViewCreation) {
+            MkViewParameters params = new MkViewParameters();
+            params.setType(ViewType.Snapshot);
+            params.setViewPath(viewPath);
+            params.setViewTag(viewTag);
+            params.setStreamSelector(streamSelector);
+            params.setViewStorage(getViewStorage());
+            getCleartool().mkview(params);
+        }
+        return doViewCreation;
     }
 
-    public ConfigSpec getConfigSpec() {
-        return configSpec;
+    private void rmviewtag(String viewTag) throws InterruptedException, IOException{
+        try {
+            getCleartool().rmviewtag(viewTag);
+        } catch(IOException e) {
+            // ClearCase RT doesn't support rmview -tag
+            getCleartool().rmtag(viewTag);
+        }
     }
 
-	public String getUpdtFileName() {		
-		return updtFileName;
-	}
-
+    protected SnapshotCheckoutAction.LoadRulesDelta getLoadRulesDelta(Set<String> configSpecLoadRules, Launcher launcher) {
+        Set<String> removedLoadRules = new LinkedHashSet<String>(configSpecLoadRules);
+        Set<String> addedLoadRules = new LinkedHashSet<String>();
+        if (!ArrayUtils.isEmpty(loadRules)) {
+            for (String loadRule : loadRules) {
+                addedLoadRules.add(ConfigSpec.cleanLoadRule(loadRule, launcher.isUnix()));
+            }
+            removedLoadRules.removeAll(addedLoadRules);
+            addedLoadRules.removeAll(configSpecLoadRules);
+            PrintStream logger = launcher.getListener().getLogger();
+            for (String removedLoadRule : removedLoadRules) {
+                logger.println("Removed load rule : " + removedLoadRule);
+            }
+            for (String addedLoadRule : addedLoadRules) {
+                logger.println("Added load rule : " + addedLoadRule);
+            }
+        }
+        return new SnapshotCheckoutAction.LoadRulesDelta(removedLoadRules, addedLoadRules);
+    }
 }

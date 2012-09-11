@@ -35,10 +35,10 @@ import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.Hudson;
 import hudson.model.Node;
-import hudson.plugins.clearcase.action.CheckOutAction;
-import hudson.plugins.clearcase.action.DynamicCheckoutAction;
+import hudson.plugins.clearcase.action.CheckoutAction;
+import hudson.plugins.clearcase.action.BaseDynamicCheckoutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
-import hudson.plugins.clearcase.action.SnapshotCheckoutAction;
+import hudson.plugins.clearcase.action.BaseSnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.base.BaseSaveChangeLogAction;
 import hudson.plugins.clearcase.base.ClearCaseSCMRevisionState;
@@ -62,8 +62,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -129,58 +127,57 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @SuppressWarnings("deprecation")
-	private boolean doRefreshConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
-    	int cmdResult = 1;
+    private boolean doRefreshConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
+        int cmdResult = 1;
         // execute refresh command
         if (isRefreshConfigSpec()) {
-        	ArgumentListBuilder cmd = new ArgumentListBuilder();
-        	cmd.addTokenized(getRefreshConfigSpecCommand(variableResolver));
+            ArgumentListBuilder cmd = new ArgumentListBuilder();
+            cmd.addTokenized(getRefreshConfigSpecCommand(variableResolver));
             PrintStream logger = launcher.getListener().getLogger();
             try {
-				cmdResult = launcher.launch(cmd.toCommandArray(), new String[0], null, logger, null).join();
-			} catch (IOException e) {
-				e.printStackTrace(logger);
-			} catch (InterruptedException e) {
-				e.printStackTrace(logger);
-			}
+                cmdResult = launcher.launch(cmd.toCommandArray(), new String[0], null, logger, null).join();
+            } catch (IOException e) {
+                e.printStackTrace(logger);
+            } catch (InterruptedException e) {
+                e.printStackTrace(logger);
+            }
         }
         return (cmdResult == 0);
     }
 
     private boolean doExtractConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
         boolean ret = true;
-    	// get config spec from file
+        // get config spec from file
         if (isExtractConfigSpec()) {
-        	String cs = null;
-        	cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
-        	if (cs != null) {
-        		configSpec = cs;
-        	} else {
-        		launcher.getListener().getLogger().println("Fall back to config spec field...");
-        		ret = false;
-        	}
+            String cs = null;
+            cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
+            if (cs != null) {
+                configSpec = cs;
+            } else {
+                launcher.getListener().getLogger().println("Fall back to config spec field...");
+                ret = false;
+            }
         }
         return ret;
     }
 
     private boolean doExtractLoadRules(VariableResolver<String> variableResolver, Launcher launcher) {
-    	boolean ret = true;
-    	// extract rules from config spec
-    	if (isExtractLoadRules()) {
-    		ConfigSpec cfgSpec = new ConfigSpec(configSpec, launcher.isUnix());
-    		setLoadRules(cfgSpec.getLoadRulesString());
-    	}
+        boolean ret = true;
+        // extract rules from config spec
+        if (isExtractLoadRules()) {
+            ConfigSpec cfgSpec = new ConfigSpec(configSpec, launcher.isUnix());
+            setLoadRules(cfgSpec.getLoadRulesString());
+        }
         return ret;
     }
 
     private String getConfigSpecFromFile(String fileName, Launcher launcher) {
-    	String cs = null;    	
-    	try {        		
-    		cs = PathUtil.readFileAsString(fileName);
-		} catch (IOException e) {
-            //Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Cannot read file '" + fileName +"'", e);
+        String cs = null;
+        try {
+            cs = PathUtil.readFileAsString(fileName);
+        } catch (IOException e) {
             launcher.getListener().getLogger().println("ERROR: Cannot open config spec file '" + fileName + "'");
-		}
+        }
         return cs;
     }
 
@@ -201,10 +198,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     public String getConfigSpecFileName(VariableResolver<String> variableResolver) {
-    	if (variableResolver != null)
-    		return Util.replaceMacro(configSpecFileName, variableResolver);
-    	else
-    		return configSpecFileName;
+        if (variableResolver != null) {
+            return Util.replaceMacro(configSpecFileName, variableResolver);
+        }
+        return configSpecFileName;
     }
 
     public boolean isRefreshConfigSpec() {
@@ -216,11 +213,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     public String getRefreshConfigSpecCommand(VariableResolver<String> variableResolver) {
-    	if (variableResolver != null)
-    		return Util.replaceMacro(refreshConfigSpecCommand, variableResolver);
-    	else
-    		return refreshConfigSpecCommand;
-    }    
+        if (variableResolver != null) {
+            return Util.replaceMacro(refreshConfigSpecCommand, variableResolver);
+        }
+        return refreshConfigSpecCommand;
+    }
     
     public String getConfigSpec() {
         return configSpec;
@@ -274,82 +271,76 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @Override
     protected void inspectConfigAction(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
-    	Launcher launcher = cclauncher.getLauncher();
-    	doRefreshConfigSpec(variableResolver, launcher);
-    	doExtractConfigSpec(variableResolver, launcher);
-    	doExtractLoadRules(variableResolver, launcher);
-    	// verify
-    	PrintStream logger = launcher.getListener().getLogger();
-    	if (configSpec == null || configSpec.length() == 0) {
-    		logger.println("[WARNING] config spec is empty!");
-    	}
-    	String loadRules = getLoadRules();
-    	if (loadRules == null || loadRules.length() == 0) {
-    		logger.println("[WARNING] load rules are empty!");
-    	}
+        Launcher launcher = cclauncher.getLauncher();
+        doRefreshConfigSpec(variableResolver, launcher);
+        doExtractConfigSpec(variableResolver, launcher);
+        doExtractLoadRules(variableResolver, launcher);
+        // verify
+        PrintStream logger = launcher.getListener().getLogger();
+        if (StringUtils.isEmpty(configSpec)) {
+            logger.println("[WARNING] config spec is empty!");
+        }
+        if (StringUtils.isEmpty(getLoadRules())) {
+            logger.println("[WARNING] load rules are empty!");
+        }
     }
 
     @Override
     protected boolean hasNewConfigSpec(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
         boolean ret = false;
-    	Launcher launcher = cclauncher.getLauncher();
+        Launcher launcher = cclauncher.getLauncher();
         // get user configured config spec
         ConfigSpec actualConfigSpec = new ConfigSpec(configSpec, launcher.isUnix());
         // get real view config spec
-        ClearTool cleartool=createClearTool(variableResolver, cclauncher);
-        launcher.getListener().getLogger().println("*************************** get view CSPEC ***********************");
+        ClearTool cleartool = createClearTool(variableResolver, cclauncher);
+        PrintStream logger = launcher.getListener().getLogger();
+        logger.println("*************************** get view CSPEC ***********************");
         ConfigSpec viewConfigSpec = new ConfigSpec(cleartool.catcs(getViewName(variableResolver)), launcher.isUnix());
-        launcher.getListener().getLogger().println("******************************************************************");
+        logger.println("******************************************************************");
         // first check configured (expected or default) config spec with CATCS
         boolean configuredCSEqualsCatcs = actualConfigSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules());
-        if (!configuredCSEqualsCatcs) {        	
-        	launcher.getListener().getLogger().println("[WARNING] CSPEC configured != catcs (view)");
-        	ret = true;
+        if (!configuredCSEqualsCatcs) {
+            logger.println("[WARNING] CSPEC configured != catcs (view)");
+            ret = true;
         }
-        if (isExtractConfigSpec())
-        {
-        	// refresh if needed
-        	doRefreshConfigSpec(variableResolver, launcher);
-        	// get config spec from file
-        	String cs = null;
-        	cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
-        	if (cs != null) {
-        		// get new config spec
+        if (isExtractConfigSpec()) {
+            // refresh if needed
+            doRefreshConfigSpec(variableResolver, launcher);
+            // get config spec from file
+            String cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
+            if (cs != null) {
+                // get new config spec
                 ConfigSpec fileConfigSpec = new ConfigSpec(cs, launcher.isUnix());
-                //loadRulesDelta = getLoadRulesDelta(fileConfigSpec.getLoadRules(), launcher);
-                //needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());                
                 ret = !viewConfigSpec.stripLoadRules().equals(fileConfigSpec.stripLoadRules());
-                // Debug
-	            launcher.getListener().getLogger().println("[INFO] CSPEC changed = " + ret);
-                if (ret)
-                {
-		            String viewCS = viewConfigSpec.stripLoadRules().getRaw();
-		            String fileCS = fileConfigSpec.stripLoadRules().getRaw();
-		            launcher.getListener().getLogger().println("*** CATCS CSPEC ***");
-		            launcher.getListener().getLogger().println(viewCS);
-    	            launcher.getListener().getLogger().println("******************************************************************");
-		            launcher.getListener().getLogger().println("***  FILE CSPEC ***");
-		            launcher.getListener().getLogger().println(fileCS);
-    	            launcher.getListener().getLogger().println("******************************************************************");
-                }                
-        	} else {
-        		launcher.getListener().getLogger().println("ERROR: extracted CSPEC is empty!");
-        		ret = false;
-        	}
+                logger.println("[INFO] CSPEC changed = " + ret);
+                if (ret) {
+                    String viewCS = viewConfigSpec.stripLoadRules().getRaw();
+                    String fileCS = fileConfigSpec.stripLoadRules().getRaw();
+                    logger.println("*** CATCS CSPEC ***");
+                    logger.println(viewCS);
+                    logger.println("******************************************************************");
+                    logger.println("***  FILE CSPEC ***");
+                    logger.println(fileCS);
+                    logger.println("******************************************************************");
+                }
+            } else {
+                logger.println("ERROR: extracted CSPEC is empty!");
+                ret = false;
+            }
         }
         return ret;
     }
 
     @Override
-    protected CheckOutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
-        CheckOutAction action;
+    protected CheckoutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+        CheckoutAction action;
         String effectiveConfigSpec = Util.replaceMacro(configSpec, variableResolver);
         ViewStorage viewStorage = getViewStorageFactory().create(variableResolver, launcher.isUnix(), getViewName(variableResolver));
         if (isUseDynamicView()) {
-            action = new DynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
+            action = new BaseDynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
                     viewStorage, build);
         } else {
-            action = new SnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher(), false),isUseUpdate(), getViewPath(variableResolver), viewStorage); 
+            action = new BaseSnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher(), false),isUseUpdate(), getViewPath(variableResolver), viewStorage); 
         }
         return action;
     }
@@ -641,7 +632,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @Override
     public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException {
-    	//extractFromConfigSpec(variableResolver, isUnix);
     	return createRevisionState(build, launcher, taskListener, build.getTime());
     }
 

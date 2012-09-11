@@ -35,57 +35,71 @@ import java.io.IOException;
 
 import org.apache.commons.lang.ArrayUtils;
 
-public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
+/**
+ * Check out action that will check out files into a snapshot view.
+ */
+public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
 
-    private final String streamSelector;
-    public UcmSnapshotCheckoutAction(ClearTool cleartool, String streamSelector, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
+    private final ConfigSpec configSpec;
+    private String updtFileName;
+
+    public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
         super(cleartool, loadRules, useUpdate, viewPath, viewStorage);
-        this.streamSelector = streamSelector;
+        this.configSpec = configSpec;
     }
 
     @Override
     public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        boolean viewCreated = cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, streamSelector);
+        boolean viewCreated = cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, null);
+
         // At this stage, we have a valid view and a valid path
-        if (viewCreated) {
-            // If the view is brand new, we just have to add the load rules
+        boolean needSetCs = true;
+        SnapshotCheckoutAction.LoadRulesDelta loadRulesDelta = null;
+        if (!viewCreated) {
+            ConfigSpec viewConfigSpec = new ConfigSpec(getCleartool().catcs(viewTag), launcher.isUnix());
+            loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
+            needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());
+        }
+
+        if (needSetCs) {
             try {
-                getCleartool().update(viewPath, loadRules);
+                getCleartool().setcs(viewPath, SetcsOption.CONFIGSPEC, configSpec.setLoadRules(loadRules).getRaw());
             } catch (IOException e) {
                 launcher.getListener().fatalError(e.toString());
                 return false;
             }
         } else {
-            ConfigSpec viewConfigSpec = new ConfigSpec(getCleartool().catcs(viewTag), launcher.isUnix());
-            SnapshotCheckoutAction.LoadRulesDelta loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
-            if (!ArrayUtils.isEmpty(loadRulesDelta.getRemoved())) {
+            String[] addedLoadRules = loadRulesDelta.getAdded();
+            if (!ArrayUtils.isEmpty(addedLoadRules)) {
+                // Config spec haven't changed, but there are new load rules
                 try {
-                    getCleartool().setcs(viewPath, SetcsOption.CONFIGSPEC, viewConfigSpec.setLoadRules(loadRules).getRaw());
+                    getCleartool().update(viewPath, addedLoadRules);
                 } catch (IOException e) {
                     launcher.getListener().fatalError(e.toString());
                     return false;
                 }
             } else {
-                String[] addedLoadRules = loadRulesDelta.getAdded();
-                if (!ArrayUtils.isEmpty(addedLoadRules)) {
-                    // Config spec haven't changed, but there are new load rules
-                    try {
-                        getCleartool().update(viewPath, addedLoadRules);
-                    } catch (IOException e) {
-                        launcher.getListener().fatalError(e.toString());
-                        return false;
-                    }
+                // Perform a full update of the view. to reevaluate config spec
+                try {
+                    getCleartool().setcs(viewPath, SetcsOption.CURRENT, null);
+                } catch (IOException e) {
+                    launcher.getListener().fatalError(e.toString());
+                    return false;
                 }
             }
-
-            // Perform a full update of the view to get changes due to rebase for instance.
-            try {
-                getCleartool().update(viewPath, null);
-            } catch (IOException e) {
-                launcher.getListener().fatalError(e.toString());
-                return false;
-            }
         }
+        updtFileName = getCleartool().getUpdtFileName();
+        launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFileName + "'");
         return true;
     }
+
+    public ConfigSpec getConfigSpec() {
+        return configSpec;
+    }
+
+	@Override
+    public String getUpdtFileName() {
+		return updtFileName;
+	}
+
 }

@@ -18,7 +18,7 @@ import org.mockito.Mock;
 
 public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
 
-    private static class DummyCheckoutAction extends AbstractCheckoutAction {
+    private static class DummyCheckoutAction extends SnapshotCheckoutAction {
 
         @Override
         public boolean cleanAndCreateViewIfNeeded(FilePath workspace, String viewTag, String viewPath, String streamSelector) throws IOException,

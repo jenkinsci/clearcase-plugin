@@ -48,32 +48,29 @@ import java.util.TimeZone;
  * Check out action for dynamic views. This will not update any files from the repository as it is a dynamic view. It
  * only makes sure the view is started as config specs don't exist in UCM
  */
-public class UcmDynamicCheckoutAction implements CheckOutAction {
+public class UcmDynamicCheckoutAction extends CheckoutAction {
     private static final String CONFIGURED_STREAM_VIEW_SUFFIX = "_hudson_view";
     private static final String BUILD_STREAM_PREFIX = "hudson_stream.";
     private static final String BASELINE_NAME = "hudson_co_";
     private static final String BASELINE_COMMENT = "hudson_co_";
 
-    private ClearTool cleartool;
     private String stream;
     private boolean createDynView;
     private AbstractBuild build;
     private boolean freezeCode;
     private boolean recreateView;
-    private ViewStorage viewStorage;
-
+    
     public UcmDynamicCheckoutAction(ClearTool cleartool, String stream, boolean createDynView, ViewStorage viewStorage,
             AbstractBuild build, boolean freezeCode, boolean recreateView) {
-        super();
-        this.cleartool = cleartool;
+        super(cleartool, viewStorage);
         this.stream = stream;
         this.createDynView = createDynView;
-        this.viewStorage = viewStorage;
         this.build = build;
         this.freezeCode = freezeCode;
         this.recreateView = recreateView;
     }
 
+    @Override
     public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
         // add stream to data action (to be used by ClearCase report)
         ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
@@ -89,12 +86,12 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
                 checkoutCodeFreeze(viewTag);
             } else {
                 prepareView(viewTag, stream);
-                cleartool.startView(viewTag);
-                cleartool.setcsTag(viewTag, SetcsOption.STREAM, null);
+                getCleartool().startView(viewTag);
+                getCleartool().setcsTag(viewTag, SetcsOption.STREAM, null);
             }
         } else {
-            cleartool.startView(viewTag);
-            cleartool.setcsTag(viewTag, SetcsOption.STREAM, null);
+            getCleartool().startView(viewTag);
+            getCleartool().setcsTag(viewTag, SetcsOption.STREAM, null);
         }
 
         return true;
@@ -124,10 +121,10 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
         String dateStr = formatter.format(build.getTimestamp().getTime()).toLowerCase();
 
-        cleartool.mkbl((BASELINE_NAME + dateStr), getConfiguredStreamViewName(), (BASELINE_COMMENT + dateStr), false, false, null, null, null);
+        getCleartool().mkbl((BASELINE_NAME + dateStr), getConfiguredStreamViewName(), (BASELINE_COMMENT + dateStr), false, false, null, null, null);
 
         // get latest baselines on the configured stream
-        List<Baseline> latestBlsOnConfgiuredStream = UcmCommon.getLatestBlsWithCompOnStream(cleartool, stream,
+        List<Baseline> latestBlsOnConfgiuredStream = UcmCommon.getLatestBlsWithCompOnStream(getCleartool(), stream,
                 getConfiguredStreamViewName());
 
         // fix Not labeled baselines
@@ -137,7 +134,7 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
                 List<String> readWriteCompList = new ArrayList<String>();
                 readWriteCompList.add(baseLineDesc.getComponentDesc().getName());
 
-                List<Baseline> baseLineDescList = cleartool.mkbl((BASELINE_NAME
+                List<Baseline> baseLineDescList = getCleartool().mkbl((BASELINE_NAME
                 + dateStr), getConfiguredStreamViewName(), (BASELINE_COMMENT + dateStr), false, true, readWriteCompList, null, null);
 
                 String newBaseline = baseLineDescList.get(0).getBaselineName() + "@" + UcmCommon.getVob(baseLineDesc.getComponentDesc().getName());
@@ -147,7 +144,7 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
         }
 
         // rebase build stream
-        UcmCommon.rebase(cleartool, viewName, latestBlsOnConfgiuredStream);
+        UcmCommon.rebase(getCleartool(), viewName, latestBlsOnConfgiuredStream);
 
         // add baselines to build - to be later used by getChange
         ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
@@ -159,19 +156,19 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
 
     private void prepareBuildStreamAndViews(String viewTag, String stream) throws IOException, InterruptedException {
         // verify that view exists on the configured stream and start it
-        if (!cleartool.doesViewExist(getConfiguredStreamViewName())) {
+        if (!getCleartool().doesViewExist(getConfiguredStreamViewName())) {
             MkViewParameters params = new MkViewParameters();
             params.setType(ViewType.Dynamic);
             params.setViewTag(getConfiguredStreamViewName());
             params.setStreamSelector(stream);
-            params.setViewStorage(viewStorage);
-            cleartool.mkview(params);
+            params.setViewStorage(getViewStorage());
+            getCleartool().mkview(params);
         }
-        cleartool.startView(getConfiguredStreamViewName());
+        getCleartool().startView(getConfiguredStreamViewName());
 
         // do we have build stream? if not create it
-        if (!cleartool.doesStreamExist(getBuildStream())) {
-            cleartool.mkstream(stream, getBuildStream());
+        if (!getCleartool().doesStreamExist(getBuildStream())) {
+            getCleartool().mkstream(stream, getBuildStream());
         }
 
         // create view on build stream
@@ -183,14 +180,14 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
         MkViewParameters params = new MkViewParameters();
         params.setViewTag(viewTag);
         params.setStreamSelector(stream);
-        params.setViewStorage(viewStorage);
-        if (cleartool.doesViewExist(viewTag)) {
+        params.setViewStorage(getViewStorage());
+        if (getCleartool().doesViewExist(viewTag)) {
             if (recreateView) {
-                cleartool.rmviewtag(viewTag);
-                cleartool.mkview(params);
+                getCleartool().rmviewtag(viewTag);
+                getCleartool().mkview(params);
             }
         } else {
-            cleartool.mkview(params);
+            getCleartool().mkview(params);
         }
     }
 
@@ -214,6 +211,7 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
     /**
      * @deprecated Use {@link #isViewValid(FilePath,String)} instead
      */
+    @Deprecated
     @Override
     public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
         return isViewValid(workspace, viewTag);
@@ -221,16 +219,10 @@ public class UcmDynamicCheckoutAction implements CheckOutAction {
 
     @Override
     public boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        if (cleartool.doesViewExist(viewTag)) {
-            cleartool.startView(viewTag);
+        if (getCleartool().doesViewExist(viewTag)) {
+            getCleartool().startView(viewTag);
             return true;
         }
         return false;
     }
-
-	public String getUpdtFileName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }
