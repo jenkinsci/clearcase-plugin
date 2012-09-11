@@ -183,7 +183,7 @@ public class UcmCommon {
         List<String> baselines = new ArrayList<String>();
         try {
             for (String line = rd.readLine(); line != null; line = rd.readLine()) {
-                if (!line.startsWith("cleartool: Error:")) {
+                if (isValid(line)) {
                     String[] bl = line.split(" ");
                     for (String b : bl) {
                         if (StringUtils.isNotBlank(b)) {
@@ -210,6 +210,10 @@ public class UcmCommon {
             }
         }
         return foundationBaselines;
+    }
+
+    private static boolean isValid(String line) {
+        return !line.startsWith("cleartool: Error:") && !line.startsWith("Process leaked file descriptors.");
     }
 
     /**
