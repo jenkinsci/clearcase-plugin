@@ -65,7 +65,7 @@ import org.kohsuke.stapler.StaplerRequest;
 public class ClearCaseInstallation extends ToolInstallation implements NodeSpecific<ClearCaseInstallation> {
 
     public final static String NAME = "ClearCase";
-    public final static String CLEARTOOL_EXE = "bin/cleartool.cmd";
+    public final static String CLEARTOOL_EXE = "bin/cleartool";
     public final static String CLEARTOOL_EXE_FALLBACK = "cleartool";
 
     @DataBoundConstructor
@@ -83,10 +83,9 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
         if (StringUtils.isNotBlank(installation.getHome())) {
             // If an installation is specified, use it
             return PathUtil.convertPathForOS(installation.getHome() + "/" + CLEARTOOL_EXE, node.createLauncher(listener).decorateFor(node).isUnix());
-        } else {
-            // Otherwise, fallback to a default case where cleartool is in PATH
-            return CLEARTOOL_EXE_FALLBACK;
         }
+        // Otherwise, fallback to a default case where cleartool is in PATH
+        return CLEARTOOL_EXE_FALLBACK;
     }
 
     @Extension
