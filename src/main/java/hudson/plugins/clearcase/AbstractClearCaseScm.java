@@ -584,16 +584,18 @@ public abstract class AbstractClearCaseScm extends SCM {
         // changelog actions
         boolean computeChangeLogBeforeCheckout = false;
         boolean computeChangeLogAfterCheckout = false;
-        // check if previuos build there
+        // check if previous build there
         if (build.getPreviousBuild() != null) {
-        	// We need a valid view to determine the change log. For instance, on a new slave the view won't exist
-        	boolean isViewValid = checkoutAction.isViewValid(workspace, coNormalizedViewName);
+            // We need a valid view to determine the change log. For instance, on a new slave the view won't exist
+            boolean isViewValid = checkoutAction.isViewValid(workspace, coNormalizedViewName);
             if (isViewValid) {
-            	if (!ChangeSetLevel.UPDT.equals(changeset)) {
-            		computeChangeLogBeforeCheckout = true;
-            	} else {
-            		computeChangeLogAfterCheckout = true;
-            	}
+                if (!ChangeSetLevel.UPDT.equals(changeset)) {
+                    computeChangeLogBeforeCheckout = true;
+                } else {
+                    computeChangeLogAfterCheckout = true;
+                }
+            } else {
+                computeChangeLogAfterCheckout = !ChangeSetLevel.UPDT.equals(changeset);
             }
         }
 
