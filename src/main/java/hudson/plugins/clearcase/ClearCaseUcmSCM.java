@@ -251,7 +251,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public String[] getViewPaths(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
+    public String[] getViewPaths(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher, boolean forPolling) throws IOException,
+            InterruptedException {
         if (!useManualLoadRules) {
             // If the revision state is already available for this build, just use the value
             ClearCaseUCMSCMRevisionState revisionState = build.getAction(ClearCaseUCMSCMRevisionState.class);
@@ -264,9 +265,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             ClearTool clearTool = createClearTool(build, launcher);
             List<Baseline> latest = UcmCommon.getLatestBaselines(clearTool, getStream(variableResolver));
             return UcmCommon.generateLoadRulesFromBaselines(clearTool, getStream(variableResolver), latest);
-        } else {
-            return super.getViewPaths(variableResolver, build, launcher);
         }
+        return super.getViewPaths(variableResolver, build, launcher, forPolling);
     }
 
     @Override
