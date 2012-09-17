@@ -955,18 +955,23 @@ public abstract class ClearToolExec implements ClearTool {
             }
         }
         List<IOException> exceptions = new ArrayList<IOException>();
-        getLauncher().getListener().getLogger().println("Running cleartool update, this operation may take a while");
+        PrintStream logger = getLauncher().getListener().getLogger();
+        logger.println("Running cleartool update, this operation may take a while");
         String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, true, exceptions, false);
         if (logFile.exists()) {
             InputStream is = null;
             InputStreamReader reader = null;
+            BufferedReader rd = null;
             try {
                 is = logFile.read();
                 reader = new InputStreamReader(is);
-                while (reader.ready()) {
-                    launcher.getListener().getLogger().write(reader.read());
+                rd = new BufferedReader(reader);
+                String line;
+                while ((line = rd.readLine()) != null) {
+                    logger.println(line);
                 }
             } finally {
+                IOUtils.closeQuietly(rd);
                 IOUtils.closeQuietly(reader);
                 IOUtils.closeQuietly(is);
             }
@@ -974,7 +979,7 @@ public abstract class ClearToolExec implements ClearTool {
         if (!exceptions.isEmpty()) {
             handleHijackedDirectoryCCBug(viewPath, filePath, exceptions, output);
         } else {
-        	  processUpdtFileName(output);
+            processUpdtFileName(output);
         }
     }
 
