@@ -287,6 +287,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @Override
     protected boolean hasNewConfigSpec(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
+        if (useTimeRule) {
+            // Disable this feature if time rule is enabled, since the config spec changes all the time
+            return false;
+        }
         boolean ret = false;
         Launcher launcher = cclauncher.getLauncher();
         // get user configured config spec
