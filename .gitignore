@@ -1,6 +1,8 @@
-target
-bin
-work
-.classpath
-.project
-.settings
+/target
+/bin
+/work
+/.classpath
+/.project
+/.settings
+/release.properties
+/*.releaseBackup
