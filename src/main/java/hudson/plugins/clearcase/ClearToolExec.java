@@ -940,9 +940,7 @@ public abstract class ClearToolExec implements ClearTool {
     public void update(String viewPath, String[] loadRules) throws IOException, InterruptedException {
         FilePath workspace = getLauncher().getWorkspace();
         FilePath filePath = workspace.child(viewPath);
-        Date now = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssZ");
-        FilePath logFile = workspace.child(sdf.format(now) + ".updt");
+        FilePath logFile = createLogFilename(workspace);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("update");
         cmd.add("-force");
@@ -981,6 +979,16 @@ public abstract class ClearToolExec implements ClearTool {
         } else {
             processUpdtFileName(output);
         }
+    }
+
+    private FilePath createLogFilename(FilePath workspace) throws IOException, InterruptedException {
+        Date now = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssZ");
+        FilePath updateLogsDir = workspace.child("updatelogs");
+        updateLogsDir.mkdirs();
+        updateLogsDir.deleteContents();
+        FilePath logFile = updateLogsDir.child(sdf.format(now) + ".updt");
+        return logFile;
     }
 
     private void processUpdtFileName(String output) {
