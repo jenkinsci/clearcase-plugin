@@ -31,6 +31,7 @@ import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.MkViewParameters;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 
@@ -50,11 +51,18 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
     @Mock
     private BuildListener taskListener;
+    
+    @Mock
+    private ClearToolLauncher ctLauncher;
+    
     @Mock
     private Launcher      launcher;
 
     @Before
     public void setUp() throws Exception {
+        when(cleartool.getLauncher()).thenReturn(ctLauncher);
+        when(ctLauncher.getListener()).thenReturn(taskListener);
+        when(taskListener.getLogger()).thenReturn(System.out);
         createWorkspace();
     }
 

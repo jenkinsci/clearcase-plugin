@@ -4,8 +4,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.TaskListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.MkViewParameters;
 
 import java.io.IOException;
@@ -42,9 +44,15 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Mock private ClearTool clearTool;
+    @Mock private ClearToolLauncher ctLauncher;
+    @Mock private TaskListener taskListener;
+
 
     @Before
     public void setUp() throws Exception {
+        when(clearTool.getLauncher()).thenReturn(ctLauncher);
+        when(ctLauncher.getListener()).thenReturn(taskListener);
+        when(taskListener.getLogger()).thenReturn(System.out);
         createWorkspace();
     }
 
