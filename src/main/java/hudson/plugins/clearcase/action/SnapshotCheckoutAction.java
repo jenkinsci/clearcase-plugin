@@ -26,6 +26,7 @@ package hudson.plugins.clearcase.action;
 
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.TaskListener;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ConfigSpec;
 import hudson.plugins.clearcase.MkViewParameters;
@@ -99,35 +100,42 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
     /**
      * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be created
      * @param workspace The job's workspace
-     * @param viewTag The view identifier on server. Must be unique on server
+     * @param jobViewTag The view identifier on server. Must be unique on server
      * @param viewPath The workspace relative path of the view
      * @param streamSelector The stream selector, using streamName[@pvob] format
      * @return true if a mkview has been done, false if a view existed and is reused
      * @throws IOException
      * @throws InterruptedException
      */
-    protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String viewTag, String viewPath, String streamSelector) throws IOException, InterruptedException {
+    protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String jobViewTag, String viewPath, String streamSelector) throws IOException, InterruptedException {
         Validate.notEmpty(viewPath);
+        TaskListener listener = getCleartool().getLauncher().getListener();
         FilePath filePath = new FilePath(workspace, viewPath);
         boolean viewPathExists = filePath.exists();
         boolean doViewCreation = true;
-        if (getCleartool().doesViewExist(viewTag)) {
+        if (getCleartool().doesViewExist(jobViewTag)) {
             if (viewPathExists) {
-                if (viewTag.equals(getCleartool().lscurrentview(viewPath))) {
+                String currentViewTag = getCleartool().lscurrentview(viewPath);
+                if (jobViewTag.equals(currentViewTag)) {
                     if (useUpdate) {
                         doViewCreation = false;
                     } else {
+                        listener.getLogger().println("Removing view because 'Use Update' isn't checked.");
                         getCleartool().rmview(viewPath);
                     }
                 } else {
+                    listener.getLogger().println("Removing view because the view tag of the job " + jobViewTag + " doesn't match the current view tag " + currentViewTag);
                     getCleartool().rmview(viewPath);
-                    rmviewtag(viewTag);
+                    listener.getLogger().println("Removing the job view tag because we detected that it already exists.");
+                    rmviewtag(jobViewTag);
                 }
             } else {
-                rmviewtag(viewTag);
+                listener.getLogger().println("Removing view tag because it exists, but the view path doesn't.");
+                rmviewtag(jobViewTag);
             }
         } else {
             if (viewPathExists) {
+                listener.getLogger().println("Removing view because it doesn't match with our view tag.");
                 getCleartool().rmview(viewPath);
             }
         }
@@ -135,7 +143,7 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
             MkViewParameters params = new MkViewParameters();
             params.setType(ViewType.Snapshot);
             params.setViewPath(viewPath);
-            params.setViewTag(viewTag);
+            params.setViewTag(jobViewTag);
             params.setStreamSelector(streamSelector);
             params.setViewStorage(getViewStorage());
             getCleartool().mkview(params);
