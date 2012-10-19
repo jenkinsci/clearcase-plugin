@@ -41,7 +41,6 @@ import java.util.Set;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
 
-
 /**
  * Check out action that will check out files into a snapshot view.
  */
@@ -50,25 +49,30 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
     public static class LoadRulesDelta {
         private final Set<String> removed;
         private final Set<String> added;
+
         public LoadRulesDelta(Set<String> removed, Set<String> added) {
             super();
             this.removed = removed;
             this.added = added;
         }
+
         public String[] getAdded() {
             return added.toArray(new String[added.size()]);
         }
+
         public String[] getRemoved() {
             return removed.toArray(new String[removed.size()]);
         }
+
         public boolean isEmpty() {
             return added.isEmpty() && removed.isEmpty();
         }
     }
 
     protected final String[] loadRules;
-    protected final boolean useUpdate;
-    protected final String viewPath;
+    protected final boolean  useUpdate;
+    protected final String   viewPath;
+
     public SnapshotCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
         super(cleartool, viewStorage);
         this.loadRules = loadRules;
@@ -97,6 +101,7 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
             return false;
         }
     }
+
     /**
      * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be created
      * @param workspace The job's workspace
@@ -123,11 +128,14 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
                         listener.getLogger().println("Removing view because 'Use Update' isn't checked.");
                         getCleartool().rmview(viewPath);
                     }
-                } else {
+                } else if (currentViewTag != null) {
                     listener.getLogger().println("Removing view because the view tag of the job " + jobViewTag + " doesn't match the current view tag " + currentViewTag);
                     getCleartool().rmview(viewPath);
                     listener.getLogger().println("Removing the job view tag because we detected that it already exists.");
                     rmviewtag(jobViewTag);
+                } else {
+                    listener.getLogger().println("The view directory is not linked to any view tag. Removing it using OS delete.");
+                    filePath.deleteRecursive();
                 }
             } else {
                 listener.getLogger().println("Removing view tag because it exists, but the view path doesn't.");
@@ -135,8 +143,14 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
             }
         } else {
             if (viewPathExists) {
-                listener.getLogger().println("Removing view because it doesn't match with our view tag.");
-                getCleartool().rmview(viewPath);
+                String currentViewTag = getCleartool().lscurrentview(viewPath);
+                if (currentViewTag != null) {
+                    listener.getLogger().println("Removing view because it doesn't match with our view tag.");
+                    getCleartool().rmview(viewPath);
+                } else {
+                    listener.getLogger().println("The view directory is not linked to any view tag. Removing it using OS delete.");
+                    filePath.deleteRecursive();
+                }
             }
         }
         if (doViewCreation) {
@@ -151,10 +165,10 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
         return doViewCreation;
     }
 
-    private void rmviewtag(String viewTag) throws InterruptedException, IOException{
+    private void rmviewtag(String viewTag) throws InterruptedException, IOException {
         try {
             getCleartool().rmviewtag(viewTag);
-        } catch(IOException e) {
+        } catch (IOException e) {
             // ClearCase RT doesn't support rmview -tag
             getCleartool().rmtag(viewTag);
         }
