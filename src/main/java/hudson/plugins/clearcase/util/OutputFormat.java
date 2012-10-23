@@ -68,5 +68,5 @@ public interface OutputFormat {
     public static final String UCM_ACTIVITY_CONTRIBUTING = "%[contrib_acts]p";
 
     // UCM Versions
-    public static final String UCM_VERSION_ACTIVITY = "%[activity]Xp";
+    public static final String UCM_VERSION_ACTIVITY = "%[activity]p";
 }
