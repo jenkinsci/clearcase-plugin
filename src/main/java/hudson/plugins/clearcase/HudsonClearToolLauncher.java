@@ -93,13 +93,14 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
         }
 
         File logFile = null;
+        PrintStream logger = null;
+        PrintStream fileLogger = null;
         try {
-            PrintStream logger;
             if (logCommand) {
                 logger = listener.getLogger();
             } else {
                 logFile = File.createTempFile("cleartool", "log");
-                logger = new PrintStream(logFile);
+                fileLogger = logger = new PrintStream(logFile);
             }
             if (out == null) {
                 out = logger;
@@ -120,8 +121,11 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
                 throw new IOException("cleartool did not return the expected exit code. Command line=\"" + getCmdString(cmd) + "\", actual exit code=" + r);
             }
         } finally {
+            IOUtils.closeQuietly(fileLogger);
             if (logFile != null && logFile.exists()) {
-                logFile.delete();
+                if (!logFile.delete()) {
+                    listener.error("Unable to delete" + logFile);
+                }
             }
         }
         return true;
