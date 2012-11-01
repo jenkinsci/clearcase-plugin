@@ -218,7 +218,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         }
         return refreshConfigSpecCommand;
     }
-    
+
     public String getConfigSpec() {
         return configSpec;
     }
@@ -234,7 +234,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     public boolean isUseTimeRule() {
         return useTimeRule;
     }
-    
+
     @Override
     public ClearCaseScmDescriptor getDescriptor() {
         return PluginImpl.BASE_DESCRIPTOR;
@@ -264,7 +264,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         if (isExtractConfigSpec()) {
             @SuppressWarnings("unchecked")
             VariableResolver.Union<String> variableResolver = new VariableResolver.Union<String>(new BuildVariableResolver(build, true),
-                                                                                                 new VariableResolver.ByMap<String>(env));        	
+                                                                                                 new VariableResolver.ByMap<String>(env));
         	env.put(CLEARCASE_CSFILENAME_ENVSTR, getConfigSpecFileName(variableResolver));
         }
     }
@@ -344,7 +344,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             action = new BaseDynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule, isCreateDynView(),
                     viewStorage, build);
         } else {
-            action = new BaseSnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher(), false),isUseUpdate(), getViewPath(variableResolver), viewStorage); 
+            action = new BaseSnapshotCheckoutAction(createClearTool(variableResolver, launcher),new ConfigSpec(effectiveConfigSpec, launcher.getLauncher().isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher(), false),isUseUpdate(), getViewPath(variableResolver), viewStorage);
         }
         return action;
     }
@@ -497,9 +497,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                                                         req.getParameter("cc.configspec"),
                                                         req.getParameter("cc.viewname"),
                                                         req.getParameter("cc.useupdate") != null,
-                                                        req.getParameter("cc.extractLoadRules") != null,                                                        
+                                                        req.getParameter("cc.extractLoadRules") != null,
                                                         req.getParameter("cc.loadrules"),
-                                                        req.getParameter("cc.useOtherLoadRulesForPolling") != null,                                                        
+                                                        req.getParameter("cc.useOtherLoadRulesForPolling") != null,
                                                         req.getParameter("cc.loadRulesForPolling"),
                                                         req.getParameter("cc.usedynamicview") != null,
                                                         req.getParameter("cc.viewdrive"),
@@ -594,7 +594,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             // all tests passed so far
             return FormValidation.ok();
         }
-        
+
         /**
          * Displays "cleartool -version" for trouble shooting.
          */
@@ -636,7 +636,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @Override
     public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException, InterruptedException {
-    	return createRevisionState(build, launcher, taskListener, build.getTime());
+    	return createRevisionState(build, launcher, taskListener, getBuildTime(build));
     }
 
     @Override
@@ -648,6 +648,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         ClearCaseSCMRevisionState revisionState = new ClearCaseSCMRevisionState(date);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         revisionState.setLoadRules(getViewPaths(variableResolver, build, launcher, true));
-        return revisionState; 
+        return revisionState;
     }
 }
