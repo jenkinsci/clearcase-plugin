@@ -45,7 +45,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-public class SnapshotCheckoutActionTest extends AbstractWorkspaceTest {
+public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
     @Mock
     private BuildListener     taskListener;
