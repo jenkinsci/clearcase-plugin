@@ -69,19 +69,18 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
                 return false;
             }
         } else {
+            // Perform a full update of the view to reevaluate config spec
+            try {
+                getCleartool().setcs(viewPath, SetcsOption.CURRENT, null);
+            } catch (IOException e) {
+                launcher.getListener().fatalError(e.toString());
+                return false;
+            }
             String[] addedLoadRules = loadRulesDelta.getAdded();
             if (!ArrayUtils.isEmpty(addedLoadRules)) {
                 // Config spec haven't changed, but there are new load rules
                 try {
                     getCleartool().update(viewPath, addedLoadRules);
-                } catch (IOException e) {
-                    launcher.getListener().fatalError(e.toString());
-                    return false;
-                }
-            } else {
-                // Perform a full update of the view. to reevaluate config spec
-                try {
-                    getCleartool().setcs(viewPath, SetcsOption.CURRENT, null);
                 } catch (IOException e) {
                     launcher.getListener().fatalError(e.toString());
                     return false;

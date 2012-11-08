@@ -26,7 +26,6 @@ package hudson.plugins.clearcase.action;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
-import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
@@ -35,8 +34,6 @@ import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.MkViewParameters;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ConfigSpec;
-
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -247,8 +244,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
         verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
-        // anb0s: TODO: why setcs must be executed second time???
-        // verify(cleartool).setcs("viewpath", SetcsOption.CURRENT, null);
     }
 
     @Test
@@ -269,8 +264,7 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
         verify(cleartool).update("viewpath", new String[] { "/bar" });
-        // anb0s: TODO: why setcs must be executed after update???
-        // verify(cleartool).setcs("viewpath", SetcsOption.CURRENT, null);
+        verify(cleartool).setcs("viewpath", SetcsOption.CURRENT, null);
     }
 
     @Test
@@ -290,8 +284,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
         verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
-        // anb0s: TODO: why setcs must be executed second time???
-        // verify(cleartool).setcs("viewpath", SetcsOption.CURRENT, null);
     }
 
 }
