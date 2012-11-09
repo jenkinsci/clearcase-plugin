@@ -42,7 +42,7 @@ public class HistoryEntry {
     String event;
     String user;
     String operation;
-    String activityName;
+    String activityName = "undefined_for_non_ucm";
     StringBuilder commentBuilder = new StringBuilder();
     String activityHeadline;
     String line;
