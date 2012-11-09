@@ -38,6 +38,9 @@ public class DefaultFilter implements Filter {
             return false;
         if (entry.getEvent().equalsIgnoreCase("create branch"))
             return false;
+        if (entry.getActivityName().equals(""))
+            return false;
+
 
         return true;
     }
