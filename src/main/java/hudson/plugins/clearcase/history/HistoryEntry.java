@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringUtils;
 public class HistoryEntry {
 
     String        activityHeadline;
-    String        activityName;
+    String        activityName = "undefined_for_non_ucm";
     StringBuilder commentBuilder = new StringBuilder();
     Date          date;
     String        dateText;
