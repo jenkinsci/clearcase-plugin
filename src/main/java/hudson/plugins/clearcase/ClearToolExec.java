@@ -649,17 +649,11 @@ public abstract class ClearToolExec implements ClearTool {
         }
 
         // add the default storage directory only if gpath/hpath are not set (only for windows)
-        switch (parameters.getType()) {
-        case Snapshot:
-            if (!isMetadataLocationDefinedInAdditionalParameters) {
-                cmd.add(parameters.getViewStorage().getCommandArguments());
-            }
+        if (!isMetadataLocationDefinedInAdditionalParameters) {
+            cmd.add(parameters.getViewStorage().getCommandArguments());
+        }
+        if (ViewType.Snapshot.equals(parameters.getType())) {
             cmd.add(parameters.getViewPath());
-            break;
-        case Dynamic:
-
-            break;
-        default:
         }
         launcher.run(cmd.toCommandArray(), null, null, null, true);
     }

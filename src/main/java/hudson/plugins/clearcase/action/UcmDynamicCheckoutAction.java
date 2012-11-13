@@ -178,6 +178,7 @@ public class UcmDynamicCheckoutAction extends CheckoutAction {
 
     private void prepareView(String viewTag, String stream) throws IOException, InterruptedException {
         MkViewParameters params = new MkViewParameters();
+        params.setType(ViewType.Dynamic);
         params.setViewTag(viewTag);
         params.setStreamSelector(stream);
         params.setViewStorage(getViewStorage());
