@@ -645,22 +645,18 @@ public abstract class ClearToolExec implements ClearTool {
         if (StringUtils.isNotEmpty(optionalMkviewParameters)) {
             String variabledResolvedParams = Util.replaceMacro(optionalMkviewParameters, this.variableResolver);
             cmd.addTokenized(variabledResolvedParams);
-            isMetadataLocationDefinedInAdditionalParameters = variabledResolvedParams.contains("-host") || variabledResolvedParams.contains("-vws");
         }
 
-        // add the default storage directory only if gpath/hpath are not set (only for windows)
         switch (parameters.getType()) {
         case Snapshot:
-            if (!isMetadataLocationDefinedInAdditionalParameters) {
+            if (parameters.getViewStorage().getType() == "specific") {
                 cmd.add("-vws");
-                cmd.add(parameters.getViewStorage().getCommandArguments());
             }
+            cmd.add(parameters.getViewStorage().getCommandArguments());
             cmd.add(parameters.getViewPath());
             break;
         case Dynamic:
-            if (!isMetadataLocationDefinedInAdditionalParameters) {
-                cmd.add(parameters.getViewStorage().getCommandArguments());
-            }
+            cmd.add(parameters.getViewStorage().getCommandArguments());
             break;
         default:
         }
