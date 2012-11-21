@@ -26,7 +26,7 @@ class SpecificViewStorage implements ViewStorage {
 
     @Override
     public String[] getCommandArguments() {
-        return new String[]{"-vws", getStorageDir(unix) + sepFor(unix) + viewTag + ".vws"};
+        return new String[]{getStorageDir(unix) + sepFor(unix) + viewTag + ".vws"};
     }
 
     private String sepFor(boolean unix) {
