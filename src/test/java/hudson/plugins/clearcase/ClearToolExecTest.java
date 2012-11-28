@@ -40,6 +40,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.TaskListener;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
+import hudson.plugins.clearcase.viewstorage.ViewStorageFactory;
 import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
@@ -411,6 +412,57 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         clearToolExec.mkview(p);
 
         verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "-stgloc", "-auto", "viewpath" }), (InputStream) isNull(),
+                (OutputStream) isNull(), (FilePath) isNull(), eq(true));
+    }
+
+    @Test
+    public void testCreateDynamicView() throws Exception {
+        when(
+                ccLauncher.run(eq(new String[] { "mkview", "-tag", "viewName", "viewpath" }), (InputStream) isNull(), (OutputStream) isNull(),
+                        (FilePath) isNull(), eq(true))).thenReturn(Boolean.TRUE);
+
+        MkViewParameters p = new MkViewParameters();
+        p.setType(ViewType.Dynamic);
+        p.setViewPath("viewpath");
+        p.setViewTag("viewName");
+        clearToolExec.mkview(p);
+
+        verify(ccLauncher).run(eq(new String[] { "mkview", "-tag", "viewName", "-stgloc", "-auto" }), (InputStream) isNull(),
+                (OutputStream) isNull(), (FilePath) isNull(), eq(true));
+    }
+
+    @Test
+    public void testCreateDynamicViewExplicitPath() throws Exception {
+        when(
+                ccLauncher.run(eq(new String[] { "mkview", "-tag", "viewName", "viewpath" }), (InputStream) isNull(), (OutputStream) isNull(),
+                        (FilePath) isNull(), eq(true))).thenReturn(Boolean.TRUE);
+
+        MkViewParameters p = new MkViewParameters();
+        p.setType(ViewType.Dynamic);
+        p.setViewPath("viewpath");
+        p.setViewTag("viewName");
+        ViewStorageFactory vv = new ViewStorageFactory(null,"\\winDynStorageDir","\\unixDynStorageDir");
+        p.setViewStorage(vv.create(resolver, false, "viewName"));
+        clearToolExec.mkview(p);
+
+        verify(ccLauncher).run(eq(new String[] { "mkview", "-tag", "viewName", "\\winDynStorageDir\\viewName.vws" }), (InputStream) isNull(),
+                (OutputStream) isNull(), (FilePath) isNull(), eq(true));
+    }
+
+    @Test
+    public void testCreateSnapshotViewExplicitPath() throws Exception {
+        when(
+                ccLauncher.run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "viewpath" }), (InputStream) isNull(), (OutputStream) isNull(),
+                        (FilePath) isNull(), eq(true))).thenReturn(Boolean.TRUE);
+
+        MkViewParameters p = new MkViewParameters();
+        p.setViewPath("viewpath");
+        p.setViewTag("viewName");
+        ViewStorageFactory vv = new ViewStorageFactory(null,"\\winDynStorageDir","\\unixDynStorageDir");
+        p.setViewStorage(vv.create(resolver, false, "viewName"));
+        clearToolExec.mkview(p);
+
+        verify(ccLauncher).run(eq(new String[] { "mkview", "-snapshot", "-tag", "viewName", "-vws", "\\winDynStorageDir\\viewName.vws", "viewpath" }), (InputStream) isNull(),
                 (OutputStream) isNull(), (FilePath) isNull(), eq(true));
     }
 
