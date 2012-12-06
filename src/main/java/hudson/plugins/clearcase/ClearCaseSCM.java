@@ -411,9 +411,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         private String defaultWinDynStorageDir;
         private String defaultUnixDynStorageDir;
 
-        @CopyOnWrite
-        private volatile ClearCaseInstallation[] installations = new ClearCaseInstallation[0];
-
         public ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
             load();
@@ -619,14 +616,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             baos.writeTo(rsp.getOutputStream());
         }
 
-        public ClearCaseInstallation[] getInstallations() {
-            return this.installations;
-        }
-
-        public void setInstallations(ClearCaseInstallation[] installations) {
-            this.installations = installations;
-            save();
-        }
     }
 
     @Override
