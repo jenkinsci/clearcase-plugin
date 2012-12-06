@@ -734,8 +734,9 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @param launcher actual launcher to launch commands with
      * @return a clear tool launcher that uses Hudson for launching commands
      */
-    public ClearToolLauncher createClearToolLauncher(TaskListener listener, FilePath workspace, Launcher launcher) {
-        return new HudsonClearToolLauncher(PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(), getDescriptor().getDisplayName(), listener, workspace, launcher);
+    public ClearToolLauncher createClearToolLauncher(TaskListener listener, FilePath workspace, Launcher launcher) throws IOException, InterruptedException {
+        String cleartoolExe = PluginImpl.BASE_DESCRIPTOR.getCleartoolExe(launcher.getComputer().getNode(), listener);
+        return new HudsonClearToolLauncher(cleartoolExe, getDescriptor().getDisplayName(), listener, workspace, launcher);
     }
 
     protected ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {

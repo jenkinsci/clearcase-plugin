@@ -274,7 +274,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return new UcmSaveChangeLogAction();
     }
 
-    public ClearTool createClearTool(AbstractBuild<?, ?> build, Launcher launcher) {
+    public ClearTool createClearTool(AbstractBuild<?, ?> build, Launcher launcher) throws IOException, InterruptedException {
         BuildVariableResolver variableResolver = new BuildVariableResolver(build);
         ClearToolLauncher clearToolLauncher = createClearToolLauncher(launcher.getListener(), build.getWorkspace(), launcher);
         return createClearTool(variableResolver, clearToolLauncher);
