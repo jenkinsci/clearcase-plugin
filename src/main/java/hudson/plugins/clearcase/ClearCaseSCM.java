@@ -430,7 +430,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             return cleartoolExe;
         }
 
-        public String getCleartoolExe(Node node, TaskListener listener) throws IOException, InterruptedException {
+        public String getCleartoolExe(Node node, TaskListener listener) {
             return Hudson.getInstance().getDescriptorByType(ClearCaseInstallation.DescriptorImpl.class).getInstallation().getCleartoolExe(node, listener);
         }
 
