@@ -396,8 +396,6 @@ public class UcmMakeBaseline extends Notifier {
     /**
      * Retrieve the read/write component list with PVOB
      * 
-     * @param clearToolLauncher
-     * @param filePath
      * @return the read/write component like 'DeskCore@\P_ORC DeskShared@\P_ORC build_Product@\P_ORC'
      * @throws IOException
      * @throws InterruptedException
@@ -424,7 +422,6 @@ public class UcmMakeBaseline extends Notifier {
     /**
      * Get the component binding to the baseline
      * 
-     * @param clearToolLauncher
      * @param baselineName the baseline name like 'deskCore_3.2-146_2008-11-14_18-07-22.3543@\P_ORC'
      * @return the component name like 'Desk_Core@\P_ORC'
      * @throws InterruptedException

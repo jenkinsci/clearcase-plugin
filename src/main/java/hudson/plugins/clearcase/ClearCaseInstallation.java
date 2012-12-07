@@ -77,9 +77,17 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
         return new ClearCaseInstallation(translateFor(node, log));
     }
 
-    public String getCleartoolExe(Node node, TaskListener listener) throws IOException, InterruptedException {
+    public String getCleartoolExe(Node node, TaskListener listener) {
         ClearCaseInstallation installation = this;
-        installation = installation.forNode(node, listener);
+        try {
+            installation = installation.forNode(node, listener);
+        } catch (InterruptedException e) {
+            listener.getLogger().println("Failed to resolve node's ClearCase installation path : " + e.getMessage());
+            throw new RuntimeException("\"Failed to resolve node's ClearCase installation", e);
+        } catch (IOException e) {
+            listener.getLogger().println("Failed to resolve node's ClearCase installation path : " + e.getMessage());
+            throw new RuntimeException("\"Failed to resolve node's ClearCase installation", e);
+        }
         if (StringUtils.isNotBlank(installation.getHome())) {
             // If an installation is specified, use it
             return PathUtil.convertPathForOS(installation.getHome() + "/" + CLEARTOOL_EXE, node.createLauncher(listener).decorateFor(node).isUnix());
