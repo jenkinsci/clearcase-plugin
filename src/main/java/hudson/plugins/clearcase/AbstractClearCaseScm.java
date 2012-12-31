@@ -79,7 +79,7 @@ import org.apache.commons.lang.Validate;
  */
 public abstract class AbstractClearCaseScm extends SCM {
 
-	/**
+    /**
 	 * The change set level describes which level of details will be in the changeset
 	 */
     public enum ChangeSetLevel {
@@ -120,6 +120,11 @@ public abstract class AbstractClearCaseScm extends SCM {
 			return ChangeSetLevel.BRANCH;
 		}
 	}
+    /**
+     * Regular Expression Search String for Whitespace.
+     */
+    protected static final String REGEX_WHITESPACE = "[\\s\\\\\\/:\\?\\*\\|]+";
+
 
 	public static final String CLEARCASE_VIEWTAG_ENVSTR = "CLEARCASE_VIEWTAG";
     public static final String CLEARCASE_VIEWNAME_ENVSTR = "CLEARCASE_VIEWNAME";
@@ -431,7 +436,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         String normalized = null;
         String v = getViewName();
         if (v != null) {
-            normalized = Util.replaceMacro(v, variableResolver).replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
+            normalized = Util.replaceMacro(v, variableResolver).replaceAll(REGEX_WHITESPACE, "_");
             setNormalizedViewName(normalized);
         }
         return normalized;
@@ -488,7 +493,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String generateNormalizedViewName(VariableResolver<String> variableResolver, String modViewName) {
         String generatedNormalizedViewName = Util.replaceMacro(modViewName, variableResolver);
 
-        generatedNormalizedViewName = generatedNormalizedViewName.replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
+        generatedNormalizedViewName = generatedNormalizedViewName.replaceAll(REGEX_WHITESPACE, "_");
 
         setNormalizedViewName(generatedNormalizedViewName);
         return generatedNormalizedViewName;
@@ -857,7 +862,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         String normalized = null;
         String viewPath = StringUtils.defaultIfEmpty(getViewPath(), getViewName());
         if (viewPath != null) {
-            normalized = Util.replaceMacro(viewPath, variableResolver).replaceAll("[\\s\\\\\\/:\\?\\*\\|]+", "_");
+            normalized = Util.replaceMacro(viewPath, variableResolver).replaceAll(REGEX_WHITESPACE, "_");
             setNormalizedViewPath(normalized);
         }
         return normalized;

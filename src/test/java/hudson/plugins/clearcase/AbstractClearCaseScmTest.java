@@ -218,7 +218,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson"));
 
-        String username = System.getProperty("user.name");
+        String username = System.getProperty("user.name").replaceAll(AbstractClearCaseScm.REGEX_WHITESPACE, "_");
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("${JOB_NAME}-${USER_NAME}-${NODE_NAME}-view", "vob", "", true);
         assertEquals("The macros were not replaced in the normalized view name", "Hudson-" + username + "-test-node-view",
                 scm.generateNormalizedViewName(build));
