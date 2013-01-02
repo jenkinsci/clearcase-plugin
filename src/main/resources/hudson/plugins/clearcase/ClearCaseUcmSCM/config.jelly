@@ -175,18 +175,6 @@
               (using STREAM parameter).
             </f:entry>
 
-            <f:entry title="Windows dynamic view storage directory"
-              help="/plugin/clearcase/dynamicViewStorage.html">
-              <f:textbox name="ucm.winDynStorageDir"
-                value="${h.defaulted(scm.winDynStorageDir, descriptor.defaultWinDynStorageDir)}" />
-            </f:entry>
-
-            <f:entry title="Unix dynamic view storage directory"
-              help="/plugin/clearcase/dynamicViewStorage.html">
-              <f:textbox name="ucm.unixDynStorageDir"
-                value="${h.defaulted(scm.unixDynStorageDir, descriptor.defaultUnixDynStorageDir)}" />
-            </f:entry>
-
           </f:optionalBlock>
         </f:optionalBlock>
       </table>
