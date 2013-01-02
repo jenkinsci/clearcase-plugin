@@ -7,6 +7,15 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class ViewStorageFactory {
 
+    /**
+     * Clearcase UCM with automatic storage location selection.
+     */
+    public static final String SERVER_AUTO = "auto";
+    /**
+     * Base Clearcase, which doesn't normally use Storage Locations, shared view locations, etc..
+     */
+    public static final String SERVER_BASE = "-base-";
+
     private String server;
 
     private String winStorageDir;
@@ -21,34 +30,44 @@ public class ViewStorageFactory {
     }
 
     public ViewStorage create(VariableResolver<String> variableResolver, boolean unix, String viewTag) {
-        if (server == null) {
-            return new SpecificViewStorage(Util.replaceMacro(winStorageDir, variableResolver), Util.replaceMacro(unixStorageDir, variableResolver), unix, viewTag);
-        } else {
-            if("auto".equals(server)) {
-                return new ServerViewStorage();
-            } else {
-                return new ServerViewStorage(server);
-            }
-        }
+        if (this.server == null) {
+            return new SpecificViewStorage(Util.replaceMacro(this.winStorageDir, variableResolver), 
+                    Util.replaceMacro(this.unixStorageDir, variableResolver), unix, viewTag);
+        } // else
+        if (SERVER_AUTO.equals(this.server)) {
+            return new ServerViewStorage();
+        } // else
+        if (SERVER_BASE.equals(this.server)) {
+            return new BaseViewStorage();
+        } // else
+        return new ServerViewStorage(this.server);
     }
 
     public String getServer() {
-        return server;
+        return this.server;
     }
 
     public String getUnixStorageDir() {
-        return unixStorageDir;
+        return this.unixStorageDir;
     }
 
     public String getWinStorageDir() {
-        return winStorageDir;
+        return this.winStorageDir;
     }
 
     public static ViewStorage createDefault() {
         return new ServerViewStorage();
     }
 
+    /**
+     * Get a {@link ViewStorageFactory} for Base Clearcase instances.
+     * @return
+     */
+    public static ViewStorageFactory getBaseDefault() {
+        return new ViewStorageFactory(SERVER_BASE, "", "");
+    }
+    
     public static ViewStorageFactory getDefault() {
-        return new ViewStorageFactory("auto", "", "");
+        return new ViewStorageFactory(SERVER_AUTO, "", "");
     }
 }

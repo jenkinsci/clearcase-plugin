@@ -24,31 +24,50 @@
  */
 package hudson.plugins.clearcase;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.EnvVars;
 import hudson.Launcher;
+import hudson.init.impl.Messages;
 import hudson.model.Build;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.plugins.clearcase.ClearCaseSCM.ClearCaseScmDescriptor;
 import hudson.plugins.clearcase.action.BaseSnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.plugins.clearcase.viewstorage.BaseViewStorage;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
+import hudson.plugins.clearcase.viewstorage.ViewStorageFactory;
 import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import net.sf.json.JSONObject;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.HudsonTestCase;
+import org.kohsuke.stapler.RequestImpl;
+import org.kohsuke.stapler.StaplerRequest;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -86,7 +105,44 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     public void tearDown() throws Exception {
         deleteWorkspace();
     }
+    
+    /**
+     * For setting up a Jenkins instance for testing with.
+     * @author Stephen Davidson
+     *
+     */
+    protected class JUnitHudson extends HudsonTestCase {
+        public void setup() throws Exception{
+            super.setUp();
+        }
+    }
 
+    /**
+     * Tests {@link ClearCaseScmDescriptor#newInstance(StaplerRequest, JSONObject)}
+     * @throws Exception
+     */
+    @Test
+    public void clearCaseScmDescriptorNewInstance() throws Exception{
+        //Load Messages now if not already done -- otherwise Powermock Classloaders get weird and start triggering
+        //LinkageErrors
+        Messages.InitialUserContent_init();
+        //Initialize a Hudson instance.
+        final JUnitHudson jtc = new JUnitHudson();
+        jtc.setName("clearCaseScmDescriptorNewInstance");
+        jtc.setup();
+        
+        ClearCaseSCM.ClearCaseScmDescriptor blankDescriptor = new ClearCaseSCM.ClearCaseScmDescriptor();
+        StaplerRequest req = PowerMockito.mock(StaplerRequest.class);
+        when(req.getParameter("cc.viewname")).thenReturn("JunitTestClearcaseBaseView");
+        JSONObject formData = JSONObject.fromObject(new HashMap<String, Object>());
+        AbstractClearCaseScm scm = (AbstractClearCaseScm)blankDescriptor.newInstance(req, formData);
+        ViewStorageFactory viewStorageFactory = scm.getViewStorageFactory();
+        assertEquals("Non-Base View Storage Factory was created", ViewStorageFactory.SERVER_BASE, viewStorageFactory.getServer());
+        ViewStorage viewStorage = viewStorageFactory.create(null, false, null);
+        assertEquals(BaseViewStorage.class, viewStorage.getClass());
+        //end clearCaseScmDescriptorNewInstance
+    }
+    
     @Test
     public void testCreateChangeLogParser() {
         AbstractClearCaseScm scm = new ClearCaseSCM("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false, false);
