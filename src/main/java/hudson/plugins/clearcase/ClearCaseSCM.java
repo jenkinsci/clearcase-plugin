@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2007-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Erik Ramfelt,
@@ -483,7 +483,9 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         @Override
         public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            ViewStorageFactory viewStorageFactory = req.bindJSON(ViewStorageFactory.class, formData.getJSONObject("viewStorage"));
+            //BUG: This returns NULL for NON-UCM.  Its ONLY used for UCM at this time.
+//            ViewStorageFactory viewStorageFactory = req.bindJSON(ViewStorageFactory.class, formData.getJSONObject("viewStorage"));
+            ViewStorageFactory viewStorageFactory = ViewStorageFactory.getBaseDefault();
             AbstractClearCaseScm scm = new ClearCaseSCM(
                                                         req.getParameter("cc.branch"),
                                                         req.getParameter("cc.label"),
