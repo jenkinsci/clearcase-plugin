@@ -117,6 +117,9 @@
       <f:textarea name="cc.excludedRegions" value="${scm.excludedRegions}"
         checkUrl="'${rootURL}/scm/ClearCaseSCM/excludedRegionsCheck?value='+escape(this.value)" />
     </f:entry>
+    <f:optionalBlock field="viewStorage" title="Override view storage" checked="${instance['viewStorage']!=null}" help="${descriptor.getHelpFile('overrideViewStorage')}">
+      <f:dropdownDescriptorSelector field="viewStorage" default="${descriptor.defaultViewStorage.descriptor}"/>
+    </f:optionalBlock>
     <f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
       <f:expandableTextbox name="cc.mkviewoptionalparam"
         value="${scm.mkviewOptionalParam}" />

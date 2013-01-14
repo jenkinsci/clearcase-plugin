@@ -27,6 +27,7 @@ package hudson.plugins.clearcase;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.plugins.clearcase.history.HistoryAction;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.util.VariableResolver;
 
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
              viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule,
              createDynView, cleartool,
-             clearCaseScmDescriptor, null, viewname);
+             clearCaseScmDescriptor, null, viewname, null);
     }
 
     public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname,
@@ -61,10 +62,10 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
                              boolean useTimeRule, boolean createDynView,
                              ClearTool cleartool,
                              ClearCaseScmDescriptor clearCaseScmDescriptor,
-                             Computer overrideComputer, String viewPath) {
+                             Computer overrideComputer, String viewPath, ViewStorage viewStorage) {
         super(branch, label, false, null, false, null, configspec, viewname, useupdate, false, loadRules, false, null, usedynamicview,
               viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, viewPath, null, null);
+              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, viewPath, null, viewStorage);
         this.cleartool = cleartool;
         this.clearCaseScmDescriptor = clearCaseScmDescriptor;
         this.overrideComputer = overrideComputer;

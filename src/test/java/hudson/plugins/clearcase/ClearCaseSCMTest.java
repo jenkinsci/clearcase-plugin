@@ -24,9 +24,16 @@
  */
 package hudson.plugins.clearcase;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.Build;
@@ -37,6 +44,7 @@ import hudson.plugins.clearcase.action.BaseSnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
@@ -55,12 +63,12 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Node.class, AbstractProject.class})
+@PrepareForTest({ Node.class, AbstractProject.class })
 public class ClearCaseSCMTest extends AbstractWorkspaceTest {
 
     @Mock
     private ClearTool                           cleartool;
-    
+
     private AbstractProject                     project;
     @Mock
     private Build                               build;
@@ -74,6 +82,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     private Node                                node;
     @Mock
     private Computer                            computer;
+
+    @Mock
+    private ViewStorage                         viewStorage;
 
     @Before
     public void setUp() throws Exception {
@@ -105,7 +116,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(build.getParent()).thenReturn(project);
         when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", false, "", null, false, false, false, "", "",
-                false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+                false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath", null);
         Map<String, String> env = new HashMap<String, String>();
         env.put("WORKSPACE", "/hudson/jobs/job/workspace");
         scm.generateNormalizedViewName(build);
@@ -128,7 +139,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(build.getParent()).thenReturn(project);
         when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", true, "/views", null, false, false, false, "",
-                "", false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+                "", false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath", null);
         Map<String, String> env = new HashMap<String, String>();
         scm.generateNormalizedViewName(build);
         scm.buildEnvVars(build, env);
@@ -145,7 +156,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(build.getParent()).thenReturn(project);
         when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", true, null, null, false, false, false, "", "",
-                false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+                false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath", null);
         Map<String, String> env = new HashMap<String, String>();
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWTAG wasnt set", "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWTAG_ENVSTR));
@@ -247,8 +258,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
         when(cleartool.pwv("viewpath")).thenReturn("/view/viewpath");
 
-        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branchone", "label", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false, false,
-                false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branchone", "label", "configspec", "viewname-${JOB_NAME}", true, "vob", true, "/view", null, false,
+                false, false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath", null);
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
@@ -271,8 +282,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "ClearCase"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
-        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branchone", "label", "${JOB_NAME}", "viewname-${JOB_NAME}", true, "vob", false, "/view", null, false, false,
-                false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+        AbstractClearCaseScm scm = new ClearCaseSCMDummy("branchone", "label", "${JOB_NAME}", "viewname-${JOB_NAME}", true, "vob", false, "/view", null, false,
+                false, false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath", viewStorage);
         // Create actions
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         BaseSnapshotCheckoutAction action = (BaseSnapshotCheckoutAction) scm.createCheckOutAction(variableResolver, clearToolLauncher, build);
@@ -297,7 +308,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
         ClearCaseSCM scm = new ClearCaseSCMDummy("branchone", "${PLATFORM}_REQUEST BUILD_PARALLEL_${PARALLEL}", "configspec", "viewname", true, "vob", false,
-                "/view", null, false, false, false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath");
+                "/view", null, false, false, false, null, null, false, false, cleartool, clearCaseScmDescriptor, computer, "viewpath", null);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         assertArrayEquals("Variables haven't been resolved in label", new String[] { "17_REQUEST", "BUILD_PARALLEL_YES" }, scm.getLabelNames(variableResolver));
     }

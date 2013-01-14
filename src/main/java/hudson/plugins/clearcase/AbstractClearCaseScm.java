@@ -33,6 +33,7 @@ import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
+import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.model.Run;
 import hudson.plugins.clearcase.action.CheckoutAction;
@@ -46,10 +47,15 @@ import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
+import hudson.plugins.clearcase.viewstorage.ServerViewStorage;
+import hudson.plugins.clearcase.viewstorage.SpecificViewStorage;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.plugins.clearcase.viewstorage.ViewStorageFactory;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.PollingResult;
 import hudson.scm.PollingResult.Change;
+import hudson.scm.RepositoryBrowser;
+import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
 import hudson.util.StreamTaskListener;
@@ -78,6 +84,30 @@ import org.apache.commons.lang.Validate;
  * have to implement the specific checkout and polling logic.
  */
 public abstract class AbstractClearCaseScm extends SCM {
+    public static abstract class AbstractClearCaseScmDescriptor<T extends AbstractClearCaseScm> extends SCMDescriptor<T> {
+
+        public AbstractClearCaseScmDescriptor(Class<? extends RepositoryBrowser> repositoryBrowser) {
+            super(repositoryBrowser);
+        }
+
+        protected AbstractClearCaseScmDescriptor(Class<T> clazz, Class<? extends RepositoryBrowser> repositoryBrowser) {
+            super(clazz, repositoryBrowser);
+        }
+        
+        public String getCleartoolExe() {
+            String cleartoolExe;
+            try {
+                cleartoolExe = getCleartoolExe(Computer.currentComputer().getNode(), TaskListener.NULL);
+            } catch (Exception e) {
+                cleartoolExe = "cleartool";
+            }
+            return cleartoolExe;
+        }
+        
+        public String getCleartoolExe(Node node, TaskListener listener) {
+            return Hudson.getInstance().getDescriptorByType(ClearCaseInstallation.DescriptorImpl.class).getInstallation().getCleartoolExe(node, listener);
+        }
+    }
 
     /**
 	 * The change set level describes which level of details will be in the changeset
@@ -163,9 +193,26 @@ public abstract class AbstractClearCaseScm extends SCM {
     private String viewPath;
     private ChangeSetLevel changeset;
     private String updtFileName;
+    @Deprecated
     private ViewStorageFactory viewStorageFactory;
+    private ViewStorage viewStorage;
 
-	private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
+    public ViewStorage getViewStorage() {
+        return viewStorage;
+    }
+    
+    protected ViewStorage getViewStorageOrDefault() {
+        if (viewStorage == null) {
+            return PluginImpl.BASE_DESCRIPTOR.getDefaultViewStorage();
+        }
+        return viewStorage;
+    }
+
+    public void setViewStorage(ViewStorage viewStorage) {
+        this.viewStorage = viewStorage;
+    }
+
+    private synchronized ThreadLocal<String> getNormalizedViewNameThreadLocalWrapper() {
         if (null == normalizedViewName) {
             this.normalizedViewName = new ThreadLocal<String>();
         }
@@ -199,7 +246,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public AbstractClearCaseScm(final String viewName, final String mkviewOptionalParam, final boolean filterOutDestroySubBranchEvent, final boolean useUpdate,
             final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, boolean extractLoadRules,
             final String loadRules, final boolean useOtherLoadRulesForPolling, final String loadRulesForPolling, final String multiSitePollBuffer,
-            final boolean createDynView, final boolean freezeCode, final boolean recreateView, final String viewPath, ChangeSetLevel changeset, ViewStorageFactory viewStorageFactory) {
+            final boolean createDynView, final boolean freezeCode, final boolean recreateView, final String viewPath, ChangeSetLevel changeset, ViewStorage viewStorage) {
         Validate.notNull(viewName);
         this.viewName = viewName;
         this.mkviewOptionalParam = mkviewOptionalParam;
@@ -227,7 +274,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.recreateView = recreateView;
         this.viewPath = StringUtils.defaultIfEmpty(viewPath, viewName);
         this.changeset = changeset;
-        this.viewStorageFactory = viewStorageFactory;
+        this.viewStorage = viewStorage;
     }
 
     /**
@@ -332,13 +379,6 @@ public abstract class AbstractClearCaseScm extends SCM {
             rules[i] = rule;
         }
         return rules;
-    }
-
-    public ViewStorageFactory getViewStorageFactory() {
-        if (viewStorageFactory == null) {
-            viewStorageFactory = ViewStorageFactory.getDefault();
-        }
-        return viewStorageFactory;
     }
 
     public boolean isUseDynamicView() {
@@ -878,8 +918,13 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     // compatibility with earlier plugins
     public Object readResolve() {
-        if (viewStorageFactory == null) {
-            viewStorageFactory = new ViewStorageFactory(null, winDynStorageDir, unixDynStorageDir);
+        if (viewStorageFactory != null) {
+            if (viewStorageFactory.getServer() != null) {
+                viewStorage = new ServerViewStorage(viewStorageFactory.getServer());
+            }
+            if (viewStorageFactory.getUnixStorageDir() != null || viewStorageFactory.getWinStorageDir() != null) {
+                viewStorage = new SpecificViewStorage(viewStorageFactory.getWinStorageDir(), viewStorageFactory.getUnixStorageDir());
+            }
         }
         return this;
     }

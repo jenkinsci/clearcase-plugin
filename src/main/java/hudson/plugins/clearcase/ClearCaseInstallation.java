@@ -34,6 +34,7 @@ import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.plugins.clearcase.ClearCaseSCM.ClearCaseScmDescriptor;
 import hudson.plugins.clearcase.util.PathUtil;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
@@ -182,6 +183,10 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
         
         public String getDefaultUnixDynStorageDir() {
             return getCCDescriptor().getDefaultUnixDynStorageDir();
+        }
+        
+        public ViewStorage getDefaultViewStorage() {
+            return getCCDescriptor().getDefaultViewStorage();
         }
 
         public int getLogMergeTimeWindow() {
