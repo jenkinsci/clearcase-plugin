@@ -482,7 +482,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         @Override
         public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            ViewStorage viewStorage = req.bindJSON(ViewStorage.class, formData.getJSONObject("viewStorage"));
             AbstractClearCaseScm scm = new ClearCaseSCM(req.getParameter("cc.branch"), req.getParameter("cc.label"),
                     req.getParameter("cc.getConfigSpecFromFile") != null, req.getParameter("cc.configSpecFileName"),
                     req.getParameter("cc.refreshConfigSpec") != null, req.getParameter("cc.refreshConfigSpecCommand"), req.getParameter("cc.configspec"),
@@ -493,7 +492,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                     req.getParameter("cc.rmviewonrename") != null, req.getParameter("cc.excludedRegions"),
                     fixEmpty(req.getParameter("cc.multiSitePollBuffer")), req.getParameter("cc.useTimeRule") != null,
                     req.getParameter("cc.createDynView") != null, req.getParameter("cc.viewpath"), ChangeSetLevel.fromString(req.getParameter("cc.changeset")),
-                    viewStorage);
+                    extractViewStorage(req, formData));
             return scm;
         }
 

@@ -4,20 +4,20 @@ import hudson.Extension;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class ColocatedViewStorage extends ViewStorage {
+public class DefaultViewStorage extends ViewStorage {
     
     @Extension
-    public static class DescriptorImpl extends ViewStorageDescriptor<SpecificViewStorage> {
+    public static class DescriptorImpl extends ViewStorageDescriptor<DefaultViewStorage> {
 
         @Override
         public String getDisplayName() {
-            return "Colocated with the view";
+            return "Default";
         }
         
     }
     
     @DataBoundConstructor
-    public ColocatedViewStorage(){}
+    public DefaultViewStorage(){}
 
     @Override
     public String[] getCommandArguments(boolean unix, String viewTag) {

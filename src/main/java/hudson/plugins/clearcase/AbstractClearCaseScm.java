@@ -75,9 +75,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import net.sf.json.JSONObject;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Abstract class for ClearCase SCM. The class contains the logic around checkout and polling, the deriving classes only
@@ -106,6 +109,14 @@ public abstract class AbstractClearCaseScm extends SCM {
         
         public String getCleartoolExe(Node node, TaskListener listener) {
             return Hudson.getInstance().getDescriptorByType(ClearCaseInstallation.DescriptorImpl.class).getInstallation().getCleartoolExe(node, listener);
+        }
+
+        protected ViewStorage extractViewStorage(StaplerRequest req, JSONObject formData) {
+            ViewStorage viewStorage = null;
+            if (formData.containsKey("overrideViewStorage")) {
+                viewStorage = req.bindJSON(ViewStorage.class, formData.getJSONObject("overrideViewStorage").getJSONObject("viewStorage"));
+            }
+            return viewStorage;
         }
     }
 

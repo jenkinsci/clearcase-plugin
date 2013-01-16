@@ -32,6 +32,7 @@ import hudson.model.EnvironmentSpecific;
 import hudson.model.TaskListener;
 import hudson.model.Hudson;
 import hudson.model.Node;
+import hudson.plugins.clearcase.AbstractClearCaseScm.AbstractClearCaseScmDescriptor;
 import hudson.plugins.clearcase.ClearCaseSCM.ClearCaseScmDescriptor;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
@@ -113,7 +114,7 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
             // done in the ClearCaseInstallation/global.jelly rather than the
             // former ClearCaseSCM/global.jelly (which has been dropped)
             // ==> we need to delegate the config to the "former" descriptor
-            ClearCaseSCM.ClearCaseScmDescriptor desc = Hudson.getInstance().getDescriptorByType(ClearCaseSCM.ClearCaseScmDescriptor.class);
+            AbstractClearCaseScmDescriptor<ClearCaseSCM> desc = Hudson.getInstance().getDescriptorByType(ClearCaseSCM.ClearCaseScmDescriptor.class);
             if(desc == null) {
                 desc = new ClearCaseSCM.ClearCaseScmDescriptor();
             }

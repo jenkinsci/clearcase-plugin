@@ -1,12 +1,11 @@
 package hudson.plugins.clearcase.viewstorage;
 
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import hudson.Extension;
 import hudson.Util;
-import hudson.plugins.clearcase.ClearCaseSCM.ClearCaseScmDescriptor;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.VariableResolver;
+
+import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SpecificViewStorage extends ViewStorage {
 

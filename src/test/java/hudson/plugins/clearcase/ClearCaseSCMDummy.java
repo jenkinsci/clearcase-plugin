@@ -26,6 +26,7 @@ package hudson.plugins.clearcase;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
+import hudson.plugins.clearcase.AbstractClearCaseScm.AbstractClearCaseScmDescriptor;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.util.VariableResolver;

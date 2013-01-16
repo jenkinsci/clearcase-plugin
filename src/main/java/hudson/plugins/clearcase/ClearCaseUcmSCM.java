@@ -320,10 +320,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         public ViewStorage getDefaultViewStorage() {
             return baseDescriptor.getDefaultViewStorage();
         }
-
+        
         @Override
         public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            ViewStorage viewStorage = req.bindJSON(ViewStorage.class, formData.getJSONObject("viewStorage"));
             AbstractClearCaseScm scm = new ClearCaseUcmSCM(req.getParameter("ucm.stream"),
                                                       req.getParameter("ucm.loadrules"),
                                                       req.getParameter("ucm.viewname"),
@@ -343,7 +342,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                                                       req.getParameter("ucm.viewpath"),
                                                       req.getParameter("ucm.useManualLoadRules") != null,
                                                       ChangeSetLevel.fromString(req.getParameter("ucm.changeset")),
-                                                      viewStorage
+                                                      extractViewStorage(req, formData)
                                                       );
             return scm;
         }
