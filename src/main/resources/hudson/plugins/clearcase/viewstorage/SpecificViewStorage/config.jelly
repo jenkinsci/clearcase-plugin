@@ -1,0 +1,9 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+	<f:entry title="Windows view storage directory" help="/plugin/clearcase/dynamicViewStorage.html" field="winStorageDir">
+		<f:textbox default="${descriptor.winStorageDir}"/>
+	</f:entry>
+	<f:entry title="Unix view storage directory" help="/plugin/clearcase/dynamicViewStorage.html" field="unixStorageDir">
+		<f:textbox default="${descriptor.unixStorageDir}"/>
+	</f:entry>
+</j:jelly>

@@ -45,10 +45,11 @@
             <f:entry title="Default view path name pattern" help="/plugin/clearcase/standardViewPath.html">
               <f:textbox name="clearcase.defaultViewPath" value="${descriptor.defaultViewPath}" />
             </f:entry>
-            <f:entry title="Windows default dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
+            <f:dropdownDescriptorSelector title="Default view storage" field="defaultViewStorage" default="${descriptor.defaultViewStorageDescriptor}"/>
+            <f:entry title="Windows default view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
               <f:textbox name="clearcase.defaultWinDynStorageDir" value="${descriptor.defaultWinDynStorageDir}" />
             </f:entry>
-            <f:entry title="Unix default dynamic view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
+            <f:entry title="Unix default view storage directory" help="/plugin/clearcase/dynamicViewStorage.html">
               <f:textbox name="clearcase.defaultUnixDynStorageDir" value="${descriptor.defaultUnixDynStorageDir}" />
             </f:entry>
             <f:entry title="Time window for merging event records" help="/plugin/clearcase/eventrecordtimewindow.html">

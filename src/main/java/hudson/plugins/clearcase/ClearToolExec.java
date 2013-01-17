@@ -648,9 +648,8 @@ public abstract class ClearToolExec implements ClearTool {
             isMetadataLocationDefinedInAdditionalParameters = variabledResolvedParams.contains("-host") || variabledResolvedParams.contains("-vws");
         }
 
-        // add the default storage directory only if gpath/hpath are not set (only for windows)
         if (!isMetadataLocationDefinedInAdditionalParameters) {
-            cmd.add(parameters.getViewStorage().getCommandArguments());
+            cmd.add(parameters.getViewStorage().getCommandArguments(launcher.isUnix(), parameters.getViewTag()));
         }
         if (ViewType.Snapshot.equals(parameters.getType())) {
             cmd.add(parameters.getViewPath());

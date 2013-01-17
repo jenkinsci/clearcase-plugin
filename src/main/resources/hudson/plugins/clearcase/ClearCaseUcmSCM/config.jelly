@@ -73,32 +73,7 @@
       <f:textarea name="ucm.excludedRegions" value="${scm.excludedRegions}"
         checkUrl="'${rootURL}/scm/ClearCaseSCM/excludedRegionsCheck?value='+escape(this.value)" />
     </f:entry>
-
-    <f:entry title="View storage">
-      <f:radioBlock name="ucm.viewStorage" title="Use Server storage location"
-        checked="${scm.viewStorageFactory.server != null}" value="server">
-        <f:entry title="Select a view storage">
-          <f:select name="ucm.viewStorage.server" field="server"/>
-        </f:entry>
-      </f:radioBlock>
-      <f:radioBlock name="ucm.viewStorage" title="Use explicit path"
-        checked="${scm.viewStorageFactory.server eq null}"
-        value="explicit">
-        <f:entry title="Specify an explicit path">
-          <f:entry title="Windows view storage directory"
-            help="/plugin/clearcase/dynamicViewStorage.html">
-            <f:textbox name="ucm.winDynStorageDir"
-              value="${h.defaulted(scm.viewStorageFactory.winStorageDir, descriptor.defaultWinDynStorageDir)}" />
-          </f:entry>
-          <f:entry title="Unix view storage directory"
-            help="/plugin/clearcase/dynamicViewStorage.html">
-            <f:textbox name="ucm.unixDynStorageDir"
-              value="${h.defaulted(scm.viewStorageFactory.unixStorageDir, descriptor.defaultUnixDynStorageDir)}" />
-          </f:entry>
-        </f:entry>
-      </f:radioBlock>
-    </f:entry>
-
+	<st:include class="${descriptor.clazz}" page="overrideViewStorage.jelly" />	
     <f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
       <f:expandableTextbox name="ucm.mkviewoptionalparam"
         value="${scm.mkviewOptionalParam}" />

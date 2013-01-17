@@ -24,14 +24,11 @@
  */
 package hudson.plugins.clearcase;
 
-import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.BuildListener;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
-import hudson.model.Hudson;
 import hudson.plugins.clearcase.ClearCaseSCM.ClearCaseScmDescriptor;
 import hudson.plugins.clearcase.action.CheckoutAction;
 import hudson.plugins.clearcase.action.SaveChangeLogAction;
@@ -45,24 +42,16 @@ import hudson.plugins.clearcase.ucm.UcmHistoryAction;
 import hudson.plugins.clearcase.ucm.UcmSaveChangeLogAction;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
-import hudson.plugins.clearcase.viewstorage.ViewStorageFactory;
 import hudson.scm.ChangeLogParser;
-import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
 import hudson.util.VariableResolver;
-import hudson.util.ListBoxModel;
 
-import java.io.File;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.sf.json.JSONObject;
 
@@ -70,7 +59,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.framework.io.ByteBuffer;
 
 public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
@@ -88,10 +76,10 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     public ClearCaseUcmSCM(String stream, String loadrules, String viewTag, boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
             boolean filterOutDestroySubBranchEvent, boolean useUpdate, boolean rmviewonrename, String excludedRegions, String multiSitePollBuffer,
             String overrideBranchName, boolean createDynView, boolean freezeCode, boolean recreateView, boolean allocateViewName, String viewPath,
-            boolean useManualLoadRules, ChangeSetLevel changeset, ViewStorageFactory viewStorageFactory) {
+            boolean useManualLoadRules, ChangeSetLevel changeset, ViewStorage viewStorage) {
         super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, usedynamicview, viewdrive,
         false, useManualLoadRules ? loadrules : null, false, null, multiSitePollBuffer, createDynView,freezeCode, recreateView, viewPath, changeset,
-        viewStorageFactory);
+        viewStorage);
         this.stream = shortenStreamName(stream);
         this.allocateViewName = allocateViewName;
         this.overrideBranchName = overrideBranchName;
@@ -209,12 +197,12 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         CheckoutAction action;
         ClearTool clearTool = createClearTool(variableResolver, launcher);
         String stream2 = getStream(variableResolver);
-        ViewStorage viewStorage = getViewStorageFactory().create(variableResolver, launcher.isUnix(), getViewName(variableResolver));
+        ViewStorage decoratedViewStorage = getViewStorageOrDefault().decorate(variableResolver);
         if (isUseDynamicView()) {
             action = new UcmDynamicCheckoutAction(clearTool, stream2, isCreateDynView(),
-                    viewStorage, build, isFreezeCode(), isRecreateView());
+                    decoratedViewStorage, build, isFreezeCode(), isRecreateView());
         } else {
-            action = new UcmSnapshotCheckoutAction(clearTool, stream2, getViewPaths(variableResolver, build, launcher.getLauncher()), isUseUpdate(), getViewPath(variableResolver), viewStorage);
+            action = new UcmSnapshotCheckoutAction(clearTool, stream2, getViewPaths(variableResolver, build, launcher.getLauncher()), isUseUpdate(), getViewPath(variableResolver), decoratedViewStorage);
         }
         return action;
     }
@@ -293,11 +281,9 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
      *
      * @author Erik Ramfelt
      */
-    public static class ClearCaseUcmScmDescriptor extends SCMDescriptor<ClearCaseUcmSCM> implements ModelObject {
+    public static class ClearCaseUcmScmDescriptor extends AbstractClearCaseScmDescriptor<ClearCaseUcmSCM> implements ModelObject {
 
         private ClearCaseScmDescriptor baseDescriptor;
-
-        private final static Logger LOGGER = Logger.getLogger(ClearCaseUcmScmDescriptor.class.getName());
 
         public ClearCaseUcmScmDescriptor(ClearCaseScmDescriptor baseDescriptor) {
             super(ClearCaseUcmSCM.class, null);
@@ -323,31 +309,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             return true;
         }
 
-        public ListBoxModel doFillServerItems(StaplerRequest req, JSONObject json) {
-            ByteBuffer baos = new ByteBuffer();
-            ListBoxModel m = new ListBoxModel();
-            m.add("auto", "auto");
-            try {
-                Hudson.getInstance().createLauncher(TaskListener.NULL).launch().cmds(baseDescriptor.getCleartoolExe(), "lsstgloc", "-view").stdout(baos).join();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(baos.newInputStream()));
-                String line;
-                Pattern pattern = Pattern.compile("(.*) (.*)");
-                while((line = reader.readLine()) != null) {
-                    LOGGER.fine(line);
-                    Matcher matcher = pattern.matcher(line);
-                    if (matcher.matches()) {
-                        String path = matcher.group(2).trim();
-                        String id = matcher.group(1).trim();
-                        LOGGER.fine("Adding option " + id + " -> " + path);
-                        m.add(id + " (" + path + ")", id);
-                    }
-                }
-            } catch (IOException e) {
-            } catch (InterruptedException e) {
-            }
-            return m;
-        }
-
         public String getDefaultWinDynStorageDir() {
             return baseDescriptor.getDefaultWinDynStorageDir();
         }
@@ -355,10 +316,13 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         public String getDefaultUnixDynStorageDir() {
             return baseDescriptor.getDefaultUnixDynStorageDir();
         }
-
+        
+        public ViewStorage getDefaultViewStorage() {
+            return baseDescriptor.getDefaultViewStorage();
+        }
+        
         @Override
         public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            ViewStorageFactory viewStorageFactory = req.bindJSON(ViewStorageFactory.class, formData.getJSONObject("viewStorage"));
             AbstractClearCaseScm scm = new ClearCaseUcmSCM(req.getParameter("ucm.stream"),
                                                       req.getParameter("ucm.loadrules"),
                                                       req.getParameter("ucm.viewname"),
@@ -378,7 +342,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                                                       req.getParameter("ucm.viewpath"),
                                                       req.getParameter("ucm.useManualLoadRules") != null,
                                                       ChangeSetLevel.fromString(req.getParameter("ucm.changeset")),
-                                                      viewStorageFactory
+                                                      extractViewStorage(req, formData)
                                                       );
             return scm;
         }
