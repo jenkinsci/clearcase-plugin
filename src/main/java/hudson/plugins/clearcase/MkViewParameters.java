@@ -1,7 +1,6 @@
 package hudson.plugins.clearcase;
 
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
-import hudson.plugins.clearcase.viewstorage.ViewStorageFactory;
 
 public class MkViewParameters {
     
@@ -28,7 +27,7 @@ public class MkViewParameters {
     }
     public ViewStorage getViewStorage() {
         if (viewStorage == null) {
-            viewStorage = ViewStorageFactory.createDefault();
+            viewStorage = ViewStorage.createDefault();
         }
         return viewStorage;
     }
