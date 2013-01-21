@@ -26,7 +26,6 @@ package hudson.plugins.clearcase;
 
 import hudson.Extension;
 import hudson.Plugin;
-import hudson.plugins.clearcase.AbstractClearCaseScm.AbstractClearCaseScmDescriptor;
 
 /**
  * ClearCase plugin.
@@ -42,7 +41,7 @@ public class PluginImpl extends Plugin {
     @Extension
     public static final ClearCasePublisher.DescriptorImpl PUBLISHER_DESCRIPTOR = ClearCasePublisher.DescriptorImpl.DESCRIPTOR;
 
-    public static AbstractClearCaseScmDescriptor<ClearCaseSCM> getDescriptor() {
+    public static ClearCaseSCM.ClearCaseScmDescriptor getDescriptor() {
         return BASE_DESCRIPTOR;
     }
 }
