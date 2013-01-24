@@ -205,7 +205,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private ChangeSetLevel changeset;
     private String updtFileName;
     @Deprecated
-    private ViewStorageFactory viewStorageFactory;
+    private transient ViewStorageFactory viewStorageFactory;
     private ViewStorage viewStorage;
 
     public ViewStorage getViewStorage() {
