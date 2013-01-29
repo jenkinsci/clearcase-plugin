@@ -30,6 +30,8 @@ import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ConfigSpec;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
+import hudson.model.AbstractBuild;
+import hudson.plugins.clearcase.ClearCaseDataAction;
 
 import java.io.IOException;
 
@@ -42,10 +44,16 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
 
     private final ConfigSpec configSpec;
     private String updtFileName;
+	private AbstractBuild build;
+	
+	public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
+		this(cleartool, configSpec, loadRules, useUpdate, viewPath, viewStorage, null);
+	}
 
-    public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
+    public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage, AbstractBuild build) {
         super(cleartool, loadRules, useUpdate, viewPath, viewStorage);
         this.configSpec = configSpec;
+		this.build = build;
     }
 
     @Override
@@ -89,6 +97,15 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
         }
         updtFileName = getCleartool().getUpdtFileName();
         launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFileName + "'");
+		
+		if (build != null) {
+			// add config spec to dataAction
+			ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
+			if (dataAction != null) {
+				dataAction.setCspec(getCleartool().catcs(viewTag).trim());
+			}
+		}
+		
         return true;
     }
 
