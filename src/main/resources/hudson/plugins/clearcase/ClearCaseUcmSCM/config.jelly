@@ -73,7 +73,7 @@
       <f:textarea name="ucm.excludedRegions" value="${scm.excludedRegions}"
         checkUrl="'${rootURL}/scm/ClearCaseSCM/excludedRegionsCheck?value='+escape(this.value)" />
     </f:entry>
-	<st:include class="${descriptor.clazz}" page="overrideViewStorage.jelly" />	
+	<st:include class="${descriptor.clazz}" page="/hudson/plugins/clearcase/AbstractClearcaseScm/overrideViewStorage.jelly" />	
     <f:entry title="Additional mkview arguments" help="/plugin/clearcase/mkviewoptionalparam.html">
       <f:expandableTextbox name="ucm.mkviewoptionalparam"
         value="${scm.mkviewOptionalParam}" />
