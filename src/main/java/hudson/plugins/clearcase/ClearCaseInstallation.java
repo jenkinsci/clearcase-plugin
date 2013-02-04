@@ -70,11 +70,15 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
     public final static String CLEARTOOL_EXE = "bin/cleartool";
     public final static String CLEARTOOL_EXE_FALLBACK = "cleartool";
 
+    private ClearCaseInstallation() {
+        this(null);
+    }
+    
     @DataBoundConstructor
     public ClearCaseInstallation(String home) {
         super(NAME, home, Collections.EMPTY_LIST);
     }
-
+    
     public ClearCaseInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
         return new ClearCaseInstallation(translateFor(node, log));
     }
@@ -102,8 +106,7 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
     public static class DescriptorImpl extends ToolDescriptor<ClearCaseInstallation> {
 
         public DescriptorImpl() {
-            // let's avoid a NullPointerException in getInstallations()
-            setInstallations(new ClearCaseInstallation[0]);
+            setInstallations(new ClearCaseInstallation());
             load();
         }
         
@@ -163,11 +166,8 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
         }
 
         public ClearCaseInstallation getInstallation() {
-            ClearCaseInstallation[] installations = getInstallations();
-            if(installations.length > 0) {
-                return installations[0];
-            }
-            return null;
+            // It is expected to have always one clearcase installation
+            return getInstallations()[0];
         }
         
         public String getDefaultViewName() {
