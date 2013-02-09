@@ -346,7 +346,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         } else {
             action = new BaseSnapshotCheckoutAction(createClearTool(variableResolver, launcher), new ConfigSpec(effectiveConfigSpec, launcher.getLauncher()
                     .isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher(), false), isUseUpdate(), getViewPath(variableResolver),
-                    decoratedViewStorage);
+                    decoratedViewStorage, build);
         }
         return action;
     }
