@@ -975,8 +975,14 @@ public abstract class ClearToolExec implements ClearTool {
         Date now = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssZ");
         FilePath updateLogsDir = workspace.child("updatelogs");
-        updateLogsDir.mkdirs();
-        updateLogsDir.deleteContents();
+        if (!updateLogsDir.exists()) {
+            updateLogsDir.mkdirs();
+        }
+        try {
+            updateLogsDir.deleteContents();
+        } catch (IOException e) {
+            launcher.getListener().getLogger().println("[WARN] Couldn't delete content of " + updateLogsDir);
+        }
         FilePath logFile = updateLogsDir.child(sdf.format(now) + ".updt");
         return logFile;
     }
