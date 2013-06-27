@@ -26,6 +26,7 @@ package hudson.plugins.clearcase.ucm;
 
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.ChangeLogSet.AffectedFile;
 import hudson.scm.EditType;
 
 import java.text.DateFormat;
@@ -45,6 +46,7 @@ import org.kohsuke.stapler.export.ExportedBean;
  * @author Henrik L. Hansen
  */
 public class UcmActivity extends ChangeLogSet.Entry {
+
     private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
     private String name;
@@ -184,6 +186,11 @@ public class UcmActivity extends ChangeLogSet.Entry {
         }
         return paths;
     }
+    
+    @Override
+    public Collection<? extends AffectedFile> getAffectedFiles() {
+        return files;
+    }
 
     @Override
     public String toString() {
@@ -191,7 +198,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
     }
 
     @ExportedBean(defaultVisibility = 999)
-    public static class File {
+    public static class File implements AffectedFile {
 
         private Date date;
         private String name;
@@ -288,6 +295,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
             }
         }
 
+        @Override
         @Exported
         public EditType getEditType() {
             if (operation.equalsIgnoreCase("mkelem")) {
@@ -299,10 +307,16 @@ public class UcmActivity extends ChangeLogSet.Entry {
             }
             return null;
         }
+        
+        @Override
+        public String getPath() {
+            return name;
+        }
 
         @Override
         public String toString() {
             return name;
         }
+
     }
 }
