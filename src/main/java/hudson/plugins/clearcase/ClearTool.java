@@ -446,5 +446,7 @@ public interface ClearTool {
     void update(String viewPath, String[] loadRules) throws IOException, InterruptedException;
 
     String getUpdtFileName();
+    
+    CleartoolVersion version() throws IOException, InterruptedException, CleartoolVersionParsingException;
 
 }

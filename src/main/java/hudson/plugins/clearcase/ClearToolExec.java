@@ -30,6 +30,7 @@ import hudson.Util;
 import hudson.plugins.clearcase.util.DeleteOnCloseFileInputStream;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.IOUtils;
 import hudson.util.VariableResolver;
 
 import java.io.BufferedReader;
@@ -55,7 +56,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -69,7 +69,7 @@ public abstract class ClearToolExec implements ClearTool {
     protected ClearToolLauncher        launcher;
     protected VariableResolver<String> variableResolver;
     protected String                   optionalMkviewParameters;
-    protected String				           updtFileName;
+    protected String                   updtFileName;
 
     public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters) {
         this.variableResolver = variableResolver;
@@ -83,7 +83,7 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("-tag", viewTag);
         return runAndProcessOutput(cmd, null, null, false, null, true);
     }
-    
+
     @Override
     public Reader describe(String format, String objectSelector) throws IOException, InterruptedException {
         return describe(format, null, objectSelector);
@@ -372,7 +372,7 @@ public abstract class ClearToolExec implements ClearTool {
         }
         return output;
     }
-    
+
     @Override
     public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException,
             InterruptedException {
@@ -380,8 +380,8 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
-    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor, boolean useRecurse) throws IOException,
-    		InterruptedException {
+    public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor, boolean useRecurse)
+            throws IOException, InterruptedException {
         Validate.notNull(pathsInView);
         Validate.notNull(viewPath);
         SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
@@ -390,9 +390,9 @@ public abstract class ClearToolExec implements ClearTool {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lshistory");
         if (useRecurse) {
-          cmd.add("-recurse");
+            cmd.add("-recurse");
         } else {
-        	cmd.add("-all");
+            cmd.add("-all");
         }
         cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
         cmd.add("-fmt", format);
@@ -675,25 +675,29 @@ public abstract class ClearToolExec implements ClearTool {
     private List<String> parseListOutput(Reader consoleReader, boolean onlyStarMarked) throws IOException {
         List<String> views = new ArrayList<String>();
         BufferedReader reader = new BufferedReader(consoleReader);
-        String line = reader.readLine();
-        while (line != null) {
-            Matcher matcher = viewListPattern.matcher(line);
-            if (matcher.find() && matcher.groupCount() == 3) {
-                if ((!onlyStarMarked) || (onlyStarMarked && matcher.group(1).equals("*"))) {
-                    String vob = matcher.group(2);
-                    int pos = Math.max(vob.lastIndexOf('\\'), vob.lastIndexOf('/'));
-                    if (pos != -1) {
-                        vob = vob.substring(pos + 1);
+        try {
+            String line = reader.readLine();
+            while (line != null) {
+                Matcher matcher = viewListPattern.matcher(line);
+                if (matcher.find() && matcher.groupCount() == 3) {
+                    if ((!onlyStarMarked) || (onlyStarMarked && matcher.group(1).equals("*"))) {
+                        String vob = matcher.group(2);
+                        int pos = Math.max(vob.lastIndexOf('\\'), vob.lastIndexOf('/'));
+                        if (pos != -1) {
+                            vob = vob.substring(pos + 1);
+                        }
+                        views.add(vob);
                     }
-                    views.add(vob);
                 }
+                line = reader.readLine();
             }
-            line = reader.readLine();
+        } finally {
+            IOUtils.closeQuietly(reader);
         }
-        reader.close();
         return views;
     }
 
+    @Override
     public void setBaselinePromotionLevel(String baselineName, DefaultPromotionLevel promotionLevel) throws IOException, InterruptedException {
         setBaselinePromotionLevel(baselineName, promotionLevel.toString());
     }
@@ -971,6 +975,25 @@ public abstract class ClearToolExec implements ClearTool {
         }
     }
 
+    @Override
+    public CleartoolVersion version() throws IOException, InterruptedException, CleartoolVersionParsingException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        InputStreamReader reader = null;
+        ByteArrayInputStream is = null;
+        ArgumentListBuilder cmd = new ArgumentListBuilder();
+        cmd.add("-version");
+        try {
+            launcher.run(cmd.toCommandArray(), null, baos, null, true);
+            is = new ByteArrayInputStream(baos.toByteArray());
+            reader = new InputStreamReader(is);
+            return CleartoolVersion.parseCmdOutput(reader);
+        } finally {
+            IOUtils.closeQuietly(reader);
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(baos);
+        }
+    }
+
     private FilePath createLogFilename(FilePath workspace) throws IOException, InterruptedException {
         Date now = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssZ");
@@ -993,17 +1016,17 @@ public abstract class ClearToolExec implements ClearTool {
         for (String line : lines) {
             Matcher matcher = updtPattern.matcher(line);
             if (matcher.find() && matcher.groupCount() == 1) {
-            	setUpdtFileName(matcher.group(1));
+                setUpdtFileName(matcher.group(1));
             }
         }
     }
 
     public void setUpdtFileName(String updtFileName) {
-    	this.updtFileName = updtFileName;
+        this.updtFileName = updtFileName;
     }
 
     public String getUpdtFileName() {
-    	return updtFileName;
+        return updtFileName;
     }
 
     /**
