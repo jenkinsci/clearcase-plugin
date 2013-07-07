@@ -114,41 +114,43 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
      */
     protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String jobViewTag, String viewPath, String streamSelector) throws IOException, InterruptedException {
         Validate.notEmpty(viewPath);
-        TaskListener listener = getCleartool().getLauncher().getListener();
+        ClearTool ct = getCleartool();
+        TaskListener listener = ct.getLauncher().getListener();
         FilePath filePath = new FilePath(workspace, viewPath);
         boolean viewPathExists = filePath.exists();
         boolean doViewCreation = true;
-        if (getCleartool().doesViewExist(jobViewTag)) {
+        PrintStream logger = listener.getLogger();
+        if (ct.doesViewExist(jobViewTag)) {
             if (viewPathExists) {
-                String currentViewTag = getCleartool().lscurrentview(viewPath);
+                String currentViewTag = ct.lscurrentview(viewPath);
                 if (jobViewTag.equals(currentViewTag)) {
                     if (useUpdate) {
                         doViewCreation = false;
                     } else {
-                        listener.getLogger().println("Removing view because 'Use Update' isn't checked.");
-                        getCleartool().rmview(viewPath);
+                        logger.println("Removing view because 'Use Update' isn't checked.");
+                        ct.rmview(viewPath);
                     }
                 } else if (currentViewTag != null) {
-                    listener.getLogger().println("Removing view because the view tag of the job " + jobViewTag + " doesn't match the current view tag " + currentViewTag);
-                    getCleartool().rmview(viewPath);
-                    listener.getLogger().println("Removing the job view tag because we detected that it already exists.");
+                    logger.println("Removing view because the view tag of the job " + jobViewTag + " doesn't match the current view tag " + currentViewTag);
+                    ct.rmview(viewPath);
+                    logger.println("Removing the job view tag because we detected that it already exists.");
                     rmviewtag(jobViewTag);
                 } else {
-                    listener.getLogger().println("The view directory is not linked to any view tag. Removing it using OS delete.");
+                    logger.println("The view directory is not linked to any view tag. Removing it using OS delete.");
                     filePath.deleteRecursive();
                 }
             } else {
-                listener.getLogger().println("Removing view tag because it exists, but the view path doesn't.");
+                logger.println("Removing view tag because it exists, but the view path doesn't.");
                 rmviewtag(jobViewTag);
             }
         } else {
             if (viewPathExists) {
-                String currentViewTag = getCleartool().lscurrentview(viewPath);
+                String currentViewTag = ct.lscurrentview(viewPath);
                 if (currentViewTag != null) {
-                    listener.getLogger().println("Removing view because it doesn't match with our view tag.");
-                    getCleartool().rmview(viewPath);
+                    logger.println("Removing view because it doesn't match with our view tag.");
+                    ct.rmview(viewPath);
                 } else {
-                    listener.getLogger().println("The view directory is not linked to any view tag. Removing it using OS delete.");
+                    logger.println("The view directory is not linked to any view tag. Removing it using OS delete.");
                     filePath.deleteRecursive();
                 }
             }
@@ -160,7 +162,7 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
             params.setViewTag(jobViewTag);
             params.setStreamSelector(streamSelector);
             params.setViewStorage(getViewStorage());
-            getCleartool().mkview(params);
+            ct.mkview(params);
         }
         return doViewCreation;
     }
