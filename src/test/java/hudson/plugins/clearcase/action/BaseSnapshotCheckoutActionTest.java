@@ -71,7 +71,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     public void testFirstTimeNotOnUnix() throws Exception {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.FALSE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", false), new String[] { "foo" }, false, "viewpath",
                 null);
@@ -82,14 +81,13 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\r\nspec\r\nload \\foo\r\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\r\nspec\r\nload \\foo\r\n");
     }
 
     @Test
     public void testFirstTimeOnUnix() throws Exception {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath",
                 null);
@@ -100,14 +98,13 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
     }
 
     @Test
     public void testFirstTimeViewTagExists() throws Exception {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath",
                 null);
@@ -120,7 +117,7 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
     }
 
     @Test
@@ -129,7 +126,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath",
                 null);
@@ -142,13 +138,12 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
     }
 
     @Test
     public void testFirstTimeViewPathAndViewTagExist() throws Exception {
         workspace.child("viewpath").mkdirs();
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
         when(cleartool.lscurrentview("viewpath")).thenReturn("otherviewtag");
@@ -165,7 +160,7 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
 
     }
 
@@ -173,7 +168,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     public void testFirstTimeUsingUpdate() throws Exception {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "foo" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
@@ -183,7 +177,7 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
     }
 
     @Test
@@ -194,7 +188,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
         when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\n");
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
@@ -202,7 +195,7 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).setcs("viewpath", SetcsOption.CURRENT, null);
+        verify(cleartool).setcs2("viewpath", SetcsOption.CURRENT, null);
     }
 
     @Test
@@ -212,7 +205,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
         when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, false, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
@@ -224,7 +216,7 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
     }
 
     @Test
@@ -235,7 +227,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
         when(cleartool.catcs("viewname")).thenReturn("other configspec");
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "foo" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
@@ -243,7 +234,7 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
     }
 
     @Test
@@ -254,7 +245,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
         when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\n");
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo", "/bar" }, true,
                 "viewpath", null);
@@ -263,8 +253,8 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).update("viewpath", new String[] { "/bar" });
-        verify(cleartool).setcs("viewpath", SetcsOption.CURRENT, null);
+        verify(cleartool).update2("viewpath", new String[] { "/bar" });
+        verify(cleartool).setcs2("viewpath", SetcsOption.CURRENT, null);
     }
 
     @Test
@@ -275,7 +265,6 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
         when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\nload /bar\n");
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(cleartool.getUpdtFileName()).thenReturn(null);
 
         CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "bar" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
@@ -283,7 +272,7 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
     }
 
 }

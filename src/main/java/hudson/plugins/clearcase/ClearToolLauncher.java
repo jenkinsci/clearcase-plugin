@@ -27,6 +27,7 @@ package hudson.plugins.clearcase;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.TaskListener;
+import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,6 +90,12 @@ public interface ClearToolLauncher {
      * @return the Hudsonlauncher
      */
     Launcher getLauncher();
+    
+    /**
+     * Returns the virtual channel this launcher is using
+     * @return
+     */
+    VirtualChannel getChannel();
 
     String getCmdString(String[] cmd);
 

@@ -27,6 +27,7 @@ package hudson.plugins.clearcase.action;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.CleartoolUpdateResult;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ConfigSpec;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
@@ -43,17 +44,19 @@ import org.apache.commons.lang.ArrayUtils;
 public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
 
     private final ConfigSpec configSpec;
-    private String updtFileName;
-	private AbstractBuild build;
-	
-	public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
-		this(cleartool, configSpec, loadRules, useUpdate, viewPath, viewStorage, null);
-	}
+    private FilePath         updtFile;
+    private AbstractBuild    build;
 
-    public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage, AbstractBuild build) {
+    public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath,
+            ViewStorage viewStorage) {
+        this(cleartool, configSpec, loadRules, useUpdate, viewPath, viewStorage, null);
+    }
+
+    public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath,
+            ViewStorage viewStorage, AbstractBuild build) {
         super(cleartool, loadRules, useUpdate, viewPath, viewStorage);
         this.configSpec = configSpec;
-		this.build = build;
+        this.build = build;
     }
 
     @Override
@@ -68,10 +71,10 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
             loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
             needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());
         }
-
+        CleartoolUpdateResult result = null;
         if (needSetCs) {
             try {
-                getCleartool().setcs(viewPath, SetcsOption.CONFIGSPEC, configSpec.setLoadRules(loadRules).getRaw());
+                result = getCleartool().setcs2(viewPath, SetcsOption.CONFIGSPEC, configSpec.setLoadRules(loadRules).getRaw());
             } catch (IOException e) {
                 launcher.getListener().fatalError(e.toString());
                 return false;
@@ -79,7 +82,7 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
         } else {
             // Perform a full update of the view to reevaluate config spec
             try {
-                getCleartool().setcs(viewPath, SetcsOption.CURRENT, null);
+                result = getCleartool().setcs2(viewPath, SetcsOption.CURRENT, null);
             } catch (IOException e) {
                 launcher.getListener().fatalError(e.toString());
                 return false;
@@ -88,24 +91,26 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
             if (!ArrayUtils.isEmpty(addedLoadRules)) {
                 // Config spec haven't changed, but there are new load rules
                 try {
-                    getCleartool().update(viewPath, addedLoadRules);
+                    result = getCleartool().update2(viewPath, addedLoadRules);
                 } catch (IOException e) {
                     launcher.getListener().fatalError(e.toString());
                     return false;
                 }
             }
         }
-        updtFileName = getCleartool().getUpdtFileName();
-        launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFileName + "'");
-		
-		if (build != null) {
-			// add config spec to dataAction
-			ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
-			if (dataAction != null) {
-				dataAction.setCspec(getCleartool().catcs(viewTag).trim());
-			}
-		}
-		
+        if (result != null) {
+            updtFile = result.getUpdateFile();
+            launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFile.getRemote() + "'");
+        }
+
+        if (build != null) {
+            // add config spec to dataAction
+            ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
+            if (dataAction != null) {
+                dataAction.setCspec(getCleartool().catcs(viewTag).trim());
+            }
+        }
+
         return true;
     }
 
@@ -113,9 +118,9 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
         return configSpec;
     }
 
-	@Override
-    public String getUpdtFileName() {
-		return updtFileName;
-	}
+    @Override
+    public FilePath getUpdtFile() {
+        return updtFile;
+    }
 
 }

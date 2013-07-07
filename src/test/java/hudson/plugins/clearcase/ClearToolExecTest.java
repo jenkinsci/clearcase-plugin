@@ -28,7 +28,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
@@ -40,6 +39,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.TaskListener;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
+import hudson.remoting.VirtualChannel;
 import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
@@ -73,6 +73,8 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     private Launcher                 launcher;
     @Mock
     private VariableResolver<String> resolver;
+    @Mock
+    private VirtualChannel           channel;
 
     @Before
     public void setUp() throws Exception {
@@ -261,11 +263,11 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         when(ccLauncher.getWorkspace()).thenReturn(workspace);
         when(ccLauncher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);
-        ArrayThatStartsWith<String> runArgumentsMatcher = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite", "-log" });
+        ArrayThatStartsWith<String> runArgumentsMatcher = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite" });
         when(ccLauncher.run(argThat(runArgumentsMatcher), (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(false))).thenReturn(
                 Boolean.TRUE);
 
-        clearToolExec.update("viewName", null);
+        clearToolExec.update2("viewName", null);
 
         verify(ccLauncher).getWorkspace();
 
@@ -276,11 +278,12 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     public void testSetcsCurrent() throws Exception {
         when(ccLauncher.getWorkspace()).thenReturn(workspace);
         when(ccLauncher.getListener()).thenReturn(listener);
+        when(ccLauncher.getChannel()).thenReturn(channel);
         when(listener.getLogger()).thenReturn(System.out);
         when(ccLauncher.run(eq(new String[] { "setcs", "-current" }), (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(true)))
                 .thenReturn(Boolean.TRUE);
 
-        clearToolExec.setcs("viewName", SetcsOption.CURRENT, null);
+        clearToolExec.setcs2("viewName", SetcsOption.CURRENT, null);
     }
 
     @Test
@@ -308,7 +311,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         when(ccLauncher.run(eq(new String[] { "setcs", "-current" }), (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(false)))
                 .thenAnswer(new StreamCopyAction(2, this.getClass().getResourceAsStream("ct-update-2.log"), Boolean.TRUE));
 
-        clearToolExec.setcs("viewName", SetcsOption.CURRENT, null);
+        clearToolExec.setcs2("viewName", SetcsOption.CURRENT, null);
 
         verify(ccLauncher).run(eq(new String[] { "setcs", "-current" }), (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(false));
     }
@@ -320,14 +323,14 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         when(ccLauncher.getWorkspace()).thenReturn(workspace);
         when(ccLauncher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);
-        ArrayThatStartsWith<String> startsWith = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite", "-log" });
+        ArrayThatStartsWith<String> startsWith = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite"});
         ArrayThatEndsWith<String> endsWith = new ArrayThatEndsWith<String>(new String[] { "-add_loadrules", "more_load_rules" });
         List<Matcher> asList = Arrays.asList((Matcher) startsWith, (Matcher) endsWith);
         And argumentsMatcher = new And(asList);
         when(ccLauncher.run((String[]) argThat(argumentsMatcher), (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(false)))
                 .thenReturn(Boolean.TRUE);
 
-        clearToolExec.update("viewName", new String[] { "\\more_load_rules" });
+        clearToolExec.update2("viewName", new String[] { "\\more_load_rules" });
         verify(ccLauncher).getWorkspace();
         verify(ccLauncher).run((String[]) argThat(argumentsMatcher), (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(false));
     }
@@ -339,7 +342,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         when(ccLauncher.getWorkspace()).thenReturn(workspace);
         when(ccLauncher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);
-        ArrayThatStartsWith<String> startsWith = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite", "-log" });
+        ArrayThatStartsWith<String> startsWith = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite"});
         ArrayThatEndsWith<String> endsWith = new ArrayThatEndsWith<String>(new String[] { "-add_loadrules", "more_load_rules" });
         List<Matcher> asList = Arrays.asList((Matcher)startsWith, (Matcher)endsWith);
         And argumentsMatcher = new And(asList);
@@ -347,7 +350,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 ccLauncher.run((String [])argThat(argumentsMatcher),
                         (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(false))).thenReturn(Boolean.TRUE);
 
-        clearToolExec.update("viewName", new String[] { "/more_load_rules" });
+        clearToolExec.update2("viewName", new String[] { "/more_load_rules" });
 
         verify(ccLauncher).getWorkspace();
         verify(ccLauncher).run((String [])argThat(argumentsMatcher),
@@ -362,7 +365,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         when(ccLauncher.getWorkspace()).thenReturn(workspace);
         when(ccLauncher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);
-        ArrayThatStartsWith<String> startsWith = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite", "-log" });
+        ArrayThatStartsWith<String> startsWith = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite"});
         ArrayThatEndsWith<String> endsWith = new ArrayThatEndsWith<String>(new String[] { "-add_loadrules", "\"more load_rules\"" });
         List<Matcher> asList = Arrays.asList((Matcher)startsWith, (Matcher)endsWith);
         And argumentsMatcher = new And(asList);
@@ -370,7 +373,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 ccLauncher.run((String[]) argThat(argumentsMatcher),
                         (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(false))).thenReturn(Boolean.TRUE);
 
-        clearToolExec.update("viewName", new String[] { "/more load_rules" });
+        clearToolExec.update2("viewName", new String[] { "/more load_rules" });
 
         verify(ccLauncher).getWorkspace();
         verify(ccLauncher).run((String[]) argThat(argumentsMatcher),
@@ -384,7 +387,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         when(ccLauncher.getWorkspace()).thenReturn(workspace);
         when(ccLauncher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);
-        ArrayThatStartsWith<String> startsWith = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite", "-log" });
+        ArrayThatStartsWith<String> startsWith = new ArrayThatStartsWith<String>(new String[] { "update", "-force", "-overwrite"});
         ArrayThatEndsWith<String> endsWith = new ArrayThatEndsWith<String>(new String[] { "-add_loadrules", "\"more load_rules\"" });
         List<Matcher> asList = Arrays.asList((Matcher)startsWith, (Matcher)endsWith);
         And argumentsMatcher = new And(asList);
@@ -392,7 +395,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
                 ccLauncher.run((String[]) argThat(argumentsMatcher),
                         (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(false))).thenReturn(Boolean.TRUE);
 
-        clearToolExec.update("viewName", new String[] { "\\more load_rules" });
+        clearToolExec.update2("viewName", new String[] { "\\more load_rules" });
 
         verify(ccLauncher).getWorkspace();
         verify(ccLauncher).run((String[]) argThat(argumentsMatcher),

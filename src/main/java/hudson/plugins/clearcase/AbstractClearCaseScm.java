@@ -203,7 +203,6 @@ public abstract class AbstractClearCaseScm extends SCM {
     private boolean recreateView;
     private String viewPath;
     private ChangeSetLevel changeset;
-    private String updtFileName;
     @Deprecated
     private transient ViewStorageFactory viewStorageFactory;
     private ViewStorage viewStorage;
@@ -661,28 +660,29 @@ public abstract class AbstractClearCaseScm extends SCM {
 
         if (computeChangeLogBeforeCheckout) {
             returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
-                    coNormalizedViewName, returnValue);
+                    coNormalizedViewName, returnValue, null);
         }
         // --- CHECKOUT ---
         if (!checkoutAction.checkout(launcher, workspace, coNormalizedViewName)) {
             throw new AbortException();
         }
         if (computeChangeLogAfterCheckout) {
-        	setUpdtFileName(checkoutAction.getUpdtFileName());
+            FilePath updtFile = checkoutAction.getUpdtFile();
             returnValue = saveChangeLog(build, launcher, listener, changelogFile, clearToolLauncher, variableResolver, saveChangeLogAction,
-                    coNormalizedViewName, returnValue);
+                    coNormalizedViewName, returnValue, updtFile);
         }
 
         return returnValue;
     }
 
     private boolean saveChangeLog(AbstractBuild build, Launcher launcher, BuildListener listener, File changelogFile, ClearToolLauncher clearToolLauncher,
-            VariableResolver<String> variableResolver, SaveChangeLogAction saveChangeLogAction, String coNormalizedViewName, boolean returnValue)
+            VariableResolver<String> variableResolver, SaveChangeLogAction saveChangeLogAction, String coNormalizedViewName, boolean returnValue, FilePath updtFile)
             throws IOException, InterruptedException {
         List<? extends ChangeLogSet.Entry> changelogEntries;
         @SuppressWarnings("unchecked") Run prevBuild = build.getPreviousBuild();
         Date lastBuildTime = getBuildTime(prevBuild);
         HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build, /*getUseRecurseForChangelog()*/ false);
+        historyAction.setUpdtFile(updtFile);
         changelogEntries = historyAction.getChanges(lastBuildTime, getViewPath(variableResolver), coNormalizedViewName, getBranchNames(variableResolver), getViewPaths(variableResolver, build, launcher, false));
         // Save change log
         if (CollectionUtils.isEmpty(changelogEntries)) {
@@ -955,13 +955,5 @@ public abstract class AbstractClearCaseScm extends SCM {
         } catch (Exception e) {
             Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
         }
-    }
-
-    public String getUpdtFileName() {
-        return updtFileName;
-    }
-
-    public void setUpdtFileName(String updtFileName) {
-        this.updtFileName = updtFileName;
     }
 }

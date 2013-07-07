@@ -26,6 +26,7 @@ package hudson.plugins.clearcase.history;
 
 import static hudson.plugins.clearcase.util.OutputFormat.COMMENT;
 import static hudson.plugins.clearcase.util.OutputFormat.LINEEND;
+import hudson.FilePath;
 import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
@@ -59,6 +60,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     protected boolean isDynamicView;
     private ChangeSetLevel changeset;
     boolean useRecurse;
+    private FilePath updtFile;
 
     public AbstractHistoryAction(ClearTool cleartool, boolean isDynamicView, Filter filter, ChangeSetLevel changeset, boolean useRecurse) {
         this.cleartool = cleartool;
@@ -263,5 +265,15 @@ public abstract class AbstractHistoryAction implements HistoryAction {
      */
     public void setExtendedViewPath(String path) {
         this.extendedViewPath = path;
+    }
+    
+
+    public FilePath getUpdtFile() {
+        return updtFile;
+    }
+
+    @Override
+    public void setUpdtFile(FilePath updtFile) {
+        this.updtFile = updtFile;
     }
 }

@@ -29,6 +29,7 @@ import hudson.FilePath;
 import hudson.Util;
 import hudson.plugins.clearcase.util.DeleteOnCloseFileInputStream;
 import hudson.plugins.clearcase.util.PathUtil;
+import hudson.remoting.VirtualChannel;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.IOUtils;
 import hudson.util.VariableResolver;
@@ -52,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,18 +64,20 @@ import org.apache.commons.lang.Validate;
 
 public abstract class ClearToolExec implements ClearTool {
 
-    private static final CleartoolVersion CLEARTOOL_VERSION_7 = new CleartoolVersion("7");
-    private static final Pattern       PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern
-                                                                                            .compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
+    private static final Logger           LOGGER                                       = Logger.getLogger(ClearToolExec.class.getName());
+    private static final CleartoolVersion CLEARTOOL_VERSION_7                          = new CleartoolVersion("7");
+    private static final Pattern          PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern.compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
+    private static final Pattern          PATTERN_VIEW_ACCESS_PATH                     = Pattern.compile("View server access path: (.*)");
+    private static final Pattern          PATTERN_VIEW_UUID                            = Pattern.compile("View uuid: (.*)");
+    
 
-    private transient Pattern          viewListPattern;
-    private transient CleartoolVersion version;
-    
-    protected ClearToolLauncher        launcher;
-    protected VariableResolver<String> variableResolver;
-    protected String                   optionalMkviewParameters;
-    protected String                   updtFileName;
-    
+    private transient Pattern             viewListPattern;
+    private transient CleartoolVersion    version;
+
+    protected ClearToolLauncher           launcher;
+    protected VariableResolver<String>    variableResolver;
+    protected String                      optionalMkviewParameters;
+    protected String                      updtFileName;
 
     public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters) {
         this.variableResolver = variableResolver;
@@ -280,26 +284,21 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add("lsview");
         cmd.add("-l", viewTag);
 
-        Pattern uuidPattern = Pattern.compile("View uuid: (.*)");
-        Pattern globalPathPattern = Pattern.compile("View server access path: (.*)");
-        boolean res = true;
-        IOException exception = null;
         List<IOException> exceptions = new ArrayList<IOException>();
 
         String output = runAndProcessOutput(cmd, null, null, true, exceptions, true);
         // handle the use case in which view doesn't exist and therefore error is thrown
-        if (!exceptions.isEmpty() && !output.contains("No matching entries found for view")) {
-            throw exceptions.get(0);
-        }
-
-        if (res && exception == null) {
+        if (!exceptions.isEmpty()) {
+            if (!output.contains("No matching entries found for view")) {
+                throw exceptions.get(0);
+            }
             String[] lines = output.split("\n");
             for (String line : lines) {
-                Matcher matcher = uuidPattern.matcher(line);
+                Matcher matcher = PATTERN_VIEW_UUID.matcher(line);
                 if (matcher.find() && matcher.groupCount() == 1)
                     resPrp.put("UUID", matcher.group(1));
 
-                matcher = globalPathPattern.matcher(line);
+                matcher = PATTERN_VIEW_ACCESS_PATH.matcher(line);
                 if (matcher.find() && matcher.groupCount() == 1)
                     resPrp.put("STORAGE_DIR", matcher.group(1));
             }
@@ -824,7 +823,10 @@ public abstract class ClearToolExec implements ClearTool {
             }
             exceptions.add(e);
         }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+        byte[] byteArray = baos.toByteArray();
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+        InputStreamReader inputStreamReader = new InputStreamReader(byteArrayInputStream);
+        BufferedReader reader = new BufferedReader(inputStreamReader);
         baos.close();
         String line = reader.readLine();
         StringBuilder builder = new StringBuilder();
@@ -845,11 +847,16 @@ public abstract class ClearToolExec implements ClearTool {
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     @Override
+    @Deprecated
     public void setcs(String viewPath, SetcsOption option, String configSpec) throws IOException, InterruptedException {
         setcs(null, viewPath, option, configSpec);
     }
 
-    private void setcs(String viewTag, String viewPath, SetcsOption option, String configSpec) throws IOException, InterruptedException {
+    public CleartoolUpdateResult setcs2(String viewPath, SetcsOption option, String configSpec) throws IOException, InterruptedException {
+        return setcs(null, viewPath, option, configSpec);
+    }
+
+    private CleartoolUpdateResult setcs(String viewTag, String viewPath, SetcsOption option, String configSpec) throws IOException, InterruptedException {
         if (option == SetcsOption.CONFIGSPEC) {
             Validate.notNull(configSpec, "Using option CONFIGSPEC, you must provide a non-null config spec");
         } else {
@@ -877,17 +884,18 @@ public abstract class ClearToolExec implements ClearTool {
         if (viewPath != null) {
             workingDirectory = new FilePath(getRootViewPath(launcher), viewPath);
         }
-        getLauncher().getListener().getLogger().println("Running cleartool setcs, this operation may take a while");
+        PrintStream logger = getLauncher().getListener().getLogger();
+        logger.println("Running cleartool setcs, this operation may take a while");
         String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), workingDirectory, false, null, false);
         if (configSpecFile != null) {
             configSpecFile.delete();
         }
-
-        processUpdtFileName(output);
-
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + output);
         }
+        FilePath logFile = extractUpdtFile(launcher.getChannel(), output);
+        displayLogFile(logger, logFile);
+        return new CleartoolUpdateResult(logFile);
     }
 
     /**
@@ -896,7 +904,7 @@ public abstract class ClearToolExec implements ClearTool {
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     public void setcsCurrent(String viewPath) throws IOException, InterruptedException {
-        setcs(viewPath, SetcsOption.CURRENT, null);
+        setcs2(viewPath, SetcsOption.CURRENT, null);
     }
 
     /**
@@ -937,16 +945,20 @@ public abstract class ClearToolExec implements ClearTool {
 
     }
 
+    @Deprecated
     @Override
     public void update(String viewPath, String[] loadRules) throws IOException, InterruptedException {
+        update2(viewPath, loadRules);
+    }
+
+    @Override
+    public CleartoolUpdateResult update2(String viewPath, String[] loadRules) throws IOException, InterruptedException {
         FilePath workspace = getLauncher().getWorkspace();
         FilePath filePath = workspace.child(viewPath);
-        FilePath logFile = createLogFilename(workspace);
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("update");
         cmd.add("-force");
         cmd.add("-overwrite");
-        cmd.add("-log", logFile.getRemote());
         if (!ArrayUtils.isEmpty(loadRules)) {
             cmd.add("-add_loadrules");
             for (String loadRule : loadRules) {
@@ -957,7 +969,16 @@ public abstract class ClearToolExec implements ClearTool {
         PrintStream logger = getLauncher().getListener().getLogger();
         logger.println("Running cleartool update, this operation may take a while");
         String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, true, exceptions, false);
-        if (logFile.exists()) {
+        FilePath logFile = extractUpdtFile(workspace.getChannel(), output);
+        displayLogFile(logger, logFile);
+        if (!exceptions.isEmpty()) {
+            handleHijackedDirectoryCCBug(viewPath, filePath, exceptions, output);
+        }
+        return new CleartoolUpdateResult(logFile);
+    }
+
+    private void displayLogFile(PrintStream logger, FilePath logFile) throws IOException, InterruptedException {
+        if (logFile != null && logFile.exists()) {
             InputStream is = null;
             InputStreamReader reader = null;
             BufferedReader rd = null;
@@ -975,13 +996,8 @@ public abstract class ClearToolExec implements ClearTool {
                 IOUtils.closeQuietly(is);
             }
         }
-        if (!exceptions.isEmpty()) {
-            handleHijackedDirectoryCCBug(viewPath, filePath, exceptions, output);
-        } else {
-            processUpdtFileName(output);
-        }
     }
-    
+
     @Override
     public CleartoolVersion version() throws IOException, InterruptedException, CleartoolVersionParsingException {
         if (version == null) {
@@ -1004,39 +1020,20 @@ public abstract class ClearToolExec implements ClearTool {
         return version;
     }
 
-    private FilePath createLogFilename(FilePath workspace) throws IOException, InterruptedException {
-        Date now = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssZ");
-        FilePath updateLogsDir = workspace.child("updatelogs");
-        if (!updateLogsDir.exists()) {
-            updateLogsDir.mkdirs();
-        }
-        try {
-            updateLogsDir.deleteContents();
-        } catch (IOException e) {
-            launcher.getListener().getLogger().println("[WARN] Couldn't delete content of " + updateLogsDir);
-        }
-        FilePath logFile = updateLogsDir.child(sdf.format(now) + ".updt");
-        return logFile;
-    }
-
-    private void processUpdtFileName(String output) {
+    private FilePath extractUpdtFile(VirtualChannel channel, String output) {
         Pattern updtPattern = Pattern.compile("Log has been written to \"(.*)\".*");
         String[] lines = output.split("\n");
+        String fileName = null;
         for (String line : lines) {
             Matcher matcher = updtPattern.matcher(line);
             if (matcher.find() && matcher.groupCount() == 1) {
-                setUpdtFileName(matcher.group(1));
+                fileName = matcher.group(1);
             }
         }
-    }
-
-    public void setUpdtFileName(String updtFileName) {
-        this.updtFileName = updtFileName;
-    }
-
-    public String getUpdtFileName() {
-        return updtFileName;
+        if (fileName == null) {
+            return null;
+        }
+        return new FilePath(channel, fileName);
     }
 
     /**
@@ -1070,10 +1067,10 @@ public abstract class ClearToolExec implements ClearTool {
         } else {
             // We forced some hijacked directory removal, relaunch update
             logger.println("Relaunching update after removal of hijacked directories");
-            update(viewPath, null);
+            update2(viewPath, null);
         }
     }
-    
+
     @Override
     public boolean doesSetcsSupportOverride() throws IOException, InterruptedException {
         try {

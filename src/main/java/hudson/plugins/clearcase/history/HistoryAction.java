@@ -29,6 +29,7 @@
 
 package hudson.plugins.clearcase.history;
 
+import hudson.FilePath;
 import hudson.scm.ChangeLogSet;
 
 import java.io.IOException;
@@ -64,5 +65,7 @@ public interface HistoryAction {
      */
     public List<ChangeLogSet.Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
             InterruptedException;
+
+    public void setUpdtFile(FilePath updtFile);
 
 }

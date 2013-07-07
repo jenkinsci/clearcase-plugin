@@ -356,7 +356,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             boolean useRecurse) throws IOException, InterruptedException {
         ClearTool ct = createClearTool(variableResolver, launcher);
         BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()),
-                getChangeset(), useRecurse, getDescriptor().getLogMergeTimeWindow(), getUpdtFileName());
+                getChangeset(), useRecurse, getDescriptor().getLogMergeTimeWindow());
 
         setExtendedViewPath(variableResolver, ct, action);
 

@@ -396,8 +396,19 @@ public interface ClearTool {
      * @param viewPath The view path name (relative to the workspace)
      * @param option The type of setcs that needs to be performed
      * @param configSpec the name of the file containing a config spec
+     * @deprecated use setcs2 instead.
      */
+    @Deprecated
     void setcs(String viewPath, SetcsOption option, String configSpec) throws IOException, InterruptedException;
+    
+    /**
+     * Sets the config spec of the view
+     *
+     * @param viewPath The view path name (relative to the workspace)
+     * @param option The type of setcs that needs to be performed
+     * @param configSpec the name of the file containing a config spec
+     */
+    CleartoolUpdateResult setcs2(String viewPath, SetcsOption current, String configSpec) throws IOException, InterruptedException;
 
     /**
      * Synchronizes the Dynamic UCM view with the streams recommended baseline
@@ -442,11 +453,19 @@ public interface ClearTool {
      *
      * @param viewPath the name of the view
      * @param loadRules optional load rules, null if not used.
+     * @deprecated use update2 instead
      */
+    @Deprecated
     void update(String viewPath, String[] loadRules) throws IOException, InterruptedException;
+    /**
+     * Updates the elements in the view
+     *
+     * @param viewPath the name of the view
+     * @param loadRules optional load rules, null if not used.
+     * @return A tuple given access to the update logs and warnings returned
+     */
+    CleartoolUpdateResult update2(String viewPath, String[] loadRules) throws IOException, InterruptedException;
 
-    String getUpdtFileName();
-    
     CleartoolVersion version() throws IOException, InterruptedException, CleartoolVersionParsingException;
 
     boolean doesSetcsSupportOverride() throws IOException, InterruptedException;

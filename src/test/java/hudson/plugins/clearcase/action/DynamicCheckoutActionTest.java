@@ -118,7 +118,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         assertTrue("Checkout method did not return true.", action.checkout(launcher, workspace, "viewname"));
         verify(clearTool).startView("viewname");
         verify(clearTool).catcs("viewname");
-        verify(clearTool).setcs("viewname", SetcsOption.CONFIGSPEC, "config\nspec");
+        verify(clearTool).setcs2("viewname", SetcsOption.CONFIGSPEC, "config\nspec");
     }
 
     @Test
@@ -133,7 +133,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         assertTrue("Checkout method did not return true.", success);
         verify(clearTool).startView("viewname");
         verify(clearTool).catcs("viewname");
-        verify(clearTool).setcs("viewname", SetcsOption.CONFIGSPEC, "config\r\nspec");
+        verify(clearTool).setcs2("viewname", SetcsOption.CONFIGSPEC, "config\r\nspec");
     }
 
     @Test
@@ -162,7 +162,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
         assertTrue("Checkout method did not return true.", success);
         verify(clearTool).startView("viewname");
         verify(clearTool).catcs("viewname");
-        verify(clearTool).setcs("viewname", SetcsOption.CURRENT, null);
+        verify(clearTool).setcs2("viewname", SetcsOption.CURRENT, null);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class DynamicCheckoutActionTest extends AbstractWorkspaceTest {
 
         verify(clearTool).startView("viewname");
         verify(clearTool).catcs("viewname");
-        verify(clearTool).setcs(eq("viewname"), eq(SetcsOption.CONFIGSPEC), contains("time "));
+        verify(clearTool).setcs2(eq("viewname"), eq(SetcsOption.CONFIGSPEC), contains("time "));
     }
 
 }

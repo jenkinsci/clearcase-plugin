@@ -85,7 +85,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
         assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update("viewpath", new String[] { "loadrule" });
+        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
     }
 
     @Test
@@ -104,7 +104,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
         assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update("viewpath", new String[] { "loadrule" });
+        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
     }
 
     @Test
@@ -125,7 +125,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
         assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update("viewpath", new String[] { "loadrule" });
+        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
     }
 
     @Test
@@ -148,7 +148,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
         assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update("viewpath", new String[] { "loadrule" });
+        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
     }
 
     @Test
@@ -167,8 +167,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).update("viewpath", new String[] { "/loadrule" });
-        verify(cleartool).update("viewpath", null);
+        verify(cleartool).update2("viewpath", new String[] { "/loadrule" });
+        verify(cleartool).update2("viewpath", null);
         verify(cleartool, atLeastOnce()).catcs("viewname");
         verify(launcher, atLeastOnce()).isUnix();
 
@@ -191,7 +191,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).catcs("viewname");
         verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).update("viewpath", null);
+        verify(cleartool).update2("viewpath", null);
     }
 
     @Test
@@ -211,7 +211,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).catcs("viewname");
         verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).update("viewpath", null);
+        verify(cleartool).update2("viewpath", null);
     }
 
     @Test
@@ -231,8 +231,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).update("viewpath", null);
-        verify(cleartool).update("viewpath", new String[] { "/abcd" });
+        verify(cleartool).update2("viewpath", null);
+        verify(cleartool).update2("viewpath", new String[] { "/abcd" });
     }
 
     @Test
@@ -249,7 +249,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
         assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update("viewpath", new String[] { "loadrule", "another\t loadrule" });
+        verify(cleartool).update2("viewpath", new String[] { "loadrule", "another\t loadrule" });
     }
 
     @Test
@@ -278,7 +278,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).update("viewpath", null);
+        verify(cleartool).update2("viewpath", null);
         verify(cleartool).lscurrentview("viewpath");
     }
 
@@ -296,7 +296,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
         assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update("viewpath", new String[] { "\\ \\Windows", "\\\\C:\\System32" });
+        verify(cleartool).update2("viewpath", new String[] { "\\ \\Windows", "\\\\C:\\System32" });
     }
 
     @Test
@@ -313,7 +313,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
         assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool, atLeastOnce()).update("viewpath", new String[] { "loadrule" });
+        verify(cleartool, atLeastOnce()).update2("viewpath", new String[] { "loadrule" });
     }
 
     @Test
@@ -334,7 +334,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
         assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool, atLeastOnce()).update("viewpath", new String[] { "loadrule" });
+        verify(cleartool, atLeastOnce()).update2("viewpath", new String[] { "loadrule" });
         verify(cleartool).lscurrentview("viewpath");
     }
 
@@ -355,8 +355,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).update("viewpath", new String[] { "/bar" });
-        verify(cleartool).update("viewpath", null);
+        verify(cleartool).update2("viewpath", new String[] { "/bar" });
+        verify(cleartool).update2("viewpath", null);
     }
 
     @Test
@@ -376,8 +376,8 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).lscurrentview("viewpath");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).setcs("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
-        verify(cleartool).update("viewpath", null);
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
+        verify(cleartool).update2("viewpath", null);
     }
 
     @Test
@@ -418,7 +418,7 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).catcs("viewname");
-        verify(cleartool).update("viewpath", null);
+        verify(cleartool).update2("viewpath", null);
         verify(cleartool).lscurrentview("viewpath");
         
     }

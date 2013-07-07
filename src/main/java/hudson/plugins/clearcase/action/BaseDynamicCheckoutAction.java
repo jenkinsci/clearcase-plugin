@@ -92,9 +92,9 @@ public class BaseDynamicCheckoutAction extends CheckoutAction {
             InterruptedException {
         String futureConfigSpec = PathUtil.convertPathForOS(getConfigSpec(), launcher);
         if (currentAndFutureConfigSpecAreEquals(currentConfigSpec, futureConfigSpec)) {
-            getCleartool().setcs(viewTag, SetcsOption.CURRENT, null);
+            getCleartool().setcs2(viewTag, SetcsOption.CURRENT, null);
         } else {
-            getCleartool().setcs(viewTag, SetcsOption.CONFIGSPEC, futureConfigSpec);
+            getCleartool().setcs2(viewTag, SetcsOption.CONFIGSPEC, futureConfigSpec);
         }
         return futureConfigSpec;
     }

@@ -51,7 +51,7 @@ public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
         if (viewCreated) {
             // If the view is brand new, we just have to add the load rules
             try {
-                ct.update(viewPath, loadRules);
+                ct.update2(viewPath, loadRules);
             } catch (IOException e) {
                 launcher.getListener().fatalError(e.toString());
                 return false;
@@ -61,7 +61,7 @@ public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
             SnapshotCheckoutAction.LoadRulesDelta loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
             if (!ArrayUtils.isEmpty(loadRulesDelta.getRemoved())) {
                 try {
-                    ct.setcs(viewPath, SetcsOption.CONFIGSPEC, viewConfigSpec.setLoadRules(loadRules).getRaw());
+                    ct.setcs2(viewPath, SetcsOption.CONFIGSPEC, viewConfigSpec.setLoadRules(loadRules).getRaw());
                 } catch (IOException e) {
                     launcher.getListener().fatalError(e.toString());
                     return false;
@@ -71,7 +71,7 @@ public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
                 if (!ArrayUtils.isEmpty(addedLoadRules)) {
                     // Config spec haven't changed, but there are new load rules
                     try {
-                        ct.update(viewPath, addedLoadRules);
+                        ct.update2(viewPath, addedLoadRules);
                     } catch (IOException e) {
                         launcher.getListener().fatalError(e.toString());
                         return false;
@@ -82,9 +82,9 @@ public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
             // Perform a full update of the view to get changes due to rebase for instance.
             try {
                 if(ct.doesSetcsSupportOverride()) {
-                    ct.setcs(viewPath, SetcsOption.STREAM, null);
+                    ct.setcs2(viewPath, SetcsOption.STREAM, null);
                 } else {
-                    ct.update(viewPath, null);
+                    ct.update2(viewPath, null);
                 }
             } catch (IOException e) {
                 launcher.getListener().fatalError(e.toString());

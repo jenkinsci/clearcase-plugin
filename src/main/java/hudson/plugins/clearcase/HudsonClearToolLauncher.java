@@ -28,11 +28,11 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.TaskListener;
+import hudson.remoting.VirtualChannel;
 import hudson.util.ForkOutputStream;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -164,5 +164,10 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     @Override
     public boolean isUnix() {
         return launcher.isUnix();
+    }
+    
+    @Override
+    public VirtualChannel getChannel() {
+        return launcher.getChannel();
     }
 }
