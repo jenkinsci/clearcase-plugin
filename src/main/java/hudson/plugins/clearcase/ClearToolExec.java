@@ -62,14 +62,18 @@ import org.apache.commons.lang.Validate;
 
 public abstract class ClearToolExec implements ClearTool {
 
+    private static final CleartoolVersion CLEARTOOL_VERSION_7 = new CleartoolVersion("7");
     private static final Pattern       PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern
                                                                                             .compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
 
     private transient Pattern          viewListPattern;
+    private transient CleartoolVersion version;
+    
     protected ClearToolLauncher        launcher;
     protected VariableResolver<String> variableResolver;
     protected String                   optionalMkviewParameters;
     protected String                   updtFileName;
+    
 
     public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters) {
         this.variableResolver = variableResolver;
@@ -861,6 +865,9 @@ public abstract class ClearToolExec implements ClearTool {
         if (optionStr != null) {
             cmd.add(optionStr);
         }
+        if (doesSetcsSupportOverride()) {
+            cmd.add("-overwrite");
+        }
         FilePath configSpecFile = null;
         if (option == SetcsOption.CONFIGSPEC) {
             configSpecFile = launcher.getWorkspace().createTextTempFile("configspec", ".txt", configSpec);
@@ -974,24 +981,27 @@ public abstract class ClearToolExec implements ClearTool {
             processUpdtFileName(output);
         }
     }
-
+    
     @Override
     public CleartoolVersion version() throws IOException, InterruptedException, CleartoolVersionParsingException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        InputStreamReader reader = null;
-        ByteArrayInputStream is = null;
-        ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add("-version");
-        try {
-            launcher.run(cmd.toCommandArray(), null, baos, null, true);
-            is = new ByteArrayInputStream(baos.toByteArray());
-            reader = new InputStreamReader(is);
-            return CleartoolVersion.parseCmdOutput(reader);
-        } finally {
-            IOUtils.closeQuietly(reader);
-            IOUtils.closeQuietly(is);
-            IOUtils.closeQuietly(baos);
+        if (version == null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            InputStreamReader reader = null;
+            ByteArrayInputStream is = null;
+            ArgumentListBuilder cmd = new ArgumentListBuilder();
+            cmd.add("-version");
+            try {
+                launcher.run(cmd.toCommandArray(), null, baos, null, true);
+                is = new ByteArrayInputStream(baos.toByteArray());
+                reader = new InputStreamReader(is);
+                version = CleartoolVersion.parseCmdOutput(reader);
+            } finally {
+                IOUtils.closeQuietly(reader);
+                IOUtils.closeQuietly(is);
+                IOUtils.closeQuietly(baos);
+            }
         }
+        return version;
     }
 
     private FilePath createLogFilename(FilePath workspace) throws IOException, InterruptedException {
@@ -1061,6 +1071,15 @@ public abstract class ClearToolExec implements ClearTool {
             // We forced some hijacked directory removal, relaunch update
             logger.println("Relaunching update after removal of hijacked directories");
             update(viewPath, null);
+        }
+    }
+    
+    @Override
+    public boolean doesSetcsSupportOverride() throws IOException, InterruptedException {
+        try {
+            return CLEARTOOL_VERSION_7.compareTo(version()) <= 0;
+        } catch (CleartoolVersionParsingException e) {
+            return false;
         }
     }
 }

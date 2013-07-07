@@ -449,4 +449,6 @@ public interface ClearTool {
     
     CleartoolVersion version() throws IOException, InterruptedException, CleartoolVersionParsingException;
 
+    boolean doesSetcsSupportOverride() throws IOException, InterruptedException;
+
 }
