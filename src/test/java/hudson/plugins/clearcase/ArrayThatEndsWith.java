@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.hamcrest.Description;
 import org.mockito.ArgumentMatcher;
 
 public class ArrayThatEndsWith<T> extends ArgumentMatcher<T[]> {
@@ -8,6 +9,12 @@ public class ArrayThatEndsWith<T> extends ArgumentMatcher<T[]> {
     
     public ArrayThatEndsWith(T[] endsWith) {
         this.endsWith = endsWith;
+    }
+    
+    @Override
+    public void describeTo(Description description) {
+        description.appendText("[...");
+        description.appendValueList(", ", ", ", "]", endsWith);
     }
 
     @Override

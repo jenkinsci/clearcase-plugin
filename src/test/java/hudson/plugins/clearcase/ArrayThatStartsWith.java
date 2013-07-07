@@ -1,6 +1,7 @@
 package hudson.plugins.clearcase;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.hamcrest.Description;
 import org.mockito.ArgumentMatcher;
 
 public class ArrayThatStartsWith<T> extends ArgumentMatcher<T[]> {
@@ -9,6 +10,12 @@ public class ArrayThatStartsWith<T> extends ArgumentMatcher<T[]> {
     
     public ArrayThatStartsWith(T[] startsWith) {
         this.startsWith = startsWith;
+    }
+    
+    @Override
+    public void describeTo(Description description) {
+        description.appendValueList("[", ", ", ", ", startsWith);
+        description.appendText("...]");
     }
 
     @Override
