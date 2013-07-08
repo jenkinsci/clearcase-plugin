@@ -91,12 +91,6 @@ public interface ClearToolLauncher {
      */
     Launcher getLauncher();
     
-    /**
-     * Returns the virtual channel this launcher is using
-     * @return
-     */
-    VirtualChannel getChannel();
-
     String getCmdString(String[] cmd);
 
     boolean isUnix();

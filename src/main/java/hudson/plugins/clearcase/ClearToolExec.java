@@ -58,6 +58,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -66,10 +67,10 @@ public abstract class ClearToolExec implements ClearTool {
 
     private static final Logger           LOGGER                                       = Logger.getLogger(ClearToolExec.class.getName());
     private static final CleartoolVersion CLEARTOOL_VERSION_7                          = new CleartoolVersion("7");
-    private static final Pattern          PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern.compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
+    private static final Pattern          PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern
+                                                                                               .compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
     private static final Pattern          PATTERN_VIEW_ACCESS_PATH                     = Pattern.compile("View server access path: (.*)");
     private static final Pattern          PATTERN_VIEW_UUID                            = Pattern.compile("View uuid: (.*)");
-    
 
     private transient Pattern             viewListPattern;
     private transient CleartoolVersion    version;
@@ -893,7 +894,7 @@ public abstract class ClearToolExec implements ClearTool {
         if (output.contains("cleartool: Warning: An update is already in progress for view")) {
             throw new IOException("View update failed: " + output);
         }
-        FilePath logFile = extractUpdtFile(launcher.getChannel(), output);
+        FilePath logFile = extractUpdtFile(launcher.getWorkspace(), output);
         displayLogFile(logger, logFile);
         return new CleartoolUpdateResult(logFile);
     }
@@ -969,7 +970,7 @@ public abstract class ClearToolExec implements ClearTool {
         PrintStream logger = getLauncher().getListener().getLogger();
         logger.println("Running cleartool update, this operation may take a while");
         String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), filePath, true, exceptions, false);
-        FilePath logFile = extractUpdtFile(workspace.getChannel(), output);
+        FilePath logFile = extractUpdtFile(workspace, output);
         displayLogFile(logger, logFile);
         if (!exceptions.isEmpty()) {
             handleHijackedDirectoryCCBug(viewPath, filePath, exceptions, output);
@@ -979,22 +980,16 @@ public abstract class ClearToolExec implements ClearTool {
 
     private void displayLogFile(PrintStream logger, FilePath logFile) throws IOException, InterruptedException {
         if (logFile != null && logFile.exists()) {
-            InputStream is = null;
-            InputStreamReader reader = null;
-            BufferedReader rd = null;
+            InputStream stream = logFile.read();
             try {
-                is = logFile.read();
-                reader = new InputStreamReader(is);
-                rd = new BufferedReader(reader);
-                String line;
-                while ((line = rd.readLine()) != null) {
-                    logger.println(line);
+                LineIterator it = IOUtils.lineIterator(stream, "UTF-8");
+                while (it.hasNext()) {
+                    logger.println(it.nextLine());
                 }
             } finally {
-                IOUtils.closeQuietly(rd);
-                IOUtils.closeQuietly(reader);
-                IOUtils.closeQuietly(is);
+                IOUtils.closeQuietly(stream);
             }
+
         }
     }
 
@@ -1020,7 +1015,7 @@ public abstract class ClearToolExec implements ClearTool {
         return version;
     }
 
-    private FilePath extractUpdtFile(VirtualChannel channel, String output) {
+    private FilePath extractUpdtFile(FilePath workspace, String output) {
         Pattern updtPattern = Pattern.compile("Log has been written to \"(.*)\".*");
         String[] lines = output.split("\n");
         String fileName = null;
@@ -1033,7 +1028,7 @@ public abstract class ClearToolExec implements ClearTool {
         if (fileName == null) {
             return null;
         }
-        return new FilePath(channel, fileName);
+        return new FilePath(workspace, fileName);
     }
 
     /**

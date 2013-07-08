@@ -278,7 +278,6 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     public void testSetcsCurrent() throws Exception {
         when(ccLauncher.getWorkspace()).thenReturn(workspace);
         when(ccLauncher.getListener()).thenReturn(listener);
-        when(ccLauncher.getChannel()).thenReturn(channel);
         when(listener.getLogger()).thenReturn(System.out);
         when(ccLauncher.run(eq(new String[] { "setcs", "-current" }), (InputStream) notNull(), (OutputStream) notNull(), (FilePath) notNull(), eq(true)))
                 .thenReturn(Boolean.TRUE);

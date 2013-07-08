@@ -165,9 +165,4 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
     public boolean isUnix() {
         return launcher.isUnix();
     }
-    
-    @Override
-    public VirtualChannel getChannel() {
-        return launcher.getChannel();
-    }
 }
