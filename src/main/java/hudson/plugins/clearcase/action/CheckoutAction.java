@@ -59,7 +59,7 @@ public abstract class CheckoutAction {
     public abstract boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException;
 
     public FilePath getUpdtFile() {
-        throw new IllegalArgumentException("getUpdtFile() not implemented");
+        return null;
     }
     
     public ClearTool getCleartool() {
