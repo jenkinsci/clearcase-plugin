@@ -123,7 +123,11 @@ public abstract class AbstractHistoryAction implements HistoryAction {
     private List<HistoryEntry> runAndFilterLsHistory(Date time, String viewPath, String viewTag, String[] branchNames,
             String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> historyEntries = runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
-        return filterEntries(historyEntries);
+        List<HistoryEntry> filtered = filterEntries(historyEntries);
+        if (cleartool.getLauncher() != null) {
+            cleartool.getLauncher().getListener().getLogger().println("runAndFilterLsHistory: @" + time + " historyEntries=" + historyEntries + " -> " + filtered);
+        }
+        return filtered;
     }
 
     private String[] normalizeBranches(String[] branchNames) {

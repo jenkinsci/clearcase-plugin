@@ -424,7 +424,14 @@ public abstract class ClearToolExec implements ClearTool {
         try {
             launcher.run(cmd.toCommandArray(), null, baos, filePath, true);
         } catch (IOException e) {
+            if (launcher.getListener() != null) {
+                e.printStackTrace(launcher.getListener().getLogger()); // TODO
+            }
             // We don't care if Clearcase returns an error code, we will process it afterwards
+        }
+        if (launcher.getListener() != null) {
+            launcher.getListener().getLogger().println(cmd.toStringWithQuote()); // TODO
+            launcher.getListener().getLogger().println(baos); // TODO
         }
         returnReader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
         baos.close();

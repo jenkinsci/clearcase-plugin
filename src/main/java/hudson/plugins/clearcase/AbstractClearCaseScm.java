@@ -67,6 +67,7 @@ import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -738,6 +739,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             // path names to check (= load rules)
             // first get load rules from last baseline (polling)
         	String[] pathNames = ccBaseline.getLoadRules();
+            logger.println("compareRemoteRevisionWith: loadRules=" + (pathNames == null ? null : Arrays.asList(pathNames)));
         	//logger.println("load rules from last baseline: " + pathNames.toString());
         	// if load rules are atomatically extracted or other rules are used or load rules from last baseline are empty -> use from load rules field or from other rules
         	if (extractLoadRules || useOtherLoadRulesForPolling || pathNames == null || pathNames.length == 0) {
