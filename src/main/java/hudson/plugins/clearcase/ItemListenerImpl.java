@@ -73,7 +73,8 @@ public class ItemListenerImpl extends ItemListener {
     public void onRenamed(Item item, String oldName, String newName) {
         Hudson hudson = Hudson.getInstance();
         if (item instanceof AbstractProject<?, ?>) {
-            @SuppressWarnings("unchecked") AbstractProject project = (AbstractProject) item;
+            @SuppressWarnings("unchecked")
+            AbstractProject project = (AbstractProject) item;
             SCM scm = project.getScm();
             if (scm instanceof AbstractClearCaseScm) {
                 try {
@@ -131,34 +132,7 @@ public class ItemListenerImpl extends ItemListener {
      */
     @Override
     public void onDeleted(Item item) {
-        Hudson hudson = Hudson.getInstance();
-        if (item instanceof AbstractProject<?, ?>) {
-            AbstractProject<?, ?> project = (AbstractProject<?, ?>) item;
-            SCM scm = project.getScm();
-            if (scm instanceof AbstractClearCaseScm) {
-                try {
-                    AbstractClearCaseScm ccScm = (AbstractClearCaseScm) scm;
-                    if (ccScm.isUseDynamicView() && !ccScm.isCreateDynView()) {
-                        return;
-                    }
-                    StreamTaskListener listener = StreamTaskListener.fromStdout();
-                    Launcher launcher = hudson.createLauncher(listener);
-                    ClearTool ct = ccScm.createClearTool(null, ccScm.createClearToolLauncher(listener, project.getSomeWorkspace().getParent().getParent(),
-                            launcher));
-
-                    // Adding checks to avoid NPE in HUDSON-4869
-                    if (project.getLastBuild() != null) {
-                        // Create a variable resolver using the last build's computer - HUDSON-5364
-                        VariableResolver<String> variableResolver = new BuildVariableResolver(project.getLastBuild());
-
-                        // Workspace has already been removed, so the view needs to be unregistered
-                        String normalizedViewName = ccScm.generateNormalizedViewName(variableResolver);
-                        ct.rmviewtag(normalizedViewName);
-                    }
-                } catch (Exception e) {
-                    Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove ClearCase view", e);
-                }
-            }
-        }
+        // Don't do anything, it has already been processed by AbstractClearCaseScm#processWorkspaceBeforeDeletion
+        return;
     }
 }
