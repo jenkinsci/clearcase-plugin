@@ -811,23 +811,28 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         StreamTaskListener listener = StreamTaskListener.fromStdout();
         Launcher launcher = node.createLauncher(listener);
-        ClearTool ct = createClearTool(null, createClearToolLauncher(listener, project.getSomeWorkspace().getParent().getParent(), launcher));
         try {
             if (isUseDynamicView() && !isCreateDynView()) {
                 return true;
             }
-            AbstractBuild<?, ?> latestBuildOnNode = null;
-            for(AbstractBuild<?, ?> build : project.getBuilds()) {
-                if (node.equals(build.getBuiltOn())) {
-                    latestBuildOnNode = build;
-                    break;
-                }
+            AbstractBuild<?, ?> latestBuildOnNode = project.getLastBuild();
+            if (latestBuildOnNode == null) {
+                return true;
+            }
+            while ( latestBuildOnNode != null && !node.equals(latestBuildOnNode.getBuiltOn())) {
+                latestBuildOnNode = latestBuildOnNode.getPreviousBuild();
             }
             if (latestBuildOnNode == null) {
                 latestBuildOnNode = project.getLastBuild();
             }
             BuildVariableResolver buildVariableResolver = new BuildVariableResolver(latestBuildOnNode);
-            ct.rmviewtag(generateNormalizedViewName(buildVariableResolver));
+            ClearTool ct = createClearTool(null, createClearToolLauncher(listener, workspace, launcher));
+            try {
+                ct.rmview(getViewPath(buildVariableResolver));
+            } catch (IOException e) {
+                Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove the local directory, removing the view tag", e);
+                ct.rmviewtag(generateNormalizedViewName(buildVariableResolver));
+            }
         } catch (Exception e) {
             Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove ClearCase view", e);
         }
