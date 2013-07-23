@@ -57,7 +57,7 @@ public class ConfigSpec {
         if (raw == null) {
             if (other.raw != null)
                 return false;
-        } else if (!raw.equals(other.raw))
+        } else if (!raw.replaceAll("\\\\", "/").equals(other.raw.replaceAll("\\\\", "/")))
             return false;
         return true;
     }
