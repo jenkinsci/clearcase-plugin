@@ -700,6 +700,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             SCMRevisionState baseline) throws IOException, InterruptedException {
     	PrintStream logger = listener.getLogger();
         logger.println("compareRemoteRevisionWith"); // TODO
+        Logger.getLogger(AbstractClearCaseScm.class.getName()).info("compareRemoteRevisionWith"); // TODO
 
     	// check if build is running
         if (project.isBuilding() && !project.isConcurrentBuild()) {
