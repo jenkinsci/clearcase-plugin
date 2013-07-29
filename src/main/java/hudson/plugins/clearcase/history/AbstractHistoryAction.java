@@ -75,11 +75,18 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
     protected List<HistoryEntry> filterEntries(List<HistoryEntry> entries) throws IOException, InterruptedException {
         if (filter == null) {
+            if (cleartool.getLauncher() != null) {
+                cleartool.getLauncher().getListener().getLogger().println("filterEntries: no filter");
+            }
             return entries;
         }
         List<HistoryEntry> filtered = new ArrayList<HistoryEntry>();
         for (HistoryEntry entry : entries) {
-            if (filter.accept(entry)) {
+            boolean accepted = filter.accept(entry);
+            if (cleartool.getLauncher() != null) {
+                cleartool.getLauncher().getListener().getLogger().println("filterEntries: filter=" + filter + " entry=" + entry + " accepted=" + accepted);
+            }
+            if (accepted) {
                 filtered.add(entry);
             }
         }

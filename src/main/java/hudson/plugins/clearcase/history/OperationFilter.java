@@ -82,4 +82,8 @@ public abstract class OperationFilter implements Filter {
         return matcher.matches() ? matcher.group(1) : "";
     }
 
+    @Override public String toString() {
+        return getClass().getSimpleName() + "{" + "namePatterns=" + namePatterns + '}';
+    }
+
 }
