@@ -27,6 +27,7 @@ package hudson.plugins.clearcase;
 import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Proc;
 import hudson.Util;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
@@ -51,6 +52,8 @@ import hudson.plugins.clearcase.viewstorage.ServerViewStorage;
 import hudson.plugins.clearcase.viewstorage.SpecificViewStorage;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.plugins.clearcase.viewstorage.ViewStorageFactory;
+import hudson.remoting.Callable;
+import hudson.remoting.Channel;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.PollingResult;
 import hudson.scm.PollingResult.Change;
@@ -63,6 +66,7 @@ import hudson.util.VariableResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -88,6 +92,9 @@ import org.kohsuke.stapler.StaplerRequest;
  * have to implement the specific checkout and polling logic.
  */
 public abstract class AbstractClearCaseScm extends SCM {
+
+    private static final Logger LOG = Logger.getLogger(AbstractClearCaseScm.class.getName());
+
     public static abstract class AbstractClearCaseScmDescriptor<T extends AbstractClearCaseScm> extends SCMDescriptor<T> {
 
         public AbstractClearCaseScmDescriptor(Class<? extends RepositoryBrowser> repositoryBrowser) {
@@ -699,8 +706,34 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
             SCMRevisionState baseline) throws IOException, InterruptedException {
     	PrintStream logger = listener.getLogger();
-        logger.println("compareRemoteRevisionWith"); // TODO
-        Logger.getLogger(AbstractClearCaseScm.class.getName()).info("compareRemoteRevisionWith"); // TODO
+        boolean isUnix = workspace.act(new IsUnix());
+        boolean launcherIsUnix = launcher.isUnix();
+        LOG.log(Level.FINE, "original launcher.unix={0} vs. actual workspace.unix={1}", new Object[] {launcherIsUnix, isUnix});
+        if (launcherIsUnix != isUnix) {
+            class FixUnixLauncher extends Launcher {
+                final boolean isUnix;
+                final Launcher original;
+                FixUnixLauncher(boolean isUnix, Launcher original) {
+                    super(original);
+                    this.isUnix = isUnix;
+                    this.original = original;
+                }
+                @Override public Proc launch(ProcStarter starter) throws IOException {
+                    return original.launch(starter);
+                }
+                @Override public Channel launchChannel(String[] cmd, OutputStream out, FilePath workDir, Map<String, String> envVars) throws IOException, InterruptedException {
+                    return original.launchChannel(cmd, out, workDir, envVars);
+                }
+                @Override public void kill(Map<String, String> modelEnvVars) throws IOException, InterruptedException {
+                    original.kill(modelEnvVars);
+                }
+                @Override public boolean isUnix() {
+                    return isUnix;
+                }
+            }
+            listener.getLogger().println("JENKINS-18368 workaround activated");
+            launcher = new FixUnixLauncher(isUnix, launcher);
+        }
 
     	// check if build is running
         if (project.isBuilding() && !project.isConcurrentBuild()) {
@@ -741,7 +774,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             // path names to check (= load rules)
             // first get load rules from last baseline (polling)
         	String[] pathNames = ccBaseline.getLoadRules();
-            logger.println("compareRemoteRevisionWith: loadRules=" + (pathNames == null ? null : Arrays.asList(pathNames)));
+            LOG.log(Level.FINE, "loadRules={0}", (pathNames == null ? null : Arrays.asList(pathNames)));
         	//logger.println("load rules from last baseline: " + pathNames.toString());
         	// if load rules are atomatically extracted or other rules are used or load rules from last baseline are empty -> use from load rules field or from other rules
         	if (extractLoadRules || useOtherLoadRulesForPolling || pathNames == null || pathNames.length == 0) {
@@ -762,6 +795,15 @@ public abstract class AbstractClearCaseScm extends SCM {
             change = Change.NONE;
         }
         return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), change);
+    }
+
+    // taken from FilePath
+    private static final class IsUnix implements Callable<Boolean,IOException> {
+        private static final long serialVersionUID = 1L;
+        IsUnix() {}
+        public Boolean call() throws IOException {
+            return File.pathSeparatorChar == ':';
+        }
     }
 
     private boolean isViewInvalid(AbstractBuild<?,?> build, VariableResolver<String> variableResolver, ClearToolLauncher clearToolLauncher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
@@ -833,7 +875,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             BuildVariableResolver buildVariableResolver = new BuildVariableResolver(latestBuildOnNode);
             ct.rmviewtag(generateNormalizedViewName(buildVariableResolver));
         } catch (Exception e) {
-            Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Failed to remove ClearCase view", e);
+            LOG.log(Level.WARNING, "Failed to remove ClearCase view", e);
         }
         return true;
 
@@ -957,7 +999,7 @@ public abstract class AbstractClearCaseScm extends SCM {
                 action.setExtendedViewPath(pwv);
             }
         } catch (Exception e) {
-            Logger.getLogger(AbstractClearCaseScm.class.getName()).log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
+            LOG.log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
         }
     }
 }

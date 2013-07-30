@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
@@ -53,6 +54,8 @@ import org.apache.commons.lang.Validate;
  * @author hlyh
  */
 public abstract class AbstractHistoryAction implements HistoryAction {
+
+    private static final Logger LOG = Logger.getLogger(AbstractHistoryAction.class.getName());
 
     protected ClearTool cleartool;
     private Filter filter;
@@ -75,17 +78,13 @@ public abstract class AbstractHistoryAction implements HistoryAction {
 
     protected List<HistoryEntry> filterEntries(List<HistoryEntry> entries) throws IOException, InterruptedException {
         if (filter == null) {
-            if (cleartool.getLauncher() != null) {
-                cleartool.getLauncher().getListener().getLogger().println("filterEntries: no filter");
-            }
+            LOG.fine("no filter");
             return entries;
         }
         List<HistoryEntry> filtered = new ArrayList<HistoryEntry>();
         for (HistoryEntry entry : entries) {
             boolean accepted = filter.accept(entry);
-            if (cleartool.getLauncher() != null) {
-                cleartool.getLauncher().getListener().getLogger().println("filterEntries: filter=" + filter + " entry=" + entry + " accepted=" + accepted);
-            }
+            LOG.log(Level.FINE, "filter={0} entry={1} accepted={2}", new Object[] {filter, entry, accepted});
             if (accepted) {
                 filtered.add(entry);
             }
@@ -131,9 +130,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
             String[] viewPaths) throws IOException, InterruptedException {
         List<HistoryEntry> historyEntries = runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
         List<HistoryEntry> filtered = filterEntries(historyEntries);
-        if (cleartool.getLauncher() != null) {
-            cleartool.getLauncher().getListener().getLogger().println("runAndFilterLsHistory: @" + time + " historyEntries=" + historyEntries + " -> " + filtered);
-        }
+        LOG.log(Level.FINE, "@{0} historyEntries={1} -> {2}", new Object[] {time, historyEntries, filtered});
         return filtered;
     }
 
@@ -188,7 +185,7 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         if (previousEntry != null) {
             previousEntry.appendComment(line).appendComment("\n");
         } else {
-            Logger.getLogger(AbstractHistoryAction.class.getName()).warning(
+            LOG.warning(
                     "Got the comment : \"" + line + "\" but couldn't attach it to any entry");
         }
     }
