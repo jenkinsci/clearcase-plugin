@@ -60,13 +60,7 @@ public class CleartoolVersion implements Comparable<CleartoolVersion> {
             int op2 = o.parsedVersion[i];
             if (op1 != op2) {
                 if (i == 0) {
-                    // Handle Clearcase 2003 versions
-                    if (op1 == 2003) {
-                        return -1;
-                    }
-                    if (op2 == 2003) {
-                        return 1;
-                    }
+                    return (op1 % 2000) - (op2 % 2000); // Clearcase 2002/2003 become 2/3
                 }
                 return op1 - op2;
             }

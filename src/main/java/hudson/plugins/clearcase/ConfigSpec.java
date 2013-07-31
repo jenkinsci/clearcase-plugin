@@ -39,7 +39,7 @@ public class ConfigSpec {
     
     public ConfigSpec(String raw, boolean isUnix) {
         Validate.notNull(raw);
-        this.raw = raw;
+        this.raw = PathUtil.convertPathForOS(raw, isUnix);
         this.isUnix = isUnix;
     }
     
@@ -64,7 +64,7 @@ public class ConfigSpec {
     
     public Set<String> getLoadRules() {
         Set<String> rules = new HashSet<String>();
-        for (String row : raw.split("[\\r\\n]+")) {
+        for (String row : StringUtils.split(raw, PathUtil.newLineForOS(isUnix))) {
             String trimmedRow = row.trim();
             if (trimmedRow.startsWith("load")) {
                 String rule = row.trim().substring("load".length()).trim();
