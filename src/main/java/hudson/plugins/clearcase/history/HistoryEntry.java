@@ -164,4 +164,8 @@ public class HistoryEntry {
         return this;
     }
 
+    @Override public String toString() {
+        return "HistoryEntry{" + "date=" + date + ", dateText=" + dateText + ", element=" + element + ", versionId=" + versionId + ", event=" + event + ", user=" + user + ", operation=" + operation + ", activityName=" + activityName + ", commentBuilder=" + commentBuilder + ", activityHeadline=" + activityHeadline + ", line=" + line + '}';
+    }
+
 }

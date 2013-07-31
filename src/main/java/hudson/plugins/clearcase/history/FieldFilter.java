@@ -113,4 +113,8 @@ public abstract class FieldFilter implements Filter {
         Equals, EqualsIgnoreCase, NotEquals, NotEqualsIgnoreCase, StartsWith, StartsWithIgnoreCase, EndsWith, EndsWithIgnoreCase, Contains, ContainsIgnoreCase, DoesNotContain, DoesNotContainIgnoreCase, ContainsRegxp, DoesNotContainRegxp
     }
 
+    @Override public String toString() {
+        return getClass().getSimpleName() + "{" + "type=" + type + ", patternText=" + patternText + ", pattern=" + pattern + '}';
+    }
+
 }

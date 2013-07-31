@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -424,7 +425,11 @@ public abstract class ClearToolExec implements ClearTool {
         try {
             launcher.run(cmd.toCommandArray(), null, baos, filePath, true);
         } catch (IOException e) {
+            LOGGER.log(Level.FINE, null, e);
             // We don't care if Clearcase returns an error code, we will process it afterwards
+        }
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.log(Level.FINE, "cmd={0} output={1}", new Object[] {cmd.toStringWithQuote(), baos});
         }
         returnReader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
         baos.close();

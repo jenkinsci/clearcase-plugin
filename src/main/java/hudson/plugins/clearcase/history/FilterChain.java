@@ -27,6 +27,8 @@ package hudson.plugins.clearcase.history;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A filter that chains a collection of filters. It fill filter all elements that get filtered by any of underlying
@@ -46,7 +48,9 @@ public class FilterChain implements Filter {
     @Override
     public boolean accept(HistoryEntry element) {
         for (Filter f : filters) {
-            if (!f.accept(element)) {
+            boolean accepted = f.accept(element);
+            Logger.getLogger(FilterChain.class.getName()).log(Level.FINE, "filter={0} element={1} -> {2}", new Object[] {f, element, accepted});
+            if (!accepted) {
                 return false;
             }
         }
@@ -65,6 +69,10 @@ public class FilterChain implements Filter {
 
     public Collection<Filter> getFilters() {
         return Collections.unmodifiableCollection(filters);
+    }
+
+    @Override public String toString() {
+        return "FilterChain{" + "filters=" + filters + '}';
     }
 
 }
