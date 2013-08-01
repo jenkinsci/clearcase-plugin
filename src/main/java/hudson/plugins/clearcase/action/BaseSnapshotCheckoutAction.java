@@ -71,36 +71,26 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
             loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
             needSetCs = !configSpec.stripLoadRules().equals(viewConfigSpec.stripLoadRules()) || !ArrayUtils.isEmpty(loadRulesDelta.getRemoved());
         }
-        CleartoolUpdateResult result = null;
-        if (needSetCs) {
-            try {
+        try {
+            CleartoolUpdateResult result = null;
+            if (needSetCs) {
                 result = getCleartool().setcs2(viewPath, SetcsOption.CONFIGSPEC, configSpec.setLoadRules(loadRules).getRaw());
-            } catch (IOException e) {
-                launcher.getListener().fatalError(e.toString());
-                return false;
-            }
-        } else {
-            // Perform a full update of the view to reevaluate config spec
-            try {
+            } else {
+                // Perform a full update of the view to reevaluate config spec
                 result = getCleartool().setcs2(viewPath, SetcsOption.CURRENT, null);
-            } catch (IOException e) {
-                launcher.getListener().fatalError(e.toString());
-                return false;
-            }
-            String[] addedLoadRules = loadRulesDelta.getAdded();
-            if (!ArrayUtils.isEmpty(addedLoadRules)) {
-                // Config spec haven't changed, but there are new load rules
-                try {
+                String[] addedLoadRules = loadRulesDelta.getAdded();
+                if (!ArrayUtils.isEmpty(addedLoadRules)) {
+                    // Config spec haven't changed, but there are new load rules
                     result = getCleartool().update2(viewPath, addedLoadRules);
-                } catch (IOException e) {
-                    launcher.getListener().fatalError(e.toString());
-                    return false;
                 }
             }
-        }
-        if (result != null) {
-            updtFile = result.getUpdateFile();
-            launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFile.getRemote() + "'");
+            if (result.hasUpdateFile()) {
+                updtFile = result.getUpdateFile();
+                launcher.getListener().getLogger().println("[INFO] updt file name: '" + updtFile.getRemote() + "'");
+            }
+        } catch (IOException e) {
+            launcher.getListener().fatalError(e.toString());
+            return false;
         }
 
         if (build != null) {

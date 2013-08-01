@@ -26,11 +26,16 @@ package hudson.plugins.clearcase.action;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
+
+import java.io.File;
+
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearToolLauncher;
+import hudson.plugins.clearcase.CleartoolUpdateResult;
 import hudson.plugins.clearcase.MkViewParameters;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ConfigSpec;
@@ -59,6 +64,8 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         when(ctLauncher.getListener()).thenReturn(taskListener);
         when(launcher.getListener()).thenReturn(taskListener);
         when(taskListener.getLogger()).thenReturn(System.out);
+        when(cleartool.setcs2(anyString(), any(SetcsOption.class), anyString())).thenReturn(new CleartoolUpdateResult());
+        when(cleartool.update2(anyString(), any(String[].class))).thenReturn(new CleartoolUpdateResult());
         createWorkspace();
     }
 
@@ -275,4 +282,13 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
         verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
     }
 
+    @Test
+    public void checkUpdtGenerated() throws Exception {
+        FilePath updtFile = new FilePath(new File("tmp"));
+        when(cleartool.setcs2(anyString(), any(SetcsOption.class), anyString())).thenReturn(new CleartoolUpdateResult(updtFile ));
+        
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "bar" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+        assertEquals(action.getUpdtFile(), updtFile);
+    }
 }

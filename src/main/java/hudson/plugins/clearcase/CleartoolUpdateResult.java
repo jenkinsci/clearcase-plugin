@@ -30,6 +30,10 @@ import hudson.FilePath;
  */
 public class CleartoolUpdateResult {
     private final FilePath updateFile;
+    
+    public CleartoolUpdateResult() {
+        this(null);
+    }
 
     /**
      * @param updateFile
@@ -42,5 +46,9 @@ public class CleartoolUpdateResult {
 
     public FilePath getUpdateFile() {
         return updateFile;
+    }
+    
+    public boolean hasUpdateFile(){
+        return updateFile != null;
     }
 }
