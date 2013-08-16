@@ -38,69 +38,26 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 public class PathUtilTest {
-    @Test
-    public void testWindows() throws Exception {
-        Launcher launcher = new MyLauncher(false);
-        String converted = PathUtil.convertPathForOS("C/abc",
-                                                     launcher);
-        Assert.assertEquals("C\\abc", converted);
-        String converted2 = PathUtil.convertPathForOS(
-                                                      "\nPeter\n", launcher);
-        Assert.assertEquals("\r\nPeter\r\n", converted2);
-        String converted3 = PathUtil.convertPathForOS(
-                                                      "C\\abc", launcher);
-        Assert.assertEquals("C\\abc", converted3);
-        String converted4 = PathUtil.convertPathForOS(
-                                                      "\r\nPeter\r\n", launcher);
-        Assert.assertEquals("\r\nPeter\r\n", converted4);
-        String converted5 = PathUtil.convertPathForOS(
-                                                      "\nPeter\n", launcher);
-        Assert.assertEquals("\r\nPeter\r\n", converted5);
-        
-        
-    }
-    
-    @Test
-    public void testUnix() throws Exception {
-        Launcher launcher = new MyLauncher(true);
-        String converted = PathUtil.convertPathForOS("C\\abc",
-                                                     launcher);
-        Assert.assertEquals("C/abc", converted);
-        String converted2 = PathUtil.convertPathForOS(
-                                                      "\r\nPeter\r\n", launcher);
-        Assert.assertEquals("\nPeter\n", converted2);
-        String converted3 = PathUtil.convertPathForOS("C/abc",
-                                                      launcher);
-        Assert.assertEquals("C/abc", converted3);
-        String converted4 = PathUtil.convertPathForOS(
-                                                      "\nPeter\n", launcher);
-        Assert.assertEquals("\nPeter\n", converted4);
-    }
-    
     private static class MyLauncher extends Launcher {
-        
+
+        private boolean unix;
+
         public MyLauncher(boolean unix) {
             super(null, null);
             this.unix = unix;
         }
-        
-        private boolean unix;
-        
+
         @Override
-        public void kill(Map<String, String> arg0) throws IOException,
-                                                          InterruptedException {
-            // TODO Auto-generated method stub
-            
+        public boolean isUnix() {
+            return this.unix;
         }
 
         @Override
-        public Channel launchChannel(String[] arg0, OutputStream arg1,
-                                     FilePath arg2, Map<String, String> arg3) throws IOException,
-                                                                                     InterruptedException {
+        public void kill(Map<String, String> arg0) throws IOException, InterruptedException {
             // TODO Auto-generated method stub
-            return null;
+
         }
-        
+
         @Override
         public Proc launch(ProcStarter starter) throws IOException {
             // TODO Auto-generated method stub
@@ -108,8 +65,38 @@ public class PathUtilTest {
         }
 
         @Override
-        public boolean isUnix() {
-            return this.unix;
+        public Channel launchChannel(String[] arg0, OutputStream arg1, FilePath arg2, Map<String, String> arg3) throws IOException, InterruptedException {
+            // TODO Auto-generated method stub
+            return null;
         }
+    }
+
+    @Test
+    public void testUnix() throws Exception {
+        Launcher launcher = new MyLauncher(true);
+        String converted = PathUtil.convertPathForOS("C\\abc", launcher);
+        Assert.assertEquals("C/abc", converted);
+        String converted2 = PathUtil.convertPathForOS("\r\nPeter\r\n", launcher);
+        Assert.assertEquals("\nPeter\n", converted2);
+        String converted3 = PathUtil.convertPathForOS("C/abc", launcher);
+        Assert.assertEquals("C/abc", converted3);
+        String converted4 = PathUtil.convertPathForOS("\nPeter\n", launcher);
+        Assert.assertEquals("\nPeter\n", converted4);
+    }
+
+    @Test
+    public void testWindows() throws Exception {
+        Launcher launcher = new MyLauncher(false);
+        String converted = PathUtil.convertPathForOS("C/abc", launcher);
+        Assert.assertEquals("C\\abc", converted);
+        String converted2 = PathUtil.convertPathForOS("\nPeter\n", launcher);
+        Assert.assertEquals("\r\nPeter\r\n", converted2);
+        String converted3 = PathUtil.convertPathForOS("C\\abc", launcher);
+        Assert.assertEquals("C\\abc", converted3);
+        String converted4 = PathUtil.convertPathForOS("\r\nPeter\r\n", launcher);
+        Assert.assertEquals("\r\nPeter\r\n", converted4);
+        String converted5 = PathUtil.convertPathForOS("\nPeter\n", launcher);
+        Assert.assertEquals("\r\nPeter\r\n", converted5);
+
     }
 }

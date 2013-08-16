@@ -39,6 +39,7 @@ import java.util.List;
  */
 public class BaseSaveChangeLogAction implements SaveChangeLogAction {
 
+    @Override
     public void saveChangeLog(File changeLogFile, List<? extends Entry> entries) throws IOException, InterruptedException {
         FileOutputStream fileOutputStream = new FileOutputStream(changeLogFile);
         ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, (List<ClearCaseChangeLogEntry>) entries);

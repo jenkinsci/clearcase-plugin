@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
@@ -54,31 +55,141 @@ import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Corresponds to an IBM ClearCase installation.
- *
- * <p>This {@link Extension} aims at allowing to set a specific ClearCase home
- * folder for each node of an Hudson instance (which is useful if ClearCase is
- * not in the {@code PATH} of all the nodes and if the ClearCase installation
- * folder is not the same on each node).</p>
- * <p>This {@link ToolInstallation} is NOT {@link EnvironmentSpecific}, it is
- * only {@link NodeSpecific}.</p>
- *
+ * 
+ * <p>
+ * This {@link Extension} aims at allowing to set a specific ClearCase home folder for each node of an Hudson instance (which is useful if ClearCase is not in
+ * the {@code PATH} of all the nodes and if the ClearCase installation folder is not the same on each node).
+ * </p>
+ * <p>
+ * This {@link ToolInstallation} is NOT {@link EnvironmentSpecific}, it is only {@link NodeSpecific}.
+ * </p>
+ * 
  * @author Romain Seguy (http://davadoc.deviantart.com)
  */
 public class ClearCaseInstallation extends ToolInstallation implements NodeSpecific<ClearCaseInstallation> {
 
-    public final static String NAME = "ClearCase";
-    public final static String CLEARTOOL_EXE = "bin/cleartool";
+    @Extension
+    public static class DescriptorImpl extends ToolDescriptor<ClearCaseInstallation> {
+
+        // Keep a ref to descriptor to avoid init each time
+        private transient ClearCaseScmDescriptor desc;
+
+        public DescriptorImpl() {
+            setInstallations(new ClearCaseInstallation());
+            load();
+        }
+
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+            // logmergetimewindow has not been moved there, it is still tight
+            // to ClearCaseSCM for backward-compatibility, but its config is now
+            // done in the ClearCaseInstallation/global.jelly rather than the
+            // former ClearCaseSCM/global.jelly (which has been dropped)
+            // ==> we need to delegate the config to the "former" descriptor
+            AbstractClearCaseScmDescriptor<ClearCaseSCM> desc = Hudson.getInstance().getDescriptorByType(ClearCaseSCM.ClearCaseScmDescriptor.class);
+            if (desc == null) {
+                desc = new ClearCaseSCM.ClearCaseScmDescriptor();
+            }
+            desc.configure(req, formData);
+            desc.save();
+
+            setInstallations(req.bindJSONToList(ClearCaseInstallation.class, formData.get("clearcaseinstall")).toArray(new ClearCaseInstallation[0]));
+            save();
+
+            return true;
+        }
+
+        public FormValidation doCheckHome(@QueryParameter String value) {
+            if (!Hudson.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+
+            File clearCaseHome = new File(Util.replaceMacro(value, EnvVars.masterEnvVars));
+
+            if (clearCaseHome.getPath().equals("")) {
+                return FormValidation.ok(Messages.ClearCaseInstallation_CleartoolWillBeCalledFromPath());
+            }
+
+            if (!clearCaseHome.isDirectory()) {
+                return FormValidation.error(Messages.ClearCaseInstallation_NotAFolder(value));
+            }
+
+            String cleartool = CLEARTOOL_EXE;
+            if (Functions.isWindows()) {
+                cleartool += ".exe";
+            }
+
+            if (!new File(clearCaseHome, cleartool).exists()) {
+                return FormValidation.error(Messages.ClearCaseInstallation_NotAClearCaseInstallationFolder(value));
+            }
+
+            return FormValidation.ok();
+        }
+
+        public String getDefaultUnixDynStorageDir() {
+            return getCCDescriptor().getDefaultUnixDynStorageDir();
+        }
+
+        public String getDefaultViewName() {
+            return getCCDescriptor().getDefaultViewName();
+        }
+
+        public String getDefaultViewPath() {
+            return getCCDescriptor().getDefaultViewPath();
+        }
+
+        public ViewStorage getDefaultViewStorage() {
+            return getCCDescriptor().getDefaultViewStorage();
+        }
+
+        public String getDefaultWinDynStorageDir() {
+            return getCCDescriptor().getDefaultWinDynStorageDir();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return Messages.ClearCaseInstallation_DisplayName();
+        }
+
+        public ClearCaseInstallation getInstallation() {
+            // It is expected to have always one clearcase installation
+            return getInstallations()[0];
+        }
+
+        public int getLogMergeTimeWindow() {
+            return getCCDescriptor().getLogMergeTimeWindow();
+        }
+
+        private ClearCaseScmDescriptor getCCDescriptor() {
+            // cf. the big comment in the configure() method to know why we have
+            // this stuff here
+            if (desc == null) {
+                desc = Hudson.getInstance().getDescriptorByType(ClearCaseSCM.ClearCaseScmDescriptor.class);
+                if (desc == null) {
+                    desc = new ClearCaseSCM.ClearCaseScmDescriptor();
+                }
+                // we apparently have to force the loading
+                desc.load();
+            }
+            return desc;
+        }
+
+    }
+    public final static String CLEARTOOL_EXE          = "bin/cleartool";
     public final static String CLEARTOOL_EXE_FALLBACK = "cleartool";
 
-    private ClearCaseInstallation() {
-        this(null);
-    }
-    
+    public final static String NAME                   = "ClearCase";
+
     @DataBoundConstructor
     public ClearCaseInstallation(String home) {
         super(NAME, home, Collections.EMPTY_LIST);
     }
-    
+
+    private ClearCaseInstallation() {
+        this(null);
+    }
+
+    @Override
     public ClearCaseInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
         return new ClearCaseInstallation(translateFor(node, log));
     }
@@ -100,117 +211,6 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
         }
         // Otherwise, fallback to a default case where cleartool is in PATH
         return CLEARTOOL_EXE_FALLBACK;
-    }
-
-    @Extension
-    public static class DescriptorImpl extends ToolDescriptor<ClearCaseInstallation> {
-
-        public DescriptorImpl() {
-            setInstallations(new ClearCaseInstallation());
-            load();
-        }
-        
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            // logmergetimewindow has not been moved there, it is still tight
-            // to ClearCaseSCM for backward-compatibility, but its config is now
-            // done in the ClearCaseInstallation/global.jelly rather than the
-            // former ClearCaseSCM/global.jelly (which has been dropped)
-            // ==> we need to delegate the config to the "former" descriptor
-            AbstractClearCaseScmDescriptor<ClearCaseSCM> desc = Hudson.getInstance().getDescriptorByType(ClearCaseSCM.ClearCaseScmDescriptor.class);
-            if(desc == null) {
-                desc = new ClearCaseSCM.ClearCaseScmDescriptor();
-            }
-            desc.configure(req, formData);
-            desc.save();
-
-            setInstallations(
-                    req.bindJSONToList(
-                            ClearCaseInstallation.class,
-                            formData.get("clearcaseinstall")).toArray(new ClearCaseInstallation[0]));
-            save();
-            
-            return true;
-        }
-
-        public FormValidation doCheckHome(@QueryParameter String value) {
-            if(!Hudson.getInstance().hasPermission(Hudson.ADMINISTER)) {
-                return FormValidation.ok();
-            }
-
-            File clearCaseHome = new File(Util.replaceMacro(value, EnvVars.masterEnvVars));
-
-            if(clearCaseHome.getPath().equals("")) {
-                return FormValidation.ok(Messages.ClearCaseInstallation_CleartoolWillBeCalledFromPath());
-            }
-            
-            if(!clearCaseHome.isDirectory()) {
-                return FormValidation.error(Messages.ClearCaseInstallation_NotAFolder(value));
-            }
-
-            String cleartool = CLEARTOOL_EXE;
-            if(Functions.isWindows()) {
-                cleartool += ".exe";
-            }
-            
-            if(!new File(clearCaseHome, cleartool).exists()) {
-                return FormValidation.error(Messages.ClearCaseInstallation_NotAClearCaseInstallationFolder(value));
-            }
-            
-            return FormValidation.ok();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return Messages.ClearCaseInstallation_DisplayName();
-        }
-
-        public ClearCaseInstallation getInstallation() {
-            // It is expected to have always one clearcase installation
-            return getInstallations()[0];
-        }
-        
-        public String getDefaultViewName() {
-            return getCCDescriptor().getDefaultViewName();
-        }
-        
-        public String getDefaultViewPath() {
-            return getCCDescriptor().getDefaultViewPath();
-        }
-        
-        public String getDefaultWinDynStorageDir() {
-            return getCCDescriptor().getDefaultWinDynStorageDir();
-        }
-        
-        public String getDefaultUnixDynStorageDir() {
-            return getCCDescriptor().getDefaultUnixDynStorageDir();
-        }
-        
-        public ViewStorage getDefaultViewStorage() {
-            return getCCDescriptor().getDefaultViewStorage();
-        }
-
-        public int getLogMergeTimeWindow() {
-            return getCCDescriptor().getLogMergeTimeWindow();
-        }
-        
-        // Keep a ref to descriptor to avoid init each time
-        private transient ClearCaseScmDescriptor desc;
-
-        private ClearCaseScmDescriptor getCCDescriptor() {
-            // cf. the big comment in the configure() method to know why we have
-            // this stuff here
-            if(desc == null) {
-                desc = Hudson.getInstance().getDescriptorByType(ClearCaseSCM.ClearCaseScmDescriptor.class);
-                if (desc == null) {
-                    desc = new ClearCaseSCM.ClearCaseScmDescriptor();
-                }
-                // we apparently have to force the loading
-                desc.load();
-            }
-            return desc;
-        }
-
     }
 
 }

@@ -157,7 +157,7 @@ public class ServerViewStorage extends ViewStorage {
 
         private Node getRandomNode(Label label) {
             Set<Node> nodes = label.getNodes();
-            int nodeIndex = (int) (Math.random() * (nodes.size() -1));
+            int nodeIndex = (int) (Math.random() * (nodes.size() - 1));
             int i = 0;
             for (Node node : nodes) {
                 if (i == nodeIndex) {
@@ -192,7 +192,7 @@ public class ServerViewStorage extends ViewStorage {
     public String getAssignedLabelString() {
         return assignedLabelString;
     }
-    
+
     @Override
     public String[] getCommandArguments(boolean unix, String viewTag) {
         return new String[] { "-stgloc", server };

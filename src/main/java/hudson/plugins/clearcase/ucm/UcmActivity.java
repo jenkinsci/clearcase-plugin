@@ -25,9 +25,9 @@
 package hudson.plugins.clearcase.ucm;
 
 import hudson.model.User;
+import hudson.scm.EditType;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.AffectedFile;
-import hudson.scm.EditType;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -47,14 +47,137 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 public class UcmActivity extends ChangeLogSet.Entry {
 
-    private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    @ExportedBean(defaultVisibility = 999)
+    public static class File implements AffectedFile {
 
-    private String name;
-    private String headline;
-    private String stream;
-    private String user;
-    private List<File> files = new ArrayList<File>();
-    private List<UcmActivity> subActivities = new ArrayList<UcmActivity>();
+        private String comment;
+        private Date   date;
+        private String event;    // can maybe be dumbed
+        private String name;
+        private String operation;
+
+        private String version;
+
+        public File() {
+            /* empty by design */
+        }
+
+        public File(File other) {
+            this.date = other.date;
+            this.name = other.name;
+            this.version = other.version;
+            this.operation = other.operation;
+            this.event = other.event;
+        }
+
+        @Exported
+        public String getComment() {
+            return comment;
+        }
+
+        @Exported
+        public Date getDate() {
+            return date;
+        }
+
+        public String getDateStr() {
+            if (date == null) {
+                return "";
+            } else {
+                return DATE_FORMATTER.format(date);
+            }
+        }
+
+        @Override
+        @Exported
+        public EditType getEditType() {
+            if (operation.equalsIgnoreCase("mkelem")) {
+                return EditType.ADD;
+            } else if (operation.equalsIgnoreCase("rmelem")) {
+                return EditType.DELETE;
+            } else if (operation.equalsIgnoreCase("checkin")) {
+                return EditType.EDIT;
+            }
+            return null;
+        }
+
+        @Exported
+        public String getEvent() {
+            return event;
+        }
+
+        @Exported
+        public String getName() {
+            return name;
+        }
+
+        @Exported
+        public String getOperation() {
+            return operation;
+        }
+
+        @Override
+        public String getPath() {
+            return name;
+        }
+
+        @Exported
+        public String getShortVersion() {
+            return version.substring(version.lastIndexOf("/") + 1);
+        }
+
+        @Exported
+        public String getVersion() {
+            return version;
+        }
+
+        public void setComment(String comment) {
+            this.comment = comment;
+        }
+
+        public void setDate(Date date) {
+            this.date = date;
+        }
+
+        public void setDateStr(String date) {
+            try {
+                this.date = DATE_FORMATTER.parse(date);
+            } catch (ParseException e) {
+                // TODO: error handling
+            }
+        }
+
+        public void setEvent(String event) {
+            this.event = event;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public void setOperation(String operation) {
+            this.operation = operation;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
+    }
+
+    private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    private List<File>              files          = new ArrayList<File>();
+    private String                  headline;
+    private String                  name;
+    private String                  stream;
+    private List<UcmActivity>       subActivities  = new ArrayList<UcmActivity>();
+
+    private String                  user;
 
     public UcmActivity() {
         // empty by design
@@ -63,7 +186,8 @@ public class UcmActivity extends ChangeLogSet.Entry {
     /**
      * Copy contructor
      * 
-     * @param other the activity to copy
+     * @param other
+     *            the activity to copy
      */
     public UcmActivity(UcmActivity other) {
         this.name = other.name;
@@ -83,47 +207,6 @@ public class UcmActivity extends ChangeLogSet.Entry {
         }
     }
 
-    @Exported
-    public String getHeadline() {
-        return headline;
-    }
-
-    public void setHeadline(String headline) {
-        this.headline = headline;
-    }
-
-    @Exported
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Exported
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    @Exported
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    @Exported
-    public boolean isIntegrationActivity() {
-        return name.startsWith("deliver.");
-    }
-
     public void addFile(File file) {
         files.add(file);
     }
@@ -132,50 +215,17 @@ public class UcmActivity extends ChangeLogSet.Entry {
         this.files.addAll(files);
     }
 
-    @Exported
-    public List<File> getFiles() {
-        return files;
-    }
-
-    @Exported
-    public boolean hasFiles() {
-        return files.size() > 0;
+    public void addSubActivities(Collection<UcmActivity> activities) {
+        this.subActivities.addAll(activities);
     }
 
     public void addSubActivity(UcmActivity activity) {
         subActivities.add(activity);
     }
 
-    public void addSubActivities(Collection<UcmActivity> activities) {
-        this.subActivities.addAll(activities);
-    }
-
-    @Exported
-    public List<UcmActivity> getSubActivities() {
-        return subActivities;
-    }
-
-    @Exported
-    public boolean hasSubActivities() {
-        return subActivities.size() > 0;
-    }
-
-    /**
-     * Overrides the setParent() method so the ClearCaseChangeLogSet can access it.
-     */
     @Override
-    public void setParent(@SuppressWarnings("unchecked") ChangeLogSet parent) {
-        super.setParent(parent);
-    }
-
-    @Override
-    public String getMsg() {
-        return headline;
-    }
-
-    @Override
-    public User getAuthor() {
-        return User.get(user);
+    public Collection<? extends AffectedFile> getAffectedFiles() {
+        return files;
     }
 
     @Override
@@ -186,137 +236,88 @@ public class UcmActivity extends ChangeLogSet.Entry {
         }
         return paths;
     }
-    
+
     @Override
-    public Collection<? extends AffectedFile> getAffectedFiles() {
+    public User getAuthor() {
+        return User.get(user);
+    }
+
+    @Exported
+    public List<File> getFiles() {
         return files;
+    }
+
+    @Exported
+    public String getHeadline() {
+        return headline;
+    }
+
+    @Override
+    public String getMsg() {
+        return headline;
+    }
+
+    @Exported
+    public String getName() {
+        return name;
+    }
+
+    @Exported
+    public String getStream() {
+        return stream;
+    }
+
+    @Exported
+    public List<UcmActivity> getSubActivities() {
+        return subActivities;
+    }
+
+    @Exported
+    public String getUser() {
+        return user;
+    }
+
+    @Exported
+    public boolean hasFiles() {
+        return files.size() > 0;
+    }
+
+    @Exported
+    public boolean hasSubActivities() {
+        return subActivities.size() > 0;
+    }
+
+    @Exported
+    public boolean isIntegrationActivity() {
+        return name.startsWith("deliver.");
+    }
+
+    public void setHeadline(String headline) {
+        this.headline = headline;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Overrides the setParent() method so the ClearCaseChangeLogSet can access it.
+     */
+    @Override
+    public void setParent(@SuppressWarnings("unchecked") ChangeLogSet parent) {
+        super.setParent(parent);
+    }
+
+    public void setStream(String stream) {
+        this.stream = stream;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 
     @Override
     public String toString() {
         return name + ": " + headline;
-    }
-
-    @ExportedBean(defaultVisibility = 999)
-    public static class File implements AffectedFile {
-
-        private Date date;
-        private String name;
-        private String version;
-        private String operation;
-        private String event; // can maybe be dumbed
-
-        private String comment;
-
-        public File() {
-            /* empty by design */
-        }
-
-        public File(File other) {
-            this.date = other.date;
-            this.name = other.name;
-            this.version = other.version;
-            this.operation = other.operation;
-            this.event = other.event;
-        }
-
-        @Exported
-        public String getEvent() {
-            return event;
-        }
-
-        public void setEvent(String event) {
-            this.event = event;
-        }
-
-        @Exported
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        @Exported
-        public String getOperation() {
-            return operation;
-        }
-
-        public void setOperation(String operation) {
-            this.operation = operation;
-        }
-
-        @Exported
-        public String getVersion() {
-            return version;
-        }
-
-        public void setVersion(String version) {
-            this.version = version;
-        }
-
-        @Exported
-        public String getShortVersion() {
-            return version.substring(version.lastIndexOf("/") + 1);
-        }
-
-        @Exported
-        public String getComment() {
-            return comment;
-        }
-
-        public void setComment(String comment) {
-            this.comment = comment;
-        }
-
-        @Exported
-        public Date getDate() {
-            return date;
-        }
-
-        public void setDate(Date date) {
-            this.date = date;
-        }
-
-        public String getDateStr() {
-            if (date == null) {
-                return "";
-            } else {
-                return DATE_FORMATTER.format(date);
-            }
-        }
-
-        public void setDateStr(String date) {
-            try {
-                this.date = DATE_FORMATTER.parse(date);
-            } catch (ParseException e) {
-                // TODO: error handling
-            }
-        }
-
-        @Override
-        @Exported
-        public EditType getEditType() {
-            if (operation.equalsIgnoreCase("mkelem")) {
-                return EditType.ADD;
-            } else if (operation.equalsIgnoreCase("rmelem")) {
-                return EditType.DELETE;
-            } else if (operation.equalsIgnoreCase("checkin")) {
-                return EditType.EDIT;
-            }
-            return null;
-        }
-        
-        @Override
-        public String getPath() {
-            return name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-
     }
 }

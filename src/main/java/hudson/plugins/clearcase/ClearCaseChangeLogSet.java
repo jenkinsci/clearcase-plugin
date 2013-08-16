@@ -48,7 +48,7 @@ import org.xml.sax.SAXException;
  */
 public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry> {
 
-    static final String[] TAGS = new String[] { "user", "comment", "date" };
+    static final String[]                 TAGS    = new String[] { "user", "comment", "date" };
 
     private List<ClearCaseChangeLogEntry> history = null;
 
@@ -60,24 +60,63 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
         this.history = Collections.unmodifiableList(logs);
     }
 
+    public List<ClearCaseChangeLogEntry> getLogs() {
+        return history;
+    }
+
     @Override
     public boolean isEmptySet() {
         return history.size() == 0;
     }
 
+    @Override
     public Iterator<ClearCaseChangeLogEntry> iterator() {
         return history.iterator();
     }
 
-    public List<ClearCaseChangeLogEntry> getLogs() {
-        return history;
+    public static String escapeForXml(String string) {
+        if (string == null) {
+            return "";
+        }
+
+        // Loop through and replace the special chars.
+        int size = string.length();
+        char ch = 0;
+        StringBuffer escapedString = new StringBuffer(size);
+        for (int index = 0; index < size; index++) {
+            // Convert special chars.
+            ch = string.charAt(index);
+            switch (ch) {
+            case '&':
+                escapedString.append("&amp;");
+                break;
+            case '<':
+                escapedString.append("&lt;");
+                break;
+            case '>':
+                escapedString.append("&gt;");
+                break;
+            case '\'':
+                escapedString.append("&apos;");
+                break;
+            case '\"':
+                escapedString.append("&quot;");
+                break;
+            default:
+                escapedString.append(ch);
+            }
+        }
+
+        return escapedString.toString().trim();
     }
 
     /**
      * Parses the change log file and returns a ClearCase change log set.
      * 
-     * @param build the build for the change log
-     * @param changeLogFile the change log file
+     * @param build
+     *            the build for the change log
+     * @param changeLogFile
+     *            the change log file
      * @return the change log set
      */
     public static ClearCaseChangeLogSet parse(AbstractBuild<?, ?> build, File changeLogFile) throws IOException, SAXException {
@@ -88,47 +127,12 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
     }
 
     /**
-     * Parses the change log stream and returns a ClearCase change log set.
-     * 
-     * @param build the build for the change log
-     * @param changeLogStream input stream containing the change log
-     * @return the change log set
-     */
-    static ClearCaseChangeLogSet parse(AbstractBuild<?, ?> build, InputStream changeLogStream) throws IOException, SAXException {
-
-        ArrayList<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
-
-        // Parse the change log file.
-        Digester digester = new Digester();
-        digester.setClassLoader(ClearCaseChangeLogSet.class.getClassLoader());
-        digester.push(history);
-        digester.addObjectCreate("*/entry", ClearCaseChangeLogEntry.class);
-
-        digester.addBeanPropertySetter("*/entry/date", "dateStr");
-        digester.addBeanPropertySetter("*/entry/comment");
-        digester.addBeanPropertySetter("*/entry/user");
-        digester.addBeanPropertySetter("*/entry/file");
-        digester.addBeanPropertySetter("*/entry/action");
-        digester.addBeanPropertySetter("*/entry/version");
-
-        digester.addObjectCreate("*/entry/element", ClearCaseChangeLogEntry.FileElement.class);
-        digester.addBeanPropertySetter("*/entry/element/file");
-        digester.addBeanPropertySetter("*/entry/element/version");
-        digester.addBeanPropertySetter("*/entry/element/action");
-        digester.addBeanPropertySetter("*/entry/element/operation");
-        digester.addSetNext("*/entry/element", "addElement");
-
-        digester.addSetNext("*/entry", "add");
-        digester.parse(changeLogStream);
-
-        return new ClearCaseChangeLogSet(build, history);
-    }
-
-    /**
      * Stores the history objects to the output stream as xml
      * 
-     * @param outputStream the stream to write to
-     * @param history the history objects to store
+     * @param outputStream
+     *            the stream to write to
+     * @param history
+     *            the history objects to store
      * @throws IOException
      */
     public static void saveToChangeLog(OutputStream outputStream, List<ClearCaseChangeLogEntry> history) throws IOException {
@@ -171,47 +175,50 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
         stream.close();
     }
 
+    /**
+     * Parses the change log stream and returns a ClearCase change log set.
+     * 
+     * @param build
+     *            the build for the change log
+     * @param changeLogStream
+     *            input stream containing the change log
+     * @return the change log set
+     */
+    static ClearCaseChangeLogSet parse(AbstractBuild<?, ?> build, InputStream changeLogStream) throws IOException, SAXException {
+
+        ArrayList<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
+
+        // Parse the change log file.
+        Digester digester = new Digester();
+        digester.setClassLoader(ClearCaseChangeLogSet.class.getClassLoader());
+        digester.push(history);
+        digester.addObjectCreate("*/entry", ClearCaseChangeLogEntry.class);
+
+        digester.addBeanPropertySetter("*/entry/date", "dateStr");
+        digester.addBeanPropertySetter("*/entry/comment");
+        digester.addBeanPropertySetter("*/entry/user");
+        digester.addBeanPropertySetter("*/entry/file");
+        digester.addBeanPropertySetter("*/entry/action");
+        digester.addBeanPropertySetter("*/entry/version");
+
+        digester.addObjectCreate("*/entry/element", ClearCaseChangeLogEntry.FileElement.class);
+        digester.addBeanPropertySetter("*/entry/element/file");
+        digester.addBeanPropertySetter("*/entry/element/version");
+        digester.addBeanPropertySetter("*/entry/element/action");
+        digester.addBeanPropertySetter("*/entry/element/operation");
+        digester.addSetNext("*/entry/element", "addElement");
+
+        digester.addSetNext("*/entry", "add");
+        digester.parse(changeLogStream);
+
+        return new ClearCaseChangeLogSet(build, history);
+    }
+
     private static String[] getEntryAsStrings(ClearCaseChangeLogEntry entry) {
         String[] array = new String[TAGS.length];
         array[0] = entry.getUser();
         array[1] = entry.getComment();
         array[2] = entry.getDateStr();
         return array;
-    }
-
-    public static String escapeForXml(String string) {
-        if (string == null) {
-            return "";
-        }
-
-        // Loop through and replace the special chars.
-        int size = string.length();
-        char ch = 0;
-        StringBuffer escapedString = new StringBuffer(size);
-        for (int index = 0; index < size; index++) {
-            // Convert special chars.
-            ch = string.charAt(index);
-            switch (ch) {
-            case '&':
-                escapedString.append("&amp;");
-                break;
-            case '<':
-                escapedString.append("&lt;");
-                break;
-            case '>':
-                escapedString.append("&gt;");
-                break;
-            case '\'':
-                escapedString.append("&apos;");
-                break;
-            case '\"':
-                escapedString.append("&quot;");
-                break;
-            default:
-                escapedString.append(ch);
-            }
-        }
-
-        return escapedString.toString().trim();
     }
 }

@@ -31,7 +31,6 @@ import hudson.Util;
 import hudson.model.ModelObject;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
-import hudson.model.Descriptor;
 import hudson.model.Hudson;
 import hudson.plugins.clearcase.action.BaseDynamicCheckoutAction;
 import hudson.plugins.clearcase.action.BaseSnapshotCheckoutAction;
@@ -58,7 +57,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,17 +84,199 @@ import org.kohsuke.stapler.framework.io.ByteBuffer;
 
 public class ClearCaseSCM extends AbstractClearCaseScm {
 
-    private static final String DEFAULT_VALUE_WIN_DYN_STORAGE_DIR = "\\views\\dynamic";
+    /**
+     * ClearCase SCM descriptor
+     * 
+     * @author Erik Ramfelt
+     */
+    public static class ClearCaseScmDescriptor extends AbstractClearCaseScmDescriptor<ClearCaseSCM> implements ModelObject {
+        private static final int DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW = 5;
+
+        private int              changeLogMergeTimeWindow             = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
+        private String           defaultUnixDynStorageDir;
+        private String           defaultViewName;
+        private String           defaultViewPath;
+        private ViewStorage      defaultViewStorage;
+        private String           defaultWinDynStorageDir;
+
+        public ClearCaseScmDescriptor() {
+            super(ClearCaseSCM.class, null);
+            load();
+        }
+
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json) {
+            defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName").trim());
+            defaultViewPath = fixEmpty(req.getParameter("clearcase.defaultViewPath").trim());
+            defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir").trim());
+            defaultUnixDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultUnixDynStorageDir").trim());
+            defaultViewStorage = req.bindJSON(ViewStorage.class, json.getJSONObject("defaultViewStorage"));
+
+            String mergeTimeWindow = fixEmpty(req.getParameter("clearcase.logmergetimewindow"));
+            if (mergeTimeWindow != null) {
+                try {
+                    changeLogMergeTimeWindow = NumberFormat.getIntegerInstance().parse(mergeTimeWindow).intValue();
+                } catch (ParseException e) {
+                    changeLogMergeTimeWindow = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
+                }
+            } else {
+                changeLogMergeTimeWindow = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
+            }
+            save();
+            return true;
+        }
+
+        /**
+         * Checks if cleartool executable exists.
+         */
+        public FormValidation doCleartoolExeCheck(@QueryParameter final String value) throws IOException, ServletException {
+            return FormValidation.validateExecutable(value);
+        }
+
+        public FormValidation doConfigSpecCheck(@QueryParameter final String value) throws IOException, ServletException {
+            String v = fixEmpty(value);
+            if (v == null) {
+                return FormValidation.error("Config spec is mandatory");
+            }
+            /*
+             * for (String cSpecLine : v.split("[\\r\\n]+")) { if (cSpecLine.startsWith("load ")) { return
+             * FormValidation.error("Config spec can not contain load rules"); } }
+             */
+            // all tests passed so far
+            return FormValidation.ok();
+        }
+
+        /**
+         * Validates the excludedRegions Regex
+         */
+        public FormValidation doExcludedRegionsCheck(@QueryParameter final String value) throws IOException, ServletException {
+            String v = fixEmptyAndTrim(value);
+
+            if (v != null) {
+                String[] regions = v.split("[\\r\\n]+");
+                for (String region : regions) {
+                    try {
+                        Pattern.compile(region);
+                    } catch (PatternSyntaxException e) {
+                        return FormValidation.error("Invalid regular expression. " + e.getMessage());
+                    }
+                }
+            }
+            return FormValidation.ok();
+        }
+
+        public void doListViews(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException, InterruptedException {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Hudson.getInstance().createLauncher(TaskListener.NULL).launch().cmds(getCleartoolExe(), "lsview", "-short").stdout(baos).join();
+
+            rsp.setContentType("text/plain");
+            rsp.getOutputStream().println("ClearCase Views found:\n");
+            baos.writeTo(rsp.getOutputStream());
+        }
+
+        /**
+         * Raises an error if the parameter value isnt set.
+         * 
+         * @throws IOException
+         * @throws ServletException
+         */
+        public FormValidation doMandatoryCheck(@QueryParameter final String value, @QueryParameter final String errorText) throws IOException, ServletException {
+            String v = fixEmpty(value);
+            if (v == null) {
+                return FormValidation.error(errorText);
+            }
+            // all tests passed so far
+            return FormValidation.ok();
+        }
+
+        /**
+         * Displays "cleartool -version" for trouble shooting.
+         */
+        public void doVersion(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException, InterruptedException {
+            ByteBuffer baos = new ByteBuffer();
+            try {
+                Hudson.getInstance().createLauncher(TaskListener.NULL).launch().cmds(getCleartoolExe(), "-version").stdout(baos).join();
+                rsp.setContentType("text/plain");
+                baos.writeTo(rsp.getOutputStream());
+            } catch (IOException e) {
+                req.setAttribute("error", e);
+                rsp.forward(this, "versionCheckError", req);
+            }
+        }
+
+        public String getDefaultUnixDynStorageDir() {
+            return defaultUnixDynStorageDir;
+        }
+
+        public String getDefaultViewName() {
+            String instanceId = Hudson.getInstance().getDisplayName();
+            return StringUtils.defaultString(defaultViewName, instanceId + "_${USER_NAME}_${NODE_NAME}_${JOB_NAME}${DASH_WORKSPACE_NUMBER}");
+        }
+
+        public String getDefaultViewPath() {
+            return StringUtils.defaultString(defaultViewPath, "view");
+        }
+
+        public ViewStorage getDefaultViewStorage() {
+            if (defaultViewStorage == null) {
+                return ViewStorage.createDefault();
+            }
+            return defaultViewStorage;
+        }
+
+        public String getDefaultWinDynStorageDir() {
+            if (defaultWinDynStorageDir == null) {
+                return "\\\\${HOST}" + DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
+            }
+            return defaultWinDynStorageDir;
+        }
+
+        /*
+         * public FormValidation doConfigSpecFileNameCheck(@QueryParameter final String value) throws IOException, ServletException { String v =
+         * fixEmpty(value); if (v == null) { return FormValidation.error("Config spec file is mandatory"); } // all tests passed so far return
+         * FormValidation.ok(); }
+         * 
+         * public FormValidation doLoadRulesCheck(@QueryParameter final String value) throws IOException, ServletException { String v = fixEmpty(value); if (v
+         * == null) { return FormValidation.error("Load rules are mandatory"); } // all tests passed so far return FormValidation.ok(); }
+         */
+
+        @Override
+        public String getDisplayName() {
+            return "Base ClearCase";
+        }
+
+        public int getLogMergeTimeWindow() {
+            return changeLogMergeTimeWindow;
+        }
+
+        @Override
+        public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            AbstractClearCaseScm scm = new ClearCaseSCM(req.getParameter("cc.branch"), req.getParameter("cc.label"),
+                    req.getParameter("cc.getConfigSpecFromFile") != null, req.getParameter("cc.configSpecFileName"),
+                    req.getParameter("cc.refreshConfigSpec") != null, req.getParameter("cc.refreshConfigSpecCommand"), req.getParameter("cc.configspec"),
+                    req.getParameter("cc.viewname"), req.getParameter("cc.useupdate") != null, req.getParameter("cc.extractLoadRules") != null,
+                    req.getParameter("cc.loadrules"), req.getParameter("cc.useOtherLoadRulesForPolling") != null, req.getParameter("cc.loadRulesForPolling"),
+                    req.getParameter("cc.usedynamicview") != null, req.getParameter("cc.viewdrive"), req.getParameter("cc.mkviewoptionalparam"),
+                    req.getParameter("cc.filterOutDestroySubBranchEvent") != null, req.getParameter("cc.doNotUpdateConfigSpec") != null,
+                    req.getParameter("cc.rmviewonrename") != null, req.getParameter("cc.excludedRegions"),
+                    fixEmpty(req.getParameter("cc.multiSitePollBuffer")), req.getParameter("cc.useTimeRule") != null,
+                    req.getParameter("cc.createDynView") != null, req.getParameter("cc.viewpath"), ChangeSetLevel.fromString(req.getParameter("cc.changeset")),
+                    extractViewStorage(req, formData));
+            return scm;
+        }
+    }
     public static final String  CLEARCASE_CSFILENAME_ENVSTR       = "CLEARCASE_CSFILENAME";
 
-    private boolean             extractConfigSpec;
-    private String              configSpecFileName;
-    private boolean             refreshConfigSpec;
-    private String              refreshConfigSpecCommand;
+    private static final String DEFAULT_VALUE_WIN_DYN_STORAGE_DIR = "\\views\\dynamic";
     private final String        branch;
     private String              configSpec;
-    private final String        label;
+    private String              configSpecFileName;
     private boolean             doNotUpdateConfigSpec;
+    private boolean             extractConfigSpec;
+    private final String        label;
+    private boolean             refreshConfigSpec;
+    private String              refreshConfigSpecCommand;
+
     private boolean             useTimeRule;
 
     @DataBoundConstructor
@@ -125,125 +306,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
                 ChangeSetLevel.defaultLevel(), null);
     }
 
-    @SuppressWarnings("deprecation")
-    private boolean doRefreshConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
-        int cmdResult = 1;
-        // execute refresh command
-        if (isRefreshConfigSpec()) {
-            ArgumentListBuilder cmd = new ArgumentListBuilder();
-            cmd.addTokenized(getRefreshConfigSpecCommand(variableResolver));
-            PrintStream logger = launcher.getListener().getLogger();
-            try {
-                cmdResult = launcher.launch(cmd.toCommandArray(), new String[0], null, logger, null).join();
-            } catch (IOException e) {
-                e.printStackTrace(logger);
-            } catch (InterruptedException e) {
-                e.printStackTrace(logger);
-            }
-        }
-        return (cmdResult == 0);
-    }
-
-    private boolean doExtractConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
-        boolean ret = true;
-        // get config spec from file
-        if (isExtractConfigSpec()) {
-            String cs = null;
-            cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
-            if (cs != null) {
-                configSpec = cs;
-            } else {
-                launcher.getListener().getLogger().println("Fall back to config spec field...");
-                ret = false;
-            }
-        }
-        return ret;
-    }
-
-    private boolean doExtractLoadRules(VariableResolver<String> variableResolver, Launcher launcher) {
-        boolean ret = true;
-        // extract rules from config spec
-        if (isExtractLoadRules()) {
-            ConfigSpec cfgSpec = new ConfigSpec(configSpec, launcher.isUnix());
-            setLoadRules(cfgSpec.getLoadRulesString());
-        }
-        return ret;
-    }
-
-    private String getConfigSpecFromFile(String fileName, Launcher launcher) {
-        String cs = null;
-        try {
-            cs = PathUtil.readFileAsString(fileName);
-        } catch (IOException e) {
-            launcher.getListener().getLogger().println("ERROR: Cannot open config spec file '" + fileName + "'");
-        }
-        return cs;
-    }
-
-    public String getBranch() {
-        return branch;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public boolean isExtractConfigSpec() {
-        return extractConfigSpec;
-    }
-
-    public String getConfigSpecFileName() {
-        return configSpecFileName;
-    }
-
-    public String getConfigSpecFileName(VariableResolver<String> variableResolver) {
-        if (variableResolver != null) {
-            return Util.replaceMacro(configSpecFileName, variableResolver);
-        }
-        return configSpecFileName;
-    }
-
-    public boolean isRefreshConfigSpec() {
-        return refreshConfigSpec;
-    }
-
-    public String getRefreshConfigSpecCommand() {
-        return refreshConfigSpecCommand;
-    }
-
-    public String getRefreshConfigSpecCommand(VariableResolver<String> variableResolver) {
-        if (variableResolver != null) {
-            return Util.replaceMacro(refreshConfigSpecCommand, variableResolver);
-        }
-        return refreshConfigSpecCommand;
-    }
-
-    public String getConfigSpec() {
-        return configSpec;
-    }
-
-    public String setConfigSpec(String scpec) {
-        return configSpec = scpec;
-    }
-
-    public boolean isDoNotUpdateConfigSpec() {
-        return doNotUpdateConfigSpec;
-    }
-
-    public boolean isUseTimeRule() {
-        return useTimeRule;
-    }
-
-    @Override
-    public ClearCaseScmDescriptor getDescriptor() {
-        return PluginImpl.BASE_DESCRIPTOR;
-    }
-
-    @Override
-    public ChangeLogParser createChangeLogParser() {
-        return new ClearCaseChangeLogParser();
-    }
-
     /**
      * Adds the env variable for the ClearCase SCMs.
      * <ul>
@@ -269,19 +331,147 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected void inspectConfigAction(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
-        Launcher launcher = cclauncher.getLauncher();
-        doRefreshConfigSpec(variableResolver, launcher);
-        doExtractConfigSpec(variableResolver, launcher);
-        doExtractLoadRules(variableResolver, launcher);
-        // verify
-        PrintStream logger = launcher.getListener().getLogger();
-        if (StringUtils.isEmpty(configSpec)) {
-            logger.println("[WARNING] config spec is empty!");
+    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
+    InterruptedException {
+        return createRevisionState(build, launcher, taskListener, getBuildTime(build));
+    }
+
+    @Override
+    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
+    InterruptedException {
+        return createRevisionState(build, launcher, taskListener, new Date());
+    }
+
+    @Override
+    public Filter configureFilters(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
+        Filter filter = super.configureFilters(variableResolver, build, launcher);
+        if (StringUtils.isNotBlank(label)) {
+            ArrayList<Filter> filters = new ArrayList<Filter>();
+            filters.add(filter);
+            filters.add(new LabelFilter(getLabelNames(variableResolver)));
+            filter = new FilterChain(filters);
         }
-        if (StringUtils.isEmpty(getLoadRules())) {
-            logger.println("[WARNING] load rules are empty!");
+        return filter;
+    }
+
+    @Override
+    public ChangeLogParser createChangeLogParser() {
+        return new ClearCaseChangeLogParser();
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    /**
+     * Split the branch names into a string array.
+     * 
+     * @param branchString
+     *            string containing none or several branches
+     * @return a string array (never empty)
+     */
+    @Override
+    public String[] getBranchNames(VariableResolver<String> variableResolver) {
+        // split by whitespace, except "\ "
+        String[] branchArray = branch.split("(?<!\\\\)[ \\r\\n]+");
+        // now replace "\ " to " ".
+        for (int i = 0; i < branchArray.length; i++) {
+            branchArray[i] = Util.replaceMacro(branchArray[i].replaceAll("\\\\ ", " "), variableResolver);
         }
+        return branchArray;
+    }
+
+    public String getConfigSpec() {
+        return configSpec;
+    }
+
+    public String getConfigSpecFileName() {
+        return configSpecFileName;
+    }
+
+    public String getConfigSpecFileName(VariableResolver<String> variableResolver) {
+        if (variableResolver != null) {
+            return Util.replaceMacro(configSpecFileName, variableResolver);
+        }
+        return configSpecFileName;
+    }
+
+    @Override
+    public ClearCaseScmDescriptor getDescriptor() {
+        return PluginImpl.BASE_DESCRIPTOR;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String[] getLabelNames(VariableResolver<String> variableResolver) {
+        return Util.replaceMacro(label, variableResolver).split("\\s+");
+    }
+
+    public String getRefreshConfigSpecCommand() {
+        return refreshConfigSpecCommand;
+    }
+
+    public String getRefreshConfigSpecCommand(VariableResolver<String> variableResolver) {
+        if (variableResolver != null) {
+            return Util.replaceMacro(refreshConfigSpecCommand, variableResolver);
+        }
+        return refreshConfigSpecCommand;
+    }
+
+    public boolean isDoNotUpdateConfigSpec() {
+        return doNotUpdateConfigSpec;
+    }
+
+    public boolean isExtractConfigSpec() {
+        return extractConfigSpec;
+    }
+
+    public boolean isRefreshConfigSpec() {
+        return refreshConfigSpec;
+    }
+
+    public boolean isUseTimeRule() {
+        return useTimeRule;
+    }
+
+    public String setConfigSpec(String scpec) {
+        return configSpec = scpec;
+    }
+
+    @Override
+    protected CheckoutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build)
+            throws IOException, InterruptedException {
+        CheckoutAction action;
+        String effectiveConfigSpec = Util.replaceMacro(configSpec, variableResolver);
+        ViewStorage decoratedViewStorage = getViewStorageOrDefault().decorate(variableResolver);
+        if (isUseDynamicView()) {
+            action = new BaseDynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule,
+                    isCreateDynView(), decoratedViewStorage, build);
+        } else {
+            action = new BaseSnapshotCheckoutAction(createClearTool(variableResolver, launcher), new ConfigSpec(effectiveConfigSpec, launcher.getLauncher()
+                    .isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher(), false), isUseUpdate(), getViewPath(variableResolver),
+                    decoratedViewStorage, build);
+        }
+        return action;
+    }
+
+    @Override
+    protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build,
+            boolean useRecurse) throws IOException, InterruptedException {
+        ClearTool ct = createClearTool(variableResolver, launcher);
+        BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()),
+                getChangeset(), useRecurse, getDescriptor().getLogMergeTimeWindow());
+
+        setExtendedViewPath(variableResolver, ct, action);
+
+        return action;
+    }
+
+    @Override
+    protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
+        return new BaseSaveChangeLogAction();
     }
 
     @Override
@@ -335,252 +525,18 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    protected CheckoutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build)
-            throws IOException, InterruptedException {
-        CheckoutAction action;
-        String effectiveConfigSpec = Util.replaceMacro(configSpec, variableResolver);
-        ViewStorage decoratedViewStorage = getViewStorageOrDefault().decorate(variableResolver);
-        if (isUseDynamicView()) {
-            action = new BaseDynamicCheckoutAction(createClearTool(variableResolver, launcher), effectiveConfigSpec, doNotUpdateConfigSpec, useTimeRule,
-                    isCreateDynView(), decoratedViewStorage, build);
-        } else {
-            action = new BaseSnapshotCheckoutAction(createClearTool(variableResolver, launcher), new ConfigSpec(effectiveConfigSpec, launcher.getLauncher()
-                    .isUnix()), getViewPaths(variableResolver, build, launcher.getLauncher(), false), isUseUpdate(), getViewPath(variableResolver),
-                    decoratedViewStorage, build);
+    protected void inspectConfigAction(VariableResolver<String> variableResolver, ClearToolLauncher cclauncher) throws IOException, InterruptedException {
+        Launcher launcher = cclauncher.getLauncher();
+        doRefreshConfigSpec(variableResolver, launcher);
+        doExtractConfigSpec(variableResolver, launcher);
+        doExtractLoadRules(variableResolver, launcher);
+        // verify
+        PrintStream logger = launcher.getListener().getLogger();
+        if (StringUtils.isEmpty(configSpec)) {
+            logger.println("[WARNING] config spec is empty!");
         }
-        return action;
-    }
-
-    @Override
-    protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-            boolean useRecurse) throws IOException, InterruptedException {
-        ClearTool ct = createClearTool(variableResolver, launcher);
-        BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()),
-                getChangeset(), useRecurse, getDescriptor().getLogMergeTimeWindow());
-
-        setExtendedViewPath(variableResolver, ct, action);
-
-        return action;
-    }
-
-    @Override
-    protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
-        return new BaseSaveChangeLogAction();
-    }
-
-    /**
-     * Split the branch names into a string array.
-     * 
-     * @param branchString
-     *            string containing none or several branches
-     * @return a string array (never empty)
-     */
-    @Override
-    public String[] getBranchNames(VariableResolver<String> variableResolver) {
-        // split by whitespace, except "\ "
-        String[] branchArray = branch.split("(?<!\\\\)[ \\r\\n]+");
-        // now replace "\ " to " ".
-        for (int i = 0; i < branchArray.length; i++) {
-            branchArray[i] = Util.replaceMacro(branchArray[i].replaceAll("\\\\ ", " "), variableResolver);
-        }
-        return branchArray;
-    }
-
-    public String[] getLabelNames(VariableResolver<String> variableResolver) {
-        return Util.replaceMacro(label, variableResolver).split("\\s+");
-    }
-
-    @Override
-    public Filter configureFilters(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
-        Filter filter = super.configureFilters(variableResolver, build, launcher);
-        if (StringUtils.isNotBlank(label)) {
-            ArrayList<Filter> filters = new ArrayList<Filter>();
-            filters.add(filter);
-            filters.add(new LabelFilter(getLabelNames(variableResolver)));
-            filter = new FilterChain(filters);
-        }
-        return filter;
-    }
-
-    /**
-     * ClearCase SCM descriptor
-     * 
-     * @author Erik Ramfelt
-     */
-    public static class ClearCaseScmDescriptor extends AbstractClearCaseScmDescriptor<ClearCaseSCM> implements ModelObject {
-        private static final int DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW = 5;
-
-        private int              changeLogMergeTimeWindow             = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
-        private String           defaultViewName;
-        private String           defaultViewPath;
-        private String defaultWinDynStorageDir;
-        private String defaultUnixDynStorageDir;
-        private ViewStorage      defaultViewStorage;
-
-        public ClearCaseScmDescriptor() {
-            super(ClearCaseSCM.class, null);
-            load();
-        }
-
-        public int getLogMergeTimeWindow() {
-            return changeLogMergeTimeWindow;
-        }
-
-        public String getDefaultViewName() {
-            String instanceId = Hudson.getInstance().getDisplayName();
-            return StringUtils.defaultString(defaultViewName, instanceId + "_${USER_NAME}_${NODE_NAME}_${JOB_NAME}${DASH_WORKSPACE_NUMBER}");
-        }
-
-        public String getDefaultViewPath() {
-            return StringUtils.defaultString(defaultViewPath, "view");
-        }
-
-        public String getDefaultWinDynStorageDir() {
-            if (defaultWinDynStorageDir == null) {
-                return "\\\\${HOST}" + DEFAULT_VALUE_WIN_DYN_STORAGE_DIR;
-            }
-            return defaultWinDynStorageDir;
-        }
-
-        public String getDefaultUnixDynStorageDir() {
-            return defaultUnixDynStorageDir;
-        }
-
-        public ViewStorage getDefaultViewStorage() {
-            if (defaultViewStorage == null) {
-                return ViewStorage.createDefault();
-            }
-            return defaultViewStorage;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Base ClearCase";
-        }
-
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject json) {
-            defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName").trim());
-            defaultViewPath = fixEmpty(req.getParameter("clearcase.defaultViewPath").trim());
-            defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir").trim());
-            defaultUnixDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultUnixDynStorageDir").trim());
-            defaultViewStorage = req.bindJSON(ViewStorage.class, json.getJSONObject("defaultViewStorage"));
-
-            String mergeTimeWindow = fixEmpty(req.getParameter("clearcase.logmergetimewindow"));
-            if (mergeTimeWindow != null) {
-                try {
-                    changeLogMergeTimeWindow = DecimalFormat.getIntegerInstance().parse(mergeTimeWindow).intValue();
-                } catch (ParseException e) {
-                    changeLogMergeTimeWindow = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
-                }
-            } else {
-                changeLogMergeTimeWindow = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
-            }
-            save();
-            return true;
-        }
-
-        @Override
-        public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            AbstractClearCaseScm scm = new ClearCaseSCM(req.getParameter("cc.branch"), req.getParameter("cc.label"),
-                    req.getParameter("cc.getConfigSpecFromFile") != null, req.getParameter("cc.configSpecFileName"),
-                    req.getParameter("cc.refreshConfigSpec") != null, req.getParameter("cc.refreshConfigSpecCommand"), req.getParameter("cc.configspec"),
-                    req.getParameter("cc.viewname"), req.getParameter("cc.useupdate") != null, req.getParameter("cc.extractLoadRules") != null,
-                    req.getParameter("cc.loadrules"), req.getParameter("cc.useOtherLoadRulesForPolling") != null, req.getParameter("cc.loadRulesForPolling"),
-                    req.getParameter("cc.usedynamicview") != null, req.getParameter("cc.viewdrive"), req.getParameter("cc.mkviewoptionalparam"),
-                    req.getParameter("cc.filterOutDestroySubBranchEvent") != null, req.getParameter("cc.doNotUpdateConfigSpec") != null,
-                    req.getParameter("cc.rmviewonrename") != null, req.getParameter("cc.excludedRegions"),
-                    fixEmpty(req.getParameter("cc.multiSitePollBuffer")), req.getParameter("cc.useTimeRule") != null,
-                    req.getParameter("cc.createDynView") != null, req.getParameter("cc.viewpath"), ChangeSetLevel.fromString(req.getParameter("cc.changeset")),
-                    extractViewStorage(req, formData));
-            return scm;
-        }
-
-        /**
-         * Checks if cleartool executable exists.
-         */
-        public FormValidation doCleartoolExeCheck(@QueryParameter final String value) throws IOException, ServletException {
-            return FormValidation.validateExecutable(value);
-        }
-
-        /**
-         * Validates the excludedRegions Regex
-         */
-        public FormValidation doExcludedRegionsCheck(@QueryParameter final String value) throws IOException, ServletException {
-            String v = fixEmptyAndTrim(value);
-
-            if (v != null) {
-                String[] regions = v.split("[\\r\\n]+");
-                for (String region : regions) {
-                    try {
-                        Pattern.compile(region);
-                    } catch (PatternSyntaxException e) {
-                        return FormValidation.error("Invalid regular expression. " + e.getMessage());
-                    }
-                }
-            }
-            return FormValidation.ok();
-        }
-
-        public FormValidation doConfigSpecCheck(@QueryParameter final String value) throws IOException, ServletException {
-            String v = fixEmpty(value);
-            if (v == null) {
-                return FormValidation.error("Config spec is mandatory");
-            }
-            /*
-             * for (String cSpecLine : v.split("[\\r\\n]+")) { if (cSpecLine.startsWith("load ")) { return
-             * FormValidation.error("Config spec can not contain load rules"); } }
-             */
-            // all tests passed so far
-            return FormValidation.ok();
-        }
-
-        /*
-         * public FormValidation doConfigSpecFileNameCheck(@QueryParameter final String value) throws IOException, ServletException { String v =
-         * fixEmpty(value); if (v == null) { return FormValidation.error("Config spec file is mandatory"); } // all tests passed so far return
-         * FormValidation.ok(); }
-         * 
-         * public FormValidation doLoadRulesCheck(@QueryParameter final String value) throws IOException, ServletException { String v = fixEmpty(value); if (v
-         * == null) { return FormValidation.error("Load rules are mandatory"); } // all tests passed so far return FormValidation.ok(); }
-         */
-
-        /**
-         * Raises an error if the parameter value isnt set.
-         * 
-         * @throws IOException
-         * @throws ServletException
-         */
-        public FormValidation doMandatoryCheck(@QueryParameter final String value, @QueryParameter final String errorText) throws IOException, ServletException {
-            String v = fixEmpty(value);
-            if (v == null) {
-                return FormValidation.error(errorText);
-            }
-            // all tests passed so far
-            return FormValidation.ok();
-        }
-
-        /**
-         * Displays "cleartool -version" for trouble shooting.
-         */
-        public void doVersion(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException, InterruptedException {
-            ByteBuffer baos = new ByteBuffer();
-            try {
-                Hudson.getInstance().createLauncher(TaskListener.NULL).launch().cmds(getCleartoolExe(), "-version").stdout(baos).join();
-                rsp.setContentType("text/plain");
-                baos.writeTo(rsp.getOutputStream());
-            } catch (IOException e) {
-                req.setAttribute("error", e);
-                rsp.forward(this, "versionCheckError", req);
-            }
-        }
-
-        public void doListViews(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException, InterruptedException {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Hudson.getInstance().createLauncher(TaskListener.NULL).launch().cmds(getCleartoolExe(), "lsview", "-short").stdout(baos).join();
-
-            rsp.setContentType("text/plain");
-            rsp.getOutputStream().println("ClearCase Views found:\n");
-            baos.writeTo(rsp.getOutputStream());
+        if (StringUtils.isEmpty(getLoadRules())) {
+            logger.println("[WARNING] load rules are empty!");
         }
     }
 
@@ -589,23 +545,66 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return baseline == null || !(baseline instanceof ClearCaseSCMRevisionState);
     }
 
-    @Override
-    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-            InterruptedException {
-        return createRevisionState(build, launcher, taskListener, getBuildTime(build));
-    }
-
-    @Override
-    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-            InterruptedException {
-        return createRevisionState(build, launcher, taskListener, new Date());
-    }
-
     private AbstractClearCaseSCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date)
             throws IOException, InterruptedException {
         ClearCaseSCMRevisionState revisionState = new ClearCaseSCMRevisionState(date);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
         revisionState.setLoadRules(getViewPaths(variableResolver, build, launcher, true));
         return revisionState;
+    }
+
+    private boolean doExtractConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
+        boolean ret = true;
+        // get config spec from file
+        if (isExtractConfigSpec()) {
+            String cs = null;
+            cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
+            if (cs != null) {
+                configSpec = cs;
+            } else {
+                launcher.getListener().getLogger().println("Fall back to config spec field...");
+                ret = false;
+            }
+        }
+        return ret;
+    }
+
+    private boolean doExtractLoadRules(VariableResolver<String> variableResolver, Launcher launcher) {
+        boolean ret = true;
+        // extract rules from config spec
+        if (isExtractLoadRules()) {
+            ConfigSpec cfgSpec = new ConfigSpec(configSpec, launcher.isUnix());
+            setLoadRules(cfgSpec.getLoadRulesString());
+        }
+        return ret;
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean doRefreshConfigSpec(VariableResolver<String> variableResolver, Launcher launcher) {
+        int cmdResult = 1;
+        // execute refresh command
+        if (isRefreshConfigSpec()) {
+            ArgumentListBuilder cmd = new ArgumentListBuilder();
+            cmd.addTokenized(getRefreshConfigSpecCommand(variableResolver));
+            PrintStream logger = launcher.getListener().getLogger();
+            try {
+                cmdResult = launcher.launch(cmd.toCommandArray(), new String[0], null, logger, null).join();
+            } catch (IOException e) {
+                e.printStackTrace(logger);
+            } catch (InterruptedException e) {
+                e.printStackTrace(logger);
+            }
+        }
+        return (cmdResult == 0);
+    }
+
+    private String getConfigSpecFromFile(String fileName, Launcher launcher) {
+        String cs = null;
+        try {
+            cs = PathUtil.readFileAsString(fileName);
+        } catch (IOException e) {
+            launcher.getListener().getLogger().println("ERROR: Cannot open config spec file '" + fileName + "'");
+        }
+        return cs;
     }
 }

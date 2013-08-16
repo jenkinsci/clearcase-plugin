@@ -22,15 +22,69 @@ import org.kohsuke.stapler.StaplerRequest;
  * @author Rinat Ailon
  */
 public class ClearCasePublisher extends Notifier implements Serializable {
+    /**
+     * All global configurations in global.jelly are done from the DescriptorImpl class below
+     * 
+     * @author rgoren
+     */
+    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+        public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
+
+        /*
+         * This initializes the global configuration when loaded
+         */
+
+        public DescriptorImpl() {
+            super(ClearCasePublisher.class);
+            // This makes sure any existing global configuration is read from the persistence file <Hudson work
+            // dir>/hudson.plugins.logparser.LogParserPublisher.xml
+            load();
+        }
+
+        /*
+         * This method is invoked when the global configuration "save" is pressed
+         */
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+            save();
+            return true;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Create ClearCase report";
+        }
+
+        @Override
+        public String getHelpFile() {
+            return "/plugin/clearcase/publisher.html";
+        }
+
+        @Override
+        public boolean isApplicable(Class jobType) {
+            return true;
+        }
+
+    }
+
+    private static final long serialVersionUID = 1L;
+
     @DataBoundConstructor
     public ClearCasePublisher() {
 
     }
 
-    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
-        return true;
+    @Override
+    public BuildStepDescriptor getDescriptor() {
+        return DescriptorImpl.DESCRIPTOR;
     }
 
+    @Override
+    public BuildStepMonitor getRequiredMonitorService() {
+        return BuildStepMonitor.NONE;
+    }
+
+    @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         try {
             ClearCaseReportAction action = new ClearCaseReportAction(build);
@@ -44,57 +98,9 @@ public class ClearCasePublisher extends Notifier implements Serializable {
         return true;
     }
 
-    public BuildStepDescriptor getDescriptor() {
-        return DescriptorImpl.DESCRIPTOR;
-    }
-
-    /**
-     * All global configurations in global.jelly are done from the DescriptorImpl class below
-     * 
-     * @author rgoren
-     */
-    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-        public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
-        /*
-         * This initializes the global configuration when loaded
-         */
-
-        public DescriptorImpl() {
-            super(ClearCasePublisher.class);
-            // This makes sure any existing global configuration is read from the persistence file <Hudson work
-            // dir>/hudson.plugins.logparser.LogParserPublisher.xml
-            load();
-        }
-        
-        @Override
-        public boolean isApplicable(Class jobType) {
-            return true;
-        }
-
-        public String getDisplayName() {
-            return "Create ClearCase report";
-        }
-
-        public String getHelpFile() {
-            return "/plugin/clearcase/publisher.html";
-        }
-
-        /*
-         * This method is invoked when the global configuration "save" is pressed
-         */
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject json)
-                throws FormException {
-            save();
-            return true;
-        }
-
-    }
-
-    private static final long serialVersionUID = 1L;
-
-    public BuildStepMonitor getRequiredMonitorService() {
-        return BuildStepMonitor.NONE;
+    @Override
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+        return true;
     }
 
 }

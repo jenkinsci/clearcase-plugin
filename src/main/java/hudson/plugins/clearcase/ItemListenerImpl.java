@@ -67,6 +67,15 @@ public class ItemListenerImpl extends ItemListener {
     }
 
     /**
+     * Delete the view when the job is deleted
+     */
+    @Override
+    public void onDeleted(Item item) {
+        // Don't do anything, it has already been processed by AbstractClearCaseScm#processWorkspaceBeforeDeletion
+        return;
+    }
+
+    /**
      * Delete the view when the job is renamed
      */
     @Override
@@ -125,14 +134,5 @@ public class ItemListenerImpl extends ItemListener {
         } else {
             return false;
         }
-    }
-
-    /**
-     * Delete the view when the job is deleted
-     */
-    @Override
-    public void onDeleted(Item item) {
-        // Don't do anything, it has already been processed by AbstractClearCaseScm#processWorkspaceBeforeDeletion
-        return;
     }
 }

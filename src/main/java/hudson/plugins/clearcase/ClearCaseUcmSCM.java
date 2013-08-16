@@ -62,30 +62,75 @@ import org.kohsuke.stapler.StaplerRequest;
 
 public class ClearCaseUcmSCM extends AbstractClearCaseScm {
 
-    private static final String STREAM_PREFIX = "stream:";
+    /**
+     * ClearCase UCM SCM descriptor
+     * 
+     * @author Erik Ramfelt
+     */
+    public static class ClearCaseUcmScmDescriptor extends AbstractClearCaseScmDescriptor<ClearCaseUcmSCM> implements ModelObject {
+
+        private ClearCaseScmDescriptor baseDescriptor;
+
+        public ClearCaseUcmScmDescriptor(ClearCaseScmDescriptor baseDescriptor) {
+            super(ClearCaseUcmSCM.class, null);
+            this.baseDescriptor = baseDescriptor;
+            load();
+        }
+
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json) {
+            return true;
+        }
+
+        public String getDefaultUnixDynStorageDir() {
+            return baseDescriptor.getDefaultUnixDynStorageDir();
+        }
+
+        public String getDefaultViewName() {
+            return baseDescriptor.getDefaultViewName();
+        }
+
+        public String getDefaultViewPath() {
+            return baseDescriptor.getDefaultViewPath();
+        }
+
+        public ViewStorage getDefaultViewStorage() {
+            return baseDescriptor.getDefaultViewStorage();
+        }
+
+        public String getDefaultWinDynStorageDir() {
+            return baseDescriptor.getDefaultWinDynStorageDir();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "UCM ClearCase";
+        }
+
+        @Override
+        public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            AbstractClearCaseScm scm = new ClearCaseUcmSCM(req.getParameter("ucm.stream"), req.getParameter("ucm.loadrules"), req.getParameter("ucm.viewname"),
+                    req.getParameter("ucm.usedynamicview") != null, req.getParameter("ucm.viewdrive"), req.getParameter("ucm.mkviewoptionalparam"),
+                    req.getParameter("ucm.filterOutDestroySubBranchEvent") != null, req.getParameter("ucm.useupdate") != null,
+                    req.getParameter("ucm.rmviewonrename") != null, req.getParameter("ucm.excludedRegions"), Util.fixEmpty(req
+                            .getParameter("ucm.multiSitePollBuffer")), req.getParameter("ucm.overrideBranchName"),
+                            req.getParameter("ucm.createDynView") != null, req.getParameter("ucm.freezeCode") != null, req.getParameter("ucm.recreateView") != null,
+                            req.getParameter("ucm.allocateViewName") != null, req.getParameter("ucm.viewpath"), req.getParameter("ucm.useManualLoadRules") != null,
+                            ChangeSetLevel.fromString(req.getParameter("ucm.changeset")), extractViewStorage(req, formData));
+            return scm;
+        }
+    }
 
     private final static String AUTO_ALLOCATE_VIEW_NAME = "${STREAM}_${JOB_NAME}_bs_hudson_view";
-    
-    private final static Logger LOGGER = Logger.getLogger(ClearCaseUcmSCM.class.getName());
 
-    private final String stream;
-    private final String overrideBranchName;
-    private boolean allocateViewName;
-    private boolean useManualLoadRules;
-    @DataBoundConstructor
-    public ClearCaseUcmSCM(String stream, String loadrules, String viewTag, boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
-            boolean filterOutDestroySubBranchEvent, boolean useUpdate, boolean rmviewonrename, String excludedRegions, String multiSitePollBuffer,
-            String overrideBranchName, boolean createDynView, boolean freezeCode, boolean recreateView, boolean allocateViewName, String viewPath,
-            boolean useManualLoadRules, ChangeSetLevel changeset, ViewStorage viewStorage) {
-        super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, usedynamicview, viewdrive,
-        false, useManualLoadRules ? loadrules : null, false, null, multiSitePollBuffer, createDynView,freezeCode, recreateView, viewPath, changeset,
-        viewStorage);
-        this.stream = shortenStreamName(stream);
-        this.allocateViewName = allocateViewName;
-        this.overrideBranchName = overrideBranchName;
-        this.useManualLoadRules = useManualLoadRules ? useManualLoadRules : StringUtils.isNotBlank(loadrules); // Default to keep backward compat
-        Validate.notEmpty(this.stream, "The stream selector cannot be empty");
-    }
+    private final static Logger LOGGER                  = Logger.getLogger(ClearCaseUcmSCM.class.getName());
+
+    private static final String STREAM_PREFIX           = "stream:";
+    private boolean             allocateViewName;
+    private final String        overrideBranchName;
+    private final String        stream;
+
+    private boolean             useManualLoadRules;
 
     @Deprecated
     public ClearCaseUcmSCM(String stream, String loadrules, String viewTag, boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
@@ -94,42 +139,31 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
                 "", false, false, false, false, viewTag, StringUtils.isBlank(loadrules), ChangeSetLevel.defaultLevel(), null);
     }
 
-
-
-    /**
-     * Return the stream that is used to create the UCM view.
-     *
-     * @return string containing the stream selector.
-     */
-    public String getStream() {
-        return stream;
-    }
-
-    public String getStream(VariableResolver<String> variableResolver) {
-        return Util.replaceMacro(stream, variableResolver);
-    }
-
-    public boolean isAllocateViewName() {
-        return allocateViewName;
-    }
-
-    public void setAllocateViewName(boolean allocateViewName) {
+    @DataBoundConstructor
+    public ClearCaseUcmSCM(String stream, String loadrules, String viewTag, boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
+            boolean filterOutDestroySubBranchEvent, boolean useUpdate, boolean rmviewonrename, String excludedRegions, String multiSitePollBuffer,
+            String overrideBranchName, boolean createDynView, boolean freezeCode, boolean recreateView, boolean allocateViewName, String viewPath,
+            boolean useManualLoadRules, ChangeSetLevel changeset, ViewStorage viewStorage) {
+        super(viewTag, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename, excludedRegions, usedynamicview, viewdrive, false,
+                useManualLoadRules ? loadrules : null, false, null, multiSitePollBuffer, createDynView, freezeCode, recreateView, viewPath, changeset,
+                        viewStorage);
+        this.stream = shortenStreamName(stream);
         this.allocateViewName = allocateViewName;
-    }
-
-    /**
-     * Return the branch type used for changelog and polling. By default this will be the empty string, and the stream
-     * will be split to get the branch.
-     *
-     * @return string containing the branch type.
-     */
-    public String getOverrideBranchName() {
-        return overrideBranchName;
+        this.overrideBranchName = overrideBranchName;
+        this.useManualLoadRules = useManualLoadRules ? useManualLoadRules : StringUtils.isNotBlank(loadrules); // Default to keep backward compat
+        Validate.notEmpty(this.stream, "The stream selector cannot be empty");
     }
 
     @Override
-    public ClearCaseUcmScmDescriptor getDescriptor() {
-        return PluginImpl.UCM_DESCRIPTOR;
+    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
+    InterruptedException {
+        return createRevisionState(build, launcher, taskListener, getBuildTime(build));
+    }
+
+    @Override
+    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
+    InterruptedException {
+        return createRevisionState(build, launcher, taskListener, new Date());
     }
 
     @Override
@@ -137,8 +171,24 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return new UcmChangeLogParser();
     }
 
-    public boolean isUseManualLoadRules() {
-        return useManualLoadRules;
+    public ClearTool createClearTool(AbstractBuild<?, ?> build, Launcher launcher) throws IOException, InterruptedException {
+        BuildVariableResolver variableResolver = new BuildVariableResolver(build);
+        ClearToolLauncher clearToolLauncher = createClearToolLauncher(launcher.getListener(), build.getWorkspace(), launcher);
+        return createClearTool(variableResolver, clearToolLauncher);
+    }
+
+    @Override
+    public ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
+        return super.createClearTool(variableResolver, launcher);
+    }
+
+    @Override
+    public String generateNormalizedViewName(VariableResolver<String> variableResolver, String modViewName) {
+        // Modify the view name in order to support concurrent builds
+        if (allocateViewName) {
+            modViewName = AUTO_ALLOCATE_VIEW_NAME.replace("${STREAM}", UcmCommon.getNoVob(getStream(variableResolver)));
+        }
+        return super.generateNormalizedViewName(variableResolver, modViewName);
     }
 
     @Override
@@ -152,95 +202,35 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-            InterruptedException {
-        return createRevisionState(build, launcher, taskListener, getBuildTime(build));
+    public ClearCaseUcmScmDescriptor getDescriptor() {
+        return PluginImpl.UCM_DESCRIPTOR;
     }
 
-    @Override
-    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-            InterruptedException {
-        return createRevisionState(build, launcher, taskListener, new Date());
+    /**
+     * Return the branch type used for changelog and polling. By default this will be the empty string, and the stream will be split to get the branch.
+     * 
+     * @return string containing the branch type.
+     */
+    public String getOverrideBranchName() {
+        return overrideBranchName;
     }
 
-    private AbstractClearCaseSCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date) throws IOException, InterruptedException {
-        ClearTool clearTool = createClearTool(build, launcher);
-        VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        String resolvedStream = getStream(variableResolver);
-        ClearCaseUCMSCMRevisionState revisionState = new ClearCaseUCMSCMRevisionState(UcmCommon.getFoundationBaselines(clearTool, resolvedStream), date, resolvedStream);
-        revisionState.setLoadRules(getViewPaths(variableResolver, build, launcher));
-        return revisionState;
+    /**
+     * Return the stream that is used to create the UCM view.
+     * 
+     * @return string containing the stream selector.
+     */
+    public String getStream() {
+        return stream;
     }
 
-    @Override
-    protected boolean isFirstBuild(SCMRevisionState baseline) {
-        return baseline == null || !(baseline instanceof ClearCaseUCMSCMRevisionState);
-    }
-
-    @Override
-    public String generateNormalizedViewName(VariableResolver<String> variableResolver, String modViewName) {
-        // Modify the view name in order to support concurrent builds
-        if (allocateViewName) {
-            modViewName = AUTO_ALLOCATE_VIEW_NAME.replace("${STREAM}", UcmCommon.getNoVob(getStream(variableResolver)));
-        }
-        return super.generateNormalizedViewName(variableResolver, modViewName);
-    }
-
-    @Override
-    public ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
-        return super.createClearTool(variableResolver, launcher);
-    }
-
-
-    @Override
-    protected CheckoutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
-        CheckoutAction action;
-        ClearTool clearTool = createClearTool(variableResolver, launcher);
-        String stream2 = getStream(variableResolver);
-        ViewStorage decoratedViewStorage = getViewStorageOrDefault().decorate(variableResolver);
-        if (isUseDynamicView()) {
-            action = new UcmDynamicCheckoutAction(clearTool, stream2, isCreateDynView(),
-                    decoratedViewStorage, build, isFreezeCode(), isRecreateView());
-        } else {
-            action = new UcmSnapshotCheckoutAction(clearTool, stream2, getViewPaths(variableResolver, build, launcher.getLauncher()), isUseUpdate(), getViewPath(variableResolver), decoratedViewStorage);
-        }
-        return action;
-    }
-
-    protected UcmHistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build, boolean useRecurse) throws IOException, InterruptedException {
-        ClearTool ct = createClearTool(variableResolver, launcher);
-        UcmHistoryAction action;
-        ClearCaseUCMSCMRevisionState oldBaseline = null;
-        ClearCaseUCMSCMRevisionState newBaseline = null;
-        if (build != null) {
-            try {
-                AbstractBuild<?, ?> previousBuild = (AbstractBuild<?, ?>) build.getPreviousBuild();
-                if (previousBuild != null) {
-                    oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
-                }
-                newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
-            } catch (IOException e) {
-                LOGGER.log(Level.SEVERE, "IOException when calculating revisions'", e);
-                return null;
-            } catch (InterruptedException e) {
-                LOGGER.log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
-                return null;
-            }
-            newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
-        }
-        if (isFreezeCode()) {
-            action = new FreezeCodeUcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), getStream(variableResolver), getViewDrive(), build, oldBaseline, newBaseline);
-        } else {
-            action = new UcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), oldBaseline, newBaseline, getChangeset());
-        }
-        setExtendedViewPath(variableResolver, ct, action);
-
-        return action;
+    public String getStream(VariableResolver<String> variableResolver) {
+        return Util.replaceMacro(stream, variableResolver);
     }
 
     @Override
     public String[] getViewPaths(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher, boolean forPolling) throws IOException,
-            InterruptedException {
+    InterruptedException {
         if (!useManualLoadRules) {
             // If the revision state is already available for this build, just use the value
             ClearCaseUCMSCMRevisionState revisionState = build.getAction(ClearCaseUCMSCMRevisionState.class);
@@ -257,15 +247,88 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return super.getViewPaths(variableResolver, build, launcher, forPolling);
     }
 
+    public boolean isAllocateViewName() {
+        return allocateViewName;
+    }
+
+    public boolean isUseManualLoadRules() {
+        return useManualLoadRules;
+    }
+
+    public void setAllocateViewName(boolean allocateViewName) {
+        this.allocateViewName = allocateViewName;
+    }
+
+    @Override
+    protected CheckoutAction createCheckOutAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build)
+            throws IOException, InterruptedException {
+        CheckoutAction action;
+        ClearTool clearTool = createClearTool(variableResolver, launcher);
+        String stream2 = getStream(variableResolver);
+        ViewStorage decoratedViewStorage = getViewStorageOrDefault().decorate(variableResolver);
+        if (isUseDynamicView()) {
+            action = new UcmDynamicCheckoutAction(clearTool, stream2, isCreateDynView(), decoratedViewStorage, build, isFreezeCode(), isRecreateView());
+        } else {
+            action = new UcmSnapshotCheckoutAction(clearTool, stream2, getViewPaths(variableResolver, build, launcher.getLauncher()), isUseUpdate(),
+                    getViewPath(variableResolver), decoratedViewStorage);
+        }
+        return action;
+    }
+
+    @Override
+    protected UcmHistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build,
+            boolean useRecurse) throws IOException, InterruptedException {
+        ClearTool ct = createClearTool(variableResolver, launcher);
+        UcmHistoryAction action;
+        ClearCaseUCMSCMRevisionState oldBaseline = null;
+        ClearCaseUCMSCMRevisionState newBaseline = null;
+        if (build != null) {
+            try {
+                AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
+                if (previousBuild != null) {
+                    oldBaseline = build.getPreviousBuild().getAction(ClearCaseUCMSCMRevisionState.class);
+                }
+                newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "IOException when calculating revisions'", e);
+                return null;
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, "InterruptedException when calculating revisions'", e);
+                return null;
+            }
+            newBaseline = (ClearCaseUCMSCMRevisionState) calcRevisionsFromBuild(build, launcher.getLauncher(), launcher.getListener());
+        }
+        if (isFreezeCode()) {
+            action = new FreezeCodeUcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()),
+                    getStream(variableResolver), getViewDrive(), build, oldBaseline, newBaseline);
+        } else {
+            action = new UcmHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()), oldBaseline, newBaseline,
+                    getChangeset());
+        }
+        setExtendedViewPath(variableResolver, ct, action);
+
+        return action;
+    }
+
     @Override
     protected SaveChangeLogAction createSaveChangeLogAction(ClearToolLauncher launcher) {
         return new UcmSaveChangeLogAction();
     }
 
-    public ClearTool createClearTool(AbstractBuild<?, ?> build, Launcher launcher) throws IOException, InterruptedException {
-        BuildVariableResolver variableResolver = new BuildVariableResolver(build);
-        ClearToolLauncher clearToolLauncher = createClearToolLauncher(launcher.getListener(), build.getWorkspace(), launcher);
-        return createClearTool(variableResolver, clearToolLauncher);
+    @Override
+    protected boolean isFirstBuild(SCMRevisionState baseline) {
+        return baseline == null || !(baseline instanceof ClearCaseUCMSCMRevisionState);
+    }
+
+    private AbstractClearCaseSCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date)
+            throws IOException, InterruptedException {
+        ClearTool clearTool = createClearTool(build, launcher);
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build);
+        String resolvedStream = getStream(variableResolver);
+        ClearCaseUCMSCMRevisionState revisionState = new ClearCaseUCMSCMRevisionState(UcmCommon.getFoundationBaselines(clearTool, resolvedStream), date,
+                resolvedStream);
+        revisionState.setLoadRules(getViewPaths(variableResolver, build, launcher));
+        return revisionState;
     }
 
     private String shortenStreamName(String longStream) {
@@ -273,78 +336,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
             return StringUtils.substringAfter(longStream, STREAM_PREFIX);
         } else {
             return longStream;
-        }
-    }
-
-    /**
-     * ClearCase UCM SCM descriptor
-     *
-     * @author Erik Ramfelt
-     */
-    public static class ClearCaseUcmScmDescriptor extends AbstractClearCaseScmDescriptor<ClearCaseUcmSCM> implements ModelObject {
-
-        private ClearCaseScmDescriptor baseDescriptor;
-
-        public ClearCaseUcmScmDescriptor(ClearCaseScmDescriptor baseDescriptor) {
-            super(ClearCaseUcmSCM.class, null);
-            this.baseDescriptor = baseDescriptor;
-            load();
-        }
-
-        public String getDefaultViewName() {
-            return baseDescriptor.getDefaultViewName();
-        }
-
-        public String getDefaultViewPath() {
-            return baseDescriptor.getDefaultViewPath();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "UCM ClearCase";
-        }
-
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject json) {
-            return true;
-        }
-
-        public String getDefaultWinDynStorageDir() {
-            return baseDescriptor.getDefaultWinDynStorageDir();
-        }
-
-        public String getDefaultUnixDynStorageDir() {
-            return baseDescriptor.getDefaultUnixDynStorageDir();
-        }
-        
-        public ViewStorage getDefaultViewStorage() {
-            return baseDescriptor.getDefaultViewStorage();
-        }
-        
-        @Override
-        public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            AbstractClearCaseScm scm = new ClearCaseUcmSCM(req.getParameter("ucm.stream"),
-                                                      req.getParameter("ucm.loadrules"),
-                                                      req.getParameter("ucm.viewname"),
-                                                      req.getParameter("ucm.usedynamicview") != null,
-                                                      req.getParameter("ucm.viewdrive"),
-                                                      req.getParameter("ucm.mkviewoptionalparam"),
-                                                      req.getParameter("ucm.filterOutDestroySubBranchEvent") != null,
-                                                      req.getParameter("ucm.useupdate") != null,
-                                                      req.getParameter("ucm.rmviewonrename") != null,
-                                                      req.getParameter("ucm.excludedRegions"),
-                                                      Util.fixEmpty(req.getParameter("ucm.multiSitePollBuffer")),
-                                                      req.getParameter("ucm.overrideBranchName"),
-                                                      req.getParameter("ucm.createDynView") != null,
-                                                      req.getParameter("ucm.freezeCode") != null,
-                                                      req.getParameter("ucm.recreateView") != null,
-                                                      req.getParameter("ucm.allocateViewName") != null,
-                                                      req.getParameter("ucm.viewpath"),
-                                                      req.getParameter("ucm.useManualLoadRules") != null,
-                                                      ChangeSetLevel.fromString(req.getParameter("ucm.changeset")),
-                                                      extractViewStorage(req, formData)
-                                                      );
-            return scm;
         }
     }
 }

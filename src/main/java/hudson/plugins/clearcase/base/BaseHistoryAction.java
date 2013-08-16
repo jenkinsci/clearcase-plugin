@@ -41,7 +41,6 @@ import hudson.plugins.clearcase.history.HistoryEntry;
 import hudson.plugins.clearcase.util.ChangeLogEntryMerger;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
 import hudson.scm.ChangeLogSet.Entry;
-import hudson.util.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -65,7 +64,8 @@ public class BaseHistoryAction extends AbstractHistoryAction {
     private ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
     private int                    maxTimeDifferenceMillis;
 
-    public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ChangeSetLevel changeset, boolean useRecurse, int maxTimeDifferenceMillis) {
+    public BaseHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ChangeSetLevel changeset, boolean useRecurse,
+            int maxTimeDifferenceMillis) {
         super(cleartool, useDynamicView, filter, changeset, useRecurse);
         this.maxTimeDifferenceMillis = maxTimeDifferenceMillis;
     }
@@ -115,25 +115,13 @@ public class BaseHistoryAction extends AbstractHistoryAction {
         return entry;
     }
 
-    @Override
-    protected List<HistoryEntry> runLsHistory(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
-            InterruptedException {
-        List<HistoryEntry> entries = null;
-        if (ChangeSetLevel.UPDT.equals(getChangeset()) && getUpdtFile() != null) {
-            entries = parseUpdt(getUpdtFile(), viewPath);
-        } else {
-            entries = super.runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
-        }
-        return entries;
-    }
-
     protected List<HistoryEntry> parseUpdt(FilePath updtFile, String viewPath) throws IOException, InterruptedException {
         Validate.notNull(updtFile);
         List<HistoryEntry> history = new ArrayList<HistoryEntry>();
         List<UpdtEntry> updtEntries = new ArrayList<UpdtEntry>();
         InputStream is = updtFile.read();
         try {
-            LineIterator it = IOUtils.lineIterator(is, "UTF-8");
+            LineIterator it = org.apache.commons.io.IOUtils.lineIterator(is, "UTF-8");
             while (it.hasNext()) {
                 String line = it.nextLine();
                 UpdtEntry entry = UpdtEntry.getEntryFromLine(line);
@@ -142,7 +130,7 @@ public class BaseHistoryAction extends AbstractHistoryAction {
                 }
             }
         } finally {
-            IOUtils.closeQuietly(is);
+            org.apache.commons.io.IOUtils.closeQuietly(is);
         }
         for (UpdtEntry entry : updtEntries) {
             try {
@@ -158,5 +146,17 @@ public class BaseHistoryAction extends AbstractHistoryAction {
             }
         }
         return history;
+    }
+
+    @Override
+    protected List<HistoryEntry> runLsHistory(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+    InterruptedException {
+        List<HistoryEntry> entries = null;
+        if (ChangeSetLevel.UPDT.equals(getChangeset()) && getUpdtFile() != null) {
+            entries = parseUpdt(getUpdtFile(), viewPath);
+        } else {
+            entries = super.runLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
+        }
+        return entries;
     }
 }

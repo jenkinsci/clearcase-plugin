@@ -7,14 +7,14 @@ import org.junit.Test;
 public class SpecificViewStorageTest {
 
     @Test
-    public void windows() {
+    public void unix() {
         ViewStorage instance = new SpecificViewStorage("windows", "unix");
-        assertArrayEquals(new String[]{"-vws", "windows\\viewTag.vws"}, instance.getCommandArguments(false, "viewTag"));
+        assertArrayEquals(new String[] { "-vws", "unix/viewTag.vws" }, instance.getCommandArguments(true, "viewTag"));
     }
 
     @Test
-    public void unix() {
+    public void windows() {
         ViewStorage instance = new SpecificViewStorage("windows", "unix");
-        assertArrayEquals(new String[]{"-vws", "unix/viewTag.vws"}, instance.getCommandArguments(true, "viewTag"));
+        assertArrayEquals(new String[] { "-vws", "windows\\viewTag.vws" }, instance.getCommandArguments(false, "viewTag"));
     }
 }

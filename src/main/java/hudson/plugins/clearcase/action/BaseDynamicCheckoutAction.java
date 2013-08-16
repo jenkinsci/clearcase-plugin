@@ -42,21 +42,19 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Check out action for dynamic views. This will not update any files from the
- * repository as it is a dynamic view. The class will make sure that the
- * configured config spec is the same as the one for the dynamic view.
+ * Check out action for dynamic views. This will not update any files from the repository as it is a dynamic view. The class will make sure that the configured
+ * config spec is the same as the one for the dynamic view.
  */
 public class BaseDynamicCheckoutAction extends CheckoutAction {
 
+    private AbstractBuild<?, ?> build;
     private String              configSpec;
+    private boolean             createView;
     private boolean             updateConfigSpec;
     private boolean             useTimeRule;
-    private boolean             createView;
-    private AbstractBuild<?, ?> build;
 
-    public BaseDynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec,
-            boolean useTimeRule, boolean createView, ViewStorage viewStorage,
-            AbstractBuild<?, ?> build) {
+    public BaseDynamicCheckoutAction(ClearTool cleartool, String configSpec, boolean doNotUpdateConfigSpec, boolean useTimeRule, boolean createView,
+            ViewStorage viewStorage, AbstractBuild<?, ?> build) {
         super(cleartool, viewStorage);
         this.configSpec = configSpec;
         this.updateConfigSpec = !doNotUpdateConfigSpec;
@@ -66,8 +64,7 @@ public class BaseDynamicCheckoutAction extends CheckoutAction {
     }
 
     @Override
-    public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException,
-            InterruptedException {
+    public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
         if (createView) {
             createView(viewTag);
         }
@@ -88,15 +85,47 @@ public class BaseDynamicCheckoutAction extends CheckoutAction {
         return true;
     }
 
-    private String updateConfigSpec(Launcher launcher, String viewTag, String currentConfigSpec) throws IOException,
-            InterruptedException {
-        String futureConfigSpec = PathUtil.convertPathForOS(getConfigSpec(), launcher);
-        if (currentAndFutureConfigSpecAreEquals(currentConfigSpec, futureConfigSpec)) {
-            getCleartool().setcs2(viewTag, SetcsOption.CURRENT, null);
-        } else {
-            getCleartool().setcs2(viewTag, SetcsOption.CONFIGSPEC, futureConfigSpec);
+    public String getTimeRule() {
+        return getTimeRule(new Date());
+    }
+
+    public String getTimeRule(Date nowDate) {
+        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        return formatter.format(nowDate).toLowerCase();
+    }
+
+    @Override
+    public boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        if (getCleartool().doesViewExist(viewTag)) {
+            startView(viewTag);
+            return true;
         }
-        return futureConfigSpec;
+        return false;
+    }
+
+    /**
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
+    @Deprecated
+    @Override
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        return isViewValid(workspace, viewTag);
+    }
+
+    private void createView(String viewTag) throws IOException, InterruptedException {
+        // Remove current view
+        if (getCleartool().doesViewExist(viewTag)) {
+            getCleartool().rmviewtag(viewTag);
+        }
+        // Now, make the view.
+        MkViewParameters params = new MkViewParameters();
+        params.setType(ViewType.Dynamic);
+        params.setViewPath(viewTag);
+        params.setViewTag(viewTag);
+        params.setViewStorage(getViewStorage());
+        getCleartool().mkview(params);
     }
 
     private boolean currentAndFutureConfigSpecAreEquals(String current, String future) {
@@ -115,48 +144,13 @@ public class BaseDynamicCheckoutAction extends CheckoutAction {
         getCleartool().startView(viewTag);
     }
 
-    private void createView(String viewTag) throws IOException, InterruptedException {
-        // Remove current view
-        if (getCleartool().doesViewExist(viewTag)) {
-            getCleartool().rmviewtag(viewTag);
+    private String updateConfigSpec(Launcher launcher, String viewTag, String currentConfigSpec) throws IOException, InterruptedException {
+        String futureConfigSpec = PathUtil.convertPathForOS(getConfigSpec(), launcher);
+        if (currentAndFutureConfigSpecAreEquals(currentConfigSpec, futureConfigSpec)) {
+            getCleartool().setcs2(viewTag, SetcsOption.CURRENT, null);
+        } else {
+            getCleartool().setcs2(viewTag, SetcsOption.CONFIGSPEC, futureConfigSpec);
         }
-        // Now, make the view.
-        MkViewParameters params = new MkViewParameters();
-        params.setType(ViewType.Dynamic);
-        params.setViewPath(viewTag);
-        params.setViewTag(viewTag);
-        params.setViewStorage(getViewStorage());
-        getCleartool().mkview(params);
-    }
-
-    public String getTimeRule() {
-        return getTimeRule(new Date());
-    }
-
-    public String getTimeRule(Date nowDate) {
-        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
-        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        return formatter.format(nowDate).toLowerCase();
-    }
-
-    /**
-     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
-     */
-    @Deprecated
-    @Override
-    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException,
-            InterruptedException {
-                return isViewValid(workspace, viewTag);
-            }
-
-    @Override
-    public boolean isViewValid(FilePath workspace, String viewTag) throws IOException,
-            InterruptedException {
-        if (getCleartool().doesViewExist(viewTag)) {
-            startView(viewTag);
-            return true;
-        }
-        return false;
+        return futureConfigSpec;
     }
 }

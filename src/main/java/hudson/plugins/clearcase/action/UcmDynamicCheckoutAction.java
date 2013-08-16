@@ -45,23 +45,23 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Check out action for dynamic views. This will not update any files from the repository as it is a dynamic view. It
- * only makes sure the view is started as config specs don't exist in UCM
+ * Check out action for dynamic views. This will not update any files from the repository as it is a dynamic view. It only makes sure the view is started as
+ * config specs don't exist in UCM
  */
 public class UcmDynamicCheckoutAction extends CheckoutAction {
+    private static final String BASELINE_COMMENT              = "hudson_co_";
+    private static final String BASELINE_NAME                 = "hudson_co_";
+    private static final String BUILD_STREAM_PREFIX           = "hudson_stream.";
     private static final String CONFIGURED_STREAM_VIEW_SUFFIX = "_hudson_view";
-    private static final String BUILD_STREAM_PREFIX = "hudson_stream.";
-    private static final String BASELINE_NAME = "hudson_co_";
-    private static final String BASELINE_COMMENT = "hudson_co_";
 
-    private String stream;
-    private boolean createDynView;
-    private AbstractBuild build;
-    private boolean freezeCode;
-    private boolean recreateView;
-    
-    public UcmDynamicCheckoutAction(ClearTool cleartool, String stream, boolean createDynView, ViewStorage viewStorage,
-            AbstractBuild build, boolean freezeCode, boolean recreateView) {
+    private AbstractBuild       build;
+    private boolean             createDynView;
+    private boolean             freezeCode;
+    private boolean             recreateView;
+    private String              stream;
+
+    public UcmDynamicCheckoutAction(ClearTool cleartool, String stream, boolean createDynView, ViewStorage viewStorage, AbstractBuild build,
+            boolean freezeCode, boolean recreateView) {
         super(cleartool, viewStorage);
         this.stream = stream;
         this.createDynView = createDynView;
@@ -124,8 +124,7 @@ public class UcmDynamicCheckoutAction extends CheckoutAction {
         getCleartool().mkbl((BASELINE_NAME + dateStr), getConfiguredStreamViewName(), (BASELINE_COMMENT + dateStr), false, false, null, null, null);
 
         // get latest baselines on the configured stream
-        List<Baseline> latestBlsOnConfgiuredStream = UcmCommon.getLatestBlsWithCompOnStream(getCleartool(), stream,
-                getConfiguredStreamViewName());
+        List<Baseline> latestBlsOnConfgiuredStream = UcmCommon.getLatestBlsWithCompOnStream(getCleartool(), stream, getConfiguredStreamViewName());
 
         // fix Not labeled baselines
         for (Baseline baseLineDesc : latestBlsOnConfgiuredStream) {
@@ -134,8 +133,8 @@ public class UcmDynamicCheckoutAction extends CheckoutAction {
                 List<String> readWriteCompList = new ArrayList<String>();
                 readWriteCompList.add(baseLineDesc.getComponentDesc().getName());
 
-                List<Baseline> baseLineDescList = getCleartool().mkbl((BASELINE_NAME
-                + dateStr), getConfiguredStreamViewName(), (BASELINE_COMMENT + dateStr), false, true, readWriteCompList, null, null);
+                List<Baseline> baseLineDescList = getCleartool().mkbl((BASELINE_NAME + dateStr), getConfiguredStreamViewName(), (BASELINE_COMMENT + dateStr),
+                        false, true, readWriteCompList, null, null);
 
                 String newBaseline = baseLineDescList.get(0).getBaselineName() + "@" + UcmCommon.getVob(baseLineDesc.getComponentDesc().getName());
 
@@ -152,6 +151,36 @@ public class UcmDynamicCheckoutAction extends CheckoutAction {
             dataAction.setLatestBlsOnConfiguredStream(latestBlsOnConfgiuredStream);
 
         return true;
+    }
+
+    @Override
+    public boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        if (getCleartool().doesViewExist(viewTag)) {
+            getCleartool().startView(viewTag);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
+    @Deprecated
+    @Override
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        return isViewValid(workspace, viewTag);
+    }
+
+    /**
+     * @return unique build stream name
+     */
+    private String getBuildStream() {
+        String jobName = build.getProject().getName().replace(" ", "");
+        return BUILD_STREAM_PREFIX + jobName + "." + stream;
+    }
+
+    private String getConfiguredStreamViewName() {
+        return getConfiguredStreamViewName(build.getProject().getName(), stream);
     }
 
     private void prepareBuildStreamAndViews(String viewTag, String stream) throws IOException, InterruptedException {
@@ -195,35 +224,5 @@ public class UcmDynamicCheckoutAction extends CheckoutAction {
     public static String getConfiguredStreamViewName(String jobName, String stream) {
         jobName = jobName.replace(" ", "");
         return UcmCommon.getNoVob(stream) + "_" + jobName + "_" + CONFIGURED_STREAM_VIEW_SUFFIX;
-    }
-
-    private String getConfiguredStreamViewName() {
-        return getConfiguredStreamViewName(build.getProject().getName(), stream);
-    }
-
-    /**
-     * @return unique build stream name
-     */
-    private String getBuildStream() {
-        String jobName = build.getProject().getName().replace(" ", "");
-        return BUILD_STREAM_PREFIX + jobName + "." + stream;
-    }
-
-    /**
-     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
-     */
-    @Deprecated
-    @Override
-    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        return isViewValid(workspace, viewTag);
-    }
-
-    @Override
-    public boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        if (getCleartool().doesViewExist(viewTag)) {
-            getCleartool().startView(viewTag);
-            return true;
-        }
-        return false;
     }
 }

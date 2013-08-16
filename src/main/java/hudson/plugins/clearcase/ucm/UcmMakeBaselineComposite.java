@@ -31,7 +31,6 @@ import hudson.Util;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
-import hudson.plugins.clearcase.AbstractClearCaseScm;
 import hudson.plugins.clearcase.ClearCaseUcmSCM;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.DefaultPromotionLevel;
@@ -60,51 +59,10 @@ import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * UcmMakeBaselineComposite creates a composite baseline and extracting composite baseline information is a file.
- *
+ * 
  * @author Gregory BOISSINOT - Zenika
  */
 public class UcmMakeBaselineComposite extends Notifier {
-
-    private final String compositeNamePattern;
-    private final String compositeStreamSelector;
-    private final String compositeComponentName;
-    private final boolean extractInfoFile;
-    private final String fileName;
-    private boolean recommend;
-
-    public boolean isRecommend() {
-        return recommend;
-    }
-
-    public void setRecommend(boolean recommend) {
-        this.recommend = recommend;
-    }
-
-    public String getCompositeNamePattern() {
-        return compositeNamePattern;
-    }
-
-    public String getCompositeStreamSelector() {
-        return compositeStreamSelector;
-    }
-
-    public String getCompositeComponentName() {
-        return this.compositeComponentName;
-    }
-
-    public boolean isExtractInfoFile() {
-        return this.extractInfoFile;
-    }
-
-    public String getFileName() {
-        return this.fileName;
-    }
-
-    @Override
-    public DescriptorImpl getDescriptor() {
-        // see Descriptor javadoc for more about what a descriptor is.
-        return (DescriptorImpl) super.getDescriptor();
-    }
 
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
@@ -119,19 +77,6 @@ public class UcmMakeBaselineComposite extends Notifier {
         }
 
         @Override
-        public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            Notifier p = new UcmMakeBaselineComposite(
-                                                      req.getParameter("mkbl.compositenamepattern"),
-                                                      req.getParameter("mkbl.compositestreamselector"),
-                                                      req.getParameter("mkbl.compositecomponentname"),
-                                                      req.getParameter("mkbl.extractinfofile")!=null,
-                                                      req.getParameter("mkbl.filename"),
-                                                      req.getParameter("mkbl.recommend")!=null
-                                                      );
-            return p;
-        }
-
-        @Override
         public String getHelpFile() {
             return "/plugin/clearcase/ucm/mkbl/composite/help.html";
         }
@@ -140,14 +85,25 @@ public class UcmMakeBaselineComposite extends Notifier {
         public boolean isApplicable(Class clazz) {
             return true;
         }
-    }
 
-    private UcmMakeBaselineComposite(
-                                     final String compositeNamePattern,
-                                     final String compositeStreamSelector,
-                                     final String compositeComponentName,
-                                     final boolean extractInfoFile,
-                                     final String fileName, boolean recommend) {
+        @Override
+        public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            Notifier p = new UcmMakeBaselineComposite(req.getParameter("mkbl.compositenamepattern"), req.getParameter("mkbl.compositestreamselector"),
+                    req.getParameter("mkbl.compositecomponentname"), req.getParameter("mkbl.extractinfofile") != null, req.getParameter("mkbl.filename"),
+                    req.getParameter("mkbl.recommend") != null);
+            return p;
+        }
+    }
+    private final String  compositeComponentName;
+    private final String  compositeNamePattern;
+    private final String  compositeStreamSelector;
+    private final boolean extractInfoFile;
+    private final String  fileName;
+
+    private boolean       recommend;
+
+    private UcmMakeBaselineComposite(final String compositeNamePattern, final String compositeStreamSelector, final String compositeComponentName,
+            final boolean extractInfoFile, final String fileName, boolean recommend) {
 
         this.compositeNamePattern = compositeNamePattern.trim();
         this.compositeStreamSelector = compositeStreamSelector.trim();
@@ -157,9 +113,26 @@ public class UcmMakeBaselineComposite extends Notifier {
         this.recommend = recommend;
     }
 
+    public String getCompositeComponentName() {
+        return this.compositeComponentName;
+    }
+
+    public String getCompositeNamePattern() {
+        return compositeNamePattern;
+    }
+
+    public String getCompositeStreamSelector() {
+        return compositeStreamSelector;
+    }
+
     @Override
-    public boolean needsToRunAfterFinalized() {
-        return true;
+    public DescriptorImpl getDescriptor() {
+        // see Descriptor javadoc for more about what a descriptor is.
+        return (DescriptorImpl) super.getDescriptor();
+    }
+
+    public String getFileName() {
+        return this.fileName;
     }
 
     @Override
@@ -167,14 +140,22 @@ public class UcmMakeBaselineComposite extends Notifier {
         return BuildStepMonitor.BUILD;
     }
 
-    @Override
-    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+    public boolean isExtractInfoFile() {
+        return this.extractInfoFile;
+    }
 
+    public boolean isRecommend() {
+        return recommend;
+    }
+
+    @Override
+    public boolean needsToRunAfterFinalized() {
         return true;
     }
 
     @Override
-    public boolean perform(@SuppressWarnings("unchecked") AbstractBuild build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    public boolean perform(@SuppressWarnings("unchecked") AbstractBuild build, Launcher launcher, BuildListener listener) throws InterruptedException,
+    IOException {
         SCM scm = build.getProject().getScm();
         if (scm instanceof ClearCaseUcmSCM) {
             ClearCaseUcmSCM ucm = (ClearCaseUcmSCM) scm;
@@ -209,11 +190,43 @@ public class UcmMakeBaselineComposite extends Notifier {
         return true;
     }
 
+    @Override
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+
+        return true;
+    }
+
+    public void setRecommend(boolean recommend) {
+        this.recommend = recommend;
+    }
+
+    /**
+     * Retrieve the binding component for the current baseline
+     * 
+     * @param baseline
+     *            the current baseline
+     * @param clearToolLauncher
+     * @param filePath
+     * @return
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws Exception
+     */
+    private String getComponent(ClearTool clearTool, String baseline) throws IOException, InterruptedException {
+        String output = clearTool.lsbl(baseline, "\"%[component]p\"");
+        if (output.contains("cleartool: Error")) {
+            throw new IOException("Failed to make baseline, reason: " + output);
+        }
+        return output;
+    }
+
     /**
      * Retrieve all Clearcase UCM component (with pvob suffix) for a stream
-     *
-     * @param stream the stream name like 'P_EngDesk_Product_3.2_int@\P_ORC'
-     * @param clearTool the clearcase launcher
+     * 
+     * @param stream
+     *            the stream name like 'P_EngDesk_Product_3.2_int@\P_ORC'
+     * @param clearTool
+     *            the clearcase launcher
      * @return component list attached to the stream like ['DocGen_PapeeteDoc@\P_ORC','DocMgt_Modulo@\P_ORC']
      * @throws IOException
      * @throws InterruptedException
@@ -236,7 +249,7 @@ public class UcmMakeBaselineComposite extends Notifier {
 
     /**
      * Pick up a view from a stream
-     *
+     * 
      * @return a view attached to the stream
      * @throws InterruptedException
      * @throws IOException
@@ -254,15 +267,21 @@ public class UcmMakeBaselineComposite extends Notifier {
 
     /**
      * Make a composite baseline
-     *
-     * @param compositeBaselineName the composite baseline name
-     * @param compositeStream the composite UCM Clearcase stream with Pvob like : 'P_EngDesk_Product_3.2_int@\P_ORC'
-     * @param compositeComponent the composite UCM Clearcase component name like 'C_ Build_EngDesk'
-     * @param clearToolLauncher the ClearCase launcher
-     * @param filePath the filepath
+     * 
+     * @param compositeBaselineName
+     *            the composite baseline name
+     * @param compositeStream
+     *            the composite UCM Clearcase stream with Pvob like : 'P_EngDesk_Product_3.2_int@\P_ORC'
+     * @param compositeComponent
+     *            the composite UCM Clearcase component name like 'C_ Build_EngDesk'
+     * @param clearToolLauncher
+     *            the ClearCase launcher
+     * @param filePath
+     *            the filepath
      * @throws Exception
      */
-    private void makeCompositeBaseline(ClearTool clearTool, String compositeBaselineName, String compositeStream, String compositeComponent, String pvob) throws Exception {
+    private void makeCompositeBaseline(ClearTool clearTool, String compositeBaselineName, String compositeStream, String compositeComponent, String pvob)
+            throws Exception {
 
         // Get a view containing the composite component
         String compositeView = getOneViewFromStream(clearTool, this.compositeStreamSelector);
@@ -285,42 +304,8 @@ public class UcmMakeBaselineComposite extends Notifier {
     }
 
     /**
-     * Promote the composite baseline
-     *
-     * @param compositeBaselineName the composite baseline name
-     * @param pvob the vob name
-     * @param clearToolLauncher the clearcase launcher
-     * @param filePath the filepath
-     * @throws InterruptedException
-     * @throws IOException
-     */
-    private void promoteCompositeBaselineToBuiltLevel(ClearTool clearTool, String compositeBaselineName, String pvob)
-            throws InterruptedException, IOException {
-        clearTool.setBaselinePromotionLevel(compositeBaselineName + "@" + pvob, DefaultPromotionLevel.BUILT);
-    }
-
-    /**
-     * Retrieve the binding component for the current baseline
-     *
-     * @param baseline the current baseline
-     * @param clearToolLauncher
-     * @param filePath
-     * @return
-     * @throws InterruptedException
-     * @throws IOException
-     * @throws Exception
-     */
-    private String getComponent(ClearTool clearTool, String baseline) throws IOException, InterruptedException {
-        String output = clearTool.lsbl(baseline, "\"%[component]p\"");
-        if (output.contains("cleartool: Error")) {
-            throw new IOException("Failed to make baseline, reason: " + output);
-        }
-        return output;
-    }
-
-    /**
      * Extract Composite baseline information in an external file
-     *
+     * 
      * @param compositeComponnentName
      * @param pvob
      * @param compositeBaselineName
@@ -329,12 +314,8 @@ public class UcmMakeBaselineComposite extends Notifier {
      * @param filePath
      * @throws Exception
      */
-    private void processExtractInfoFile(ClearTool clearTool,
-                                        String compositeComponnentName,
-                                        String pvob,
-                                        String compositeBaselineName,
-                                        String fileName)
-        throws Exception {
+    private void processExtractInfoFile(ClearTool clearTool, String compositeComponnentName, String pvob, String compositeBaselineName, String fileName)
+            throws Exception {
         String output = clearTool.lsbl(compositeBaselineName + "@" + pvob, "\"%[depends_on]p\"");
         if (output.contains("cleartool: Error")) {
             throw new Exception("Failed to make baseline, reason: " + output);
@@ -359,6 +340,24 @@ public class UcmMakeBaselineComposite extends Notifier {
             }
         }
 
+    }
+
+    /**
+     * Promote the composite baseline
+     * 
+     * @param compositeBaselineName
+     *            the composite baseline name
+     * @param pvob
+     *            the vob name
+     * @param clearToolLauncher
+     *            the clearcase launcher
+     * @param filePath
+     *            the filepath
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    private void promoteCompositeBaselineToBuiltLevel(ClearTool clearTool, String compositeBaselineName, String pvob) throws InterruptedException, IOException {
+        clearTool.setBaselinePromotionLevel(compositeBaselineName + "@" + pvob, DefaultPromotionLevel.BUILT);
     }
 
 }

@@ -41,71 +41,13 @@ import org.xml.sax.SAXException;
 public class ClearCaseChangeLogSetTest {
 
     @Test
-    public void testParse() throws IOException, SAXException {
-        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
-                                                                   .getResourceAsStream("changelog.xml"));
-        List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
-        Assert.assertEquals("Number of logs is incorrect", 3, logs.size());
-        Assert.assertEquals("The user is incorrect", "qhensam", logs.get(0).getUser());
-        Assert.assertEquals("The date is incorrect", "Tue Aug 28 15:27:00 CEST 2007", logs.get(0).getDateStr());
-    }
-
-    @Test
-    public void testParseMultipleEntries() throws IOException, SAXException {
-        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
-                                                                   .getResourceAsStream("changelog-multi.xml"));
-        List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
-        Assert.assertEquals("Number of logs is incorrect", 1, logs.size());
-        Assert.assertEquals("The user is incorrect", "qhensam", logs.get(0).getUser());
-        Assert.assertEquals("Number of file elements is incorrect", 3, logs.get(0).getElements().size());
-        Assert.assertEquals("Name of file element is incorrect", "Source\\OperatorControls\\UserControlResourceView.cs", logs.get(0).getElements().get(0).getFile());
-        Assert.assertEquals("Version of file element is incorrect", "\\main\\sit_r5_maint\\3", logs.get(0).getElements().get(0).getVersion());
-        Assert.assertEquals("Version of file element is incorrect", "create version", logs.get(0).getElements().get(0).getAction());
-        Assert.assertEquals("Name of file element is incorrect", "Source\\Operator\\FormStationOverview.cs", logs.get(0).getElements().get(1).getFile());
-        Assert.assertEquals("Version of file element is incorrect", "\\main\\sit_r5_maint\\4", logs.get(0).getElements().get(1).getVersion());
-        Assert.assertEquals("Version of file element is incorrect", "create version", logs.get(0).getElements().get(1).getAction());
-        Assert.assertEquals("Name of file element is incorrect", "Source\\OperatorControls\\ResourcesOperatorControlsTexts.sv.resx", logs.get(0).getElements().get(2).getFile());
-        Assert.assertEquals("Version of file element is incorrect", "\\main\\sit_r5_maint\\1", logs.get(0).getElements().get(2).getVersion());
-        Assert.assertEquals("Version of file element is incorrect", "create version", logs.get(0).getElements().get(2).getAction());
-    }
-    
-    @Test
     public void testGetParent() throws IOException, SAXException {
-        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class
-                                                                   .getResourceAsStream("changelog.xml"));
+        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class.getResourceAsStream("changelog.xml"));
         List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
 
-        for ( ClearCaseChangeLogEntry entry : logs) {
+        for (ClearCaseChangeLogEntry entry : logs) {
             Assert.assertNotNull("Parent is null", entry.getParent());
         }
-    }
-
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testUnicodeXml() throws IOException, SAXException {
-        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
-        entry.setUser("B\u00FClow");
-        entry.setAction("action");
-        entry.setComment("comment");
-        entry.setDate(Calendar.getInstance().getTime());
-        entry.setVersion("version");
-
-        List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
-        history.add(entry);
-
-        File tempLogFile = File.createTempFile("clearcase", "xml");
-        tempLogFile.deleteOnExit();
-        FileOutputStream fileOutputStream = new FileOutputStream(tempLogFile);
-
-        ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, history);
-        fileOutputStream.close();
-
-        FileInputStream fileInputStream = new FileInputStream(tempLogFile);
-        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, fileInputStream);
-        fileInputStream.close();
-        List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
-
-        Assert.assertEquals("The comment wasnt correct", "B\u00FClow", logs.get(0).getUser());
     }
 
     @Test
@@ -142,5 +84,62 @@ public class ClearCaseChangeLogSetTest {
         Assert.assertEquals("The second version is incorrect", "version2", logs.get(0).getElements().get(1).getVersion());
         Assert.assertEquals("The second action is incorrect", "action2", logs.get(0).getElements().get(1).getAction());
         Assert.assertEquals("The second operation is incorrect", "mkelem", logs.get(0).getElements().get(1).getOperation());
+    }
+
+    @Test
+    public void testParse() throws IOException, SAXException {
+        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class.getResourceAsStream("changelog.xml"));
+        List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
+        Assert.assertEquals("Number of logs is incorrect", 3, logs.size());
+        Assert.assertEquals("The user is incorrect", "qhensam", logs.get(0).getUser());
+        Assert.assertEquals("The date is incorrect", "Tue Aug 28 15:27:00 CEST 2007", logs.get(0).getDateStr());
+    }
+
+    @Test
+    public void testParseMultipleEntries() throws IOException, SAXException {
+        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, ClearCaseChangeLogSetTest.class.getResourceAsStream("changelog-multi.xml"));
+        List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
+        Assert.assertEquals("Number of logs is incorrect", 1, logs.size());
+        Assert.assertEquals("The user is incorrect", "qhensam", logs.get(0).getUser());
+        Assert.assertEquals("Number of file elements is incorrect", 3, logs.get(0).getElements().size());
+        Assert.assertEquals("Name of file element is incorrect", "Source\\OperatorControls\\UserControlResourceView.cs", logs.get(0).getElements().get(0)
+                .getFile());
+        Assert.assertEquals("Version of file element is incorrect", "\\main\\sit_r5_maint\\3", logs.get(0).getElements().get(0).getVersion());
+        Assert.assertEquals("Version of file element is incorrect", "create version", logs.get(0).getElements().get(0).getAction());
+        Assert.assertEquals("Name of file element is incorrect", "Source\\Operator\\FormStationOverview.cs", logs.get(0).getElements().get(1).getFile());
+        Assert.assertEquals("Version of file element is incorrect", "\\main\\sit_r5_maint\\4", logs.get(0).getElements().get(1).getVersion());
+        Assert.assertEquals("Version of file element is incorrect", "create version", logs.get(0).getElements().get(1).getAction());
+        Assert.assertEquals("Name of file element is incorrect", "Source\\OperatorControls\\ResourcesOperatorControlsTexts.sv.resx", logs.get(0).getElements()
+                .get(2).getFile());
+        Assert.assertEquals("Version of file element is incorrect", "\\main\\sit_r5_maint\\1", logs.get(0).getElements().get(2).getVersion());
+        Assert.assertEquals("Version of file element is incorrect", "create version", logs.get(0).getElements().get(2).getAction());
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testUnicodeXml() throws IOException, SAXException {
+        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
+        entry.setUser("B\u00FClow");
+        entry.setAction("action");
+        entry.setComment("comment");
+        entry.setDate(Calendar.getInstance().getTime());
+        entry.setVersion("version");
+
+        List<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
+        history.add(entry);
+
+        File tempLogFile = File.createTempFile("clearcase", "xml");
+        tempLogFile.deleteOnExit();
+        FileOutputStream fileOutputStream = new FileOutputStream(tempLogFile);
+
+        ClearCaseChangeLogSet.saveToChangeLog(fileOutputStream, history);
+        fileOutputStream.close();
+
+        FileInputStream fileInputStream = new FileInputStream(tempLogFile);
+        ClearCaseChangeLogSet logSet = ClearCaseChangeLogSet.parse(null, fileInputStream);
+        fileInputStream.close();
+        List<ClearCaseChangeLogEntry> logs = logSet.getLogs();
+
+        Assert.assertEquals("The comment wasnt correct", "B\u00FClow", logs.get(0).getUser());
     }
 }

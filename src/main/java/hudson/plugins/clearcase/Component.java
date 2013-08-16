@@ -10,10 +10,10 @@ import org.kohsuke.stapler.export.ExportedBean;
 public class Component {
 
     @Exported(visibility = 3)
-    private String name;
+    private boolean modifiable;
 
     @Exported(visibility = 3)
-    private boolean modifiable;
+    private String  name;
 
     public Component(String name, boolean modifiable) {
         this.name = name;
@@ -24,15 +24,15 @@ public class Component {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public boolean isModifiable() {
         return modifiable;
     }
 
     public void setModifiable(boolean isModifiable) {
         this.modifiable = isModifiable;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

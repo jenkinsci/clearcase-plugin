@@ -36,9 +36,11 @@ import org.apache.commons.lang.Validate;
 
 public class UcmSaveChangeLogAction implements SaveChangeLogAction {
 
+    @Override
     public void saveChangeLog(File changeLogFile, List<? extends Entry> entries) throws IOException, InterruptedException {
         Validate.allElementsOfType(entries, UcmActivity.class);
-        @SuppressWarnings("unchecked") List<UcmActivity> ucmEntries = (List<UcmActivity>) entries;
+        @SuppressWarnings("unchecked")
+        List<UcmActivity> ucmEntries = (List<UcmActivity>) entries;
         FileOutputStream fileOutputStream = new FileOutputStream(changeLogFile);
         UcmChangeLogSet.saveToChangeLog(fileOutputStream, ucmEntries);
         fileOutputStream.close();

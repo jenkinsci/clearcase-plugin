@@ -38,7 +38,7 @@ import org.apache.commons.lang.Validate;
  */
 public abstract class CheckoutAction {
 
-    private ClearTool cleartool;
+    private ClearTool   cleartool;
 
     private ViewStorage viewStorage;
 
@@ -49,24 +49,24 @@ public abstract class CheckoutAction {
     }
 
     public abstract boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
-    
-    /**
-     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
-     */
-    @Deprecated
-    public abstract boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
 
-    public abstract boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException;
+    public ClearTool getCleartool() {
+        return cleartool;
+    }
 
     public FilePath getUpdtFile() {
         return null;
-    }
-    
-    public ClearTool getCleartool() {
-        return cleartool;
     }
 
     public ViewStorage getViewStorage() {
         return viewStorage;
     }
+
+    public abstract boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException;
+
+    /**
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
+    @Deprecated
+    public abstract boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
 }

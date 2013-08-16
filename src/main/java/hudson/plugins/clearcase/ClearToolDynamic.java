@@ -33,7 +33,7 @@ import hudson.util.VariableResolver;
 public class ClearToolDynamic extends ClearToolExec {
 
     private transient String viewDrive;
-    
+
     public ClearToolDynamic(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String viewDrive, String optionalMkviewParameters) {
         super(variableResolver, launcher, optionalMkviewParameters);
         this.viewDrive = viewDrive;

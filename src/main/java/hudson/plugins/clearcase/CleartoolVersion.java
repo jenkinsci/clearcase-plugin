@@ -1,7 +1,5 @@
 package hudson.plugins.clearcase;
 
-import hudson.util.IOUtils;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -12,38 +10,20 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * This class represents a cleartool version
+ * 
  * @author vlatombe
- *
+ * 
  */
 public class CleartoolVersion implements Comparable<CleartoolVersion> {
     private static final Pattern CLEARTOOL_VERSION_PATTERN = Pattern.compile("^cleartool\\s*(\\d+(?:\\.\\d+)*).*$");
-    
-    private final String version;
-    
-    private int[] parsedVersion;
-    
+
+    private int[]                parsedVersion;
+
+    private final String         version;
+
     public CleartoolVersion(String version) {
         this.version = version;
         parsedVersion = parseVersion(version);
-    }
-    
-    private int[] parseVersion(String version) {
-        if (version == null) return new int[0];
-        String[] elements = StringUtils.split(version, '.');
-        int[] parsedVersion = new int[elements.length];
-        int i = 0;
-        for (String s : elements) {
-            try {
-            parsedVersion[i++] = Integer.parseInt(s);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return parsedVersion;
-    }
-
-    public String getVersion() {
-        return version;
     }
 
     @Override
@@ -68,6 +48,26 @@ public class CleartoolVersion implements Comparable<CleartoolVersion> {
         return parsedVersion.length - o.parsedVersion.length;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    private int[] parseVersion(String version) {
+        if (version == null)
+            return new int[0];
+        String[] elements = StringUtils.split(version, '.');
+        int[] parsedVersion = new int[elements.length];
+        int i = 0;
+        for (String s : elements) {
+            try {
+                parsedVersion[i++] = Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return parsedVersion;
+    }
+
     public static CleartoolVersion parseCmdOutput(Reader reader) throws IOException, CleartoolVersionParsingException {
         BufferedReader br = new BufferedReader(reader);
         try {
@@ -80,9 +80,9 @@ public class CleartoolVersion implements Comparable<CleartoolVersion> {
                 line = br.readLine();
             }
         } finally {
-            IOUtils.closeQuietly(reader);
+            org.apache.commons.io.IOUtils.closeQuietly(reader);
         }
         throw new CleartoolVersionParsingException();
     }
-    
+
 }

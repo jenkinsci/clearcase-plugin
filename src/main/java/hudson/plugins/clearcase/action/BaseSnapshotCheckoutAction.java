@@ -26,13 +26,13 @@ package hudson.plugins.clearcase.action;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.plugins.clearcase.ClearTool;
-import hudson.plugins.clearcase.CleartoolUpdateResult;
-import hudson.plugins.clearcase.ClearTool.SetcsOption;
-import hudson.plugins.clearcase.ConfigSpec;
-import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.ClearCaseDataAction;
+import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
+import hudson.plugins.clearcase.CleartoolUpdateResult;
+import hudson.plugins.clearcase.ConfigSpec;
+import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
 
@@ -43,9 +43,9 @@ import org.apache.commons.lang.ArrayUtils;
  */
 public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
 
+    private AbstractBuild    build;
     private final ConfigSpec configSpec;
     private FilePath         updtFile;
-    private AbstractBuild    build;
 
     public BaseSnapshotCheckoutAction(ClearTool cleartool, ConfigSpec configSpec, String[] loadRules, boolean useUpdate, String viewPath,
             ViewStorage viewStorage) {

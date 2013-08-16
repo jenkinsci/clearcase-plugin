@@ -24,45 +24,32 @@
 package hudson.plugins.clearcase.util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 /**
- * A {@link FileInputStream} which (optionally) deletes the
- * underlying file when the stream is closed.
- *
- * A modified version of the class implemented by BJ in his blog,
- * ref http://bimalesh.blogspot.com/2010/02/auto-deleting-fileinputstream.html
- *
- * @author BJ 
+ * A {@link FileInputStream} which (optionally) deletes the underlying file when the stream is closed.
+ * 
+ * A modified version of the class implemented by BJ in his blog, ref http://bimalesh.blogspot.com/2010/02/auto-deleting-fileinputstream.html
+ * 
+ * @author BJ
  * @author Christophe Guillon <christophe.guillon@st.com>
  */
 public class DeleteOnCloseFileInputStream extends FileInputStream {
 
     /**
-     * Lock for managing isDelete.
-     */
-    private final Object deleteLock = new Object();
-
-    /**
      * Logger if defined
      */
-    protected Logger logger;
+    protected Logger      logger;
 
     /**
-     * Underlying file object
+     * Lock for managing isDelete.
      */
-    private File fileObj;
-
-    /**
-     * Was underlying File object deleted.
-     */
-    private boolean isDeleted;
+    private final Object  deleteLock = new Object();
 
     /**
      * Flag to control auto-delete of file on close()
@@ -70,19 +57,20 @@ public class DeleteOnCloseFileInputStream extends FileInputStream {
     private final boolean deleteOnClose;
 
     /**
-     * Set logger.
-     *
-     * @param logger logger to use
+     * Underlying file object
      */
-    public void setLogger(Logger logger) {
-        this.logger = logger;
-    }
+    private File          fileObj;
 
     /**
-     * Creates a fileInputStream wrapped around the given file and deletes the
-     * file when the FileInputStream is closed.
-     *
-     * @param file an opened file
+     * Was underlying File object deleted.
+     */
+    private boolean       isDeleted;
+
+    /**
+     * Creates a fileInputStream wrapped around the given file and deletes the file when the FileInputStream is closed.
+     * 
+     * @param file
+     *            an opened file
      * @throws FileNotFoundException
      */
     public DeleteOnCloseFileInputStream(File file) throws FileNotFoundException {
@@ -90,10 +78,26 @@ public class DeleteOnCloseFileInputStream extends FileInputStream {
     }
 
     /**
-     * Creates a fileInputStream for the given file name and deletes the
-     * file when the FileInputStream is closed.
-     *
-     * @param name the filename that will be opened for input
+     * Creates a fileInputStream wrapped around the given file.
+     * 
+     * @param file
+     *            the filename that will be opened for input
+     * @param deleteOnClose
+     *            set to true for activating deletion on close
+     * @throws FileNotFoundException
+     */
+    public DeleteOnCloseFileInputStream(final File file, final boolean deleteOnClose) throws FileNotFoundException {
+        super(file);
+        this.fileObj = file;
+        this.deleteOnClose = deleteOnClose;
+        isDeleted = false;
+    }
+
+    /**
+     * Creates a fileInputStream for the given file name and deletes the file when the FileInputStream is closed.
+     * 
+     * @param name
+     *            the filename that will be opened for input
      * @throws FileNotFoundException
      */
     public DeleteOnCloseFileInputStream(String name) throws FileNotFoundException {
@@ -101,35 +105,8 @@ public class DeleteOnCloseFileInputStream extends FileInputStream {
     }
 
     /**
-     * Creates a fileInputStream wrapped around the given file.
-     *
-     * @param file the filename that will be opened for input
-     * @param deleteOnClose set to true for activating deletion on close
-     * @throws FileNotFoundException
-     */
-    public DeleteOnCloseFileInputStream(final File file,
-                                        final boolean deleteOnClose) throws FileNotFoundException {
-        super(file);
-        this.fileObj = file;
-        this.deleteOnClose = deleteOnClose;
-        isDeleted = false;
-    }
-
-
-    /**
-     * @return boolean flag, true if the file should be deleted on close().
-     *         Default is true.
-     */
-    public final boolean isDeleteOnClose() {
-        return deleteOnClose;
-    }
-
-
-    /**
-     * Closes the underlying FileInputStream and also deletes the
-     * file object from disk if the isDeleteOnClose()
-     * is set to true.
-     *
+     * Closes the underlying FileInputStream and also deletes the file object from disk if the isDeleteOnClose() is set to true.
+     * 
      * @see java.io.FileInputStream#close()
      */
     @Override
@@ -142,11 +119,40 @@ public class DeleteOnCloseFileInputStream extends FileInputStream {
         }
     }
 
+    /**
+     * @return boolean flag, true if the file should be deleted on close(). Default is true.
+     */
+    public final boolean isDeleteOnClose() {
+        return deleteOnClose;
+    }
 
     /**
-     * Deletes the file object from disk as soon as the file descriptor
-     * have been released.
-     *
+     * Set logger.
+     * 
+     * @param logger
+     *            logger to use
+     */
+    public void setLogger(Logger logger) {
+        this.logger = logger;
+    }
+
+    /**
+     * Ensures that the <code>close</code> method of this file input stream is called when there are no more references to it.
+     * 
+     * @exception IOException
+     *                if an I/O error occurs.
+     */
+    @Override
+    protected void finalize() throws IOException {
+        super.finalize();
+        if (deleteOnClose) {
+            deleteFile();
+        }
+    }
+
+    /**
+     * Deletes the file object from disk as soon as the file descriptor have been released.
+     * 
      * @see java.io.FileInputStream#close()
      */
     private void deleteFile() throws IOException {
@@ -163,20 +169,6 @@ public class DeleteOnCloseFileInputStream extends FileInputStream {
         }
         if (logger != null)
             logger.log(Level.INFO, "deleting file" + this.fileObj);
-        fileObj.delete() ;
-    }
-
-    /**
-     * Ensures that the <code>close</code> method of this file input stream is
-     * called when there are no more references to it.
-     *
-     * @exception  IOException  if an I/O error occurs.
-     */
-    @Override
-    protected void finalize() throws IOException {
-        super.finalize();
-        if (deleteOnClose) {
-            deleteFile();
-        }
+        fileObj.delete();
     }
 }

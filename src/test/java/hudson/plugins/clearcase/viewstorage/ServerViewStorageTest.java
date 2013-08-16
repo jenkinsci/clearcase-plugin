@@ -13,7 +13,7 @@ public class ServerViewStorageTest {
     @Test
     public void server() {
         ViewStorage instance = new ServerViewStorage("server1");
-        assertArrayEquals(new String[] {"-stgloc", "server1"}, instance.getCommandArguments(true, "viewtag"));
+        assertArrayEquals(new String[] { "-stgloc", "server1" }, instance.getCommandArguments(true, "viewtag"));
     }
 
     @Test
@@ -22,6 +22,6 @@ public class ServerViewStorageTest {
         Map<String, String> data = new HashMap<String, String>();
         data.put("server", "server1");
         instance = instance.decorate(new VariableResolver.ByMap<String>(data));
-        assertArrayEquals(new String[] {"-stgloc", "server1"}, instance.getCommandArguments(true, "viewtag"));
+        assertArrayEquals(new String[] { "-stgloc", "server1" }, instance.getCommandArguments(true, "viewtag"));
     }
 }

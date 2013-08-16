@@ -7,7 +7,7 @@ import java.util.Date;
 public abstract class AbstractClearCaseSCMRevisionState extends SCMRevisionState {
 
     protected final Date buildTime;
-    private String[] loadRules;
+    private String[]     loadRules;
 
     public AbstractClearCaseSCMRevisionState(Date buildTime) {
         super();

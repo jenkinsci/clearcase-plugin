@@ -1,7 +1,9 @@
 package hudson.plugins.clearcase.action;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.TaskListener;
@@ -22,12 +24,6 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
 
     private static class DummyCheckoutAction extends SnapshotCheckoutAction {
 
-        @Override
-        public boolean cleanAndCreateViewIfNeeded(FilePath workspace, String viewTag, String viewPath, String streamSelector) throws IOException,
-                InterruptedException {
-            return super.cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, streamSelector);
-        }
-
         public DummyCheckoutAction(ClearTool cleartool, String[] loadRules, boolean useUpdate, String viewPath) {
             super(cleartool, loadRules, useUpdate, viewPath, null);
         }
@@ -37,29 +33,24 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
             return false;
         }
 
-    	public String getUpdtFileName() {
-    		// TODO Auto-generated method stub
-    		return null;
-    	}
+        @Override
+        public boolean cleanAndCreateViewIfNeeded(FilePath workspace, String viewTag, String viewPath, String streamSelector) throws IOException,
+        InterruptedException {
+            return super.cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, streamSelector);
+        }
+
+        public String getUpdtFileName() {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
 
-    @Mock private ClearTool clearTool;
-    @Mock private ClearToolLauncher ctLauncher;
-    @Mock private TaskListener taskListener;
-
-
-    @Before
-    public void setUp() throws Exception {
-        when(clearTool.getLauncher()).thenReturn(ctLauncher);
-        when(ctLauncher.getListener()).thenReturn(taskListener);
-        when(taskListener.getLogger()).thenReturn(System.out);
-        createWorkspace();
-    }
-
-    @After
-    public void teardown() throws Exception {
-        deleteWorkspace();
-    }
+    @Mock
+    private ClearTool         clearTool;
+    @Mock
+    private ClearToolLauncher ctLauncher;
+    @Mock
+    private TaskListener      taskListener;
 
     @Test
     public void firstTimeShouldCreate() throws Exception {
@@ -69,60 +60,6 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
         action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
 
         verify(clearTool).doesViewExist("aViewTag");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(clearTool).mkview(argument.capture());
-        assertEquals("path", argument.getValue().getViewPath());
-        assertEquals("aViewTag", argument.getValue().getViewTag());
-        assertEquals("stream@\\pvob", argument.getValue().getStreamSelector());
-    }
-
-    @Test
-    public void secondTimeWithUseUpdateShouldDoNothing() throws Exception {
-        workspace.child("path").mkdirs();
-
-        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
-        when(clearTool.lscurrentview("path")).thenReturn("aViewTag");
-
-        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, true, "");
-        action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
-
-        verify(clearTool).doesViewExist("aViewTag");
-        verify(clearTool).lscurrentview("path");
-    }
-
-    @Test
-    public void secondTimeWithoutUseUpdateRemoveThenCreateView() throws Exception {
-        workspace.child("path").mkdirs();
-
-        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
-        when(clearTool.lscurrentview("path")).thenReturn("aViewTag");
-
-        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
-        action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
-
-        verify(clearTool).rmview("path");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(clearTool).mkview(argument.capture());
-        assertEquals("path", argument.getValue().getViewPath());
-        assertEquals("aViewTag", argument.getValue().getViewTag());
-        assertEquals("stream@\\pvob", argument.getValue().getStreamSelector());
-        verify(clearTool).doesViewExist("aViewTag");
-        verify(clearTool).lscurrentview("path");
-    }
-
-    @Test
-    public void secondTimeWithInvalidViewShouldRmviewTagMoveFolderThenCreateView() throws Exception {
-        workspace.child("path").mkdirs();
-
-        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
-        when(clearTool.lscurrentview("path")).thenReturn("anotherViewTag");
-
-        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
-        action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
-
-        verify(clearTool).doesViewExist("aViewTag");
-        verify(clearTool).lscurrentview("path");
-        verify(clearTool).rmviewtag("aViewTag");
         ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
         verify(clearTool).mkview(argument.capture());
         assertEquals("path", argument.getValue().getViewPath());
@@ -150,5 +87,72 @@ public class AbstractCheckoutActionTest extends AbstractWorkspaceTest {
         assertEquals("path", argument.getValue().getViewPath());
         assertEquals("aViewTag", argument.getValue().getViewTag());
         assertEquals("stream@\\pvob", argument.getValue().getStreamSelector());
+    }
+
+    @Test
+    public void secondTimeWithInvalidViewShouldRmviewTagMoveFolderThenCreateView() throws Exception {
+        workspace.child("path").mkdirs();
+
+        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
+        when(clearTool.lscurrentview("path")).thenReturn("anotherViewTag");
+
+        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
+        action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
+
+        verify(clearTool).doesViewExist("aViewTag");
+        verify(clearTool).lscurrentview("path");
+        verify(clearTool).rmviewtag("aViewTag");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(clearTool).mkview(argument.capture());
+        assertEquals("path", argument.getValue().getViewPath());
+        assertEquals("aViewTag", argument.getValue().getViewTag());
+        assertEquals("stream@\\pvob", argument.getValue().getStreamSelector());
+    }
+
+    @Test
+    public void secondTimeWithoutUseUpdateRemoveThenCreateView() throws Exception {
+        workspace.child("path").mkdirs();
+
+        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
+        when(clearTool.lscurrentview("path")).thenReturn("aViewTag");
+
+        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, false, "");
+        action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
+
+        verify(clearTool).rmview("path");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(clearTool).mkview(argument.capture());
+        assertEquals("path", argument.getValue().getViewPath());
+        assertEquals("aViewTag", argument.getValue().getViewTag());
+        assertEquals("stream@\\pvob", argument.getValue().getStreamSelector());
+        verify(clearTool).doesViewExist("aViewTag");
+        verify(clearTool).lscurrentview("path");
+    }
+
+    @Test
+    public void secondTimeWithUseUpdateShouldDoNothing() throws Exception {
+        workspace.child("path").mkdirs();
+
+        when(clearTool.doesViewExist("aViewTag")).thenReturn(Boolean.TRUE);
+        when(clearTool.lscurrentview("path")).thenReturn("aViewTag");
+
+        DummyCheckoutAction action = new DummyCheckoutAction(clearTool, new String[] { "aLoadRule" }, true, "");
+        action.cleanAndCreateViewIfNeeded(workspace, "aViewTag", "path", "stream@\\pvob");
+
+        verify(clearTool).doesViewExist("aViewTag");
+        verify(clearTool).lscurrentview("path");
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        when(clearTool.getLauncher()).thenReturn(ctLauncher);
+        when(ctLauncher.getListener()).thenReturn(taskListener);
+        when(taskListener.getLogger()).thenReturn(System.out);
+        createWorkspace();
+    }
+
+    @After
+    public void teardown() throws Exception {
+        deleteWorkspace();
     }
 }

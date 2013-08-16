@@ -7,43 +7,11 @@ import java.util.List;
 
 public class ClearCaseReportAction implements Action {
 
+    private static String       urlName = "clearcaseInformation";
     private AbstractBuild<?, ?> build;
-    private static String urlName = "clearcaseInformation";
 
     public ClearCaseReportAction(AbstractBuild<?, ?> build) {
         this.build = build;
-    }
-
-    public String getIconFileName() {
-        return "gear2.gif";
-    }
-
-    public String getDisplayName() {
-        return "ClearCase Information";
-    }
-
-    public String getUrlName() {
-        return urlName;
-    }
-
-    public static String getUrlNameStat() {
-        return urlName;
-    }
-
-    // Used by the index.jelly of this class to include the sidebar.jelly
-    public AbstractBuild<?, ?> getOwner() {
-        return build;
-    }
-
-    public String getConfigSpecHtml() {
-        String configSpecHtml = getCspec();
-        configSpecHtml = configSpecHtml.replaceAll("\n", "<br/>");
-        return configSpecHtml;
-    }
-
-    public boolean isCspec() {
-        String cspec = getCspec();
-        return (cspec != null && cspec.trim().length() > 0);
     }
 
     public List<Baseline> getBaselines() {
@@ -56,9 +24,25 @@ public class ClearCaseReportAction implements Action {
         }
     }
 
-    public boolean isBaselineInfo() {
-        ClearCaseDataAction baselinesAction = build.getAction(ClearCaseDataAction.class);
-        return (baselinesAction != null);
+    public String getConfigSpecHtml() {
+        String configSpecHtml = getCspec();
+        configSpecHtml = configSpecHtml.replaceAll("\n", "<br/>");
+        return configSpecHtml;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "ClearCase Information";
+    }
+
+    @Override
+    public String getIconFileName() {
+        return "gear2.gif";
+    }
+
+    // Used by the index.jelly of this class to include the sidebar.jelly
+    public AbstractBuild<?, ?> getOwner() {
+        return build;
     }
 
     public String getStream() {
@@ -71,6 +55,21 @@ public class ClearCaseReportAction implements Action {
         return stream;
     }
 
+    @Override
+    public String getUrlName() {
+        return urlName;
+    }
+
+    public boolean isBaselineInfo() {
+        ClearCaseDataAction baselinesAction = build.getAction(ClearCaseDataAction.class);
+        return (baselinesAction != null);
+    }
+
+    public boolean isCspec() {
+        String cspec = getCspec();
+        return (cspec != null && cspec.trim().length() > 0);
+    }
+
     private String getCspec() {
         String cspec = null;
 
@@ -79,6 +78,10 @@ public class ClearCaseReportAction implements Action {
             cspec = dataAction.getCspec();
 
         return cspec;
+    }
+
+    public static String getUrlNameStat() {
+        return urlName;
     }
 
 }

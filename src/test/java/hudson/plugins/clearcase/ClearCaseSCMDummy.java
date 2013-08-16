@@ -26,7 +26,6 @@ package hudson.plugins.clearcase;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
-import hudson.plugins.clearcase.AbstractClearCaseScm.AbstractClearCaseScmDescriptor;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.util.VariableResolver;
@@ -34,53 +33,40 @@ import hudson.util.VariableResolver;
 import java.io.IOException;
 
 public class ClearCaseSCMDummy extends ClearCaseSCM {
-    private ClearTool cleartool;
     private ClearCaseScmDescriptor clearCaseScmDescriptor;
-    private Computer overrideComputer;
+    private ClearTool              cleartool;
+    private Computer               overrideComputer;
 
-    public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname,
-                             boolean useupdate, String loadRules, boolean usedynamicview,
-                             String viewdrive, String mkviewoptionalparam,
-                             boolean filterOutDestroySubBranchEvent,
-                             boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-                             String excludedRegions, String multiSitePollBuffer,
-                             boolean useTimeRule, boolean createDynView,
-                             ClearTool cleartool,
-                             ClearCaseScmDescriptor clearCaseScmDescriptor) {
-        this(branch, label, configspec, viewname, useupdate, loadRules, usedynamicview,
-             viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-             rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule,
-             createDynView, cleartool,
-             clearCaseScmDescriptor, null, viewname, null);
+    public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname, boolean useupdate, String loadRules, boolean usedynamicview,
+            String viewdrive, String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename,
+            String excludedRegions, String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, ClearTool cleartool,
+            ClearCaseScmDescriptor clearCaseScmDescriptor) {
+        this(branch, label, configspec, viewname, useupdate, loadRules, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent,
+                doNotUpdateConfigSpec, rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, cleartool, clearCaseScmDescriptor,
+                null, viewname, null);
     }
 
-    public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname,
-                             boolean useupdate, String loadRules, boolean usedynamicview,
-                             String viewdrive, String mkviewoptionalparam,
-                             boolean filterOutDestroySubBranchEvent,
-                             boolean doNotUpdateConfigSpec, boolean rmviewonrename,
-                             String excludedRegions, String multiSitePollBuffer,
-                             boolean useTimeRule, boolean createDynView,
-                             ClearTool cleartool,
-                             ClearCaseScmDescriptor clearCaseScmDescriptor,
-                             Computer overrideComputer, String viewPath, ViewStorage viewStorage) {
-        super(branch, label, false, null, false, null, configspec, viewname, useupdate, false, loadRules, false, null, usedynamicview,
-              viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec,
-              rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView, viewPath, null, viewStorage);
+    public ClearCaseSCMDummy(String branch, String label, String configspec, String viewname, boolean useupdate, String loadRules, boolean usedynamicview,
+            String viewdrive, String mkviewoptionalparam, boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename,
+            String excludedRegions, String multiSitePollBuffer, boolean useTimeRule, boolean createDynView, ClearTool cleartool,
+            ClearCaseScmDescriptor clearCaseScmDescriptor, Computer overrideComputer, String viewPath, ViewStorage viewStorage) {
+        super(branch, label, false, null, false, null, configspec, viewname, useupdate, false, loadRules, false, null, usedynamicview, viewdrive,
+                mkviewoptionalparam, filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule,
+                createDynView, viewPath, null, viewStorage);
         this.cleartool = cleartool;
         this.clearCaseScmDescriptor = clearCaseScmDescriptor;
         this.overrideComputer = overrideComputer;
     }
 
     @Override
-    protected ClearTool createClearTool(VariableResolver variableResolver,
-                                        ClearToolLauncher launcher) {
-        return cleartool;
+    public HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, boolean useRecurse)
+            throws IOException, InterruptedException {
+        return super.createHistoryAction(variableResolver, launcher, null, useRecurse);
     }
 
     @Override
-    public HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, boolean useRecurse) throws IOException, InterruptedException {   
-        return super.createHistoryAction(variableResolver, launcher, null, useRecurse);
+    public Computer getCurrentComputer() {
+        return overrideComputer;
     }
 
     @Override
@@ -89,8 +75,7 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     }
 
     @Override
-    public Computer getCurrentComputer() {
-        return overrideComputer;
+    protected ClearTool createClearTool(VariableResolver variableResolver, ClearToolLauncher launcher) {
+        return cleartool;
     }
 }
-

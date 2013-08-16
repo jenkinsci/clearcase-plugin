@@ -27,7 +27,6 @@ package hudson.plugins.clearcase;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.TaskListener;
-import hudson.remoting.VirtualChannel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,37 +39,12 @@ import java.io.OutputStream;
  */
 public interface ClearToolLauncher {
 
-    /**
-     * Launches a cleartool command with arguments.
-     * 
-     * @param cmd the command to launch using the clear tool executable
-     * @param filePath
-     * @return execPath optional, the path where the command should be launched
-     */
-    boolean run(String[] cmd, FilePath execPath) throws IOException, InterruptedException;
+    String getCmdString(String[] cmd);
 
     /**
-     * Launches a cleartool command with arguments.
-     * 
-     * @param cmd the command to launch using the clear tool executable
-     * @param in optional, if the command should be able to receive input
-     * @param out optional, can be used to gather the output stream
-     * @param execPath optional, the path where the command should be launched
-     * @return true if the command was successful, false otherwise
+     * @return the Hudsonlauncher
      */
-    boolean run(String[] cmd, InputStream in, OutputStream out, FilePath execPath) throws IOException, InterruptedException;
-
-    /**
-     * Launches a cleartool command with arguments.
-     * 
-     * @param cmd the command to launch using the clear tool executable
-     * @param in optional, if the command should be able to receive input
-     * @param out optional, can be used to gather the output stream
-     * @param execPath optional, the path where the command should be launched
-     * @param logCommand optional, log the command itself
-     * @return true if the command was successful, false otherwise
-     */
-    boolean run(String[] cmd, InputStream in, OutputStream out, FilePath execPath, boolean logCommand) throws IOException, InterruptedException;
+    Launcher getLauncher();
 
     /**
      * Returns a task listener for a hudson job
@@ -86,12 +60,47 @@ public interface ClearToolLauncher {
      */
     FilePath getWorkspace();
 
-    /**
-     * @return the Hudsonlauncher
-     */
-    Launcher getLauncher();
-    
-    String getCmdString(String[] cmd);
-
     boolean isUnix();
+
+    /**
+     * Launches a cleartool command with arguments.
+     * 
+     * @param cmd
+     *            the command to launch using the clear tool executable
+     * @param filePath
+     * @return execPath optional, the path where the command should be launched
+     */
+    boolean run(String[] cmd, FilePath execPath) throws IOException, InterruptedException;
+
+    /**
+     * Launches a cleartool command with arguments.
+     * 
+     * @param cmd
+     *            the command to launch using the clear tool executable
+     * @param in
+     *            optional, if the command should be able to receive input
+     * @param out
+     *            optional, can be used to gather the output stream
+     * @param execPath
+     *            optional, the path where the command should be launched
+     * @return true if the command was successful, false otherwise
+     */
+    boolean run(String[] cmd, InputStream in, OutputStream out, FilePath execPath) throws IOException, InterruptedException;
+
+    /**
+     * Launches a cleartool command with arguments.
+     * 
+     * @param cmd
+     *            the command to launch using the clear tool executable
+     * @param in
+     *            optional, if the command should be able to receive input
+     * @param out
+     *            optional, can be used to gather the output stream
+     * @param execPath
+     *            optional, the path where the command should be launched
+     * @param logCommand
+     *            optional, log the command itself
+     * @return true if the command was successful, false otherwise
+     */
+    boolean run(String[] cmd, InputStream in, OutputStream out, FilePath execPath, boolean logCommand) throws IOException, InterruptedException;
 }

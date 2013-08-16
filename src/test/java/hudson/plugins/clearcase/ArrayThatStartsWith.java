@@ -7,11 +7,11 @@ import org.mockito.ArgumentMatcher;
 public class ArrayThatStartsWith<T> extends ArgumentMatcher<T[]> {
 
     private T[] startsWith;
-    
+
     public ArrayThatStartsWith(T[] startsWith) {
         this.startsWith = startsWith;
     }
-    
+
     @Override
     public void describeTo(Description description) {
         description.appendValueList("[", ", ", ", ", startsWith);

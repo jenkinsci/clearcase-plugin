@@ -37,6 +37,11 @@ public class LabelFilter extends OperationFilter {
     }
 
     @Override
+    public boolean requiresMinorEvents() {
+        return true;
+    }
+
+    @Override
     protected boolean getAllowOtherOperations() {
         return false;
     }
@@ -44,11 +49,6 @@ public class LabelFilter extends OperationFilter {
     @Override
     protected String[] getApplicableOperations() {
         return LABEL_OPERATIONS;
-    }
-
-    @Override
-    public boolean requiresMinorEvents() {
-        return true;
     }
 
 }

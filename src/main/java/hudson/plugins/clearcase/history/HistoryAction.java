@@ -44,27 +44,37 @@ public interface HistoryAction {
     /**
      * Returns if the repository has any changes since the specified time
      * 
-     * @param time check for changes since this time
-     * @param viewPath The view path name (local path in the workspace)
-     * @param viewTag The view tag (unique identifier on CC Server)
-     * @param branchNames the branch names
-     * @param viewPaths optional vob paths
-     * @return true, if the ClearCase repository has changes; false, otherwise.
+     * @param time
+     *            check for changes since this time
+     * @param viewPath
+     *            The view path name (local path in the workspace)
+     * @param viewTag
+     *            The view tag (unique identifier on CC Server)
+     * @param branchNames
+     *            the branch names
+     * @param viewPaths
+     *            optional vob paths
+     * @return List of changes
      */
-    public boolean hasChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException;
+    public List<ChangeLogSet.Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+    InterruptedException;
 
     /**
      * Returns if the repository has any changes since the specified time
      * 
-     * @param time check for changes since this time
-     * @param viewPath The view path name (local path in the workspace)
-     * @param viewTag The view tag (unique identifier on CC Server)
-     * @param branchNames the branch names
-     * @param viewPaths optional vob paths
-     * @return List of changes
+     * @param time
+     *            check for changes since this time
+     * @param viewPath
+     *            The view path name (local path in the workspace)
+     * @param viewTag
+     *            The view tag (unique identifier on CC Server)
+     * @param branchNames
+     *            the branch names
+     * @param viewPaths
+     *            optional vob paths
+     * @return true, if the ClearCase repository has changes; false, otherwise.
      */
-    public List<ChangeLogSet.Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
-            InterruptedException;
+    public boolean hasChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException;
 
     public void setUpdtFile(FilePath updtFile);
 

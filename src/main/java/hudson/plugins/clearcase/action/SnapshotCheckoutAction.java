@@ -47,8 +47,8 @@ import org.apache.commons.lang.Validate;
 public abstract class SnapshotCheckoutAction extends CheckoutAction {
 
     public static class LoadRulesDelta {
-        private final Set<String> removed;
         private final Set<String> added;
+        private final Set<String> removed;
 
         public LoadRulesDelta(Set<String> removed, Set<String> added) {
             super();
@@ -80,15 +80,6 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
         this.viewPath = viewPath;
     }
 
-    /**
-     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
-     */
-    @Override
-    @Deprecated
-    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        return isViewValid(workspace, viewTag);
-    }
-
     @Override
     public boolean isViewValid(FilePath workspace, String viewTag) throws IOException, InterruptedException {
         Validate.notEmpty(viewPath);
@@ -103,16 +94,32 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
     }
 
     /**
-     * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be created
-     * @param workspace The job's workspace
-     * @param jobViewTag The view identifier on server. Must be unique on server
-     * @param viewPath The workspace relative path of the view
-     * @param streamSelector The stream selector, using streamName[@pvob] format
+     * @deprecated Use {@link #isViewValid(FilePath,String)} instead
+     */
+    @Override
+    @Deprecated
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        return isViewValid(workspace, viewTag);
+    }
+
+    /**
+     * Manages the re-creation of the view if needed. If something exists but not referenced correctly as a view, it will be renamed and the view will be
+     * created
+     * 
+     * @param workspace
+     *            The job's workspace
+     * @param jobViewTag
+     *            The view identifier on server. Must be unique on server
+     * @param viewPath
+     *            The workspace relative path of the view
+     * @param streamSelector
+     *            The stream selector, using streamName[@pvob] format
      * @return true if a mkview has been done, false if a view existed and is reused
      * @throws IOException
      * @throws InterruptedException
      */
-    protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String jobViewTag, String viewPath, String streamSelector) throws IOException, InterruptedException {
+    protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String jobViewTag, String viewPath, String streamSelector) throws IOException,
+    InterruptedException {
         Validate.notEmpty(viewPath);
         ClearTool ct = getCleartool();
         TaskListener listener = ct.getLauncher().getListener();
@@ -167,15 +174,6 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
         return doViewCreation;
     }
 
-    private void rmviewtag(String viewTag) throws InterruptedException, IOException {
-        try {
-            getCleartool().rmviewtag(viewTag);
-        } catch (IOException e) {
-            // ClearCase RT doesn't support rmview -tag
-            getCleartool().rmtag(viewTag);
-        }
-    }
-
     protected SnapshotCheckoutAction.LoadRulesDelta getLoadRulesDelta(Set<String> configSpecLoadRules, Launcher launcher) {
         Set<String> removedLoadRules = new LinkedHashSet<String>(configSpecLoadRules);
         Set<String> addedLoadRules = new LinkedHashSet<String>();
@@ -194,5 +192,14 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
             }
         }
         return new SnapshotCheckoutAction.LoadRulesDelta(removedLoadRules, addedLoadRules);
+    }
+
+    private void rmviewtag(String viewTag) throws InterruptedException, IOException {
+        try {
+            getCleartool().rmviewtag(viewTag);
+        } catch (IOException e) {
+            // ClearCase RT doesn't support rmview -tag
+            getCleartool().rmtag(viewTag);
+        }
     }
 }

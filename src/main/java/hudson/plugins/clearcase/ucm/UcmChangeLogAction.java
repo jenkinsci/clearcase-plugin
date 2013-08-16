@@ -61,25 +61,23 @@ import java.util.regex.Matcher;
  */
 public class UcmChangeLogAction implements ChangeLogAction {
 
+    private static final String[]    ACTIVITY_FORMAT             = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, };
     // full lshistory output and parsing
-    private static final String[]    HISTORY_FORMAT              = { DATE_NUMERIC, NAME_ELEMENTNAME, NAME_VERSIONID,
-            UCM_VERSION_ACTIVITY, EVENT, OPERATION, USER_ID     };
-    private static final String[]    ACTIVITY_FORMAT             = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM,
-            USER_ID,                                            };
-    private static final String[]    INTEGRATION_ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM,
-            USER_ID, UCM_ACTIVITY_CONTRIBUTING                  };
+    private static final String[]    HISTORY_FORMAT              = { DATE_NUMERIC, NAME_ELEMENTNAME, NAME_VERSIONID, UCM_VERSION_ACTIVITY, EVENT, OPERATION,
+        USER_ID                                             };
+    private static final String[]    INTEGRATION_ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, UCM_ACTIVITY_CONTRIBUTING };
+
+    private Map<String, UcmActivity> activityNameToEntry         = new HashMap<String, UcmActivity>();
 
     private ClearTool                cleartool;
-
-    private ClearToolFormatHandler   historyHandler              = new ClearToolFormatHandler(HISTORY_FORMAT);
     private SimpleDateFormat         dateFormatter               = new SimpleDateFormat("yyyyMMdd.HHmmss");
-    private Map<String, UcmActivity> activityNameToEntry         = new HashMap<String, UcmActivity>();
-    private Filter                   filter;
-
     /**
      * Extended view path that should be removed file paths in entries.
      */
     private String                   extendedViewPath;
+    private Filter                   filter;
+
+    private ClearToolFormatHandler   historyHandler              = new ClearToolFormatHandler(HISTORY_FORMAT);
 
     public UcmChangeLogAction(ClearTool cleartool, List<Filter> filters) {
         this.cleartool = cleartool;
@@ -87,8 +85,7 @@ public class UcmChangeLogAction implements ChangeLogAction {
     }
 
     @Override
-    public List<UcmActivity> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths)
-            throws IOException, InterruptedException {
+    public List<UcmActivity> getChanges(Date time, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         // ISSUE-3097
         // Patched since this command must allow paths that do not contain
         // the specified branch name (happens, for instance, if changes has
@@ -103,11 +100,8 @@ public class UcmChangeLogAction implements ChangeLogAction {
                 // is the workspace root and the view will be checked out in a
                 // directory with the name of the view)
                 String fullpath = viewName + File.separator + path;
-                BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT
-                                                                                       + LINEEND, time, viewName,
-                                                                               branchNames[0],
-                                                                               new String[] { fullpath },
-                                                                               filter.requiresMinorEvents(), false));
+                BufferedReader reader = new BufferedReader(cleartool.lshistory(historyHandler.getFormat() + COMMENT + LINEEND, time, viewName, branchNames[0],
+                        new String[] { fullpath }, filter.requiresMinorEvents(), false));
                 history.addAll(parseHistory(reader, viewName));
                 reader.close();
                 ok = true; // At least one path was successful
@@ -123,8 +117,65 @@ public class UcmChangeLogAction implements ChangeLogAction {
         }
     }
 
-    private List<UcmActivity> parseHistory(BufferedReader reader, String viewname) throws InterruptedException,
-            IOException {
+    public String getExtendedViewPath() {
+        return extendedViewPath;
+    }
+
+    /**
+     * Sets the extended view path. The extended view path will be removed from file paths in the event. The extended view path is for example the view root +
+     * view name; and this path shows up in the history and can be conusing for users.
+     * 
+     * @param path
+     *            the new extended view path.
+     */
+    public void setExtendedViewPath(String path) {
+        this.extendedViewPath = path;
+    }
+
+    private void callLsActivity(UcmActivity activity, String viewname, int numberOfContributingActivitiesToFollow) throws IOException, InterruptedException {
+        ClearToolFormatHandler handler = null;
+        if (activity.isIntegrationActivity()) {
+            handler = new ClearToolFormatHandler(INTEGRATION_ACTIVITY_FORMAT);
+        } else {
+            handler = new ClearToolFormatHandler(ACTIVITY_FORMAT);
+        }
+
+        BufferedReader reader = new BufferedReader(cleartool.lsactivity(activity.getName(), handler.getFormat(), viewname));
+
+        String line = reader.readLine();
+        Matcher matcher = handler.checkLine(line);
+        if (matcher != null) {
+            activity.setHeadline(matcher.group(1));
+            activity.setStream(matcher.group(2));
+            activity.setUser(matcher.group(3));
+
+            if (activity.isIntegrationActivity() && numberOfContributingActivitiesToFollow > 0) {
+
+                String contributingActivities = matcher.group(4);
+
+                for (String contributing : contributingActivities.split(" ")) {
+
+                    UcmActivity subActivity = null;
+                    UcmActivity cachedActivity = activityNameToEntry.get(contributing);
+
+                    if (cachedActivity == null) {
+                        subActivity = new UcmActivity();
+                        subActivity.setName(contributing);
+                        callLsActivity(subActivity, viewname, --numberOfContributingActivitiesToFollow);
+                        activityNameToEntry.put(contributing, subActivity);
+                    } else {
+                        /* do deep copy */
+                        subActivity = new UcmActivity(cachedActivity);
+                    }
+                    activity.addSubActivity(subActivity);
+                }
+            }
+        }
+
+        reader.close();
+    }
+
+    private List<UcmActivity> parseHistory(BufferedReader reader, String viewname) throws InterruptedException, IOException {
         List<UcmActivity> result = new ArrayList<UcmActivity>();
         try {
             StringBuilder commentBuilder = new StringBuilder();
@@ -211,67 +262,5 @@ public class UcmChangeLogAction implements ChangeLogAction {
             throw ioe;
         }
         return result;
-    }
-
-    private void callLsActivity(UcmActivity activity, String viewname, int numberOfContributingActivitiesToFollow)
-            throws IOException, InterruptedException {
-        ClearToolFormatHandler handler = null;
-        if (activity.isIntegrationActivity()) {
-            handler = new ClearToolFormatHandler(INTEGRATION_ACTIVITY_FORMAT);
-        } else {
-            handler = new ClearToolFormatHandler(ACTIVITY_FORMAT);
-        }
-
-        BufferedReader reader = new BufferedReader(cleartool.lsactivity(activity.getName(), handler.getFormat(),
-                                                                        viewname));
-
-        String line = reader.readLine();
-        Matcher matcher = handler.checkLine(line);
-        if (matcher != null) {
-            activity.setHeadline(matcher.group(1));
-            activity.setStream(matcher.group(2));
-            activity.setUser(matcher.group(3));
-
-            if (activity.isIntegrationActivity() && numberOfContributingActivitiesToFollow > 0) {
-
-                String contributingActivities = matcher.group(4);
-
-                for (String contributing : contributingActivities.split(" ")) {
-
-                    UcmActivity subActivity = null;
-                    UcmActivity cachedActivity = activityNameToEntry.get(contributing);
-
-                    if (cachedActivity == null) {
-                        subActivity = new UcmActivity();
-                        subActivity.setName(contributing);
-                        callLsActivity(subActivity, viewname, --numberOfContributingActivitiesToFollow);
-                        activityNameToEntry.put(contributing, subActivity);
-                    } else {
-                        /* do deep copy */
-                        subActivity = new UcmActivity(cachedActivity);
-                    }
-                    activity.addSubActivity(subActivity);
-                }
-            }
-        }
-
-        reader.close();
-    }
-
-    /**
-     * Sets the extended view path. The extended view path will be removed from
-     * file paths in the event. The extended view path is for example the view
-     * root + view name; and this path shows up in the history and can be
-     * conusing for users.
-     * 
-     * @param path
-     *            the new extended view path.
-     */
-    public void setExtendedViewPath(String path) {
-        this.extendedViewPath = path;
-    }
-
-    public String getExtendedViewPath() {
-        return extendedViewPath;
     }
 }

@@ -1,7 +1,10 @@
 package hudson.plugins.clearcase.ucm;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.model.TaskListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.Baseline;
@@ -27,23 +30,9 @@ public class UcmCommonTest extends AbstractWorkspaceTest {
     private TaskListener      listener;
 
     @Test
-    public void testGenerateLoadRulesFromBaselinesOneBaseline() throws Exception {
-        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob"}))).thenReturn(new StringReader("/vob/comp1"));
-        when(cleartool.getLauncher()).thenReturn(launcher);
-        when(launcher.getListener()).thenReturn(listener);
-        when(listener.getLogger()).thenReturn(System.out);
-        assertTrue(UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", null) == null);
-        List<Baseline> baselines = new ArrayList<Baseline>();
-        baselines.add(new Baseline("bl1@\\pvob", "comp1@\\pvob"));
-        String[] loadRules = UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", baselines);
-        assertTrue(loadRules.length == 1);
-        assertEquals("vob/comp1", loadRules[0]);
-        verify(cleartool).describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob"}));
-    }
-
-    @Test
     public void testGenerateLoadRulesFromBaselinesMultiBaseline() throws Exception {
-        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob", "component:comp2@\\otherpvob"}))).thenReturn(new StringReader("/vob/comp1\n/othervob/comp2"));
+        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] { "component:comp1@\\pvob", "component:comp2@\\otherpvob" }))).thenReturn(
+                new StringReader("/vob/comp1\n/othervob/comp2"));
         when(cleartool.getLauncher()).thenReturn(launcher);
         when(launcher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(System.out);
@@ -56,6 +45,21 @@ public class UcmCommonTest extends AbstractWorkspaceTest {
         assertTrue(loadRules.length == 2);
         assertEquals("vob/comp1", loadRules[0]);
         assertEquals("othervob/comp2", loadRules[1]);
-        verify(cleartool).describe(eq("%[root_dir]p\\n"), eq(new String[] {"component:comp1@\\pvob", "component:comp2@\\otherpvob"}));
+        verify(cleartool).describe(eq("%[root_dir]p\\n"), eq(new String[] { "component:comp1@\\pvob", "component:comp2@\\otherpvob" }));
+    }
+
+    @Test
+    public void testGenerateLoadRulesFromBaselinesOneBaseline() throws Exception {
+        when(cleartool.describe(eq("%[root_dir]p\\n"), eq(new String[] { "component:comp1@\\pvob" }))).thenReturn(new StringReader("/vob/comp1"));
+        when(cleartool.getLauncher()).thenReturn(launcher);
+        when(launcher.getListener()).thenReturn(listener);
+        when(listener.getLogger()).thenReturn(System.out);
+        assertTrue(UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", null) == null);
+        List<Baseline> baselines = new ArrayList<Baseline>();
+        baselines.add(new Baseline("bl1@\\pvob", "comp1@\\pvob"));
+        String[] loadRules = UcmCommon.generateLoadRulesFromBaselines(cleartool, "mystream", baselines);
+        assertTrue(loadRules.length == 1);
+        assertEquals("vob/comp1", loadRules[0]);
+        verify(cleartool).describe(eq("%[root_dir]p\\n"), eq(new String[] { "component:comp1@\\pvob" }));
     }
 }

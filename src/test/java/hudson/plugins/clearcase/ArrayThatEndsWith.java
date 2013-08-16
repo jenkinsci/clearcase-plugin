@@ -6,11 +6,11 @@ import org.mockito.ArgumentMatcher;
 
 public class ArrayThatEndsWith<T> extends ArgumentMatcher<T[]> {
     private T[] endsWith;
-    
+
     public ArrayThatEndsWith(T[] endsWith) {
         this.endsWith = endsWith;
     }
-    
+
     @Override
     public void describeTo(Description description) {
         description.appendText("[...");

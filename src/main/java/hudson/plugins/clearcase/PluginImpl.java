@@ -35,11 +35,11 @@ import hudson.Plugin;
 public class PluginImpl extends Plugin {
 
     @Extension
-    public static final ClearCaseSCM.ClearCaseScmDescriptor BASE_DESCRIPTOR = new ClearCaseSCM.ClearCaseScmDescriptor();
+    public static final ClearCaseSCM.ClearCaseScmDescriptor       BASE_DESCRIPTOR      = new ClearCaseSCM.ClearCaseScmDescriptor();
     @Extension
-    public static final ClearCaseUcmSCM.ClearCaseUcmScmDescriptor UCM_DESCRIPTOR = new ClearCaseUcmSCM.ClearCaseUcmScmDescriptor(BASE_DESCRIPTOR);
+    public static final ClearCasePublisher.DescriptorImpl         PUBLISHER_DESCRIPTOR = ClearCasePublisher.DescriptorImpl.DESCRIPTOR;
     @Extension
-    public static final ClearCasePublisher.DescriptorImpl PUBLISHER_DESCRIPTOR = ClearCasePublisher.DescriptorImpl.DESCRIPTOR;
+    public static final ClearCaseUcmSCM.ClearCaseUcmScmDescriptor UCM_DESCRIPTOR       = new ClearCaseUcmSCM.ClearCaseUcmScmDescriptor(BASE_DESCRIPTOR);
 
     public static ClearCaseSCM.ClearCaseScmDescriptor getDescriptor() {
         return BASE_DESCRIPTOR;

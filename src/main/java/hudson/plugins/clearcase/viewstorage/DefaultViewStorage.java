@@ -5,7 +5,7 @@ import hudson.Extension;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class DefaultViewStorage extends ViewStorage {
-    
+
     @Extension
     public static class DescriptorImpl extends ViewStorageDescriptor<DefaultViewStorage> {
 
@@ -13,11 +13,12 @@ public class DefaultViewStorage extends ViewStorage {
         public String getDisplayName() {
             return "Default";
         }
-        
+
     }
-    
+
     @DataBoundConstructor
-    public DefaultViewStorage(){}
+    public DefaultViewStorage() {
+    }
 
     @Override
     public String[] getCommandArguments(boolean unix, String viewTag) {

@@ -38,6 +38,63 @@ import org.junit.Test;
 public class ClearCaseChangeLogEntryTest {
 
     @Test
+    public void testFileElementAddEditType() {
+        FileElement element = new FileElement();
+        element.setOperation("mkelem");
+        assertSame("Edit type was incorrect", EditType.ADD, element.getEditType());
+    }
+
+    @Test
+    public void testFileElementDeleteEditType() {
+        FileElement element = new FileElement();
+        element.setOperation("rmelem");
+        assertSame("Edit type was incorrect", EditType.DELETE, element.getEditType());
+    }
+
+    @Test
+    public void testFileElementEditEditType() {
+        FileElement element = new FileElement();
+        element.setOperation("checkin");
+        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
+        element.setOperation("mklabel");
+        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
+        element.setOperation("rmlabel");
+        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
+    }
+
+    @Test
+    public void testFileElementGetPath() {
+        FileElement element = new FileElement();
+        element.setFile("file1");
+        element.setVersion("/main/1");
+        assertEquals("Element path is incorrect", element.getPath(), "file1@@/main/1");
+    }
+
+    @Test
+    public void testFileElementUnknownEditType() {
+        FileElement element = new FileElement();
+        assertNull("Edit type was not null", element.getEditType());
+    }
+
+    @Test
+    public void testGetAffectedFilesCount() {
+        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
+        entry.addElement(new FileElement("file1", "/main/1", "", "checkin"));
+        entry.addElement(new FileElement("file2", "/main/2", "", "checkin"));
+        assertEquals("Wrong count of affected files", entry.getAffectedFiles().size(), 2);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testSetFileAndThenVersion() {
+        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
+        entry.setFile("Filename");
+        entry.setVersion("version1");
+        assertEquals("Filename", entry.getElements().get(0).getFile());
+        assertEquals("version1", entry.getElements().get(0).getVersion());
+    }
+
+    @Test
     public void testSetFormattedDateStr() {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
         entry.setDateStr("28/08/2007 15:27:00");
@@ -58,70 +115,11 @@ public class ClearCaseChangeLogEntryTest {
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testSetFileAndThenVersion() {
-        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
-        entry.setFile("Filename");
-        entry.setVersion("version1");
-        assertEquals("Filename", entry.getElements().get(0).getFile());
-        assertEquals("version1", entry.getElements().get(0).getVersion());
-    }
-
-    @SuppressWarnings("deprecation")
-    @Test
     public void testSetVersionAndThenFile() {
         ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
         entry.setVersion("version1");
         entry.setFile("Filename");
         assertEquals("Filename", entry.getElements().get(0).getFile());
         assertEquals("version1", entry.getElements().get(0).getVersion());
-    }
-
-    @Test
-    public void testFileElementAddEditType() {
-        FileElement element = new FileElement();
-        element.setOperation("mkelem");
-        assertSame("Edit type was incorrect", EditType.ADD, element.getEditType());
-    }
-
-    @Test
-    public void testFileElementEditEditType() {
-        FileElement element = new FileElement();
-        element.setOperation("checkin");
-        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
-        element.setOperation("mklabel");
-        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
-        element.setOperation("rmlabel");
-        assertSame("Edit type was incorrect", EditType.EDIT, element.getEditType());
-    }
-
-    @Test
-    public void testFileElementDeleteEditType() {
-        FileElement element = new FileElement();
-        element.setOperation("rmelem");
-        assertSame("Edit type was incorrect", EditType.DELETE, element.getEditType());
-    }
-
-    @Test
-    public void testFileElementUnknownEditType() {
-        FileElement element = new FileElement();
-        assertNull("Edit type was not null", element.getEditType());
-    }
-    
-    @Test
-    public void testFileElementGetPath() {
-        FileElement element = new FileElement();
-        element.setFile("file1");
-        element.setVersion("/main/1");
-        assertEquals("Element path is incorrect", 
-                element.getPath(), "file1@@/main/1");
-    }
-    
-    @Test
-    public void testGetAffectedFilesCount() {
-        ClearCaseChangeLogEntry entry = new ClearCaseChangeLogEntry();
-        entry.addElement(new FileElement("file1", "/main/1", "", "checkin"));
-        entry.addElement(new FileElement("file2", "/main/2", "", "checkin"));
-        assertEquals("Wrong count of affected files", 
-                entry.getAffectedFiles().size(), 2);
     }
 }

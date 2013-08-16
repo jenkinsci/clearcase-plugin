@@ -35,103 +35,21 @@ import org.apache.commons.lang.StringUtils;
  */
 public class HistoryEntry {
 
-    Date date;
-    String dateText;
-    String element;
-    String versionId;
-    String event;
-    String user;
-    String operation;
-    String activityName;
+    String        activityHeadline;
+    String        activityName;
     StringBuilder commentBuilder = new StringBuilder();
-    String activityHeadline;
-    String line;
+    Date          date;
+    String        dateText;
+    String        element;
+    String        event;
+    String        line;
+    String        operation;
+    String        user;
+    String        versionId;
 
-    public String getComment() {
-        return StringUtils.chomp(commentBuilder.toString());
-    }
-    
     public HistoryEntry appendComment(String commentFragment) {
         commentBuilder.append(commentFragment);
         return this;
-    }
-
-    public String getActivityHeadline() {
-        return activityHeadline;
-    }
-
-    public void setActivityHeadline(String activityHeadline) {
-        this.activityHeadline = activityHeadline;
-    }
-
-    public String getActivityName() {
-        return activityName;
-    }
-
-    public void setActivityName(String activityName) {
-        this.activityName = activityName;
-    }
-
-    public String getDateText() {
-        return dateText;
-    }
-
-    public void setDateText(String dateText) throws ParseException {
-        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd.HHmmss");
-        date = format.parse(dateText);
-        this.dateText = dateText;
-    }
-
-    public String getElement() {
-        return element;
-    }
-
-    public void setElement(String element) {
-        this.element = element;
-    }
-
-    public String getEvent() {
-        return event;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
-    }
-
-    public String getLine() {
-        return line;
-    }
-
-    public void setLine(String line) {
-        this.line = line;
-    }
-
-    public String getOperation() {
-        return operation;
-    }
-
-    public void setOperation(String operation) {
-        this.operation = operation;
-    }
-
-    public String getVersionId() {
-        return versionId;
-    }
-
-    public void setVersionId(String versionId) {
-        this.versionId = versionId;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
     }
 
     @Override
@@ -152,6 +70,50 @@ public class HistoryEntry {
         return true;
     }
 
+    public String getActivityHeadline() {
+        return activityHeadline;
+    }
+
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public String getComment() {
+        return StringUtils.chomp(commentBuilder.toString());
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public String getDateText() {
+        return dateText;
+    }
+
+    public String getElement() {
+        return element;
+    }
+
+    public String getEvent() {
+        return event;
+    }
+
+    public String getLine() {
+        return line;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public String getVersionId() {
+        return versionId;
+    }
+
     @Override
     public int hashCode() {
         int hash = 5;
@@ -164,8 +126,49 @@ public class HistoryEntry {
         return this;
     }
 
-    @Override public String toString() {
-        return "HistoryEntry{" + "date=" + date + ", dateText=" + dateText + ", element=" + element + ", versionId=" + versionId + ", event=" + event + ", user=" + user + ", operation=" + operation + ", activityName=" + activityName + ", commentBuilder=" + commentBuilder + ", activityHeadline=" + activityHeadline + ", line=" + line + '}';
+    public void setActivityHeadline(String activityHeadline) {
+        this.activityHeadline = activityHeadline;
+    }
+
+    public void setActivityName(String activityName) {
+        this.activityName = activityName;
+    }
+
+    public void setDateText(String dateText) throws ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd.HHmmss");
+        date = format.parse(dateText);
+        this.dateText = dateText;
+    }
+
+    public void setElement(String element) {
+        this.element = element;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
+    }
+
+    public void setLine(String line) {
+        this.line = line;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
+    }
+
+    @Override
+    public String toString() {
+        return "HistoryEntry{" + "date=" + date + ", dateText=" + dateText + ", element=" + element + ", versionId=" + versionId + ", event=" + event
+                + ", user=" + user + ", operation=" + operation + ", activityName=" + activityName + ", commentBuilder=" + commentBuilder
+                + ", activityHeadline=" + activityHeadline + ", line=" + line + '}';
     }
 
 }

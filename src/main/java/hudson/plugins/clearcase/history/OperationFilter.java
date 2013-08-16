@@ -36,13 +36,9 @@ import org.apache.commons.lang.ArrayUtils;
  */
 public abstract class OperationFilter implements Filter {
 
-    private static final Pattern PATTERN_OBJECT_NAME
-            = Pattern.compile("^[^\"]*\"(.*)\"[^\"]*$");
+    private static final Pattern PATTERN_OBJECT_NAME = Pattern.compile("^[^\"]*\"(.*)\"[^\"]*$");
 
     protected ArrayList<Pattern> namePatterns;
-
-    protected abstract String[] getApplicableOperations();
-    protected abstract boolean getAllowOtherOperations();
 
     public OperationFilter(String... namePatterns) {
         if (namePatterns != null) {
@@ -56,8 +52,7 @@ public abstract class OperationFilter implements Filter {
     @Override
     public boolean accept(HistoryEntry entry) {
 
-        if (!ArrayUtils.contains(
-                getApplicableOperations(), entry.getOperation())) {
+        if (!ArrayUtils.contains(getApplicableOperations(), entry.getOperation())) {
             // Operation not applicable.
             return getAllowOtherOperations();
         }
@@ -77,13 +72,18 @@ public abstract class OperationFilter implements Filter {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" + "namePatterns=" + namePatterns + '}';
+    }
+
+    protected abstract boolean getAllowOtherOperations();
+
+    protected abstract String[] getApplicableOperations();
+
     protected String getObjectName(HistoryEntry entry) {
         Matcher matcher = PATTERN_OBJECT_NAME.matcher(entry.getEvent());
         return matcher.matches() ? matcher.group(1) : "";
-    }
-
-    @Override public String toString() {
-        return getClass().getSimpleName() + "{" + "namePatterns=" + namePatterns + '}';
     }
 
 }

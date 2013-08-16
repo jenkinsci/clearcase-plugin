@@ -24,9 +24,17 @@
  */
 package hudson.plugins.clearcase.base;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Matchers.notNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.Build;
@@ -78,29 +86,29 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
     private static final String                 VALID_HISTORY_FORMAT = "\\\"%Nd\\\" \\\"%u\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%e\\\" \\\"%o\\\" \\n%c\\n";
     @Mock
-    private AbstractProject                     project;
-    @Mock
     private Build                               build;
     @Mock
-    private Launcher                            launcher;
+    private ClearCaseSCM.ClearCaseScmDescriptor clearCaseScmDescriptor;
+    @Mock
+    private ClearTool                           cleartool;
     @Mock
     private ClearToolLauncher                   clearToolLauncher;
     @Mock
-    private ClearCaseSCM.ClearCaseScmDescriptor clearCaseScmDescriptor;
-    private Node                                node;
-    @Mock
     private Computer                            computer;
+    @Mock
+    private Launcher                            launcher;
+    private Node                                node;
 
     @Mock
-    private ClearTool                           cleartool;
+    private AbstractProject                     project;
 
     @Test
     public void assertDestroySubBranchEventIsIgnored() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithValidHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070906.091701\"   \"egsperi\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"destroy sub-branch \"esmalling_branch\" of branch\"   \"mkelem\"\n"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070906.091701\"   \"egsperi\" \"\\ApplicationConfiguration\" \"\\main\\sit_r6a\\2\"  \"destroy sub-branch \"esmalling_branch\" of branch\"   \"mkelem\"\n"));
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, new DestroySubBranchFilter(), 10000);
         List<ChangeLogSet.Entry> changes = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
                 new String[] { "vobs/projects/Server" });
@@ -144,9 +152,9 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
     public void assertIgnoringDestroySubBranchEvent() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithStandardInput())
-                .thenReturn(
-                        new StringReader(
-                                "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\""));
+        .thenReturn(
+                new StringReader(
+                        "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\""));
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, new DestroySubBranchFilter(), 0);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
         assertFalse("The getChanges() method reported a change", hasChange);
@@ -197,9 +205,9 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
     public void assertNotIgnoringDestroySubBranchEvent() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithStandardInput())
-                .thenReturn(
-                        new StringReader(
-                                "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\""));
+        .thenReturn(
+                new StringReader(
+                        "\"20080326.110739\" \"user\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\""));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 0);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
@@ -240,17 +248,22 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
     @Test
     public void assertSeparateBranchCommands() throws Exception {
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
-                .thenReturn(new StringReader(""));
-        when(cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE)))
-                .thenReturn(new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\" \"mkelem\" "));
+        when(
+                cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
+                        eq(Boolean.FALSE))).thenReturn(new StringReader(""));
+        when(
+                cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
+                        eq(Boolean.FALSE))).thenReturn(
+                                new StringReader("\"20071015.151822\" \"user\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\2\" \"create version\" \"mkelem\" "));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 0);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branchone", "branchtwo" }, new String[] { "vobpath" });
 
         assertTrue("The getChanges() method did not report a change", hasChange);
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
-        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchone"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
+                eq(Boolean.FALSE));
+        verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branchtwo"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
+                eq(Boolean.FALSE));
     }
 
     @Test
@@ -285,34 +298,6 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         verifyCleartoolLsHistoryWithAnyHistoryFormat();
     }
 
-    private Reader cleartoolLsHistoryWithStandardInput() throws IOException, InterruptedException {
-        return cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
-    }
-
-    private Reader cleartoolLsHistoryWithValidHistoryFormat() throws IOException, InterruptedException {
-        return cleartool.lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
-    }
-
-    private Reader cleartoolLsHistoryWithAnyHistoryFormat() throws IOException, InterruptedException {
-        return cleartool.lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
-    }
-
-    private Reader cleartoolLsHistoryWithAnyHistoryFormatAndMinorEvents() throws IOException, InterruptedException {
-        return cleartool.lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE), eq(Boolean.FALSE));
-    }
-
-    private Date getDate(int year, int month, int day, int hour, int min, int sec) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(0);
-        calendar.set(Calendar.YEAR, year);
-        calendar.set(Calendar.MONTH, month);
-        calendar.set(Calendar.DATE, day);
-        calendar.set(Calendar.HOUR_OF_DAY, hour);
-        calendar.set(Calendar.MINUTE, min);
-        calendar.set(Calendar.SECOND, sec);
-        return calendar.getTime();
-    }
-
     @Before
     public void setUp() throws Exception {
         node = PowerMockito.mock(Node.class);
@@ -339,22 +324,22 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
         when(cleartool.pwv(anyString())).thenReturn("D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot");
         when(cleartoolLsHistoryWithAnyHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20090909.124752\" \"erustt\" "
-                                        + "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\apps\\esa\\ecl\\sot\\sot_impl\\src\\main\\java\\com\\ascom\\ecs3\\ecl\\sot\\nodeoperationstate\\OperationStateManagerImpl.java\" "
-                                        + "\"\\main\\refact_structure\\2\" \"create version\" \"checkin\"\n\n"
-                                        + "\"20090909.105713\" \"eveter\" "
-                                        + "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\apps\\confcmdnet\\ecl\\confcmdnet_webapp\\doc\" "
-                                        + "\"\\main\\refact_structure\\13\" \"create directory version\" \"checkin\"\nUncataloged file element \"ConfCmdNet_PendenzenListe.xlsx\".\n"
-                                        + "\"20090909.091004\" \"eruegr\" "
-                                        + "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\components\\ecc_dal\\dal_impl_hibernate\\src\\main\\java\\com\\ascom\\ecs3\\ecc\\dal\\impl\\hibernate\\ctrl\\SotButtonController.java\" "
-                                        + "\"\\main\\refact_structure\\16\" \"create version\" \"checkin\"\n\n"));
+        .thenReturn(
+                new StringReader(
+                        "\"20090909.124752\" \"erustt\" "
+                                + "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\apps\\esa\\ecl\\sot\\sot_impl\\src\\main\\java\\com\\ascom\\ecs3\\ecl\\sot\\nodeoperationstate\\OperationStateManagerImpl.java\" "
+                                + "\"\\main\\refact_structure\\2\" \"create version\" \"checkin\"\n\n"
+                                + "\"20090909.105713\" \"eveter\" "
+                                + "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\apps\\confcmdnet\\ecl\\confcmdnet_webapp\\doc\" "
+                                + "\"\\main\\refact_structure\\13\" \"create directory version\" \"checkin\"\nUncataloged file element \"ConfCmdNet_PendenzenListe.xlsx\".\n"
+                                + "\"20090909.091004\" \"eruegr\" "
+                                + "\"D:\\hudson\\jobs\\refact_structure__SOT\\workspace\\sa-seso-tempusr4__refact_structure__sot\\ecs3cop\\projects\\components\\ecc_dal\\dal_impl_hibernate\\src\\main\\java\\com\\ascom\\ecs3\\ecc\\dal\\impl\\hibernate\\ctrl\\SotButtonController.java\" "
+                                + "\"\\main\\refact_structure\\16\" \"create version\" \"checkin\"\n\n"));
 
         ClearCaseSCMDummy scm = new ClearCaseSCMDummy("refact_structure", "", "configspec", "sa-seso-tempusr4__refact_structure__sot", true,
                 "load \\ecs3cop\\projects\\buildconfigurations\n" + "load \\ecs3cop\\projects\\apps\\esa\n" + "load \\ecs3cop\\projects\\apps\\tmp\n"
                         + "load \\ecs3cop\\projects\\components\n" + "load \\ecs3cop\\projects\\test\n", false, "", "", false, false, false, "", "", false,
-                false, cleartool, clearCaseScmDescriptor);
+                        false, cleartool, clearCaseScmDescriptor);
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
@@ -397,10 +382,10 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         when(clearToolLauncher.getLauncher()).thenReturn(launcher);
         when(cleartool.pwv(anyString())).thenReturn("Y:\\Hudson.SAP.ICI.7.6.Quick");
         when(cleartoolLsHistoryWithAnyHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20090909.151109\" \"nugarov\" "
-                                        + "\"Y:\\Hudson.SAP.ICI.7.6.Quick\\sapiciadapter\\Tools\\gplus_tt\\gplus_tt_config.py\" \"\\main\\dev-kiev-7.6\\10\" \"create version\" \"checkin\"\nvolatile"));
+        .thenReturn(
+                new StringReader(
+                        "\"20090909.151109\" \"nugarov\" "
+                                + "\"Y:\\Hudson.SAP.ICI.7.6.Quick\\sapiciadapter\\Tools\\gplus_tt\\gplus_tt_config.py\" \"\\main\\dev-kiev-7.6\\10\" \"create version\" \"checkin\"\nvolatile"));
 
         ClearCaseSCMDummy scm = new ClearCaseSCMDummy("", "", "configspec", "Hudson.SAP.ICI.7.6.Quick", false, "load /sapiciadapter", true, "Y:\\", "", false,
                 false, false, "", "", false, false, cleartool, clearCaseScmDescriptor);
@@ -420,9 +405,9 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithAnyHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\" \"create directory version\"   \"mkelem\"\ntext\n\nend of comment"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\" \"create directory version\"   \"mkelem\"\ntext\n\nend of comment"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 1000);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
@@ -439,9 +424,9 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithAnyHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\" \"create directory version\" \"mkelem\"\n"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\" \"create directory version\" \"mkelem\"\n"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 1000);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
@@ -458,11 +443,11 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithAnyHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070830.084801\"   \"inttest3\"  \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n\n"
-                                        + "cleartool: Error: Branch type not found: \"sit_r6a\".\n"
-                                        + "\"20070829.084801\"   \"inttest3\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n\n"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070830.084801\"   \"inttest3\"  \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n\n"
+                                + "cleartool: Error: Branch type not found: \"sit_r6a\".\n"
+                                + "\"20070829.084801\"   \"inttest3\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n\n"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 10000);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
@@ -519,7 +504,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
 
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver),
-                scm.generateNormalizedViewName((BuildVariableResolver) variableResolver), scm.getBranchNames(variableResolver),
+                scm.generateNormalizedViewName(variableResolver), scm.getBranchNames(variableResolver),
                 scm.getViewPaths(null, null, launcher));
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         for (Entry entry : entries) {
@@ -557,10 +542,10 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithValidHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070830.084801\"   \"inttest2\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n"
-                                        + "\"20070830.084801\"   \"inttest3\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n\n"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070830.084801\"   \"inttest2\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n"
+                                + "\"20070830.084801\"   \"inttest3\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\"   \"mkelem\"\n\n"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 10000);
         List<ChangeLogSet.Entry> changes = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
@@ -574,9 +559,9 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithValidHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"create directory version\"  \"mkelem\"\n"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070906.091701\"   \"egsperi\" \"\\Source\\ApplicationConfiguration\" \"\\main\\sit_r6a\\1\"  \"create directory version\"  \"mkelem\"\n"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 10000);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
@@ -592,9 +577,9 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithAnyHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070827.084801\" \"inttest14\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\" \"mkelem\"\n\n"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070827.084801\" \"inttest14\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\" \"create version\" \"mkelem\"\n\n"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 1000);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
@@ -617,9 +602,9 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithAnyHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070827.085901\"   \"aname\"   \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\" \"create version\"   \"mkelem\"\nBUG8949"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070827.085901\"   \"aname\"   \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\" \"create version\"   \"mkelem\"\nBUG8949"));
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 1000);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
                 new String[] { "vobs/projects/Server" });
@@ -657,9 +642,9 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithAnyHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070827.085901\"   \"aname\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"   \"create version\"   \"mkelem\"\nBUG8949\nThis fixed the problem"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070827.085901\"   \"aname\" \"Source\\Operator\\FormMain.cs\" \"\\main\\sit_r5_maint\\2\"   \"create version\"   \"mkelem\"\nBUG8949\nThis fixed the problem"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 1000);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
@@ -681,11 +666,11 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         when(cleartool.doesViewExist("viewTag")).thenReturn(Boolean.TRUE);
         when(cleartoolLsHistoryWithValidHistoryFormat())
-                .thenReturn(
-                        new StringReader(
-                                "\"20070827.084801\"   \"inttest2\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"create version\" \"mkelem\"\n\n"
-                                        + "\"20070825.084801\"   \"inttest3\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"create version\" \"mkelem\"\n\n"
-                                        + "\"20070830.084801\"   \"inttest1\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"create version\" \"mkelem\"\n\n"));
+        .thenReturn(
+                new StringReader(
+                        "\"20070827.084801\"   \"inttest2\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"create version\" \"mkelem\"\n\n"
+                                + "\"20070825.084801\"   \"inttest3\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"create version\" \"mkelem\"\n\n"
+                                + "\"20070830.084801\"   \"inttest1\" \"Source\\Definitions\\Definitions.csproj\" \"\\main\\sit_r5_maint\\1\"  \"create version\" \"mkelem\"\n\n"));
 
         BaseHistoryAction action = new BaseHistoryAction(cleartool, false, null, 10000);
         List<ChangeLogSet.Entry> changes = action.getChanges(new Date(), "viewPath", "viewTag", new String[] { "Release_2_1_int" },
@@ -730,7 +715,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
 
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver),
-                scm.generateNormalizedViewName((BuildVariableResolver) variableResolver), scm.getBranchNames(variableResolver),
+                scm.generateNormalizedViewName(variableResolver), scm.getBranchNames(variableResolver),
                 scm.getViewPaths(null, null, launcher));
         assertEquals("Number of history entries are incorrect", 2, entries.size());
         ClearCaseChangeLogEntry entry = (ClearCaseChangeLogEntry) entries.get(0);
@@ -750,12 +735,34 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         verifyCleartoolLsHistoryWithAnyHistoryFormat();
     }
 
-    private Reader verifyCleartoolLsHistoryWithStandardInput() throws IOException, InterruptedException {
-        return verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
+    private Reader cleartoolLsHistoryWithAnyHistoryFormat() throws IOException, InterruptedException {
+        return cleartool.lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
-    private Reader verifyCleartoolLsHistoryWithValidHistoryFormat() throws IOException, InterruptedException {
-        return verify(cleartool).lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
+    private Reader cleartoolLsHistoryWithAnyHistoryFormatAndMinorEvents() throws IOException, InterruptedException {
+        return cleartool.lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE), eq(Boolean.FALSE));
+    }
+
+    private Reader cleartoolLsHistoryWithStandardInput() throws IOException, InterruptedException {
+        return cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
+                eq(Boolean.FALSE));
+    }
+
+    private Reader cleartoolLsHistoryWithValidHistoryFormat() throws IOException, InterruptedException {
+        return cleartool.lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE),
+                eq(Boolean.FALSE));
+    }
+
+    private Date getDate(int year, int month, int day, int hour, int min, int sec) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(0);
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.DATE, day);
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, min);
+        calendar.set(Calendar.SECOND, sec);
+        return calendar.getTime();
     }
 
     private Reader verifyCleartoolLsHistoryWithAnyHistoryFormat() throws IOException, InterruptedException {
@@ -764,5 +771,15 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
     private Reader verifyCleartoolLsHistoryWithAnyHistoryFormatAndMinorEvents() throws IOException, InterruptedException {
         return verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE), eq(Boolean.FALSE));
+    }
+
+    private Reader verifyCleartoolLsHistoryWithStandardInput() throws IOException, InterruptedException {
+        return verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
+                eq(Boolean.FALSE));
+    }
+
+    private Reader verifyCleartoolLsHistoryWithValidHistoryFormat() throws IOException, InterruptedException {
+        return verify(cleartool).lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE),
+                eq(Boolean.FALSE));
     }
 }

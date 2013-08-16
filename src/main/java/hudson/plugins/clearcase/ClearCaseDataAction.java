@@ -11,16 +11,20 @@ import org.kohsuke.stapler.export.ExportedBean;
 public class ClearCaseDataAction implements Action {
 
     @Exported(visibility = 3)
+    public String         cspec;
+
+    @Exported(visibility = 3)
     public List<Baseline> latestBlsOnConfiguredStream;
 
     @Exported(visibility = 3)
-    public String cspec;
-
-    @Exported(visibility = 3)
-    public String stream;
+    public String         stream;
 
     public ClearCaseDataAction() {
         super();
+    }
+
+    public String getCspec() {
+        return cspec;
     }
 
     @Override
@@ -33,29 +37,25 @@ public class ClearCaseDataAction implements Action {
         return null;
     }
 
-    @Override
-    public String getUrlName() {
-        return null;
-    }
-
     public List<Baseline> getLatestBlsOnConfiguredStream() {
         return latestBlsOnConfiguredStream;
     }
 
-    public void setLatestBlsOnConfiguredStream(List<Baseline> latestBlsOnConfiguredStream) {
-        this.latestBlsOnConfiguredStream = latestBlsOnConfiguredStream;
+    public String getStream() {
+        return stream;
     }
 
-    public String getCspec() {
-        return cspec;
+    @Override
+    public String getUrlName() {
+        return null;
     }
 
     public void setCspec(String cspec) {
         this.cspec = cspec;
     }
 
-    public String getStream() {
-        return stream;
+    public void setLatestBlsOnConfiguredStream(List<Baseline> latestBlsOnConfiguredStream) {
+        this.latestBlsOnConfiguredStream = latestBlsOnConfiguredStream;
     }
 
     public void setStream(String stream) {

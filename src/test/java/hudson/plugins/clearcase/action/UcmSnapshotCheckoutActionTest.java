@@ -25,17 +25,16 @@
 package hudson.plugins.clearcase.action;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-import hudson.FilePath;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.MkViewParameters;
-import hudson.plugins.clearcase.ClearTool.SetcsOption;
-
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -47,16 +46,16 @@ import org.mockito.Mock;
 public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
     @Mock
-    private ClearTool     cleartool;
+    private ClearTool         cleartool;
 
     @Mock
-    private BuildListener taskListener;
-    
-    @Mock
     private ClearToolLauncher ctLauncher;
-    
+
     @Mock
-    private Launcher      launcher;
+    private Launcher          launcher;
+
+    @Mock
+    private BuildListener     taskListener;
 
     @Before
     public void setUp() throws Exception {
@@ -69,315 +68,6 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     @After
     public void teardown() throws Exception {
         deleteWorkspace();
-    }
-
-    @Test
-    public void testFirstTime() throws Exception {
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-
-        verify(cleartool).doesViewExist("viewname");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
-    }
-
-    @Test
-    public void testFirstTimeViewTagExists() throws Exception {
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).rmviewtag("viewname");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
-    }
-
-    @Test
-    public void testFirstTimeViewPathExists() throws Exception {
-        workspace.child("viewpath").mkdirs();
-
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
-        boolean checkout = action.checkout(launcher, workspace, "viewname");
-
-        Assert.assertTrue("Checkout should succeed.", checkout);
-        verify(cleartool).doesViewExist("viewname");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
-    }
-
-    @Test
-    public void testFirstTimeViewPathAndViewTagExist() throws Exception {
-        workspace.child("viewpath").mkdirs();
-
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("otherviewtag");
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
-        boolean checkout = action.checkout(launcher, workspace, "viewname");
-        Assert.assertTrue("Checkout should succeed.", checkout);
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).rmviewtag("viewname");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
-    }
-
-    @Test
-    public void testSecondTime() throws Exception {
-        workspace.child("viewpath").mkdirs();
-
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(cleartool.catcs("viewname")).thenReturn("ucm configspec");
-        when(taskListener.getLogger()).thenReturn(System.out);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).update2("viewpath", new String[] { "/loadrule" });
-        verify(cleartool).update2("viewpath", null);
-        verify(cleartool, atLeastOnce()).catcs("viewname");
-        verify(launcher, atLeastOnce()).isUnix();
-
-    }
-
-    @Test
-    public void testSecondTimeWithLoadRulesSatisfied() throws Exception {
-        workspace.child("viewpath").mkdirs();
-        
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.catcs("viewname")).thenReturn("load " + "/abc/");
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(taskListener.getLogger()).thenReturn(System.out);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).catcs("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).update2("viewpath", null);
-    }
-
-    @Test
-    public void testSecondTimeWithMultipleLoadRulesSatisfied() throws Exception {
-        workspace.child("viewpath").mkdirs();
-        
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.catcs("viewname")).thenReturn("load /abc/\nload /abcd");
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(taskListener.getLogger()).thenReturn(System.out);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-        
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/", "abcd" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).catcs("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).update2("viewpath", null);
-    }
-
-    @Test
-    public void testSecondTimeWithMultipleLoadRulesNotSatisfied() throws Exception {
-        workspace.child("viewpath").mkdirs();
-        
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(cleartool.catcs("viewname")).thenReturn("ucm configspec\nload /abc/\n");
-        when(taskListener.getLogger()).thenReturn(System.out);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/", "abcd" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).catcs("viewname");
-        verify(cleartool).update2("viewpath", null);
-        verify(cleartool).update2("viewpath", new String[] { "/abcd" });
-    }
-
-    @Test
-    public void testMultipleLoadRules() throws Exception {
-        
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule", "another\t loadrule" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        verify(cleartool).doesViewExist("viewname");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update2("viewpath", new String[] { "loadrule", "another\t loadrule" });
-    }
-
-    @Test
-    public void testSecondTimeWithRealMultipleLoadRulesSatisfied() throws Exception {
-        final String catcsOutput = "ucm\nidentity UCM.Stream oid:b689a462.74e011dd.8df7.00:16:35:7e:e1:93@vobuuid:9851d17f.c5aa11dc.9e7d.00:16:35:7e:e1:93 2\n"
-                + "# ONLY EDIT THIS CONFIG SPEC IN THE INDICATED \"CUSTOM\" AREAS\n#\n# This config spec was automatically generated by the UCM stream\n"
-                + "# \"base_1_4_Integration\" at 2008-09-02T16:12:44+02.\n#\n\n\n\n# Select checked out versions\nelement * CHECKEDOUT\n# Component selection rules..."
-                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" .../base_1_4_Integration/LATEST\n"
-                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" base_Main_080902_bjsa01_dsme_deliver -mkbranch base_1_4_Integration\n"
-                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" /main/0 -mkbranch base_1_4_Integration\n"
-                + "\n\n\nend ucm\n\n#UCMCustomElemBegin - DO NOT REMOVE - ADD CUSTOM ELEMENT RULES AFTER THIS LINE\n#UCMCustomElemEnd - DO NOT REMOVE - END CUSTOM ELEMENT RULES"
-                + "\n# Non-included component backstop rule: no checkouts\nelement * /main/0 -ucm -nocheckout\n\n#UCMCustomLoadBegin - DO NOT REMOVE - ADD CUSTOM LOAD RULES AFTER THIS LINE\n"
-                + "load /vobs/base";
-
-        workspace.child("viewpath").mkdirs();
-        
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.catcs("viewname")).thenReturn(catcsOutput);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(taskListener.getLogger()).thenReturn(System.out);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "vobs/base" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).catcs("viewname");
-        verify(cleartool).update2("viewpath", null);
-        verify(cleartool).lscurrentview("viewpath");
-    }
-
-    @Test
-    public void testMultipleWindowsLoadRules() throws Exception {
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
-        when(launcher.isUnix()).thenReturn(Boolean.FALSE);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "\\ \\Windows", "\\\\C:\\System32" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        
-        verify(cleartool).doesViewExist("viewname");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool).update2("viewpath", new String[] { "\\ \\Windows", "\\\\C:\\System32" });
-    }
-
-    @Test
-    public void testFirstTimeWithNoUpdate() throws Exception {
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        
-        verify(cleartool).doesViewExist("viewname");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool, atLeastOnce()).update2("viewpath", new String[] { "loadrule" });
-    }
-
-    @Test
-    public void testSecondTimeWithNoUpdate() throws Exception {
-        workspace.child("viewpath").mkdirs();
-        
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, false, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).rmview("viewpath");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        assertEquals("stream", argument.getValue().getStreamSelector());
-        verify(cleartool, atLeastOnce()).update2("viewpath", new String[] { "loadrule" });
-        verify(cleartool).lscurrentview("viewpath");
-    }
-
-    @Test
-    public void testSecondTimeNewLoadRule() throws Exception {
-        workspace.child("viewpath").mkdirs();
-        
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\n");
-        when(taskListener.getLogger()).thenReturn(System.out);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-        
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "foo", "bar" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).catcs("viewname");
-        verify(cleartool).update2("viewpath", new String[] { "/bar" });
-        verify(cleartool).update2("viewpath", null);
-    }
-
-    @Test
-    public void testSecondTimeRemovedLoadRule() throws Exception {
-        workspace.child("viewpath").mkdirs();
-        
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\nload /bar\n");
-        when(taskListener.getLogger()).thenReturn(System.out);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(launcher.getListener()).thenReturn(taskListener);
-
-        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "bar" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-        
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).catcs("viewname");
-        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
-        verify(cleartool).update2("viewpath", null);
     }
 
     @Test
@@ -415,12 +105,321 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
         CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "PRODUCT", "COTS\\NUnit" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
-        
+
         verify(cleartool).doesViewExist("viewname");
         verify(cleartool).catcs("viewname");
         verify(cleartool).update2("viewpath", null);
         verify(cleartool).lscurrentview("viewpath");
-        
+
+    }
+
+    @Test
+    public void testFirstTime() throws Exception {
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
+        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
+    }
+
+    @Test
+    public void testFirstTimeViewPathAndViewTagExist() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("otherviewtag");
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
+        boolean checkout = action.checkout(launcher, workspace, "viewname");
+        Assert.assertTrue("Checkout should succeed.", checkout);
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).rmviewtag("viewname");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
+        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
+    }
+
+    @Test
+    public void testFirstTimeViewPathExists() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
+        boolean checkout = action.checkout(launcher, workspace, "viewname");
+
+        Assert.assertTrue("Checkout should succeed.", checkout);
+        verify(cleartool).doesViewExist("viewname");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
+        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
+    }
+
+    @Test
+    public void testFirstTimeViewTagExists() throws Exception {
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).rmviewtag("viewname");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
+        verify(cleartool).update2("viewpath", new String[] { "loadrule" });
+    }
+
+    @Test
+    public void testFirstTimeWithNoUpdate() throws Exception {
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
+        verify(cleartool, atLeastOnce()).update2("viewpath", new String[] { "loadrule" });
+    }
+
+    @Test
+    public void testMultipleLoadRules() throws Exception {
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule", "another\t loadrule" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+        verify(cleartool).doesViewExist("viewname");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
+        verify(cleartool).update2("viewpath", new String[] { "loadrule", "another\t loadrule" });
+    }
+
+    @Test
+    public void testMultipleWindowsLoadRules() throws Exception {
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
+        when(launcher.isUnix()).thenReturn(Boolean.FALSE);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "\\ \\Windows", "\\\\C:\\System32" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
+        verify(cleartool).update2("viewpath", new String[] { "\\ \\Windows", "\\\\C:\\System32" });
+    }
+
+    @Test
+    public void testSecondTime() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(cleartool.catcs("viewname")).thenReturn("ucm configspec");
+        when(taskListener.getLogger()).thenReturn(System.out);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).update2("viewpath", new String[] { "/loadrule" });
+        verify(cleartool).update2("viewpath", null);
+        verify(cleartool, atLeastOnce()).catcs("viewname");
+        verify(launcher, atLeastOnce()).isUnix();
+
+    }
+
+    @Test
+    public void testSecondTimeNewLoadRule() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\n");
+        when(taskListener.getLogger()).thenReturn(System.out);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "foo", "bar" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).catcs("viewname");
+        verify(cleartool).update2("viewpath", new String[] { "/bar" });
+        verify(cleartool).update2("viewpath", null);
+    }
+
+    @Test
+    public void testSecondTimeRemovedLoadRule() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\nload /bar\n");
+        when(taskListener.getLogger()).thenReturn(System.out);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "bar" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).catcs("viewname");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /bar\n");
+        verify(cleartool).update2("viewpath", null);
+    }
+
+    @Test
+    public void testSecondTimeWithLoadRulesSatisfied() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.catcs("viewname")).thenReturn("load " + "/abc/");
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(taskListener.getLogger()).thenReturn(System.out);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).catcs("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).update2("viewpath", null);
+    }
+
+    @Test
+    public void testSecondTimeWithMultipleLoadRulesNotSatisfied() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(cleartool.catcs("viewname")).thenReturn("ucm configspec\nload /abc/\n");
+        when(taskListener.getLogger()).thenReturn(System.out);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/", "abcd" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).catcs("viewname");
+        verify(cleartool).update2("viewpath", null);
+        verify(cleartool).update2("viewpath", new String[] { "/abcd" });
+    }
+
+    @Test
+    public void testSecondTimeWithMultipleLoadRulesSatisfied() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.catcs("viewname")).thenReturn("load /abc/\nload /abcd");
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(taskListener.getLogger()).thenReturn(System.out);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "abc/", "abcd" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).catcs("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).update2("viewpath", null);
+    }
+
+    @Test
+    public void testSecondTimeWithNoUpdate() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, false, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).rmview("viewpath");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        assertEquals("stream", argument.getValue().getStreamSelector());
+        verify(cleartool, atLeastOnce()).update2("viewpath", new String[] { "loadrule" });
+        verify(cleartool).lscurrentview("viewpath");
+    }
+
+    @Test
+    public void testSecondTimeWithRealMultipleLoadRulesSatisfied() throws Exception {
+        final String catcsOutput = "ucm\nidentity UCM.Stream oid:b689a462.74e011dd.8df7.00:16:35:7e:e1:93@vobuuid:9851d17f.c5aa11dc.9e7d.00:16:35:7e:e1:93 2\n"
+                + "# ONLY EDIT THIS CONFIG SPEC IN THE INDICATED \"CUSTOM\" AREAS\n#\n# This config spec was automatically generated by the UCM stream\n"
+                + "# \"base_1_4_Integration\" at 2008-09-02T16:12:44+02.\n#\n\n\n\n# Select checked out versions\nelement * CHECKEDOUT\n# Component selection rules..."
+                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" .../base_1_4_Integration/LATEST\n"
+                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" base_Main_080902_bjsa01_dsme_deliver -mkbranch base_1_4_Integration\n"
+                + "element \"[7781d0a2c5aa11dc9e670016357ee193=\base]/...\" /main/0 -mkbranch base_1_4_Integration\n"
+                + "\n\n\nend ucm\n\n#UCMCustomElemBegin - DO NOT REMOVE - ADD CUSTOM ELEMENT RULES AFTER THIS LINE\n#UCMCustomElemEnd - DO NOT REMOVE - END CUSTOM ELEMENT RULES"
+                + "\n# Non-included component backstop rule: no checkouts\nelement * /main/0 -ucm -nocheckout\n\n#UCMCustomLoadBegin - DO NOT REMOVE - ADD CUSTOM LOAD RULES AFTER THIS LINE\n"
+                + "load /vobs/base";
+
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.catcs("viewname")).thenReturn(catcsOutput);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(taskListener.getLogger()).thenReturn(System.out);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(launcher.getListener()).thenReturn(taskListener);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "vobs/base" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).catcs("viewname");
+        verify(cleartool).update2("viewpath", null);
+        verify(cleartool).lscurrentview("viewpath");
     }
 
 }

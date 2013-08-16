@@ -24,9 +24,13 @@
  */
 package hudson.plugins.clearcase;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.Build;
@@ -52,25 +56,65 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Node.class, AbstractProject.class})
+@PrepareForTest({ Node.class, AbstractProject.class })
 public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     @Mock
-    private ClearTool                                 cleartool;
-    
-    private AbstractProject                           project;
-    @Mock
     private Build                                     build;
+
     @Mock
-    private Launcher                                  launcher;
+    private ClearCaseUcmSCM.ClearCaseUcmScmDescriptor clearCaseUcmScmDescriptor;
+    @Mock
+    private ClearTool                                 cleartool;
     @Mock
     private ClearToolLauncher                         clearToolLauncher;
     @Mock
     private Computer                                  computer;
+    @Mock
+    private Launcher                                  launcher;
     private Node                                      node;
+    private AbstractProject                           project;
     @Mock
     private TaskListener                              taskListener;
-    @Mock
-    private ClearCaseUcmSCM.ClearCaseUcmScmDescriptor clearCaseUcmScmDescriptor;
+
+    @Test
+    public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(build.getBuiltOn()).thenReturn(node);
+        when(build.getProject()).thenReturn(project);
+        when(project.getFullName()).thenReturn("ClearCase");
+        when(build.getParent()).thenReturn(project);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+        when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
+        when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "ClearCase"));
+        when(computer.getSystemProperties()).thenReturn(System.getProperties());
+
+        when(clearToolLauncher.getListener()).thenReturn(taskListener);
+        when(taskListener.getLogger()).thenReturn(System.out);
+        when(clearToolLauncher.getLauncher()).thenReturn(launcher);
+        when(cleartool.pwv("viewname-ClearCase")).thenReturn("/view/viewname-ClearCase");
+
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCMDummy("stream:mystream", "somefile", "viewname-${JOB_NAME}", true, "/view", null, true, false, false, null,
+                null, null, false, cleartool, clearCaseUcmScmDescriptor);
+        // Create actions
+        VariableResolver<String> variableResolver = new BuildVariableResolver(build);
+        UcmHistoryAction action = scm.createHistoryAction(variableResolver, clearToolLauncher, null, false);
+        verify(cleartool).pwv("viewname-ClearCase");
+        assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
+    }
+
+    /**
+     * Test for (issue 1706). VOBPaths are used by the lshistory command, and should not start with a "\\" or "/" as that would make the cleartool command think
+     * the view is located by an absolute path and not an relative path.
+     */
+    @Test
+    @Bug(1706)
+    public void assertLoadRuleIsConvertedToRelativeViewPath() throws Exception {
+        AbstractClearCaseScm scm = new ClearCaseUcmSCM("stream", "\\\\loadrule\\one\n/loadrule/two", "viewname", false, "viewdrive", "option", false, false,
+                false, "", null, "", false, false, false, false, "viewpath", true, null, null);
+        assertEquals("The first view path is not correct", "loadrule\\one", scm.getViewPaths(null, null, launcher)[0]);
+        assertEquals("The second view path is not correct", "loadrule/two", scm.getViewPaths(null, null, launcher)[1]);
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -90,20 +134,6 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
                 false, false, false, false, "viewpath", true, null, null);
         assertNotNull("The change log parser is null", scm.createChangeLogParser());
         assertNotSame("The change log parser is re-used", scm.createChangeLogParser(), scm.createChangeLogParser());
-    }
-
-    @Test
-    public void testGetStream() {
-        ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option", false, false, false, "", null, "", false,
-                false, false, false, "viewpath", true, null, null);
-        assertEquals("The stream isn't correct", "stream", scm.getStream());
-    }
-
-    @Test
-    public void testGetOverrideBranchName() {
-        ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option", false, false, false, "", null,
-                "override-branch", false, false, false, false, "viewpath", true, null, null);
-        assertEquals("The override branch isn't correct", "override-branch", scm.getOverrideBranchName());
     }
 
     @Test
@@ -132,23 +162,24 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testGetOverrideBranchName() {
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option", false, false, false, "", null,
+                "override-branch", false, false, false, false, "viewpath", true, null, null);
+        assertEquals("The override branch isn't correct", "override-branch", scm.getOverrideBranchName());
+    }
+
+    @Test
+    public void testGetStream() {
+        ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option", false, false, false, "", null, "", false,
+                false, false, false, "viewpath", true, null, null);
+        assertEquals("The stream isn't correct", "stream", scm.getStream());
+    }
+
+    @Test
     public void testGetViewPaths() throws Exception {
         AbstractClearCaseScm scm = new ClearCaseUcmSCM("stream", "loadrules", "viewname", false, "viewdrive", "option", false, false, false, "", null, "",
                 false, false, false, false, "viewpath", true, null, null);
         assertEquals("The view path is not the same as the load rules", "loadrules", scm.getViewPaths(null, null, launcher)[0]);
-    }
-
-    /**
-     * Test for (issue 1706). VOBPaths are used by the lshistory command, and should not start with a "\\" or "/" as that would make the cleartool command think
-     * the view is located by an absolute path and not an relative path.
-     */
-    @Test
-    @Bug(1706)
-    public void assertLoadRuleIsConvertedToRelativeViewPath() throws Exception {
-        AbstractClearCaseScm scm = new ClearCaseUcmSCM("stream", "\\\\loadrule\\one\n/loadrule/two", "viewname", false, "viewdrive", "option", false, false,
-                false, "", null, "", false, false, false, false, "viewpath", true, null, null);
-        assertEquals("The first view path is not correct", "loadrule\\one", scm.getViewPaths(null, null, launcher)[0]);
-        assertEquals("The second view path is not correct", "loadrule/two", scm.getViewPaths(null, null, launcher)[1]);
     }
 
     /**
@@ -189,32 +220,5 @@ public class ClearCaseUcmSCMTest extends AbstractWorkspaceTest {
         ClearCaseUcmSCM scm = new ClearCaseUcmSCM("stream:mystream", "file with space\nanotherfile", "viewname", false, "viewdrive", "option", false, false,
                 false, "", null, "", false, false, false, false, "viewpath", true, null, null);
         assertEquals("stream name not shortenen correctly", "mystream", scm.getStream());
-    }
-
-    @Test
-    public void assertExtendedViewPathUsesNormalizedViewName() throws Exception {
-        when(node.toComputer()).thenReturn(computer);
-        when(node.getNodeName()).thenReturn("test-node");
-        when(build.getBuiltOn()).thenReturn(node);
-        when(build.getProject()).thenReturn(project);
-        when(project.getFullName()).thenReturn("ClearCase");
-        when(build.getParent()).thenReturn(project);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-        when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
-        when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "ClearCase"));
-        when(computer.getSystemProperties()).thenReturn(System.getProperties());
-
-        when(clearToolLauncher.getListener()).thenReturn(taskListener);
-        when(taskListener.getLogger()).thenReturn(System.out);
-        when(clearToolLauncher.getLauncher()).thenReturn(launcher);
-        when(cleartool.pwv("viewname-ClearCase")).thenReturn("/view/viewname-ClearCase");
-
-        ClearCaseUcmSCM scm = new ClearCaseUcmSCMDummy("stream:mystream", "somefile", "viewname-${JOB_NAME}", true, "/view", null, true, false, false,
-                null, null, null, false, cleartool, clearCaseUcmScmDescriptor);
-        // Create actions
-        VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        UcmHistoryAction action = scm.createHistoryAction(variableResolver, clearToolLauncher, null, false);
-        verify(cleartool).pwv("viewname-ClearCase");
-        assertEquals("The extended view path is incorrect", "/view/viewname-ClearCase/", action.getExtendedViewPath());
     }
 }

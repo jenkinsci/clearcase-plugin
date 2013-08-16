@@ -36,17 +36,12 @@ import org.mockito.MockitoAnnotations;
 
 public abstract class AbstractWorkspaceTest {
 
-    @Before
-    public void initMocks() {
-        MockitoAnnotations.initMocks(this);
-    }
-
     @SuppressWarnings("unchecked")
     protected final static VariableResolver<String> EMPTY_VARIABLE_RESOLVER = new VariableResolver.ByMap<String>(Collections.EMPTY_MAP);
 
     protected File                                  parentFile;
-    protected FilePath                              workspace;
 
+    protected FilePath                              workspace;
     public void createWorkspace() throws Exception {
         parentFile = Util.createTempDir();
         workspace = new FilePath(parentFile);
@@ -58,5 +53,10 @@ public abstract class AbstractWorkspaceTest {
 
     public void deleteWorkspace() throws Exception {
         workspace.deleteRecursive();
+    }
+
+    @Before
+    public void initMocks() {
+        MockitoAnnotations.initMocks(this);
     }
 }

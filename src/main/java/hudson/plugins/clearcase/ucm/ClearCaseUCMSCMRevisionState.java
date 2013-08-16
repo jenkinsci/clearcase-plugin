@@ -24,7 +24,6 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-
 import hudson.plugins.clearcase.AbstractClearCaseSCMRevisionState;
 import hudson.plugins.clearcase.Baseline;
 
@@ -37,21 +36,20 @@ import java.util.List;
  */
 public class ClearCaseUCMSCMRevisionState extends AbstractClearCaseSCMRevisionState {
     private final List<Baseline> baselines;
-    private final String stream;
-    
+    private final String         stream;
+
     public ClearCaseUCMSCMRevisionState(List<Baseline> baselines, Date buildTime, String stream) {
         super(buildTime);
         this.baselines = baselines;
         this.stream = stream;
     }
-    
+
     public List<Baseline> getBaselines() {
         return Collections.unmodifiableList(baselines);
     }
-    
+
     public String getStream() {
         return stream;
     }
-    
 
 }

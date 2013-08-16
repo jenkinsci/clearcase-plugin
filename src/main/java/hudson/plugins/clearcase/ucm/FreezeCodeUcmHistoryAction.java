@@ -48,23 +48,25 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
-    private static final String BASELINE_NAME = "hudson_poll_";
-    private static final String BASELINE_COMMENT = "hudson_poll_";
+    private static final String       BASELINE_COMMENT = "hudson_poll_";
+    private static final String       BASELINE_NAME    = "hudson_poll_";
 
     private final AbstractBuild<?, ?> build;
-    private final String viewDrive;
-    private final String stream;
-    public FreezeCodeUcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, String stream, String viewDrive,
-            AbstractBuild<?, ?> build, ClearCaseUCMSCMRevisionState oldBaseline, ClearCaseUCMSCMRevisionState newBaseline) {
+    private final String              stream;
+    private final String              viewDrive;
+
+    public FreezeCodeUcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, String stream, String viewDrive, AbstractBuild<?, ?> build,
+            ClearCaseUCMSCMRevisionState oldBaseline, ClearCaseUCMSCMRevisionState newBaseline) {
         super(cleartool, useDynamicView, filter, oldBaseline, newBaseline, null);
         this.build = build;
         this.stream = stream;
         this.viewDrive = viewDrive;
-        
+
     }
-    
+
     @Override
-    public List<Entry> getChanges(Date time, String viewPath, String viewName, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+    public List<Entry> getChanges(Date time, String viewPath, String viewName, String[] branchNames, String[] viewPaths) throws IOException,
+    InterruptedException {
         List<HistoryEntry> entries = new ArrayList<HistoryEntry>();
 
         // get latest baselines on the configured stream (set as an action on the build by the checkout operation)
@@ -86,7 +88,11 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
         // get previous build baselines (set as an action on the previous build by the checkout operation)
         List<Baseline> previousBuildBls = null;
         if (clearcaseDataAction != null) {
-            cleartool.getLauncher().getListener().getLogger().println(
+            cleartool
+            .getLauncher()
+            .getListener()
+            .getLogger()
+            .println(
                     "Checking changes by comparing this build and the last build (" + previousBuild.getNumber() + ") that ran on stream " + getStream());
 
             previousBuildBls = clearcaseDataAction.getLatestBlsOnConfiguredStream();
@@ -107,6 +113,10 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
         return changelog;
     }
 
+    public String getStream() {
+        return stream;
+    }
+
     @Override
     public boolean hasChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
         // make baseline on the configured stream.
@@ -114,7 +124,8 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
         String dateStr = formatter.format(new Date()).toLowerCase();
 
-        cleartool.mkbl((BASELINE_NAME + dateStr), UcmDynamicCheckoutAction.getConfiguredStreamViewName(build.getProject().getName(), getStream()), (BASELINE_COMMENT + dateStr), false, false, null, null, null);
+        cleartool.mkbl((BASELINE_NAME + dateStr), UcmDynamicCheckoutAction.getConfiguredStreamViewName(build.getProject().getName(), getStream()),
+                (BASELINE_COMMENT + dateStr), false, false, null, null, null);
 
         // get latest baselines on the configured stream
         List<Baseline> latestBlsOnConfgiuredStream = UcmCommon.getLatestBlsWithCompOnStream(cleartool, getStream(),
@@ -152,6 +163,40 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
         return false;
     }
 
+    private String getBaseLineNameForComponent(List<Baseline> baselineList, String compName) {
+        for (Baseline blDesc : baselineList) {
+            if (UcmCommon.getNoVob(blDesc.getComponentName()).equals(UcmCommon.getNoVob(compName)))
+                return blDesc.getBaselineName();
+        }
+
+        return null;
+    }
+
+    private List<String> getChangedVersions(List<Baseline> newBls, List<Baseline> oldBls) throws IOException, InterruptedException {
+        List<String> changedVersionList = new ArrayList<String>();
+
+        // compare baselines
+        for (Baseline blDesc : newBls) {
+            // ignore read-only components
+            if (!blDesc.getComponentDesc().isModifiable())
+                continue;
+
+            String previousBl = getBaseLineNameForComponent(oldBls, blDesc.getComponentName());
+
+            // check if baselines changed
+            if (previousBl != null && !previousBl.equals(blDesc.getBaselineName())) {
+                String viewName = UcmDynamicCheckoutAction.getConfiguredStreamViewName(build.getProject().getName(), getStream());
+
+                // run diffbl
+                List<String> changedVersionListPerBl = UcmCommon.getDiffBlVersions(cleartool, viewDrive + "/" + viewName, previousBl, blDesc.getBaselineName());
+
+                changedVersionList.addAll(changedVersionListPerBl);
+            }
+        }
+
+        return changedVersionList;
+    }
+
     private List<HistoryEntry> translateChangedVersionsToEnteries(List<String> changedVerionsList) throws IOException, InterruptedException {
         List<HistoryEntry> entries = new ArrayList<HistoryEntry>();
         StringBuilder entriesDesc = new StringBuilder();
@@ -172,45 +217,6 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
         }
 
         return entries;
-    }
-
-    private List<String> getChangedVersions(List<Baseline> newBls, List<Baseline> oldBls) throws IOException, InterruptedException {
-        List<String> changedVersionList = new ArrayList<String>();
-
-        // compare baselines
-        for (Baseline blDesc : newBls) {
-            // ignore read-only components
-            if (!blDesc.getComponentDesc().isModifiable())
-                continue;
-
-            String previousBl = getBaseLineNameForComponent(oldBls, blDesc.getComponentName());
-
-            // check if baselines changed
-            if (previousBl != null && !previousBl.equals(blDesc.getBaselineName())) {
-                String viewName = UcmDynamicCheckoutAction.getConfiguredStreamViewName(build.getProject().getName(), getStream());
-
-                // run diffbl
-                List<String> changedVersionListPerBl = UcmCommon.getDiffBlVersions(cleartool, viewDrive + "/" + viewName, previousBl, blDesc
-                        .getBaselineName());
-
-                changedVersionList.addAll(changedVersionListPerBl);
-            }
-        }
-
-        return changedVersionList;
-    }
-
-    private String getBaseLineNameForComponent(List<Baseline> baselineList, String compName) {
-        for (Baseline blDesc : baselineList) {
-            if (UcmCommon.getNoVob(blDesc.getComponentName()).equals(UcmCommon.getNoVob(compName)))
-                return blDesc.getBaselineName();
-        }
-
-        return null;
-    }
-
-    public String getStream() {
-        return stream;
     }
 
 }

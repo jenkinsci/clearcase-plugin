@@ -3,13 +3,13 @@ package hudson.plugins.clearcase;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 public class MkViewParameters {
-    
-    private ViewType type = ViewType.Snapshot;
-    private String streamSelector;
-    private String viewTag;
-    private String viewPath;
+
+    private String      additionalParameters;
+    private String      streamSelector;
+    private ViewType    type = ViewType.Snapshot;
+    private String      viewPath;
     private ViewStorage viewStorage;
-    private String additionalParameters;
+    private String      viewTag;
 
     public String getAdditionalParameters() {
         return additionalParameters;
@@ -18,6 +18,7 @@ public class MkViewParameters {
     public String getStreamSelector() {
         return streamSelector;
     }
+
     public ViewType getType() {
         return type;
     }
@@ -25,12 +26,14 @@ public class MkViewParameters {
     public String getViewPath() {
         return viewPath;
     }
+
     public ViewStorage getViewStorage() {
         if (viewStorage == null) {
             viewStorage = ViewStorage.createDefault();
         }
         return viewStorage;
     }
+
     public String getViewTag() {
         return viewTag;
     }
@@ -38,21 +41,25 @@ public class MkViewParameters {
     public void setAdditionalParameters(String additionalParameters) {
         this.additionalParameters = additionalParameters;
     }
+
     public void setStreamSelector(String streamSelector) {
         this.streamSelector = streamSelector;
     }
+
     public void setType(ViewType type) {
         this.type = type;
     }
+
     public void setViewPath(String viewPath) {
         this.viewPath = viewPath;
     }
+
     public void setViewStorage(ViewStorage viewStorage) {
         this.viewStorage = viewStorage;
     }
+
     public void setViewTag(String viewTag) {
         this.viewTag = viewTag;
     }
-
 
 }

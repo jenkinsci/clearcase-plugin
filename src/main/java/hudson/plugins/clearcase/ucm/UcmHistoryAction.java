@@ -64,16 +64,17 @@ import org.apache.commons.lang.StringUtils;
  */
 public class UcmHistoryAction extends AbstractHistoryAction {
 
-    private static final String[] HISTORY_FORMAT = { DATE_NUMERIC, USER_ID, NAME_ELEMENTNAME, NAME_VERSIONID, EVENT, OPERATION, UCM_VERSION_ACTIVITY };
+    private static final String[]              ACTIVITY_FORMAT             = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, };
 
-    private static final String[] ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, };
+    private static final String[]              HISTORY_FORMAT              = { DATE_NUMERIC, USER_ID, NAME_ELEMENTNAME, NAME_VERSIONID, EVENT, OPERATION,
+        UCM_VERSION_ACTIVITY                                          };
 
-    private static final String[] INTEGRATION_ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, UCM_ACTIVITY_CONTRIBUTING };
+    private static final String[]              INTEGRATION_ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, UCM_ACTIVITY_CONTRIBUTING };
 
-    private final ClearToolFormatHandler historyHandler = new ClearToolFormatHandler(HISTORY_FORMAT);
+    private final ClearToolFormatHandler       historyHandler              = new ClearToolFormatHandler(HISTORY_FORMAT);
 
-    private final ClearCaseUCMSCMRevisionState oldBaseline;
     private final ClearCaseUCMSCMRevisionState newBaseline;
+    private final ClearCaseUCMSCMRevisionState oldBaseline;
 
     public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ClearCaseUCMSCMRevisionState oldBaseline,
             ClearCaseUCMSCMRevisionState newBaseline, ChangeSetLevel changeset) {
@@ -114,6 +115,74 @@ public class UcmHistoryAction extends AbstractHistoryAction {
         }
 
         return result;
+    }
+
+    @Override
+    protected ClearToolFormatHandler getHistoryFormatHandler() {
+        return historyHandler;
+    }
+
+    @Override
+    protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException {
+        // read values;
+        HistoryEntry entry = new HistoryEntry();
+        entry.setLine(line);
+
+        entry.setDateText(matcher.group(1));
+        entry.setUser(matcher.group(2).trim());
+        entry.setElement(matcher.group(3).trim());
+        entry.setVersionId(matcher.group(4).trim());
+        entry.setEvent(matcher.group(5).trim());
+        entry.setOperation(matcher.group(6).trim());
+        entry.setActivityName(matcher.group(7).trim());
+        return entry;
+    }
+
+    @Override
+    protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+    InterruptedException {
+        List<HistoryEntry> history = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
+        if (needsHistoryOnAllBranches()) {
+            if (oldBaseline == null) {
+                return history;
+            }
+            List<Baseline> oldBaselines = oldBaseline.getBaselines();
+            List<Baseline> newBaselines = newBaseline.getBaselines();
+            if (ObjectUtils.equals(oldBaselines, newBaselines)) {
+                return history;
+            }
+            for (final Baseline oldBl : oldBaselines) {
+                String bl1 = oldBl.getBaselineName();
+                final String comp1 = oldBl.getComponentName();
+                // Lookup the component in the set of new baselines
+                Baseline newBl = (Baseline) CollectionUtils.find(newBaselines, new Predicate() {
+                    @Override
+                    public boolean evaluate(Object bl) {
+                        return StringUtils.equals(comp1, ((Baseline) bl).getComponentName());
+                    }
+                });
+                // If we cannot find a new baseline, log and skip
+                if (newBl == null) {
+                    cleartool.getLauncher().getListener().getLogger()
+                    .print("Old Baseline " + bl1 + " for component " + comp1 + " couldn't be found in the new set of baselines.");
+                    continue;
+                }
+                String bl2 = newBl.getBaselineName();
+                if (!StringUtils.equals(bl1, bl2)) {
+                    List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
+                    for (String version : versions) {
+                        try {
+                            parseLsHistory(
+                                    new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + OutputFormat.COMMENT + OutputFormat.LINEEND,
+                                            null, version)), history);
+                        } catch (ParseException e) {
+                            /* empty by design */
+                        }
+                    }
+                }
+            }
+        }
+        return history;
     }
 
     private void callLsActivity(Map<String, UcmActivity> activityMap, UcmActivity activity, String viewPath, int numberOfContributingActivitiesToFollow)
@@ -158,73 +227,8 @@ public class UcmHistoryAction extends AbstractHistoryAction {
         reader.close();
     }
 
-    @Override
-    protected List<HistoryEntry> runLsHistory(Date sinceTime, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
-            InterruptedException {
-        List<HistoryEntry> history = super.runLsHistory(sinceTime, viewPath, viewTag, branchNames, viewPaths);
-        if (needsHistoryOnAllBranches()) {
-            if (oldBaseline == null) {
-                return history;
-            }
-            List<Baseline> oldBaselines = oldBaseline.getBaselines();
-            List<Baseline> newBaselines = newBaseline.getBaselines();
-            if (ObjectUtils.equals(oldBaselines, newBaselines)) {
-                return history;
-            }
-            for (final Baseline oldBl : oldBaselines) {
-                String bl1 = oldBl.getBaselineName();
-                final String comp1 = oldBl.getComponentName();
-                // Lookup the component in the set of new baselines
-                Baseline newBl = (Baseline) CollectionUtils.find(newBaselines, new Predicate() {
-                    @Override
-                    public boolean evaluate(Object bl) {
-                        return StringUtils.equals(comp1, ((Baseline) bl).getComponentName());
-                    }
-                });
-                // If we cannot find a new baseline, log and skip
-                if (newBl == null) {
-                    cleartool.getLauncher().getListener().getLogger().print("Old Baseline " + bl1 + " for component " + comp1 + " couldn't be found in the new set of baselines.");
-                    continue;
-                }
-                String bl2 = newBl.getBaselineName();
-                if (!StringUtils.equals(bl1, bl2)) {
-                    List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
-                    for (String version : versions) {
-                        try {
-                            parseLsHistory(new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + OutputFormat.COMMENT + OutputFormat.LINEEND, null, version)), history);
-                        } catch (ParseException e) {
-                            /* empty by design */
-                        }
-                    }
-                }
-            }
-        }
-        return history;
-    }
-
     private boolean needsHistoryOnAllBranches() {
         return ChangeSetLevel.ALL.equals(getChangeset());
-    }
-
-    @Override
-    protected ClearToolFormatHandler getHistoryFormatHandler() {
-        return historyHandler;
-    }
-
-    @Override
-    protected HistoryEntry parseEventLine(Matcher matcher, String line) throws ParseException {
-        // read values;
-        HistoryEntry entry = new HistoryEntry();
-        entry.setLine(line);
-
-        entry.setDateText(matcher.group(1));
-        entry.setUser(matcher.group(2).trim());
-        entry.setElement(matcher.group(3).trim());
-        entry.setVersionId(matcher.group(4).trim());
-        entry.setEvent(matcher.group(5).trim());
-        entry.setOperation(matcher.group(6).trim());
-        entry.setActivityName(matcher.group(7).trim());
-        return entry;
     }
 
 }

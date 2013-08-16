@@ -48,27 +48,26 @@ import org.apache.commons.lang.StringUtils;
  * <li>OS - Shorthand to "os.name" system property</li>
  * <li>USER_NAME - The system property "user.name" on the Node that the Launcher is being executed on (slave or master)</li>
  * <li>NODE_NAME - The name of the node that the Launcher is being executed on</li>
- * <li>Any environment variable (system or build-scoped) that is set on the Node that the Launcher is being executed on
- * (slave or master)</li>
+ * <li>Any environment variable (system or build-scoped) that is set on the Node that the Launcher is being executed on (slave or master)</li>
  * </ul>
- * Implementation note: This class is modelled after Erik Ramfelt's work in the Team Foundation Server Plugin. Maybe
- * they should be merged and moved to the hudson core
+ * Implementation note: This class is modelled after Erik Ramfelt's work in the Team Foundation Server Plugin. Maybe they should be merged and moved to the
+ * hudson core
  * 
  * @author Henrik Lynggaard Hansen
  */
 public class BuildVariableResolver implements VariableResolver<String> {
 
-    private static final Logger LOGGER = Logger.getLogger(BuildVariableResolver.class.getName());
+    private static final Logger           LOGGER = Logger.getLogger(BuildVariableResolver.class.getName());
 
-    private AbstractBuild<?, ?> build;
-    
-    private transient String nodeName;
-    
-    private transient Computer computer;
-    
+    private AbstractBuild<?, ?>           build;
+
+    private transient Computer            computer;
+
+    private transient String              nodeName;
+
+    private boolean                       restricted;
+
     private transient Map<Object, Object> systemProperties;
-    
-    private boolean restricted;
 
     public BuildVariableResolver(final AbstractBuild<?, ?> build) {
         this.build = build;
@@ -76,12 +75,13 @@ public class BuildVariableResolver implements VariableResolver<String> {
         this.nodeName = node.getNodeName();
         this.computer = node.toComputer();
     }
-    
+
     public BuildVariableResolver(final AbstractBuild<?, ?> build, boolean restricted) {
         this(build);
         this.restricted = restricted;
     }
-    
+
+    @Override
     public String resolve(String key) {
         try {
             if (systemProperties == null) {
@@ -91,7 +91,7 @@ public class BuildVariableResolver implements VariableResolver<String> {
             if ("JOB_NAME".equals(key) && build != null && build.getProject() != null) {
                 return build.getProject().getFullName();
             }
-            
+
             if ("HOST".equals(key)) {
                 return (Util.fixEmpty(computer.getHostName()));
             }
@@ -135,6 +135,6 @@ public class BuildVariableResolver implements VariableResolver<String> {
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Variable name '" + key + "' look up failed", e);
         }
-        return null; 
+        return null;
     }
 }

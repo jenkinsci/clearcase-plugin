@@ -17,20 +17,20 @@ public class SpecificViewStorage extends ViewStorage {
             return "Use explicit path";
         }
 
-        public String getWinStorageDir() {
-            ViewStorage defaultViewStorage = getDefaultViewStorage();
-            if (defaultViewStorage instanceof SpecificViewStorage) {
-                return ((SpecificViewStorage) defaultViewStorage).getWinStorageDir();
-            }
-            return getClearcaseDescriptor().getDefaultWinDynStorageDir();
-        }
-
         public String getUnixStorageDir() {
             ViewStorage defaultViewStorage = getDefaultViewStorage();
             if (defaultViewStorage instanceof SpecificViewStorage) {
                 return ((SpecificViewStorage) defaultViewStorage).getUnixStorageDir();
             }
             return getClearcaseDescriptor().getDefaultUnixDynStorageDir();
+        }
+
+        public String getWinStorageDir() {
+            ViewStorage defaultViewStorage = getDefaultViewStorage();
+            if (defaultViewStorage instanceof SpecificViewStorage) {
+                return ((SpecificViewStorage) defaultViewStorage).getWinStorageDir();
+            }
+            return getClearcaseDescriptor().getDefaultWinDynStorageDir();
         }
 
     }

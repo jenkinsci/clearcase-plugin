@@ -36,9 +36,13 @@ import java.util.regex.Pattern;
  * @author hlyh
  */
 public abstract class FieldFilter implements Filter {
-    private Type type;
-    private String patternText;
+    public enum Type {
+        Contains, ContainsIgnoreCase, ContainsRegxp, DoesNotContain, DoesNotContainIgnoreCase, DoesNotContainRegxp, EndsWith, EndsWithIgnoreCase, Equals, EqualsIgnoreCase, NotEquals, NotEqualsIgnoreCase, StartsWith, StartsWithIgnoreCase
+    }
     private Pattern pattern;
+    private String  patternText;
+
+    private Type    type;
 
     public FieldFilter(FieldFilter.Type type, String patternText) {
         this.type = type;
@@ -109,11 +113,8 @@ public abstract class FieldFilter implements Filter {
         return true;
     }
 
-    public enum Type {
-        Equals, EqualsIgnoreCase, NotEquals, NotEqualsIgnoreCase, StartsWith, StartsWithIgnoreCase, EndsWith, EndsWithIgnoreCase, Contains, ContainsIgnoreCase, DoesNotContain, DoesNotContainIgnoreCase, ContainsRegxp, DoesNotContainRegxp
-    }
-
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return getClass().getSimpleName() + "{" + "type=" + type + ", patternText=" + patternText + ", pattern=" + pattern + '}';
     }
 

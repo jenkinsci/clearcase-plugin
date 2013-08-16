@@ -28,7 +28,6 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.TaskListener;
-import hudson.remoting.VirtualChannel;
 import hudson.util.ForkOutputStream;
 
 import java.io.BufferedReader;
@@ -48,12 +47,12 @@ import org.apache.commons.lang.StringUtils;
  */
 public class HudsonClearToolLauncher implements ClearToolLauncher {
 
-    private final TaskListener listener;
-    private final FilePath     workspace;
+    private final String       executable;
     private final Launcher     launcher;
+    private final TaskListener listener;
 
     private final String       scmName;
-    private final String       executable;
+    private final FilePath     workspace;
 
     public HudsonClearToolLauncher(String executable, String scmName, TaskListener listener, FilePath workspace, Launcher launcher) {
         this.executable = executable;
@@ -63,24 +62,53 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
         this.launcher = launcher;
     }
 
+    @Override
+    public String getCmdString(String[] cmd) {
+        return StringUtils.join(cmd, ' ');
+    }
+
+    public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out, FilePath path) throws IOException {
+        return getLauncher().launch().cmds(cmdWithExec).envs(env).stdin(inputStream).stdout(out).pwd(path).start();
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see hudson.plugins.clearcase.ClearToolLauncher#getLauncher()
+     */
+    @Override
+    public Launcher getLauncher() {
+        return this.launcher;
+    }
+
+    @Override
     public TaskListener getListener() {
         return listener;
     }
 
+    @Override
     public FilePath getWorkspace() {
         return workspace;
     }
 
+    @Override
+    public boolean isUnix() {
+        return launcher.isUnix();
+    }
+
+    @Override
     public boolean run(String[] cmd, FilePath filePath) throws IOException, InterruptedException {
         return run(cmd, null, null, filePath);
     }
 
+    @Override
     public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, FilePath filePath) throws IOException, InterruptedException {
         return run(cmd, inputStream, outputStream, filePath, false);
     }
 
+    @Override
     public boolean run(String[] cmd, InputStream inputStream, OutputStream outputStream, FilePath filePath, boolean logCommand) throws IOException,
-            InterruptedException {
+    InterruptedException {
         String ccVerbose = System.getenv("HUDSON_CLEARCASE_VERBOSE");
         logCommand |= StringUtils.equals("1", ccVerbose);
 
@@ -142,27 +170,5 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
             IOUtils.closeQuietly(br);
             IOUtils.closeQuietly(fileReader);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see hudson.plugins.clearcase.ClearToolLauncher#getLauncher()
-     */
-    public Launcher getLauncher() {
-        return this.launcher;
-    }
-
-    public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out, FilePath path) throws IOException {
-        return getLauncher().launch().cmds(cmdWithExec).envs(env).stdin(inputStream).stdout(out).pwd(path).start();
-    }
-
-    public String getCmdString(String[] cmd) {
-        return StringUtils.join(cmd, ' ');
-    }
-
-    @Override
-    public boolean isUnix() {
-        return launcher.isUnix();
     }
 }

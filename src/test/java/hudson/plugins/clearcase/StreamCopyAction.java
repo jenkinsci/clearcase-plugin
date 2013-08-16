@@ -38,16 +38,13 @@ import org.mockito.stubbing.Answer;
  */
 public class StreamCopyAction implements Answer<Boolean> {
     private InputStream inputStream;
-    private int parameterIndex;
-    private Boolean returnValue;
+    private int         parameterIndex;
+    private Boolean     returnValue;
 
     public StreamCopyAction(int parameterIndex, InputStream inputStream, Boolean returnValue) {
         this.inputStream = inputStream;
         this.parameterIndex = parameterIndex;
         this.returnValue = returnValue;
-    }
-
-    public void describeTo(Description description) {
     }
 
     @Override
@@ -59,5 +56,8 @@ public class StreamCopyAction implements Answer<Boolean> {
         }
         inputStream.close();
         return returnValue;
+    }
+
+    public void describeTo(Description description) {
     }
 }

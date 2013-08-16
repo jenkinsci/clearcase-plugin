@@ -46,8 +46,10 @@ public class UcmChangeLogParser extends ChangeLogParser {
     /**
      * Parses the change log file and returns a ClearCase change log set.
      * 
-     * @param build the build for the change log
-     * @param changeLogFile the change log file
+     * @param build
+     *            the build for the change log
+     * @param changeLogFile
+     *            the change log file
      * @return the change log set
      */
     @Override
@@ -61,8 +63,10 @@ public class UcmChangeLogParser extends ChangeLogParser {
     /**
      * Parses the change log stream and returns a ClearCase change log set.
      * 
-     * @param build the build for the change log
-     * @param changeLogStream input stream containing the change log
+     * @param build
+     *            the build for the change log
+     * @param changeLogStream
+     *            input stream containing the change log
      * @return the change log set
      */
     UcmChangeLogSet parse(AbstractBuild<?, ?> build, InputStream changeLogStream) throws IOException, SAXException {

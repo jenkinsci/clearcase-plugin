@@ -24,9 +24,15 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Matchers.notNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.history.DestroySubBranchFilter;
@@ -48,25 +54,13 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
     private ClearTool cleartool;
 
     @Test
-    public void assertFormatContainsComment() throws Exception {
-        when(
-                cleartool.lshistory(eq("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n"), any(Date.class),
-                        anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean())).thenReturn(new StringReader(""));
-
-        UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
-        action.getChanges(new Date(), "IGNORED", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
-        verify(cleartool).lshistory(eq("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n"), any(Date.class),
-                anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean());
-    }
-
-    @Test
     public void assertDestroySubBranchEventIsIgnored() throws Exception {
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
                         + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
-                new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
-                        + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"\" " + "\"destroy sub-branch \"esmalling_branch\" of branch\" "
-                        + "\"checkin\" \"username\" "));
+                                new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
+                                        + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"\" " + "\"destroy sub-branch \"esmalling_branch\" of branch\" "
+                                        + "\"checkin\" \"username\" "));
 
         List<Filter> filters = new ArrayList<Filter>();
 
@@ -80,28 +74,54 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void assertParsingOfNonIntegrationActivity() throws Exception {
+    public void assertFormatContainsComment() throws Exception {
+        when(
+                cleartool.lshistory(eq("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n"), any(Date.class),
+                        anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean())).thenReturn(new StringReader(""));
+
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
+        action.getChanges(new Date(), "IGNORED", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
+        verify(cleartool).lshistory(eq("\\\"%Nd\\\" \\\"%En\\\" \\\"%Vn\\\" \\\"%[activity]p\\\" \\\"%e\\\" \\\"%o\\\" \\\"%u\\\" \\n%c\\n"), any(Date.class),
+                anyString(), anyString(), any(String[].class), anyBoolean(), anyBoolean());
+    }
+
+    @Test(expected = IOException.class)
+    public void assertLsactivityReaderIsClosed() throws Exception {
+        final StringReader lsactivityReader = new StringReader("\"Convert to Java 6\" " + "\"Release_3_3_jdk5\" " + "\"bob\" ");
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
                         + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
-                new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
-                        + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"Release_3_3_jdk5.20080509.155359\" " + "\"create directory version\" "
-                        + "\"checkin\" \"username\" "));
+                                new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
+                                        + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"Release_3_3_jdk5.20080509.155359\" " + "\"create directory version\" "
+                                        + "\"checkin\" \"username\" "));
+        when(cleartool.lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull())).thenReturn(lsactivityReader);
+
+        UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
+        action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
+
+        verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
+                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
+
+        lsactivityReader.ready();
+    }
+
+    @Test(expected = IOException.class)
+    public void assertLshistoryReaderIsClosed() throws Exception {
+        final StringReader lshistoryReader = new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
+                + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"Release_3_3_jdk5.20080509.155359\" " + "\"create directory version\" "
+                + "\"checkin\" \"username\" ");
+        when(
+                cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
+                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(lshistoryReader);
         when(cleartool.lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull())).thenReturn(
                 new StringReader("\"Convert to Java 6\" " + "\"Release_3_3_jdk5\" " + "\"bob\" "));
 
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
-        List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
-        assertEquals("There should be 1 activity", 1, activities.size());
-        UcmActivity activity = activities.get(0);
-        assertEquals("Activity name is incorrect", "Release_3_3_jdk5.20080509.155359", activity.getName());
-        assertEquals("Activity headline is incorrect", "Convert to Java 6", activity.getHeadline());
-        assertEquals("Activity stream is incorrect", "Release_3_3_jdk5", activity.getStream());
-        assertEquals("Activity user is incorrect", "bob", activity.getUser());
-
+        action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
                 eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
-        verify(cleartool).lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull());
+        lshistoryReader.ready();
+
     }
 
     @Test
@@ -109,9 +129,9 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
                         + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
-                new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
-                        + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"deliver.Release_3_3_jdk5.20080509.155359\" "
-                        + "\"create directory version\" " + "\"checkin\" \"username\" "));
+                                new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
+                                        + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"deliver.Release_3_3_jdk5.20080509.155359\" "
+                                        + "\"create directory version\" " + "\"checkin\" \"username\" "));
         when(cleartool.lsactivity(eq("deliver.Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull())).thenReturn(
                 new StringReader("\"Convert to Java 6\" " + "\"Release_3_3_jdk5\" " + "\"bob\" "
                         + "\"maven2_Release_3_3.20080421.154619 maven2_Release_3_3.20080421.163355\" "));
@@ -141,42 +161,28 @@ public class UcmChangeLogActionTest extends AbstractWorkspaceTest {
         verify(cleartool).lsactivity(eq("maven2_Release_3_3.20080421.163355"), (String) notNull(), (String) notNull());
     }
 
-    @Test(expected = IOException.class)
-    public void assertLshistoryReaderIsClosed() throws Exception {
-        final StringReader lshistoryReader = new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
-                + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"Release_3_3_jdk5.20080509.155359\" " + "\"create directory version\" "
-                + "\"checkin\" \"username\" ");
+    @Test
+    public void assertParsingOfNonIntegrationActivity() throws Exception {
         when(
                 cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
-                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(lshistoryReader);
+                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
+                                new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
+                                        + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"Release_3_3_jdk5.20080509.155359\" " + "\"create directory version\" "
+                                        + "\"checkin\" \"username\" "));
         when(cleartool.lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull())).thenReturn(
                 new StringReader("\"Convert to Java 6\" " + "\"Release_3_3_jdk5\" " + "\"bob\" "));
 
         UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
-        action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
-        verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
-                eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
-        lshistoryReader.ready();
-
-    }
-
-    @Test(expected = IOException.class)
-    public void assertLsactivityReaderIsClosed() throws Exception {
-        final StringReader lsactivityReader = new StringReader("\"Convert to Java 6\" " + "\"Release_3_3_jdk5\" " + "\"bob\" ");
-        when(
-                cleartool.lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"), eq(new String[] { "VIEW_NAME" + File.separator
-                        + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE))).thenReturn(
-                new StringReader("\"20080509.140451\" " + "\"vobs/projects/Server//config-admin-client\" "
-                        + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"Release_3_3_jdk5.20080509.155359\" " + "\"create directory version\" "
-                        + "\"checkin\" \"username\" "));
-        when(cleartool.lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull())).thenReturn(lsactivityReader);
-
-        UcmChangeLogAction action = new UcmChangeLogAction(cleartool, null);
-        action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
+        List<UcmActivity> activities = action.getChanges(null, "VIEW_NAME", new String[] { "Release_2_1_int" }, new String[] { "vobs/projects/Server" });
+        assertEquals("There should be 1 activity", 1, activities.size());
+        UcmActivity activity = activities.get(0);
+        assertEquals("Activity name is incorrect", "Release_3_3_jdk5.20080509.155359", activity.getName());
+        assertEquals("Activity headline is incorrect", "Convert to Java 6", activity.getHeadline());
+        assertEquals("Activity stream is incorrect", "Release_3_3_jdk5", activity.getStream());
+        assertEquals("Activity user is incorrect", "bob", activity.getUser());
 
         verify(cleartool).lshistory(anyString(), (Date) isNull(), eq("VIEW_NAME"), eq("Release_2_1_int"),
                 eq(new String[] { "VIEW_NAME" + File.separator + "vobs/projects/Server" }), eq(Boolean.FALSE), eq(Boolean.FALSE));
-
-        lsactivityReader.ready();
+        verify(cleartool).lsactivity(eq("Release_3_3_jdk5.20080509.155359"), (String) notNull(), (String) notNull());
     }
 }

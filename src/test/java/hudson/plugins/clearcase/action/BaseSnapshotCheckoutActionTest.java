@@ -25,20 +25,22 @@
 package hudson.plugins.clearcase.action;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-
-import java.io.File;
-
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.plugins.clearcase.AbstractWorkspaceTest;
 import hudson.plugins.clearcase.ClearTool;
+import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ClearToolLauncher;
 import hudson.plugins.clearcase.CleartoolUpdateResult;
-import hudson.plugins.clearcase.MkViewParameters;
-import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ConfigSpec;
+import hudson.plugins.clearcase.MkViewParameters;
+
+import java.io.File;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -50,13 +52,23 @@ import org.mockito.Mock;
 public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
 
     @Mock
-    private BuildListener     taskListener;
-    @Mock
     private ClearTool         cleartool;
+    @Mock
+    private ClearToolLauncher ctLauncher;
     @Mock
     private Launcher          launcher;
     @Mock
-    private ClearToolLauncher ctLauncher;
+    private BuildListener     taskListener;
+
+    @Test
+    public void checkUpdtGenerated() throws Exception {
+        FilePath updtFile = new FilePath(new File("tmp"));
+        when(cleartool.setcs2(anyString(), any(SetcsOption.class), anyString())).thenReturn(new CleartoolUpdateResult(updtFile));
+
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "bar" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+        assertEquals(action.getUpdtFile(), updtFile);
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -109,43 +121,19 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testFirstTimeViewTagExists() throws Exception {
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-
-        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath",
-                null);
-        boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
-
-        Assert.assertTrue("Build should succeed.", checkoutResult);
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).rmviewtag("viewname");
-        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
-        verify(cleartool).mkview(argument.capture());
-        assertEquals("viewpath", argument.getValue().getViewPath());
-        assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
-    }
-
-    @Test
-    public void testFirstTimeViewPathExists() throws Exception {
-        workspace.child("viewpath").mkdirs();
-
+    public void testFirstTimeUsingUpdate() throws Exception {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
 
-        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath",
-                null);
-        boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
-
-        Assert.assertTrue("Checkout should succeed.", checkoutResult);
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "foo" }, true, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
 
         verify(cleartool).doesViewExist("viewname");
         ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
     }
 
     @Test
@@ -172,58 +160,43 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void testFirstTimeUsingUpdate() throws Exception {
+    public void testFirstTimeViewPathExists() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
 
-        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "foo" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath",
+                null);
+        boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
+
+        Assert.assertTrue("Checkout should succeed.", checkoutResult);
 
         verify(cleartool).doesViewExist("viewname");
         ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
     }
 
     @Test
-    public void testSecondTimeUsingUpdate() throws Exception {
-        workspace.child("viewpath").mkdirs();
-
+    public void testFirstTimeViewTagExists() throws Exception {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\n");
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);
 
-        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, true, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", true), new String[] { "foo" }, false, "viewpath",
+                null);
+        boolean checkoutResult = action.checkout(launcher, workspace, "viewname");
 
+        Assert.assertTrue("Build should succeed.", checkoutResult);
         verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).catcs("viewname");
-        verify(cleartool).setcs2("viewpath", SetcsOption.CURRENT, null);
-    }
-
-    @Test
-    public void testSecondTimeNotUsingUpdate() throws Exception {
-        workspace.child("viewpath").mkdirs();
-
-        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
-        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
-        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
-
-        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, false, "viewpath", null);
-        action.checkout(launcher, workspace, "viewname");
-
-        verify(cleartool).doesViewExist("viewname");
-        verify(cleartool).lscurrentview("viewpath");
-        verify(cleartool).rmview("viewpath");
+        verify(cleartool).rmviewtag("viewname");
         ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
         verify(cleartool).mkview(argument.capture());
         assertEquals("viewpath", argument.getValue().getViewPath());
         assertEquals("viewname", argument.getValue().getViewTag());
-        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "config\nspec\nload /foo\n");
     }
 
     @Test
@@ -265,6 +238,27 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testSecondTimeNotUsingUpdate() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, false, "viewpath", null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).rmview("viewpath");
+        ArgumentCaptor<MkViewParameters> argument = ArgumentCaptor.forClass(MkViewParameters.class);
+        verify(cleartool).mkview(argument.capture());
+        assertEquals("viewpath", argument.getValue().getViewPath());
+        assertEquals("viewname", argument.getValue().getViewTag());
+        verify(cleartool).setcs2("viewpath", SetcsOption.CONFIGSPEC, "configspec\nload /foo\n");
+    }
+
+    @Test
     public void testSecondTimeRemovedLoadRule() throws Exception {
         workspace.child("viewpath").mkdirs();
 
@@ -283,12 +277,20 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
-    public void checkUpdtGenerated() throws Exception {
-        FilePath updtFile = new FilePath(new File("tmp"));
-        when(cleartool.setcs2(anyString(), any(SetcsOption.class), anyString())).thenReturn(new CleartoolUpdateResult(updtFile ));
-        
-        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "bar" }, true, "viewpath", null);
+    public void testSecondTimeUsingUpdate() throws Exception {
+        workspace.child("viewpath").mkdirs();
+
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.TRUE);
+        when(cleartool.lscurrentview("viewpath")).thenReturn("viewname");
+        when(cleartool.catcs("viewname")).thenReturn("configspec\nload /foo\n");
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("configspec", true), new String[] { "/foo" }, true, "viewpath", null);
         action.checkout(launcher, workspace, "viewname");
-        assertEquals(action.getUpdtFile(), updtFile);
+
+        verify(cleartool).doesViewExist("viewname");
+        verify(cleartool).lscurrentview("viewpath");
+        verify(cleartool).catcs("viewname");
+        verify(cleartool).setcs2("viewpath", SetcsOption.CURRENT, null);
     }
 }

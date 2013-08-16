@@ -32,13 +32,33 @@ import java.util.regex.Pattern;
  */
 public class ClearToolFormatHandler {
 
-    private String format;
-    private String patternStr;
-    private int groupCount;
+    private String  format;
+    private int     groupCount;
     private Pattern pattern;
+    private String  patternStr;
 
     public ClearToolFormatHandler(String... elements) {
         setPattern(elements);
+    }
+
+    public Matcher checkLine(String line) {
+        if (line == null) {
+            return null;
+        }
+        Matcher matcher = pattern.matcher(line);
+
+        if (matcher.find() && matcher.groupCount() == groupCount) {
+            return matcher;
+        }
+        return null;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public String getPattern() {
+        return patternStr;
     }
 
     public void setPattern(String... elements) {
@@ -55,25 +75,5 @@ public class ClearToolFormatHandler {
         format = formatBuilder.toString();
         patternStr = patternBuilder.toString();
         pattern = Pattern.compile(patternStr);
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public String getPattern() {
-        return patternStr;
-    }
-
-    public Matcher checkLine(String line) {
-        if (line == null) {
-            return null;
-        }
-        Matcher matcher = pattern.matcher(line);
-
-        if (matcher.find() && matcher.groupCount() == groupCount) {
-            return matcher;
-        }
-        return null;
     }
 }

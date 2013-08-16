@@ -24,8 +24,9 @@
  */
 package hudson.plugins.clearcase;
 
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
@@ -45,63 +46,23 @@ import org.mockito.Mock;
 
 public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
 
-    @Mock
-    private BuildListener taskListener;
+    public class HudsonClearToolLauncherDummy extends HudsonClearToolLauncher {
+        public HudsonClearToolLauncherDummy(String executable, String scmName, TaskListener listener, FilePath workspace, Launcher launcher) {
+            super(executable, scmName, listener, workspace, launcher);
+        }
+
+        @Override
+        public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out, FilePath path) throws IOException {
+            return proc;
+        }
+    }
     @Mock
     private Launcher      launcher;
     @Mock
     private Proc          proc;
 
-    @Before
-    public void setUp() throws Exception {
-        createWorkspace();
-    }
-
-    @After
-    public void teardown() throws Exception {
-        deleteWorkspace();
-    }
-
-    @Test
-    public void testClearToolLauncherImplWithNullStreams() throws Exception {
-        final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
-        
-        when(taskListener.getLogger()).thenReturn(mockedStream);
-
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
-        launcherImpl.run(new String[] { "a" }, null, null, null, true);
-        
-        verify(taskListener).getLogger();
-
-        
-    }
-
-    @Test
-    public void testClearToolLauncherImplWithOutput() throws Exception {
-        final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
-        
-        when(taskListener.getLogger()).thenReturn(mockedStream);
-
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
-        launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null, true);
-        
-        verify(taskListener).getLogger();
-    }
-
-    @Test(expected = IOException.class)
-    public void testBadReturnCode() throws Exception {
-        final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
-
-        when(taskListener.getLogger()).thenReturn(mockedStream);
-        when(proc.join()).thenReturn(Integer.valueOf(1));
-        
-        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
-        launcherImpl.run(new String[] { "a", "b" }, null, new ByteArrayOutputStream(), null);
-        
-        verify(taskListener).getLogger();
-        verify(taskListener).fatalError(anyString());
-        verify(proc).join();
-    }
+    @Mock
+    private BuildListener taskListener;
 
     /**
      * Assert that the Hudson cleartool launcher adds the clear tool exectuable to the command array.
@@ -116,14 +77,53 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
         launcherImpl.run(new String[] { "command" }, null, null, null);
     }
 
-    public class HudsonClearToolLauncherDummy extends HudsonClearToolLauncher {
-        public HudsonClearToolLauncherDummy(String executable, String scmName, TaskListener listener, FilePath workspace, Launcher launcher) {
-            super(executable, scmName, listener, workspace, launcher);
-        }
+    @Before
+    public void setUp() throws Exception {
+        createWorkspace();
+    }
 
-        @Override
-        public Proc getLaunchedProc(String[] cmdWithExec, String[] env, InputStream inputStream, OutputStream out, FilePath path) throws IOException {
-            return proc;
-        }
+    @After
+    public void teardown() throws Exception {
+        deleteWorkspace();
+    }
+
+    @Test(expected = IOException.class)
+    public void testBadReturnCode() throws Exception {
+        final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
+
+        when(taskListener.getLogger()).thenReturn(mockedStream);
+        when(proc.join()).thenReturn(Integer.valueOf(1));
+
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
+        launcherImpl.run(new String[] { "a", "b" }, null, new ByteArrayOutputStream(), null);
+
+        verify(taskListener).getLogger();
+        verify(taskListener).fatalError(anyString());
+        verify(proc).join();
+    }
+
+    @Test
+    public void testClearToolLauncherImplWithNullStreams() throws Exception {
+        final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
+
+        when(taskListener.getLogger()).thenReturn(mockedStream);
+
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
+        launcherImpl.run(new String[] { "a" }, null, null, null, true);
+
+        verify(taskListener).getLogger();
+
+    }
+
+    @Test
+    public void testClearToolLauncherImplWithOutput() throws Exception {
+        final PrintStream mockedStream = new PrintStream(new ByteArrayOutputStream());
+
+        when(taskListener.getLogger()).thenReturn(mockedStream);
+
+        ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
+        launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null, true);
+
+        verify(taskListener).getLogger();
     }
 }

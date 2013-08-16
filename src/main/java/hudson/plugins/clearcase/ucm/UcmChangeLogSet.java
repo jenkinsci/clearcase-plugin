@@ -44,9 +44,9 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
 
-    static final String[] ACTIVITY_TAGS = new String[] { "name", "headline", "stream", "user" };
-    static final String[] FILE_TAGS = new String[] { "name", "date", "comment", "version", "event", "operation" };
-    private List<UcmActivity> history = null;
+    static final String[]     ACTIVITY_TAGS = new String[] { "name", "headline", "stream", "user" };
+    static final String[]     FILE_TAGS     = new String[] { "name", "date", "comment", "version", "event", "operation" };
+    private List<UcmActivity> history       = null;
 
     public UcmChangeLogSet(AbstractBuild<?, ?> build, List<UcmActivity> logs) {
         super(build);
@@ -56,25 +56,28 @@ public class UcmChangeLogSet extends ChangeLogSet<UcmActivity> {
         this.history = Collections.unmodifiableList(logs);
     }
 
-    @Override
-    public boolean isEmptySet() {
-        return history.size() == 0;
-    }
-
-    public Iterator<UcmActivity> iterator() {
-        return history.iterator();
-    }
-
     @Exported
     public List<UcmActivity> getLogs() {
         return history;
     }
 
+    @Override
+    public boolean isEmptySet() {
+        return history.size() == 0;
+    }
+
+    @Override
+    public Iterator<UcmActivity> iterator() {
+        return history.iterator();
+    }
+
     /**
      * Stores the history objects to the output stream as xml
      * 
-     * @param outputStream the stream to write to
-     * @param history the history objects to store
+     * @param outputStream
+     *            the stream to write to
+     * @param history
+     *            the history objects to store
      * @throws IOException
      */
     public static void saveToChangeLog(OutputStream outputStream, List<UcmActivity> history) throws IOException {

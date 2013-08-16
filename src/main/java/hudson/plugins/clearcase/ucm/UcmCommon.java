@@ -47,6 +47,7 @@ public class UcmCommon {
 
     /**
      * Takes a list of baselines as argument, and return the load rules for all components matching these baselines
+     * 
      * @param clearTool
      * @param stream
      * @param baselines
@@ -54,7 +55,8 @@ public class UcmCommon {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static String[] generateLoadRulesFromBaselines(ClearTool clearTool, String stream, List<Baseline> baselines) throws IOException, InterruptedException {
+    public static String[] generateLoadRulesFromBaselines(ClearTool clearTool, String stream, List<Baseline> baselines) throws IOException,
+    InterruptedException {
         if (baselines == null) {
             return null;
         }
@@ -68,49 +70,15 @@ public class UcmCommon {
                 clearTool.getLauncher().getListener().getLogger().print("[WARNING] " + bl.getBaselineName() + " has a null component\n");
             }
         }
-        Reader reader = clearTool.describe("%[root_dir]p\\n", (String[])components.toArray(new String[components.size()]));
+        Reader reader = clearTool.describe("%[root_dir]p\\n", components.toArray(new String[components.size()]));
         BufferedReader br = new BufferedReader(reader);
-        for(String line = br.readLine(); line != null; line = br.readLine()){
+        for (String line = br.readLine(); line != null; line = br.readLine()) {
             String loadRule = StringUtils.isNotBlank(line) ? line.substring(1) : null;
             if (loadRule != null) {
                 loadRules.add(loadRule);
             }
         }
         return loadRules.toArray(new String[loadRules.size()]);
-    }
-
-    /**
-     * @param clearToolLauncher
-     * @param isUseDynamicView
-     * @param viewName
-     * @param filePath
-     * @param readWriteComponents . if null both baselines on read and read-write components will be returned
-     * @return List of latest baselines on read write components (only)
-     * @throws InterruptedException
-     * @throws IOException
-     * @throws Exception
-     */
-    public static List<String> getLatestBaselineNames(ClearTool clearTool, boolean isUseDynamicView, String viewName, FilePath filePath,
-            List<String> readWriteComponents) throws IOException, InterruptedException {
-        String output = clearTool.lsstream(null, viewName, "%[latest_bls]Xp");
-        String prefix = "baseline:";
-        List<String> baselineNames = new ArrayList<String>();
-        if (StringUtils.startsWith(output, prefix)) {
-            String[] baselineNamesSplit = output.split("baseline:");
-            for (String baselineName : baselineNamesSplit) {
-                if (StringUtils.isNotBlank(baselineName)) {
-                    String baselineNameTrimmed = StringUtils.trim(baselineName);
-                    // Retrict to baseline bind to read/write component
-                    String blComp = getDataforBaseline(clearTool, filePath, baselineNameTrimmed).getBaselineName();
-                    if (readWriteComponents == null || readWriteComponents.contains(blComp)) {
-                        baselineNames.add(baselineNameTrimmed);
-                    }
-                }
-            }
-
-        }
-
-        return baselineNames;
     }
 
     /**
@@ -150,10 +118,11 @@ public class UcmCommon {
 
     /**
      * Get the component binding to the baseline
-     *
+     * 
      * @param clearToolLauncher
      * @param filePath
-     * @param blName the baseline name like 'deskCore_3.2-146_2008-11-14_18-07-22.3543@\P_ORC'
+     * @param blName
+     *            the baseline name like 'deskCore_3.2-146_2008-11-14_18-07-22.3543@\P_ORC'
      * @return the component name like 'Desk_Core@\P_ORC'
      * @throws InterruptedException
      * @throws IOException
@@ -169,51 +138,119 @@ public class UcmCommon {
         return new Baseline(componentName, isNotLabeled);
     }
 
-    public static List<Baseline> getLatestBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
-        return getBaselinesDesc(clearTool, stream, "%[latest_bls]Xp\\n");
+    /**
+     * @param clearToolLauncher
+     * @param viewRootDirectory
+     * @param bl1
+     * @param bl2
+     * @return list of versions that were changed between two baselines
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static List<String> getDiffBlVersions(ClearTool clearTool, String viewRootDirectory, String bl1, String bl2) throws IOException,
+    InterruptedException {
+        Reader rd = clearTool.diffbl(EnumSet.of(DiffBlOptions.VERSIONS), bl1, bl2, viewRootDirectory);
+
+        BufferedReader br = new BufferedReader(rd);
+
+        List<String> versionList = new ArrayList<String>();
+        // remove ">>" from result
+        for (String line = br.readLine(); br.ready(); line = br.readLine()) {
+            if (line.startsWith(">>")) {
+                line = line.replaceAll(">>", "");
+                versionList.add(line.trim());
+            }
+        }
+        br.close();
+
+        return versionList;
     }
 
     public static List<Baseline> getFoundationBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
         return getBaselinesDesc(clearTool, stream, "%[found_bls]Xp\\n");
     }
 
-    private static List<Baseline> getBaselinesDesc(ClearTool clearTool, String stream, String format) throws IOException,
-            InterruptedException {
-        BufferedReader rd = new BufferedReader(clearTool.describe(format, null, "stream:" + stream));
-        List<String> baselines = new ArrayList<String>();
-        try {
-            for (String line = rd.readLine(); line != null; line = rd.readLine()) {
-                if (isValid(line)) {
-                    String[] bl = line.split(" ");
-                    for (String b : bl) {
-                        if (StringUtils.isNotBlank(b)) {
-                            baselines.add(b);
-                        }
+    /**
+     * @param clearToolLauncher
+     * @param isUseDynamicView
+     * @param viewName
+     * @param filePath
+     * @param readWriteComponents
+     *            . if null both baselines on read and read-write components will be returned
+     * @return List of latest baselines on read write components (only)
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws Exception
+     */
+    public static List<String> getLatestBaselineNames(ClearTool clearTool, boolean isUseDynamicView, String viewName, FilePath filePath,
+            List<String> readWriteComponents) throws IOException, InterruptedException {
+        String output = clearTool.lsstream(null, viewName, "%[latest_bls]Xp");
+        String prefix = "baseline:";
+        List<String> baselineNames = new ArrayList<String>();
+        if (StringUtils.startsWith(output, prefix)) {
+            String[] baselineNamesSplit = output.split("baseline:");
+            for (String baselineName : baselineNamesSplit) {
+                if (StringUtils.isNotBlank(baselineName)) {
+                    String baselineNameTrimmed = StringUtils.trim(baselineName);
+                    // Retrict to baseline bind to read/write component
+                    String blComp = getDataforBaseline(clearTool, filePath, baselineNameTrimmed).getBaselineName();
+                    if (readWriteComponents == null || readWriteComponents.contains(blComp)) {
+                        baselineNames.add(baselineNameTrimmed);
                     }
                 }
             }
-        } finally {
-            rd.close();
+
         }
-        if (baselines.isEmpty()) {
-            throw new IOException("Unexpected output for command \"cleartool describe -fmt " +
-                                  format + " stream:" + stream + "\" or no available baseline found");
-        }
-        List<Baseline> foundationBaselines = new ArrayList<Baseline>();
-        BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", (String[])baselines.toArray(new String[baselines.size()])));
-        Iterator<String> blIterator = baselines.iterator();
-        for(String line = br.readLine(); line != null; line = br.readLine()){
-            if (StringUtils.isNotBlank(line)) {
-                String simpleBaseline = StringUtils.removeStart(blIterator.next(), "baseline:");
-                String simpleComponent = StringUtils.removeStart(line, "component:");
-                foundationBaselines.add(new Baseline(simpleBaseline, simpleComponent));
-            }
-        }
-        return foundationBaselines;
+
+        return baselineNames;
     }
 
-    private static boolean isValid(String line) {
-        return !line.startsWith("cleartool: Error:") && !line.startsWith("Process leaked file descriptors.");
+    public static List<Baseline> getLatestBaselines(ClearTool clearTool, String stream) throws IOException, InterruptedException {
+        return getBaselinesDesc(clearTool, stream, "%[latest_bls]Xp\\n");
+    }
+
+    /**
+     * @return List of latest BaseLineDesc (baseline + component) for stream. Only baselines on read-write components are returned
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws Exception
+     */
+    public static List<Baseline> getLatestBlsWithCompOnStream(ClearTool clearTool, String stream, String view) throws IOException, InterruptedException {
+        // get the components on the build stream
+        List<Component> componentsList = getStreamComponentsDesc(clearTool, stream);
+
+        // get latest baselines on the stream (name only)
+        List<String> latestBlsOnBuildStream = getLatestBaselineNames(clearTool, true, view, null, null);
+
+        // add component information to baselines
+        List<Baseline> latestBlsWithComp = getComponentsForBaselines(clearTool, componentsList, true, view, null, latestBlsOnBuildStream);
+
+        return latestBlsWithComp;
+    }
+
+    /**
+     * @param clearToolLauncher
+     * @param element
+     * @return
+     */
+    public static String getNoVob(String element) {
+        return element.split("@")[0];
+    }
+
+    /**
+     * @param componentsDesc
+     * @return list of read-write components out of components list (removing read-only components)
+     */
+    public static List<String> getReadWriteComponents(List<Component> components) {
+        List<String> res = new ArrayList<String>();
+
+        for (Component comp : components) {
+            if (comp.isModifiable()) {
+                res.add(comp.getName());
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -261,70 +298,6 @@ public class UcmCommon {
     }
 
     /**
-     * @return List of latest BaseLineDesc (baseline + component) for stream. Only baselines on read-write components
-     *         are returned
-     * @throws InterruptedException
-     * @throws IOException
-     * @throws Exception
-     */
-    public static List<Baseline> getLatestBlsWithCompOnStream(ClearTool clearTool, String stream, String view) throws IOException, InterruptedException {
-        // get the components on the build stream
-        List<Component> componentsList = getStreamComponentsDesc(clearTool, stream);
-
-        // get latest baselines on the stream (name only)
-        List<String> latestBlsOnBuildStream = getLatestBaselineNames(clearTool, true, view, null, null);
-
-        // add component information to baselines
-        List<Baseline> latestBlsWithComp = getComponentsForBaselines(clearTool, componentsList, true, view, null, latestBlsOnBuildStream);
-
-        return latestBlsWithComp;
-    }
-
-    /**
-     * @param componentsDesc
-     * @return list of read-write components out of components list (removing read-only components)
-     */
-    public static List<String> getReadWriteComponents(List<Component> components) {
-        List<String> res = new ArrayList<String>();
-
-        for (Component comp : components) {
-            if (comp.isModifiable()) {
-                res.add(comp.getName());
-            }
-        }
-
-        return res;
-    }
-
-    /**
-     * @param clearToolLauncher
-     * @param viewRootDirectory
-     * @param bl1
-     * @param bl2
-     * @return list of versions that were changed between two baselines
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public static List<String> getDiffBlVersions(ClearTool clearTool, String viewRootDirectory, String bl1, String bl2) throws IOException,
-            InterruptedException {
-        Reader rd = clearTool.diffbl(EnumSet.of(DiffBlOptions.VERSIONS), bl1, bl2, viewRootDirectory);
-
-        BufferedReader br = new BufferedReader(rd);
-
-        List<String> versionList = new ArrayList<String>();
-        // remove ">>" from result
-        for (String line = br.readLine(); br.ready(); line = br.readLine()) {
-            if (line.startsWith(">>")) {
-                line = line.replaceAll(">>", "");
-                versionList.add(line.trim());
-            }
-        }
-        br.close();
-
-        return versionList;
-    }
-
-    /**
      * @param clearToolLauncher
      * @param version
      * @return version description
@@ -339,6 +312,10 @@ public class UcmCommon {
             sb.append(bufferedReader.readLine());
         }
         return sb.toString();
+    }
+
+    public static String getVob(String element) {
+        return element.split("@")[1];
     }
 
     /**
@@ -359,17 +336,42 @@ public class UcmCommon {
         clearTool.rebaseDynamic(viewName, sb.toString());
     }
 
-    /**
-     * @param clearToolLauncher
-     * @param element
-     * @return
-     */
-    public static String getNoVob(String element) {
-        return element.split("@")[0];
+    private static List<Baseline> getBaselinesDesc(ClearTool clearTool, String stream, String format) throws IOException, InterruptedException {
+        BufferedReader rd = new BufferedReader(clearTool.describe(format, null, "stream:" + stream));
+        List<String> baselines = new ArrayList<String>();
+        try {
+            for (String line = rd.readLine(); line != null; line = rd.readLine()) {
+                if (isValid(line)) {
+                    String[] bl = line.split(" ");
+                    for (String b : bl) {
+                        if (StringUtils.isNotBlank(b)) {
+                            baselines.add(b);
+                        }
+                    }
+                }
+            }
+        } finally {
+            rd.close();
+        }
+        if (baselines.isEmpty()) {
+            throw new IOException("Unexpected output for command \"cleartool describe -fmt " + format + " stream:" + stream
+                    + "\" or no available baseline found");
+        }
+        List<Baseline> foundationBaselines = new ArrayList<Baseline>();
+        BufferedReader br = new BufferedReader(clearTool.describe("%[component]Xp\\n", baselines.toArray(new String[baselines.size()])));
+        Iterator<String> blIterator = baselines.iterator();
+        for (String line = br.readLine(); line != null; line = br.readLine()) {
+            if (StringUtils.isNotBlank(line)) {
+                String simpleBaseline = StringUtils.removeStart(blIterator.next(), "baseline:");
+                String simpleComponent = StringUtils.removeStart(line, "component:");
+                foundationBaselines.add(new Baseline(simpleBaseline, simpleComponent));
+            }
+        }
+        return foundationBaselines;
     }
 
-    public static String getVob(String element) {
-        return element.split("@")[1];
+    private static boolean isValid(String line) {
+        return !line.startsWith("cleartool: Error:") && !line.startsWith("Process leaked file descriptors.");
     }
 
 }

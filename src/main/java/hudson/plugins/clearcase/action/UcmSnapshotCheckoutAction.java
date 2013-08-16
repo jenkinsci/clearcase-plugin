@@ -38,6 +38,7 @@ import org.apache.commons.lang.ArrayUtils;
 public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
 
     private final String streamSelector;
+
     public UcmSnapshotCheckoutAction(ClearTool cleartool, String streamSelector, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
         super(cleartool, loadRules, useUpdate, viewPath, viewStorage);
         this.streamSelector = streamSelector;
@@ -81,7 +82,7 @@ public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
 
             // Perform a full update of the view to get changes due to rebase for instance.
             try {
-                if(ct.doesSetcsSupportOverride()) {
+                if (ct.doesSetcsSupportOverride()) {
                     ct.setcs2(viewPath, SetcsOption.STREAM, null);
                 } else {
                     ct.update2(viewPath, null);

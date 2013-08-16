@@ -40,9 +40,33 @@ import java.util.Set;
  */
 public class ChangeLogEntryMerger {
 
-    private Map<String, List<MergedLogEntry>> userEntries = new HashMap<String, List<MergedLogEntry>>();
+    private static class MergedLogEntry {
+        private ClearCaseChangeLogEntry entry;
+        private Date                    newest;
+        private Date                    oldest;
 
-    private transient int maxTimeDifference;
+        public MergedLogEntry(ClearCaseChangeLogEntry entry) {
+            this.entry = entry;
+            oldest = entry.getDate();
+            newest = entry.getDate();
+        }
+
+        public void merge(ClearCaseChangeLogEntry newEntry) {
+            Date date = newEntry.getDate();
+            if (date.after(newest)) {
+                newest = date;
+            } else {
+                if (date.before(oldest)) {
+                    oldest = date;
+                }
+            }
+            entry.addElements(newEntry.getElements());
+        }
+    }
+
+    private transient int                     maxTimeDifference;
+
+    private Map<String, List<MergedLogEntry>> userEntries = new HashMap<String, List<MergedLogEntry>>();
 
     public ChangeLogEntryMerger() {
         this(0);
@@ -70,11 +94,22 @@ public class ChangeLogEntryMerger {
         }
         List<ClearCaseChangeLogEntry> list = getList();
         Collections.sort(list, new Comparator<ClearCaseChangeLogEntry>() {
+            @Override
             public int compare(ClearCaseChangeLogEntry o1, ClearCaseChangeLogEntry o2) {
                 return o2.getDate().compareTo(o1.getDate());
             }
         });
         return list;
+    }
+
+    private boolean canBeMerged(MergedLogEntry entryOne, ClearCaseChangeLogEntry entryTwo) {
+        if (entryOne.entry.getComment().equals(entryTwo.getComment())) {
+
+            long oldestDiff = Math.abs(entryOne.oldest.getTime() - entryTwo.getDate().getTime());
+            long newestDiff = Math.abs(entryOne.newest.getTime() - entryTwo.getDate().getTime());
+            return (oldestDiff < maxTimeDifference) || (newestDiff < maxTimeDifference);
+        }
+        return false;
     }
 
     private List<ClearCaseChangeLogEntry> getList() {
@@ -95,39 +130,5 @@ public class ChangeLogEntryMerger {
             userEntries.put(user, new ArrayList<MergedLogEntry>());
         }
         return userEntries.get(user);
-    }
-
-    private boolean canBeMerged(MergedLogEntry entryOne, ClearCaseChangeLogEntry entryTwo) {
-        if (entryOne.entry.getComment().equals(entryTwo.getComment())) {
-
-            long oldestDiff = Math.abs(entryOne.oldest.getTime() - entryTwo.getDate().getTime());
-            long newestDiff = Math.abs(entryOne.newest.getTime() - entryTwo.getDate().getTime());
-            return (oldestDiff < maxTimeDifference) || (newestDiff < maxTimeDifference);
-        }
-        return false;
-    }
-
-    private static class MergedLogEntry {
-        private ClearCaseChangeLogEntry entry;
-        private Date oldest;
-        private Date newest;
-
-        public MergedLogEntry(ClearCaseChangeLogEntry entry) {
-            this.entry = entry;
-            oldest = entry.getDate();
-            newest = entry.getDate();
-        }
-
-        public void merge(ClearCaseChangeLogEntry newEntry) {
-            Date date = newEntry.getDate();
-            if (date.after(newest)) {
-                newest = date;
-            } else {
-                if (date.before(oldest)) {
-                    oldest = date;
-                }
-            }
-            entry.addElements(newEntry.getElements());
-        }
     }
 }

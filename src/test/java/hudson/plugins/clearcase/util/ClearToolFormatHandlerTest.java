@@ -10,12 +10,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ClearToolFormatHandlerTest {
-    
+
+    private static final String[]  INTEGRATION_ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, UCM_ACTIVITY_CONTRIBUTING };
+
     private ClearToolFormatHandler instance;
-    
-    private static final String[] INTEGRATION_ACTIVITY_FORMAT = {
-        UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID,
-        UCM_ACTIVITY_CONTRIBUTING };
 
     @Before
     public void setUp() throws Exception {

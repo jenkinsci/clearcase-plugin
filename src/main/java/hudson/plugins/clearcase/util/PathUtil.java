@@ -24,18 +24,14 @@
  */
 package hudson.plugins.clearcase.util;
 
+import hudson.Launcher;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import hudson.Launcher;
-
 public abstract class PathUtil {
-
-    public static String convertPathForOS(String path, Launcher launcher) {
-        return convertPathForOS(path, launcher.isUnix());
-    }
 
     public static String convertPathForOS(String path, boolean isUnix) {
         if (path == null) {
@@ -56,6 +52,10 @@ public abstract class PathUtil {
         return tempPath;
     }
 
+    public static String convertPathForOS(String path, Launcher launcher) {
+        return convertPathForOS(path, launcher.isUnix());
+    }
+
     public static String fileSepForOS(boolean isUnix) {
         if (isUnix) {
             return "/";
@@ -63,7 +63,7 @@ public abstract class PathUtil {
             return "\\";
         }
     }
-    
+
     public static String newLineForOS(boolean isUnix) {
         if (isUnix) {
             return "\n";
@@ -72,7 +72,7 @@ public abstract class PathUtil {
         }
     }
 
-    public static String readFileAsString(String filePath) throws java.io.IOException{
+    public static String readFileAsString(String filePath) throws java.io.IOException {
         byte[] buffer = new byte[(int) new File(filePath).length()];
         BufferedInputStream f = null;
         try {
@@ -80,13 +80,13 @@ public abstract class PathUtil {
             f.read(buffer);
         } finally {
             if (f != null) {
-            	try {
-            		f.close();
-            	} catch (IOException ignored) {
-            		// no op
-            	}
+                try {
+                    f.close();
+                } catch (IOException ignored) {
+                    // no op
+                }
             }
         }
         return new String(buffer);
-    }    
+    }
 }
