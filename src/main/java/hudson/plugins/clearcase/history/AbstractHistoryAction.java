@@ -107,9 +107,8 @@ public abstract class AbstractHistoryAction implements HistoryAction {
         if (needsLsHistoryForHasChanges(viewTag, viewPaths)) {
             List<HistoryEntry> historyEntries = runAndFilterLsHistory(time, viewPath, viewTag, branchNames, viewPaths);
             return historyEntries.size() > 0;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**

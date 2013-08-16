@@ -321,10 +321,9 @@ public class UcmMakeBaseline extends Notifier {
                 return false;
             }
             return true;
-        } else {
-            listener.fatalError("Not a UCM clearcase SCM, cannot create baseline");
-            return false;
         }
+        listener.fatalError("Not a UCM clearcase SCM, cannot create baseline");
+        return false;
 
     }
 

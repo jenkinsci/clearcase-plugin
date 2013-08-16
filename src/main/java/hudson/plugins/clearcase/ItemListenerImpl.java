@@ -60,9 +60,8 @@ public class ItemListenerImpl extends ItemListener {
         public String resolve(String key) {
             if ("JOB_NAME".equals(key)) {
                 return jobName;
-            } else {
-                return super.resolve(key);
             }
+            return super.resolve(key);
         }
     }
 
@@ -131,8 +130,7 @@ public class ItemListenerImpl extends ItemListener {
         if (project instanceof FreeStyleProject) {
             FreeStyleProject fsProject = (FreeStyleProject) project;
             return StringUtils.isNotEmpty(fsProject.getCustomWorkspace());
-        } else {
-            return false;
         }
+        return false;
     }
 }

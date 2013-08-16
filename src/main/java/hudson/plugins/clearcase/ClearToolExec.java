@@ -656,9 +656,8 @@ public abstract class ClearToolExec implements ClearTool {
         FilePath vp = getRootViewPath(launcher).child(viewPath);
         if (vp.exists()) {
             return runAndProcessOutput(cmd, null, vp, false, null, true);
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override
@@ -963,9 +962,8 @@ public abstract class ClearToolExec implements ClearTool {
         String quotedLR = ConfigSpec.cleanLoadRule(loadRule, getLauncher().isUnix());
         if (isQuoted(quotedLR)) {
             return "\"" + quotedLR.substring(2);
-        } else {
-            return quotedLR.substring(1);
         }
+        return quotedLR.substring(1);
     }
 
     private Pattern getListPattern() {
@@ -1033,11 +1031,10 @@ public abstract class ClearToolExec implements ClearTool {
         if (nbRemovedDirectories == 0) {
             // Exception was unrelated to hijacked directories, throw it
             throw exceptions.get(0);
-        } else {
-            // We forced some hijacked directory removal, relaunch update
-            logger.println("Relaunching update after removal of hijacked directories");
-            update2(viewPath, null);
         }
+        // We forced some hijacked directory removal, relaunch update
+        logger.println("Relaunching update after removal of hijacked directories");
+        update2(viewPath, null);
     }
 
     private boolean isQuoted(String quotedLR) {

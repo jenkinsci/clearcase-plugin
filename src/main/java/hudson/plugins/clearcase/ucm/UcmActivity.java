@@ -83,9 +83,8 @@ public class UcmActivity extends ChangeLogSet.Entry {
         public String getDateStr() {
             if (date == null) {
                 return "";
-            } else {
-                return DATE_FORMATTER.format(date);
             }
+            return DATE_FORMATTER.format(date);
         }
 
         @Override

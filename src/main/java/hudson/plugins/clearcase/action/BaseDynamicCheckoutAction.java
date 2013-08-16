@@ -135,9 +135,8 @@ public class BaseDynamicCheckoutAction extends CheckoutAction {
     private String getConfigSpec() {
         if (useTimeRule) {
             return "time " + getTimeRule() + "\n" + configSpec + "\nend time\n";
-        } else {
-            return configSpec;
         }
+        return configSpec;
     }
 
     private void startView(String viewTag) throws IOException, InterruptedException {

@@ -111,10 +111,9 @@ public class UcmChangeLogAction implements ChangeLogAction {
         }
         if (ok || exception == null) {
             return history;
-        } else {
-            // No path was successful, throwing the last one
-            throw exception;
         }
+        // No path was successful, throwing the last one
+        throw exception;
     }
 
     public String getExtendedViewPath() {

@@ -19,9 +19,8 @@ public class ClearCaseReportAction implements Action {
 
         if (clearCaseDataAction != null) {
             return clearCaseDataAction.getLatestBlsOnConfiguredStream();
-        } else {
-            return null;
         }
+        return null;
     }
 
     public String getConfigSpecHtml() {

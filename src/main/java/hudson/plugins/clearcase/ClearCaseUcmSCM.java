@@ -196,9 +196,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         String override = Util.replaceMacro(overrideBranchName, variableResolver);
         if (StringUtils.isNotEmpty(override)) {
             return new String[] { override };
-        } else {
-            return new String[] { UcmCommon.getNoVob(getStream(variableResolver)) };
         }
+        return new String[] { UcmCommon.getNoVob(getStream(variableResolver)) };
     }
 
     @Override
@@ -334,8 +333,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     private String shortenStreamName(String longStream) {
         if (StringUtils.startsWith(longStream, STREAM_PREFIX)) {
             return StringUtils.substringAfter(longStream, STREAM_PREFIX);
-        } else {
-            return longStream;
         }
+        return longStream;
     }
 }

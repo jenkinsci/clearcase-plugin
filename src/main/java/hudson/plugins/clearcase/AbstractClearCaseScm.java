@@ -509,8 +509,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String getLoadRules(VariableResolver<String> variableResolver, boolean forPolling) {
         if (useOtherLoadRulesForPolling && forPolling)
             return Util.replaceMacro(loadRulesForPolling, variableResolver);
-        else
-            return Util.replaceMacro(loadRules, variableResolver);
+        return Util.replaceMacro(loadRules, variableResolver);
     }
 
     public String getLoadRulesForPolling() {
@@ -536,24 +535,21 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (useDynamicView) {
             String normViewName = getNormalizedViewName();
             return new FilePath(workspace.getChannel(), viewDrive).child(normViewName);
-        } else {
-            String normViewPath = getNormalizedViewPath();
-            if (normViewPath != null) {
-                return workspace.child(normViewPath);
-            } else {
-                if (build == null) {
-                    normViewPath = getViewPath();
-                } else {
-                    normViewPath = getViewPath(new BuildVariableResolver(build));
-                }
-                if (normViewPath != null) {
-                    return workspace.child(normViewPath);
-                } else {
-                    // Should never happen, because viewName must not be null, and if viewpath is null, then it is made equal to viewName
-                    throw new IllegalStateException("View path name cannot be null. There is a bug inside AbstractClearCaseScm.");
-                }
-            }
         }
+        String normViewPath = getNormalizedViewPath();
+        if (normViewPath != null) {
+            return workspace.child(normViewPath);
+        }
+        if (build == null) {
+            normViewPath = getViewPath();
+        } else {
+            normViewPath = getViewPath(new BuildVariableResolver(build));
+        }
+        if (normViewPath != null) {
+            return workspace.child(normViewPath);
+        }
+        // Should never happen, because viewName must not be null, and if viewpath is null, then it is made equal to viewName
+        throw new IllegalStateException("View path name cannot be null. There is a bug inside AbstractClearCaseScm.");
     }
 
     public int getMultiSitePollBuffer() {
@@ -888,9 +884,8 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
         if (isUseDynamicView()) {
             return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
-        } else {
-            return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
         }
+        return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
     }
 
     /**

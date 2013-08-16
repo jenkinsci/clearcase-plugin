@@ -182,9 +182,8 @@ public class ClearCaseChangeLogEntry extends ChangeLogSet.Entry {
     public String getDateStr() {
         if (date == null) {
             return dateStr;
-        } else {
-            return new SimpleDateFormat(DATE_FORMAT).format(date);
         }
+        return new SimpleDateFormat(DATE_FORMAT).format(date);
     }
 
     @Exported

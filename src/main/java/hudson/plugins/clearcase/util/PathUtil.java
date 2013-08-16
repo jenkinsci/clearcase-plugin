@@ -59,17 +59,15 @@ public abstract class PathUtil {
     public static String fileSepForOS(boolean isUnix) {
         if (isUnix) {
             return "/";
-        } else {
-            return "\\";
         }
+        return "\\";
     }
 
     public static String newLineForOS(boolean isUnix) {
         if (isUnix) {
             return "\n";
-        } else {
-            return "\r\n";
         }
+        return "\r\n";
     }
 
     public static String readFileAsString(String filePath) throws java.io.IOException {
