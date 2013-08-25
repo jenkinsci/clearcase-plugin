@@ -67,6 +67,10 @@
         checked="${scm.changeset.name eq 'all'}" value="all" />
     </table>
   </f:entry>
+  
+  <f:entry title="Build foundation baseline" field="buildFoundationBaseline">
+  	<f:checkbox/>
+  </f:entry>
 
   <f:advanced>
     <f:entry title="Excluded Regions" help="/plugin/clearcase/excludedRegions.html">

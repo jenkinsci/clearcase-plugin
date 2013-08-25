@@ -68,5 +68,7 @@ public abstract class CheckoutAction {
      * @deprecated Use {@link #isViewValid(FilePath,String)} instead
      */
     @Deprecated
-    public abstract boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException;
+    public boolean isViewValid(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
+        return isViewValid(workspace, viewTag);
+    }
 }

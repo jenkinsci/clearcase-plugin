@@ -24,6 +24,8 @@
  */
 package hudson.plugins.clearcase;
 
+import hudson.plugins.clearcase.command.LsHistoryCommand;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Date;
@@ -207,6 +209,8 @@ public interface ClearTool {
      * @throws InterruptedException
      */
     Reader lsactivity(String activity, String commandFormat, String viewPath) throws IOException, InterruptedException;
+    
+    Reader lsactivityIn(String streamSelector, String commandFormat, String viewPath) throws IOException, InterruptedException;
 
     /**
      * Given a relative path, return the associated view tag if it exists. Otherwise, it will return null
@@ -216,48 +220,24 @@ public interface ClearTool {
      * @throws InterruptedException
      */
     String lscurrentview(String viewPath) throws IOException, InterruptedException;
+    
+    /**
+     * Returns a lsHistoryCommand to prepare execution of a cleartool lshistory
+     * @since 1.4
+     */
+    LsHistoryCommand lshistory() throws IOException, InterruptedException;
 
     /**
-     * Returns Reader containing output from lshistory.
-     * 
-     * @param format
-     *            format that should be used by the lshistory command
-     * @param lastBuildDate
-     *            lists events recorded since (that is, at or after) the specified date-time
-     * @param viewPath
-     *            the name of the view
-     * @param branch
-     *            the name of the branch to get history events for; if null then history events for all branches are listed
-     * @param pathsInView
-     *            view paths that should be added to the lshistory command. The view paths must be relative.
-     * @param getMinor
-     *            get minor changes like labeling etc.
-     * @param useRecurse
-     *            if true use -recurse command, else use -all command (default)
-     * @return Reader containing output from command
+     * @deprecated use {@link ClearTool#lshistory(LsHistoryParameters)} instead.
      */
+    @Deprecated
     Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException,
     InterruptedException;
 
     /**
-     * Returns Reader containing output from lshistory.
-     * 
-     * @param format
-     *            format that should be used by the lshistory command
-     * @param lastBuildDate
-     *            lists events recorded since (that is, at or after) the specified date-time
-     * @param viewPath
-     *            the name of the view
-     * @param branch
-     *            the name of the branch to get history events for; if null then history events for all branches are listed
-     * @param pathsInView
-     *            view paths that should be added to the lshistory command. The view paths must be relative.
-     * @param getMinor
-     *            get minor changes like labeling etc.
-     * @param useRecurse
-     *            if true use -recurse command, else use -all command (default)
-     * @return Reader containing output from command
+     * @deprecated use {@link ClearTool#lshistory(LsHistoryParameters)} instead.
      */
+    @Deprecated
     Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor, boolean useRecurse)
             throws IOException, InterruptedException;
 

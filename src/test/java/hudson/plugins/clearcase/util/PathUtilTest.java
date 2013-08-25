@@ -24,6 +24,7 @@
  */
 package hudson.plugins.clearcase.util;
 
+import static org.junit.Assert.assertEquals;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
@@ -32,8 +33,6 @@ import hudson.remoting.Channel;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
-
-import junit.framework.Assert;
 
 import org.junit.Test;
 
@@ -75,28 +74,28 @@ public class PathUtilTest {
     public void testUnix() throws Exception {
         Launcher launcher = new MyLauncher(true);
         String converted = PathUtil.convertPathForOS("C\\abc", launcher);
-        Assert.assertEquals("C/abc", converted);
+        assertEquals("C/abc", converted);
         String converted2 = PathUtil.convertPathForOS("\r\nPeter\r\n", launcher);
-        Assert.assertEquals("\nPeter\n", converted2);
+        assertEquals("\nPeter\n", converted2);
         String converted3 = PathUtil.convertPathForOS("C/abc", launcher);
-        Assert.assertEquals("C/abc", converted3);
+        assertEquals("C/abc", converted3);
         String converted4 = PathUtil.convertPathForOS("\nPeter\n", launcher);
-        Assert.assertEquals("\nPeter\n", converted4);
+        assertEquals("\nPeter\n", converted4);
     }
 
     @Test
     public void testWindows() throws Exception {
         Launcher launcher = new MyLauncher(false);
         String converted = PathUtil.convertPathForOS("C/abc", launcher);
-        Assert.assertEquals("C\\abc", converted);
+        assertEquals("C\\abc", converted);
         String converted2 = PathUtil.convertPathForOS("\nPeter\n", launcher);
-        Assert.assertEquals("\r\nPeter\r\n", converted2);
+        assertEquals("\r\nPeter\r\n", converted2);
         String converted3 = PathUtil.convertPathForOS("C\\abc", launcher);
-        Assert.assertEquals("C\\abc", converted3);
+        assertEquals("C\\abc", converted3);
         String converted4 = PathUtil.convertPathForOS("\r\nPeter\r\n", launcher);
-        Assert.assertEquals("\r\nPeter\r\n", converted4);
+        assertEquals("\r\nPeter\r\n", converted4);
         String converted5 = PathUtil.convertPathForOS("\nPeter\n", launcher);
-        Assert.assertEquals("\r\nPeter\r\n", converted5);
+        assertEquals("\r\nPeter\r\n", converted5);
 
     }
 }

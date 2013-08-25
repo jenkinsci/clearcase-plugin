@@ -34,29 +34,36 @@ import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_HEADLINE;
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_ACTIVITY_STREAM;
 import static hudson.plugins.clearcase.util.OutputFormat.UCM_VERSION_ACTIVITY;
 import static hudson.plugins.clearcase.util.OutputFormat.USER_ID;
+import hudson.model.TaskListener;
 import hudson.plugins.clearcase.AbstractClearCaseScm.ChangeSetLevel;
-import hudson.plugins.clearcase.Baseline;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.history.AbstractHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryEntry;
+import hudson.plugins.clearcase.ucm.model.ActivitiesDelta;
+import hudson.plugins.clearcase.ucm.model.Activity;
+import hudson.plugins.clearcase.ucm.model.Baseline;
+import hudson.plugins.clearcase.ucm.model.Component;
+import hudson.plugins.clearcase.ucm.service.BaselineService;
+import hudson.plugins.clearcase.ucm.service.FacadeService;
 import hudson.plugins.clearcase.util.ClearToolFormatHandler;
-import hudson.plugins.clearcase.util.OutputFormat;
 import hudson.scm.ChangeLogSet.Entry;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -64,23 +71,55 @@ import org.apache.commons.lang.StringUtils;
  */
 public class UcmHistoryAction extends AbstractHistoryAction {
 
-    private static final String[]              ACTIVITY_FORMAT             = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, };
+    static final Logger                  LOG                               = Logger.getLogger(UcmHistoryAction.class.getName());
 
-    private static final String[]              HISTORY_FORMAT              = { DATE_NUMERIC, USER_ID, NAME_ELEMENTNAME, NAME_VERSIONID, EVENT, OPERATION,
+    private static final String[]        ACTIVITY_FORMAT                   = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, };
+
+    private static final String[]        HISTORY_FORMAT                    = { DATE_NUMERIC, USER_ID, NAME_ELEMENTNAME, NAME_VERSIONID, EVENT, OPERATION,
         UCM_VERSION_ACTIVITY                                          };
 
-    private static final String[]              INTEGRATION_ACTIVITY_FORMAT = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, UCM_ACTIVITY_CONTRIBUTING };
+    private static final String[]        INTEGRATION_ACTIVITY_FORMAT       = { UCM_ACTIVITY_HEADLINE, UCM_ACTIVITY_STREAM, USER_ID, UCM_ACTIVITY_CONTRIBUTING };
 
-    private final ClearToolFormatHandler       historyHandler              = new ClearToolFormatHandler(HISTORY_FORMAT);
+    private static final int             MAX_DEPTH_CONTRIBUTING_ACTIVITIES = 3;
 
-    private final ClearCaseUCMSCMRevisionState newBaseline;
-    private final ClearCaseUCMSCMRevisionState oldBaseline;
+    private EntryListAdapter             entryListAdapter                  = new EntryListAdapter();
 
-    public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, ClearCaseUCMSCMRevisionState oldBaseline,
-            ClearCaseUCMSCMRevisionState newBaseline, ChangeSetLevel changeset) {
+    private FacadeService                facadeService;
+
+    private final ClearToolFormatHandler historyHandler                    = new ClearToolFormatHandler(HISTORY_FORMAT);
+
+    private final UcmRevisionState       newBaseline;
+
+    private final UcmRevisionState       oldBaseline;
+
+    public UcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, UcmRevisionState oldBaseline, UcmRevisionState newBaseline,
+            ChangeSetLevel changeset, FacadeService facadeService) {
         super(cleartool, useDynamicView, filter, changeset, false);
         this.oldBaseline = oldBaseline;
         this.newBaseline = newBaseline;
+        this.facadeService = facadeService;
+    }
+
+    @Override
+    public List<Entry> getChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+    InterruptedException {
+        List<Entry> result = new ArrayList<Entry>();
+        result.addAll(getChangesOnBaseline(time, viewPath, viewTag, branchNames, viewPaths));
+        result.addAll(super.getChanges(time, viewPath, viewTag, branchNames, viewPaths));
+        return result;
+    }
+
+    public FacadeService getFacadeService() {
+        return facadeService;
+    }
+
+    @Override
+    public boolean hasChanges(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException, InterruptedException {
+        return hasChangesOnBaseline(time, viewPath, viewTag, branchNames, viewPaths) || super.hasChanges(time, viewPath, viewTag, branchNames, viewPaths);
+    }
+
+    public void setFacadeService(FacadeService facadeService) {
+        this.facadeService = facadeService;
     }
 
     @Override
@@ -98,28 +137,114 @@ public class UcmHistoryAction extends AbstractHistoryAction {
                 activityMap.put(entry.getActivityName(), activity);
                 result.add(activity);
             }
-
-            UcmActivity.File currentFile = new UcmActivity.File();
-            currentFile.setComment(entry.getComment());
-            currentFile.setDate(entry.getDate());
-            currentFile.setDateStr(entry.getDateText());
-            currentFile.setEvent(entry.getEvent());
-            currentFile.setName(entry.getElement());
-            currentFile.setOperation(entry.getOperation());
-            currentFile.setVersion(entry.getVersionId());
-            activity.addFile(currentFile);
+            if (entry.getElement() != null) {
+                UcmActivity.File currentFile = new UcmActivity.File();
+                currentFile.setComment(entry.getComment());
+                currentFile.setDate(entry.getDate());
+                currentFile.setDateStr(entry.getDateText());
+                currentFile.setEvent(entry.getEvent());
+                currentFile.setName(entry.getElement());
+                currentFile.setOperation(entry.getOperation());
+                currentFile.setVersion(entry.getVersionId());
+                activity.addFile(currentFile);
+            }
         }
 
         for (Entry activity : result) {
-            callLsActivity(activityMap, (UcmActivity) activity, viewPath, 3);
+            callLsActivity(activityMap, (UcmActivity) activity, viewPath, MAX_DEPTH_CONTRIBUTING_ACTIVITIES);
         }
 
         return result;
     }
 
+    protected List<HistoryEntry> compareBaselines(String viewPath) throws IOException, InterruptedException {
+        Map<Component, Baseline> from = toMap(getOldBaseline().getBaselines());
+        Map<Component, Baseline> to = toMap(getNewBaseline().getBaselines());
+        List<HistoryEntry> historyEntries = new ArrayList<HistoryEntry>();
+        for (java.util.Map.Entry<Component, Baseline> entry : from.entrySet()) {
+            Baseline oldBl = entry.getValue();
+            Baseline newBl;
+            Component component = entry.getKey();
+            if ((newBl = to.get(component)) == null) {
+                LOG.warning(MessageFormat.format("Skipping {0} since there is no new baseline for component {1}.", oldBl, component));
+                continue;
+            }
+            historyEntries.addAll(entryListAdapter.adapt(facadeService.getBaselineService().compare(oldBl, newBl)));
+        }
+        return historyEntries;
+    }
+
+    protected List<Entry> getChangesOnBaseline(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) throws IOException,
+    InterruptedException {
+        if (getOldBaseline() == null)
+            return Collections.emptyList();
+        if (getNewBaseline() == null)
+            return Collections.emptyList();
+        Map<Component, Baseline> from = toMap(getOldBaseline().getBaselines());
+        Map<Component, Baseline> to = toMap(getNewBaseline().getBaselines());
+        List<Entry> entries = new ArrayList<Entry>();
+        for (java.util.Map.Entry<Component, Baseline> entry : from.entrySet()) {
+            Baseline oldBl = entry.getValue();
+            Baseline newBl;
+            Component component = entry.getKey();
+            if ((newBl = to.get(component)) == null) {
+                LOG.warning(MessageFormat.format("Skipping {0} since there is no new baseline for component {1}.", oldBl, component));
+                continue;
+            }
+            if (oldBl.equals(newBl)) {
+                continue;
+            }
+            UcmActivity rebaseActivity = new UcmActivity();
+            String componentName = component == null ? "??" : component.getName();
+            rebaseActivity.setName("rebase_" + componentName);
+            rebaseActivity.setHeadline(MessageFormat.format("Rebase on component {0} : {1} → {2}", componentName, oldBl.getName(), newBl.getName()));
+            ActivitiesDelta blComparison = getFacadeService().getBaselineService().compare(oldBl, newBl);
+            fillSubActivities(rebaseActivity, UcmActivity.MODIFIER_ADD, blComparison.getRight());
+            fillSubActivities(rebaseActivity, UcmActivity.MODIFIER_DELETE, blComparison.getLeft());
+            entries.add(rebaseActivity);
+        }
+        return entries;
+    }
+
     @Override
     protected ClearToolFormatHandler getHistoryFormatHandler() {
         return historyHandler;
+    }
+
+    protected UcmRevisionState getNewBaseline() {
+        return newBaseline;
+    }
+
+    protected UcmRevisionState getOldBaseline() {
+        return oldBaseline;
+    }
+
+    protected boolean hasChangesOnBaseline(Date time, String viewPath, String viewTag, String[] branchNames, String[] viewPaths) {
+        LOG.finest("Called hasChangesOnBaseline");
+        if (getOldBaseline() == null) {
+            LOG.finest("oldBaseline == null");
+            return false;
+        }
+        if (getNewBaseline() == null) {
+            LOG.finest("newBaseline == null");
+            return false;
+        }
+        Baseline[] oldBaselines = getOldBaseline().getBaselines();
+        Baseline[] newBaselines = getNewBaseline().getBaselines();
+        TaskListener listener = cleartool.getLauncher().getListener();
+        if (Arrays.equals(oldBaselines, newBaselines)) {
+            String message = "Baselines are identical : " + StringUtils.join(oldBaselines, ", ");
+            LOG.fine(message);
+            listener.getLogger().println(message);
+            return false;
+        }
+        String oldBaselinesMessage = "Old baselines : " + StringUtils.join(oldBaselines, ", ");
+        LOG.fine(oldBaselinesMessage);
+        listener.getLogger().println(oldBaselinesMessage);
+        String newBaselinesMessage = "New baselines : " + StringUtils.join(newBaselines, ", ");
+        LOG.fine(newBaselinesMessage);
+        listener.getLogger().println(newBaselinesMessage);
+        return true;
     }
 
     @Override
@@ -146,43 +271,27 @@ public class UcmHistoryAction extends AbstractHistoryAction {
             if (oldBaseline == null) {
                 return history;
             }
-            List<Baseline> oldBaselines = oldBaseline.getBaselines();
-            List<Baseline> newBaselines = newBaseline.getBaselines();
-            if (ObjectUtils.equals(oldBaselines, newBaselines)) {
-                return history;
-            }
-            for (final Baseline oldBl : oldBaselines) {
-                String bl1 = oldBl.getBaselineName();
-                final String comp1 = oldBl.getComponentName();
-                // Lookup the component in the set of new baselines
-                Baseline newBl = (Baseline) CollectionUtils.find(newBaselines, new Predicate() {
-                    @Override
-                    public boolean evaluate(Object bl) {
-                        return StringUtils.equals(comp1, ((Baseline) bl).getComponentName());
-                    }
-                });
-                // If we cannot find a new baseline, log and skip
-                if (newBl == null) {
-                    cleartool.getLauncher().getListener().getLogger()
-                    .print("Old Baseline " + bl1 + " for component " + comp1 + " couldn't be found in the new set of baselines.");
-                    continue;
-                }
-                String bl2 = newBl.getBaselineName();
-                if (!StringUtils.equals(bl1, bl2)) {
-                    List<String> versions = UcmCommon.getDiffBlVersions(cleartool, viewPath, "baseline:" + bl1, "baseline:" + bl2);
-                    for (String version : versions) {
-                        try {
-                            parseLsHistory(
-                                    new BufferedReader(cleartool.describe(getHistoryFormatHandler().getFormat() + OutputFormat.COMMENT + OutputFormat.LINEEND,
-                                            null, version)), history);
-                        } catch (ParseException e) {
-                            /* empty by design */
-                        }
-                    }
-                }
-            }
+            history.addAll(compareBaselines(viewPath));
         }
         return history;
+    }
+
+    protected Map<Component, Baseline> toMap(Baseline[] baselines) throws IOException, InterruptedException {
+        Map<Component, Baseline> result = new HashMap<Component, Baseline>();
+        for (Baseline baseline : baselines) {
+            result = addBaselineToResult(baseline, result);
+        }
+        return result;
+    }
+
+    private Map<Component, Baseline> addBaselineToResult(Baseline baseline, Map<Component, Baseline> result) throws IOException, InterruptedException {
+        Baseline oldValue;
+        BaselineService baselineService = getFacadeService().getBaselineService();
+        Component component = baselineService.getComponent(baseline);
+        if ((oldValue = result.put(component, baseline)) != null) {
+            LOG.warning(MessageFormat.format("Skipping {0} for {1}. Replaced by {2}.", oldValue, component, baseline));
+        }
+        return result;
     }
 
     private void callLsActivity(Map<String, UcmActivity> activityMap, UcmActivity activity, String viewPath, int numberOfContributingActivitiesToFollow)
@@ -225,6 +334,16 @@ public class UcmHistoryAction extends AbstractHistoryAction {
             }
         }
         reader.close();
+    }
+
+    private void fillSubActivities(UcmActivity rootActivity, String modifier, Collection<Activity> subActivities) {
+        for (Activity activity : subActivities) {
+            UcmActivity contributingActivity = new UcmActivity();
+            contributingActivity.setName(activity.getSelector());
+            contributingActivity.setHeadline(activity.getHeadline());
+            contributingActivity.setModifier(modifier);
+            rootActivity.addSubActivity(contributingActivity);
+        }
     }
 
     private boolean needsHistoryOnAllBranches() {

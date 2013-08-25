@@ -29,6 +29,8 @@ import hudson.Launcher;
 import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.ClearTool.SetcsOption;
 import hudson.plugins.clearcase.ConfigSpec;
+import hudson.plugins.clearcase.ucm.service.FacadeService;
+import hudson.plugins.clearcase.ucm.service.StreamService;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
 
 import java.io.IOException;
@@ -37,11 +39,15 @@ import org.apache.commons.lang.ArrayUtils;
 
 public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
 
-    private final String streamSelector;
+    private FacadeService facadeService;
 
-    public UcmSnapshotCheckoutAction(ClearTool cleartool, String streamSelector, String[] loadRules, boolean useUpdate, String viewPath, ViewStorage viewStorage) {
+    private final String  streamSelector;
+
+    public UcmSnapshotCheckoutAction(ClearTool cleartool, String streamSelector, String[] loadRules, boolean useUpdate, String viewPath,
+            ViewStorage viewStorage, FacadeService facadeService) {
         super(cleartool, loadRules, useUpdate, viewPath, viewStorage);
         this.streamSelector = streamSelector;
+        this.facadeService = facadeService;
     }
 
     @Override
@@ -93,5 +99,30 @@ public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
             }
         }
         return true;
+    }
+
+    public FacadeService getFacadeService() {
+        return facadeService;
+    }
+
+    public void setFacadeService(FacadeService facadeService) {
+        this.facadeService = facadeService;
+    }
+
+    @Override
+    protected boolean cleanAndCreateViewIfNeeded(FilePath workspace, String viewTag, String viewPath, String streamSelector) throws IOException,
+    InterruptedException {
+        boolean viewCreated = super.cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, streamSelector);
+        ClearTool ct = getCleartool();
+        if (!viewCreated) {
+            StreamService streamService = facadeService.getStreamService();
+            if (!streamService.isViewAttachedTo(viewTag, streamService.parse(streamSelector))) {
+                ct.getLauncher().getListener().getLogger().println("Deleting current view as it is attached to a different stream than " + streamSelector);
+                ct.rmview(viewPath);
+                createView(ct, viewTag, viewPath, streamSelector);
+                viewCreated = true;
+            }
+        }
+        return viewCreated;
     }
 }

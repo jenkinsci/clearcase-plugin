@@ -27,6 +27,8 @@ package hudson.plugins.clearcase;
 import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Util;
+import hudson.plugins.clearcase.command.CleartoolOutput;
+import hudson.plugins.clearcase.command.LsHistoryCommand;
 import hudson.plugins.clearcase.util.DeleteOnCloseFileInputStream;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.util.ArgumentListBuilder;
@@ -65,9 +67,10 @@ import org.apache.commons.lang.Validate;
 public abstract class ClearToolExec implements ClearTool {
 
     private static final CleartoolVersion CLEARTOOL_VERSION_7                          = new CleartoolVersion("7");
+    @SuppressWarnings("unused")
     private static final Logger           LOGGER                                       = Logger.getLogger(ClearToolExec.class.getName());
     private static final Pattern          PATTERN_UNABLE_TO_REMOVE_DIRECTORY_NOT_EMPTY = Pattern
-            .compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
+                                                                                               .compile("cleartool: Error: Unable to remove \"(.*)\": Directory not empty.");
     private static final Pattern          PATTERN_VIEW_ACCESS_PATH                     = Pattern.compile("View server access path: (.*)");
     private static final Pattern          PATTERN_VIEW_UUID                            = Pattern.compile("View uuid: (.*)");
 
@@ -291,10 +294,18 @@ public abstract class ClearToolExec implements ClearTool {
 
     @Override
     public Reader lsactivity(String activity, String commandFormat, String viewPath) throws IOException, InterruptedException {
+        return lsactivity(viewPath, "-fmt", commandFormat, activity);
+    }
+    
+    @Override
+    public Reader lsactivityIn(String streamSelector, String commandFormat, String viewPath) throws IOException, InterruptedException {
+        return lsactivity(viewPath, "-fmt", commandFormat, "-in", streamSelector);
+    }
+    
+    private Reader lsactivity(String viewPath, String... args) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsactivity");
-        cmd.add("-fmt", commandFormat);
-        cmd.add(activity);
+        cmd.add(args);
 
         // changed the path from workspace to getRootViewPath to make Dynamic UCM work
         FilePath filePath = getRootViewPath(launcher).child(viewPath);
@@ -335,62 +346,27 @@ public abstract class ClearToolExec implements ClearTool {
     }
 
     @Override
+    @Deprecated
     public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor) throws IOException,
-    InterruptedException {
-        return lshistory(format, lastBuildDate, viewPath, branch, pathsInView, getMinor);
+            InterruptedException {
+        return lshistory(format, lastBuildDate, viewPath, branch, pathsInView, getMinor, false);
     }
 
     @Override
+    public LsHistoryCommand lshistory() {
+        return new LsHistoryCommand();
+    }
+
+    @Override
+    @Deprecated
     public Reader lshistory(String format, Date lastBuildDate, String viewPath, String branch, String[] pathsInView, boolean getMinor, boolean useRecurse)
             throws IOException, InterruptedException {
-        Validate.notNull(pathsInView);
-        Validate.notNull(viewPath);
-        SimpleDateFormat formatter = new SimpleDateFormat("d-MMM-yy.HH:mm:ss'UTC'Z", Locale.US);
-        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        ArgumentListBuilder cmd = new ArgumentListBuilder();
-        cmd.add("lshistory");
-        if (useRecurse) {
-            cmd.add("-recurse");
-        } else {
-            cmd.add("-all");
-        }
-        cmd.add("-since", formatter.format(lastBuildDate).toLowerCase());
-        cmd.add("-fmt", format);
-        // cmd.addQuoted(format);
-        if (StringUtils.isNotEmpty(branch)) {
-            cmd.add("-branch", "brtype:" + branch);
-        }
-        if (getMinor) {
-            cmd.add("-minor");
-        }
-        cmd.add("-nco");
-
-        FilePath filePath = getRootViewPath(launcher).child(viewPath);
-
-        for (String path : pathsInView) {
-            path = path.replace("\n", "").replace("\r", "");
-            if (path.matches(".*\\s.*")) {
-                cmd.addQuoted(path);
-            } else {
-                cmd.add(path);
-            }
-        }
-        Reader returnReader = null;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            launcher.run(cmd.toCommandArray(), null, baos, filePath, true);
-        } catch (IOException e) {
-            LOGGER.log(Level.FINE, null, e);
-            // We don't care if Clearcase returns an error code, we will process it afterwards
-        }
-        if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.log(Level.FINE, "cmd={0} output={1}", new Object[] { cmd.toStringWithQuote(), baos });
-        }
-        returnReader = new InputStreamReader(new ByteArrayInputStream(baos.toByteArray()));
-        baos.close();
-
-        return returnReader;
+        LsHistoryCommand lsHistory = lshistory();
+        lsHistory.format(format).since(lastBuildDate).viewPath(getRootViewPath(launcher).child(viewPath)).branch(branch).pathsInView(pathsInView);
+        lsHistory.setConsiderMinorEvents(getMinor);
+        lsHistory.setUseRecurse(useRecurse);
+        CleartoolOutput output = lsHistory.execute(launcher, launcher.getListener());
+        return new InputStreamReader(output.getInputStream());
     }
 
     @Override
@@ -1015,7 +991,7 @@ public abstract class ClearToolExec implements ClearTool {
      * @throws InterruptedException
      */
     private void handleHijackedDirectoryCCBug(String viewPath, FilePath filePath, List<IOException> exceptions, String output) throws IOException,
-    InterruptedException {
+            InterruptedException {
         String[] lines = output.split("\n");
         int nbRemovedDirectories = 0;
         PrintStream logger = getLauncher().getListener().getLogger();

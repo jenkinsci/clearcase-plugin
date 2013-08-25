@@ -343,7 +343,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, null, false);
 
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver), scm.generateNormalizedViewName(variableResolver),
                 scm.getBranchNames(variableResolver), scm.getViewPaths(null, null, launcher));
@@ -392,7 +392,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, null, false);
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver), scm.generateNormalizedViewName(variableResolver),
                 scm.getBranchNames(variableResolver), scm.getViewPaths(null, null, launcher));
         assertEquals("Number of history entries are incorrect", 1, entries.size());
@@ -501,7 +501,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, null, false);
 
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver),
                 scm.generateNormalizedViewName(variableResolver), scm.getBranchNames(variableResolver),
@@ -712,7 +712,7 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
 
-        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, false);
+        BaseHistoryAction action = (BaseHistoryAction) scm.createHistoryAction(variableResolver, clearToolLauncher, build, null, false);
 
         List<ChangeLogSet.Entry> entries = action.getChanges(new Date(), scm.getViewPath(variableResolver),
                 scm.generateNormalizedViewName(variableResolver), scm.getBranchNames(variableResolver),
@@ -769,10 +769,6 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         return verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE), eq(Boolean.FALSE));
     }
 
-    private Reader verifyCleartoolLsHistoryWithAnyHistoryFormatAndMinorEvents() throws IOException, InterruptedException {
-        return verify(cleartool).lshistory(anyString(), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.TRUE), eq(Boolean.FALSE));
-    }
-
     private Reader verifyCleartoolLsHistoryWithStandardInput() throws IOException, InterruptedException {
         return verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
                 eq(Boolean.FALSE));
@@ -782,4 +778,5 @@ public class BaseHistoryActionTest extends AbstractWorkspaceTest {
         return verify(cleartool).lshistory(eq(VALID_HISTORY_FORMAT), any(Date.class), anyString(), anyString(), any(String[].class), eq(Boolean.FALSE),
                 eq(Boolean.FALSE));
     }
+
 }

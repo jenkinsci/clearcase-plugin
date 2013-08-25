@@ -26,14 +26,17 @@ package hudson.plugins.clearcase.ucm;
 
 import hudson.plugins.clearcase.AbstractClearCaseSCMRevisionState;
 import hudson.plugins.clearcase.Baseline;
+import hudson.plugins.clearcase.ucm.model.UcmSelector;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 /**
- * Represents the repository state at a given point of time
+ * Represents the repository state at a given point of time.
+ * @deprecated Replaced by {@link UcmRevisionState}
  */
+@Deprecated
 public class ClearCaseUCMSCMRevisionState extends AbstractClearCaseSCMRevisionState {
     private final List<Baseline> baselines;
     private final String         stream;
@@ -50,6 +53,17 @@ public class ClearCaseUCMSCMRevisionState extends AbstractClearCaseSCMRevisionSt
 
     public String getStream() {
         return stream;
+    }
+
+    public Object readResolve() {
+        hudson.plugins.clearcase.ucm.model.Baseline[] newBaselines = new hudson.plugins.clearcase.ucm.model.Baseline[baselines.size()];
+        int i = 0;
+        for (Baseline baseline : baselines) {
+            hudson.plugins.clearcase.ucm.model.Baseline bl = UcmSelector.parse(baseline.getBaselineName(), hudson.plugins.clearcase.ucm.model.Baseline.class);
+            bl.setComponent(UcmSelector.parse(baseline.getComponentName(), hudson.plugins.clearcase.ucm.model.Component.class));
+            newBaselines[i++] = bl;
+        }
+        return new UcmRevisionState(newBaselines, getLoadRules(), getBuildTime().getTime());
     }
 
 }

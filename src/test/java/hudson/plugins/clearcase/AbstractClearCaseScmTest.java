@@ -24,6 +24,8 @@
  */
 package hudson.plugins.clearcase;
 
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.extractProperty;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -169,7 +171,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         @Override
         protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-                boolean useRecurse) {
+                SCMRevisionState baseline, boolean useRecurse) {
             // TODO Auto-generated method stub
             return historyAction;
         }
@@ -498,12 +500,11 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
         AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("view name", "", "");
         scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, scmRevisionState);
-        FilePath moduleRoot = scm.getModuleRoot(workspace);
-        assertEquals("The module root path is incorrect", "view_name", moduleRoot.getName());
+        assertThat(scm.getModuleRoot(workspace).getName()).isEqualTo("view_name");
 
         FilePath[] moduleRoots = scm.getModuleRoots(workspace);
-        assertEquals("The number of module roots are incorrect", 1, moduleRoots.length);
-        assertEquals("The module root path is incorrect", "view_name", moduleRoots[0].getName());
+        assertThat(moduleRoots).hasSize(1);
+        assertThat(extractProperty("name").from(moduleRoots)).containsExactly("view_name");
     }
 
     @Test
@@ -732,12 +733,11 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
 
     @Test
     public void testPollChangesFirstTime() throws Exception {
-        when(project.getSomeBuildWithWorkspace()).thenReturn(null);
         when(taskListener.getLogger()).thenReturn(System.out);
         AbstractClearCaseScmDummy scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
+        scm.setFirstBuild(true);
         PollingResult pr = scm.compareRemoteRevisionWith(project, launcher, workspace, taskListener, null);
         assertEquals("The first time should always have a significant change", PollingResult.BUILD_NOW, pr);
-        verify(project).getSomeBuildWithWorkspace();
     }
 
     @Test

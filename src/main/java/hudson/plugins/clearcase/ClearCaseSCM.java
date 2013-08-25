@@ -459,7 +459,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
     @Override
     protected HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-            boolean useRecurse) throws IOException, InterruptedException {
+            SCMRevisionState baseline, boolean useRecurse) throws IOException, InterruptedException {
         ClearTool ct = createClearTool(variableResolver, launcher);
         BaseHistoryAction action = new BaseHistoryAction(ct, isUseDynamicView(), configureFilters(variableResolver, build, launcher.getLauncher()),
                 getChangeset(), useRecurse, getDescriptor().getLogMergeTimeWindow());

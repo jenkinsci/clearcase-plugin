@@ -27,7 +27,7 @@ import hudson.scm.SCMRevisionState;
 
 import java.util.Date;
 
-public abstract class AbstractClearCaseSCMRevisionState extends SCMRevisionState {
+public abstract class AbstractClearCaseSCMRevisionState extends SCMRevisionState implements BuildTimeBased, LoadRulesAware {
 
     protected final Date buildTime;
     private String[]     loadRules;
@@ -37,10 +37,12 @@ public abstract class AbstractClearCaseSCMRevisionState extends SCMRevisionState
         this.buildTime = buildTime;
     }
 
+    @Override
     public Date getBuildTime() {
         return buildTime;
     }
 
+    @Override
     public String[] getLoadRules() {
         return loadRules;
     }

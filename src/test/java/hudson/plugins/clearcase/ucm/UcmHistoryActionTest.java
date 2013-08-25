@@ -90,7 +90,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
                                         + "\"/main/Product/Release_3_3_int/Release_3_3_jdk5/2\" " + "\"destroy sub-branch \"esmalling_branch\" of branch\" "
                                         + "\"checkin\" \"activity\" "));
 
-        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DestroySubBranchFilter(), null, null, null);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DestroySubBranchFilter(), null, null, null, null);
         @SuppressWarnings("unchecked")
         List<ChangeLogSet.Entry> activities = action.getChanges(null, "IGNORED", "viewTag", new String[] { "Release_2_1_int" },
                 new String[] { "vobs/projects/Server" });
@@ -116,7 +116,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
 
         filters.add(new DefaultFilter());
         filters.add(new FileFilter(FileFilter.Type.DoesNotContainRegxp, "Server"));
-        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new FilterChain(filters), null, null, null);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new FilterChain(filters), null, null, null, null);
         List<ChangeLogSet.Entry> activities = action.getChanges(null, "IGNORED", "viewTag", new String[] { "Release_2_1_int" },
                 new String[] { "vobs/projects/Server" });
         assertEquals("There should be 1 activity", 1, activities.size());
@@ -152,7 +152,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
                         .thenReturn(
                                 new StringReader(
                                         "\"20080326.110739\" \"username\" \"vobs/gtx2/core/src/foo/bar/MyFile.java\" \"/main/feature_1.23\" \"destroy sub-branch \"esmalling_branch\" of branch\" \"rmbranch\" \"activity\" "));
-        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DestroySubBranchFilter(), null, null, null);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DestroySubBranchFilter(), null, null, null, null);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
         assertFalse("The getChanges() method reported a change", hasChange);
         verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
@@ -166,7 +166,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
                 cleartool.lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
                         eq(Boolean.FALSE))).thenReturn(new StringReader("cleartool: Error: Not an object in a vob: \"view.dat\".\n"));
 
-        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DefaultFilter(), null, null, null);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DefaultFilter(), null, null, null, null);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
 
         assertFalse("The getChanges() method reported a change", hasChange);
@@ -182,7 +182,7 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
                         eq(Boolean.FALSE))).thenReturn(
                                 new StringReader(
                                         "\"20071015.151822\" \"username\" \"Customer\\DataSet.xsd\" \"\\main\\sit_r6a\\0\" \"create version\"  \"mkelem\" \"activity\" "));
-        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DefaultFilter(), null, null, null);
+        UcmHistoryAction action = new UcmHistoryAction(cleartool, false, new DefaultFilter(), null, null, null, null);
         boolean hasChange = action.hasChanges(null, "view", "viewTag", new String[] { "branch" }, new String[] { "vobpath" });
         assertFalse("The getChanges() method reported a change", hasChange);
         verify(cleartool).lshistory((String) notNull(), (Date) isNull(), eq("view"), eq("branch"), eq(new String[] { "vobpath" }), eq(Boolean.FALSE),
@@ -383,14 +383,14 @@ public class UcmHistoryActionTest extends AbstractWorkspaceTest {
                                                 + "\"\\main\\jcp_v13.1_be_int\\4\" \"create version\" \"checkin\" \"PTR3693254_WWW_AeRE_V131_INTCR_3313592-_Code_Review\" "));
 
         UcmHistoryAction action = new UcmHistoryAction(cleartool, false, scm.configureFilters(
-                new VariableResolver.ByMap<String>(new HashMap<String, String>()), build, launcher), null, null, null);
+                new VariableResolver.ByMap<String>(new HashMap<String, String>()), build, launcher), null, null, null, null);
         action.setExtendedViewPath("D:\\java\\hudson\\jobs\\stromp_be_test\\workspace\\stromp_be_builc\\");
         boolean hasChange = action.hasChanges(null, "stromp_be_builc", "viewTag", new String[] { "jcp_v13.1_be_int" }, scm.getViewPaths(null, null, launcher));
         assertTrue("The hasChanges() method did not report a change", hasChange);
     }
 
     private UcmHistoryAction createUcmHistoryAction() {
-        return new UcmHistoryAction(cleartool, false, null, null, null, null);
+        return new UcmHistoryAction(cleartool, false, null, null, null, null, null);
     }
 
 }

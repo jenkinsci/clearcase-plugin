@@ -169,12 +169,17 @@ public class UcmActivity extends ChangeLogSet.Entry {
 
     }
 
-    private static final DateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-    private List<File>              files          = new ArrayList<File>();
+    public static final String      MODIFIER_ADD    = "add";
+    public static final String      MODIFIER_DELETE = "delete";
+    private static final DateFormat DATE_FORMATTER  = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    private List<File>              files           = new ArrayList<File>();
     private String                  headline;
+    private String                  modifier;
+
     private String                  name;
     private String                  stream;
-    private List<UcmActivity>       subActivities  = new ArrayList<UcmActivity>();
+
+    private List<UcmActivity>       subActivities   = new ArrayList<UcmActivity>();
 
     private String                  user;
 
@@ -193,6 +198,7 @@ public class UcmActivity extends ChangeLogSet.Entry {
         this.headline = other.headline;
         this.stream = other.stream;
         this.user = other.user;
+        this.modifier = other.modifier;
         this.setParent(other.getParent());
 
         for (UcmActivity subAct : other.getSubActivities()) {
@@ -241,6 +247,16 @@ public class UcmActivity extends ChangeLogSet.Entry {
         return User.get(user);
     }
 
+    public EditType getEditType() {
+        if (MODIFIER_ADD.equals(modifier)) {
+            return EditType.ADD;
+        } else if (MODIFIER_DELETE.equals(modifier)) {
+            return EditType.DELETE;
+        } else {
+            return null;
+        }
+    }
+
     @Exported
     public List<File> getFiles() {
         return files;
@@ -249,6 +265,10 @@ public class UcmActivity extends ChangeLogSet.Entry {
     @Exported
     public String getHeadline() {
         return headline;
+    }
+
+    public String getModifier() {
+        return modifier;
     }
 
     @Override
@@ -293,6 +313,10 @@ public class UcmActivity extends ChangeLogSet.Entry {
 
     public void setHeadline(String headline) {
         this.headline = headline;
+    }
+
+    public void setModifier(String modifier) {
+        this.modifier = modifier;
     }
 
     public void setName(String name) {

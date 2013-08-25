@@ -34,6 +34,7 @@ import hudson.plugins.clearcase.ClearTool;
 import hudson.plugins.clearcase.action.UcmDynamicCheckoutAction;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.HistoryEntry;
+import hudson.plugins.clearcase.ucm.service.FacadeService;
 import hudson.scm.ChangeLogSet.Entry;
 
 import java.io.BufferedReader;
@@ -56,8 +57,8 @@ public class FreezeCodeUcmHistoryAction extends UcmHistoryAction {
     private final String              viewDrive;
 
     public FreezeCodeUcmHistoryAction(ClearTool cleartool, boolean useDynamicView, Filter filter, String stream, String viewDrive, AbstractBuild<?, ?> build,
-            ClearCaseUCMSCMRevisionState oldBaseline, ClearCaseUCMSCMRevisionState newBaseline) {
-        super(cleartool, useDynamicView, filter, oldBaseline, newBaseline, null);
+            UcmRevisionState oldBaseline, UcmRevisionState newBaseline, FacadeService facadeService) {
+        super(cleartool, useDynamicView, filter, oldBaseline, newBaseline, null, facadeService);
         this.build = build;
         this.stream = stream;
         this.viewDrive = viewDrive;

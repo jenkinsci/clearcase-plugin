@@ -28,6 +28,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
+import hudson.scm.SCMRevisionState;
 import hudson.util.VariableResolver;
 
 import java.io.IOException;
@@ -59,9 +60,9 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
     }
 
     @Override
-    public HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, boolean useRecurse)
-            throws IOException, InterruptedException {
-        return super.createHistoryAction(variableResolver, launcher, null, useRecurse);
+    public HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, SCMRevisionState baseline,
+            boolean useRecurse) throws IOException, InterruptedException {
+        return super.createHistoryAction(variableResolver, launcher, null, baseline, useRecurse);
     }
 
     @Override

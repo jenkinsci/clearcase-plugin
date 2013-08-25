@@ -45,7 +45,7 @@ public class ClearCaseUcmSCMDummy extends ClearCaseUcmSCM {
             String overrideBranchName, boolean createDynView, ClearTool cleartool, ClearCaseUcmScmDescriptor clearCaseUcmScmDescriptor,
             Computer overrideComputer, String viewPath) {
         super(stream, loadrules, viewname, usedynamicview, viewdrive, mkviewoptionalparam, filterOutDestroySubBranchEvent, useUpdate, rmviewonrename,
-                excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView, true, true, false, viewPath, true, null, null);
+                excludedRegions, multiSitePollBuffer, overrideBranchName, createDynView, true, true, false, viewPath, true, null, null, false);
         this.cleartool = cleartool;
         this.clearCaseUcmScmDescriptor = clearCaseUcmScmDescriptor;
         this.overrideComputer = overrideComputer;

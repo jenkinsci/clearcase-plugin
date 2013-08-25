@@ -89,6 +89,7 @@ public class UcmChangeLogParser extends ChangeLogParser {
         digester.addBeanPropertySetter("*/subactivity/headline");
         digester.addBeanPropertySetter("*/subactivity/stream");
         digester.addBeanPropertySetter("*/subactivity/user");
+        digester.addBeanPropertySetter("*/subactivity/modifier");
         digester.addSetNext("*/subactivity", "addSubActivity");
 
         digester.addObjectCreate("*/entry/file", UcmActivity.File.class);

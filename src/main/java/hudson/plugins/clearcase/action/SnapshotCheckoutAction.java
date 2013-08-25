@@ -123,6 +123,15 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
         Validate.notEmpty(viewPath);
         ClearTool ct = getCleartool();
         TaskListener listener = ct.getLauncher().getListener();
+        boolean doViewCreation = cleanIfRequiredAndReturnTrueIfViewCreationRequired(jobViewTag, viewPath, ct, listener, workspace);
+        if (doViewCreation) {
+            createView(ct, jobViewTag, viewPath, streamSelector);
+        }
+        return doViewCreation;
+    }
+
+    protected boolean cleanIfRequiredAndReturnTrueIfViewCreationRequired(String jobViewTag, String viewPath, ClearTool ct, TaskListener listener,
+            FilePath workspace) throws IOException, InterruptedException {
         FilePath filePath = new FilePath(workspace, viewPath);
         boolean viewPathExists = filePath.exists();
         boolean doViewCreation = true;
@@ -162,16 +171,17 @@ public abstract class SnapshotCheckoutAction extends CheckoutAction {
                 }
             }
         }
-        if (doViewCreation) {
-            MkViewParameters params = new MkViewParameters();
-            params.setType(ViewType.Snapshot);
-            params.setViewPath(viewPath);
-            params.setViewTag(jobViewTag);
-            params.setStreamSelector(streamSelector);
-            params.setViewStorage(getViewStorage());
-            ct.mkview(params);
-        }
         return doViewCreation;
+    }
+
+    protected void createView(ClearTool ct, String viewTag, String viewPath, String streamSelector) throws IOException, InterruptedException {
+        MkViewParameters params = new MkViewParameters();
+        params.setType(ViewType.Snapshot);
+        params.setViewPath(viewPath);
+        params.setViewTag(viewTag);
+        params.setStreamSelector(streamSelector);
+        params.setViewStorage(getViewStorage());
+        ct.mkview(params);
     }
 
     protected SnapshotCheckoutAction.LoadRulesDelta getLoadRulesDelta(Set<String> configSpecLoadRules, Launcher launcher) {

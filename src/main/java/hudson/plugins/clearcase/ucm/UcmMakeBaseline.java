@@ -106,6 +106,7 @@ public class UcmMakeBaseline extends Notifier {
     }
     private static final String      ENV_CC_BASELINE_NAME = "CC_BASELINE_NAME";
 
+    @SuppressWarnings("unused")
     private static final Logger      LOGGER               = Logger.getLogger(UcmMakeBaseline.class.getName());
 
     private final String             commentPattern;

@@ -39,7 +39,9 @@
         <td class="changeset" colspan="2">
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
-            <b>${loop.index + 1}. ${activity.headline} by <a href="${rootURL}/${activity.author.url}/">${activity.author}</a></b>
+            <b>${loop.index + 1}. ${activity.headline}
+             <j:if test="${not empty activity.user}">by <a href="${rootURL}/${activity.author.url}/">${activity.author}</a></j:if>
+             </b>
           </div>
         </td>
       </tr>
@@ -67,7 +69,7 @@
       <j:choose>
         <j:when test="${activity.hasSubActivities()}">
             <tr>
-                <td colspan="2"><b>Activity chain:</b></td>
+                <td colspan="2"><b>Contributing activities:</b></td>
             </tr>
             <tr>
                 <td align="left"> </td>

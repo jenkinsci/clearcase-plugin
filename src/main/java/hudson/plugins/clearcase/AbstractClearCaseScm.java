@@ -46,6 +46,7 @@ import hudson.plugins.clearcase.history.FileFilter;
 import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
+import hudson.plugins.clearcase.ucm.UcmWorkflow;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.plugins.clearcase.viewstorage.ServerViewStorage;
@@ -214,7 +215,8 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @see ViewStorageFactory
      */
     @Deprecated
-    private String                        unixDynStorageDir;
+    @SuppressWarnings("unused")
+    private transient String              unixDynStorageDir;
     private boolean                       useDynamicView;
     private boolean                       useOtherLoadRulesForPolling;
     private boolean                       useUpdate;
@@ -231,7 +233,10 @@ public abstract class AbstractClearCaseScm extends SCM {
      * @see ViewStorageFactory
      */
     @Deprecated
-    private String                        winDynStorageDir;
+    @SuppressWarnings("unused")
+    private transient String              winDynStorageDir;
+
+    private transient UcmWorkflow         workflow;
 
     public AbstractClearCaseScm(final String viewName, final String mkviewOptionalParam, final boolean filterOutDestroySubBranchEvent, final boolean useUpdate,
             final boolean rmviewonrename, final String excludedRegions, final boolean useDynamicView, final String viewDrive, boolean extractLoadRules,
@@ -576,7 +581,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     public String getViewPath() {
-        return StringUtils.defaultString(viewPath, viewName);
+        return StringUtils.defaultString(viewPath, viewName).replaceAll(REGEX_WHITESPACE, "_");
     }
 
     public String getViewPath(VariableResolver<String> variableResolver) {
@@ -644,6 +649,10 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     public ViewStorage getViewStorage() {
         return viewStorage;
+    }
+
+    public UcmWorkflow getWorkflow() {
+        return workflow;
     }
 
     public boolean isCreateDynView() {
@@ -757,6 +766,10 @@ public abstract class AbstractClearCaseScm extends SCM {
         this.viewStorage = viewStorage;
     }
 
+    public void setWorkflow(UcmWorkflow workflow) {
+        this.workflow = workflow;
+    }
+
     @Override
     public boolean supportsPolling() {
         return true;
@@ -805,20 +818,25 @@ public abstract class AbstractClearCaseScm extends SCM {
             launcher = new FixUnixLauncher(isUnix, launcher);
         }
 
-        // check if build is running
-        if (project.isBuilding() && !project.isConcurrentBuild()) {
+        logger.println("Checking if build is running");
+        if (isRunning(project)) {
             logger.println("REASON: Build is running.");
             return new PollingResult(baseline, baseline, Change.NONE);
         }
 
-        // is first build
+        logger.println("Checking if a build has already happened");
         if (isFirstBuild(baseline)) {
             logger.println("REASON: First build.");
             return PollingResult.BUILD_NOW;
         }
 
-        AbstractClearCaseSCMRevisionState ccBaseline = (AbstractClearCaseSCMRevisionState) baseline;
+        logger.println("Checking if revision state is known");
+        if (invalidRevisionState(baseline)) {
+            logger.println("REASON: Previous build has been done with a RevisionState we cannot understand");
+            return PollingResult.BUILD_NOW;
+        }
 
+        logger.println("Checking if we have a build with a valid workspace");
         AbstractBuild<?, ?> build = project.getSomeBuildWithWorkspace();
         if (build == null) {
             logger.println("REASON: Build and workspace not valid.");
@@ -834,29 +852,27 @@ public abstract class AbstractClearCaseScm extends SCM {
             logger.println("REASON: New config spec detected.");
             return PollingResult.BUILD_NOW;
         }
-
+        String viewTag = getViewName(variableResolver);
+        logger.println("Checking view validity");
+        if (isViewInvalid(build, variableResolver, clearToolLauncher, workspace, viewTag)) {
+            return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), Change.INCOMPARABLE);
+        }
         HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build, /* getUseRecurseForPolling() */
-                useOtherLoadRulesForPolling);
+                baseline, useOtherLoadRulesForPolling);
         Change change = Change.NONE;
         if (historyAction != null) {
             String viewPath = getViewPath(variableResolver);
-            String viewTag = getViewName(variableResolver);
             String[] branchNames = getBranchNames(variableResolver);
-            // path names to check (= load rules)
-            // first get load rules from last baseline (polling)
-            String[] pathNames = ccBaseline.getLoadRules();
-            LOG.log(Level.FINE, "loadRules={0}", (pathNames == null ? null : Arrays.asList(pathNames)));
-            // logger.println("load rules from last baseline: " + pathNames.toString());
-            // if load rules are atomatically extracted or other rules are used or load rules from last baseline are empty -> use from load rules field or from
-            // other rules
-            if (extractLoadRules || useOtherLoadRulesForPolling || pathNames == null || pathNames.length == 0) {
-                pathNames = getViewPaths(variableResolver, build, launcher, true);
-                // logger.println("load rules from config: " + pathNames.toString());
+            String[] viewPaths = getViewPaths(launcher, baseline, build, variableResolver);
+            LOG.log(Level.FINE, "loadRules={0}", (viewPaths == null ? null : Arrays.asList(viewPaths)));
+            Date buildTime;
+            if (baseline instanceof BuildTimeBased) {
+                buildTime = ((BuildTimeBased) baseline).getBuildTime();
+            } else {
+                buildTime = build.getTime();
             }
-            if (isViewInvalid(build, variableResolver, clearToolLauncher, workspace, viewTag)) {
-                // View became invalid (tag removed...)
-                change = Change.INCOMPARABLE;
-            } else if (historyAction.hasChanges(ccBaseline.getBuildTime(), viewPath, viewTag, branchNames, pathNames)) {
+            logger.println("Checking if there are changes in history");
+            if (historyAction.hasChanges(buildTime, viewPath, viewTag, branchNames, viewPaths)) {
                 change = Change.SIGNIFICANT;
             } else {
                 change = Change.NONE;
@@ -867,6 +883,24 @@ public abstract class AbstractClearCaseScm extends SCM {
             change = Change.NONE;
         }
         return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), change);
+    }
+
+    protected String computeExtendedViewPath(VariableResolver<String> variableResolver, ClearTool ct) {
+        try {
+            String viewPath = getViewPath(variableResolver);
+            String pwv = ct.pwv(viewPath);
+            if (pwv != null) {
+                if (pwv.contains("/")) {
+                    pwv += "/";
+                } else {
+                    pwv += "\\";
+                }
+                return pwv;
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
+        }
+        return null;
     }
 
     /**
@@ -892,15 +926,20 @@ public abstract class AbstractClearCaseScm extends SCM {
      * Create a HistoryAction that will be used by the pollChanges() and checkout() method.
      * 
      * @param variableResolver
-     * @param useDynamicView
      * @param launcher
      *            the command line launcher
+     * @param build
+     *            the current build if applicable
+     * @param baseline
+     *            the baseline for comparison
+     * @param useRecurse
+     *            whether to use the -recurse option in cleartool to call lshistory
      * @return an action that can poll if there are any changes a ClearCase repository. Never null.
      * @throws InterruptedException
      * @throws IOException
      */
     protected abstract HistoryAction createHistoryAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher, AbstractBuild<?, ?> build,
-            boolean useRecurse) throws IOException, InterruptedException;
+            SCMRevisionState baseline, boolean useRecurse) throws IOException, InterruptedException;
 
     /**
      * Create a SaveChangeLog action that is used to save a change log
@@ -951,6 +990,10 @@ public abstract class AbstractClearCaseScm extends SCM {
     protected void inspectConfigAction(VariableResolver<String> variableResolver, ClearToolLauncher launcher) throws IOException, InterruptedException {
     }
 
+    protected boolean invalidRevisionState(SCMRevisionState baseline) {
+        return !(baseline instanceof AbstractClearCaseSCMRevisionState);
+    }
+
     protected abstract boolean isFirstBuild(SCMRevisionState baseline);
 
     protected void setChangeset(ChangeSetLevel changeset) {
@@ -958,20 +1001,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     }
 
     protected void setExtendedViewPath(VariableResolver<String> variableResolver, ClearTool ct, AbstractHistoryAction action) {
-        try {
-            String viewPath = getViewPath(variableResolver);
-            String pwv = ct.pwv(viewPath);
-            if (pwv != null) {
-                if (pwv.contains("/")) {
-                    pwv += "/";
-                } else {
-                    pwv += "\\";
-                }
-                action.setExtendedViewPath(pwv);
-            }
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Exception when running 'cleartool pwv'", e);
-        }
+        action.setExtendedViewPath(computeExtendedViewPath(variableResolver, ct));
     }
 
     protected void setNormalizedViewName(String normalizedViewName) {
@@ -996,6 +1026,27 @@ public abstract class AbstractClearCaseScm extends SCM {
         return normalizedViewPath;
     }
 
+    private SCMRevisionState getRevisionState(@SuppressWarnings("rawtypes") Run run) {
+        return run == null ? null : run.getAction(SCMRevisionState.class);
+    }
+
+    private String[] getViewPaths(Launcher launcher, SCMRevisionState baseline, AbstractBuild<?, ?> build, VariableResolver<String> variableResolver)
+            throws IOException, InterruptedException {
+        String[] viewPaths = null;
+        if (baseline instanceof LoadRulesAware) {
+            LoadRulesAware loadRulesAware = (LoadRulesAware) baseline;
+            viewPaths = loadRulesAware.getLoadRules();
+        }
+        if (extractLoadRules || useOtherLoadRulesForPolling || viewPaths == null || viewPaths.length == 0) {
+            viewPaths = getViewPaths(variableResolver, build, launcher, true);
+        }
+        return viewPaths;
+    }
+
+    private boolean isRunning(AbstractProject<?, ?> project) {
+        return project.isBuilding() && !project.isConcurrentBuild();
+    }
+
     private boolean isViewInvalid(AbstractBuild<?, ?> build, VariableResolver<String> variableResolver, ClearToolLauncher clearToolLauncher,
             FilePath workspace, String viewTag) throws IOException, InterruptedException {
         CheckoutAction checkoutAction = createCheckOutAction(variableResolver, clearToolLauncher, build);
@@ -1006,10 +1057,11 @@ public abstract class AbstractClearCaseScm extends SCM {
             VariableResolver<String> variableResolver, SaveChangeLogAction saveChangeLogAction, String coNormalizedViewName, boolean returnValue,
             FilePath updtFile) throws IOException, InterruptedException {
         List<? extends ChangeLogSet.Entry> changelogEntries;
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("rawtypes")
         Run prevBuild = build.getPreviousBuild();
         Date lastBuildTime = getBuildTime(prevBuild);
-        HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build, /* getUseRecurseForChangelog() */false);
+        SCMRevisionState oldBaseline = getRevisionState(prevBuild);
+        HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build, oldBaseline, /* getUseRecurseForChangelog() */false);
         historyAction.setUpdtFile(updtFile);
         changelogEntries = historyAction.getChanges(lastBuildTime, getViewPath(variableResolver), coNormalizedViewName, getBranchNames(variableResolver),
                 getViewPaths(variableResolver, build, launcher, false));
