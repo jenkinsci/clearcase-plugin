@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import hudson.FilePath;
@@ -111,7 +112,7 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, null, null, true);
 
-        verify(taskListener).getLogger();
+        verify(taskListener, atLeastOnce()).getLogger();
 
     }
 
@@ -124,6 +125,6 @@ public class HudsonClearToolLauncherTest extends AbstractWorkspaceTest {
         ClearToolLauncher launcherImpl = new HudsonClearToolLauncherDummy("exec", "ccscm", taskListener, workspace, launcher);
         launcherImpl.run(new String[] { "a" }, null, new ByteArrayOutputStream(), null, true);
 
-        verify(taskListener).getLogger();
+        verify(taskListener, atLeastOnce()).getLogger();
     }
 }

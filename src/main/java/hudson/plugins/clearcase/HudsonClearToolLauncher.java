@@ -141,6 +141,9 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
             System.arraycopy(cmd, 0, cmdWithExec, 1, cmd.length);
 
             int r = getLaunchedProc(cmdWithExec, env, inputStream, out, path).join();
+            if (logCommand) {
+                listener.getLogger().println();
+            }
             if (r != 0) {
                 if (!logCommand) {
                     printToLogger(logFile);
@@ -166,6 +169,7 @@ public class HudsonClearToolLauncher implements ClearToolLauncher {
             while (br.ready()) {
                 listener.getLogger().println(br.readLine());
             }
+            listener.getLogger().println();
         } finally {
             IOUtils.closeQuietly(br);
             IOUtils.closeQuietly(fileReader);
