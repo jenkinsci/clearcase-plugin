@@ -138,7 +138,8 @@ public class StreamService extends ClearcaseService {
     
     public Versions getVersions(Stream stream, String viewPath) throws IOException, InterruptedException{
         Reader reader = clearTool.lsactivityIn(stream.getSelector(), "%[versions]p\\n", viewPath);
-        return Versions.parse(reader, viewPath, null);
+        String absoluteViewPath = clearTool.pwv(viewPath);
+        return Versions.parse(reader, absoluteViewPath, null);
     }
 
     private Baseline[] describeToBaselines(Stream stream, String format) throws IOException, InterruptedException {

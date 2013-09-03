@@ -92,8 +92,9 @@ public class StreamServiceTest {
     public void testGetVersionsOne() throws IOException, InterruptedException{
         Stream stream = UcmSelector.parse("stream:name@\\pvob", Stream.class);
         when(ct.lsactivityIn(anyString(), anyString(), anyString())).thenReturn(new StringReader("M:\\jcp_v17.0_be_int\\be1111_core\\config\\pom-templates\\build.properties@@\\main\\jcp_main_be_root\\jcp_v17.0_be_int\\1"));
-        Versions versions = instance.getVersions(stream, "M:\\jcp_v17.0_be_int");
-        verify(ct).lsactivityIn(eq("stream:name@\\pvob"), eq("%[versions]p\\n"), eq("M:\\jcp_v17.0_be_int"));
+        when(ct.pwv("jcp_v17.0_be_int")).thenReturn("M:\\jcp_v17.0_be_int");
+        Versions versions = instance.getVersions(stream, "jcp_v17.0_be_int");
+        verify(ct).lsactivityIn(eq("stream:name@\\pvob"), eq("%[versions]p\\n"), eq("jcp_v17.0_be_int"));
         assertThat(versions.getVersions()).hasSize(1);
         assertThat(versions.iterator().next().getPath()).isEqualTo("be1111_core\\config\\pom-templates\\build.properties@@\\main\\jcp_main_be_root\\jcp_v17.0_be_int\\1");
     }
