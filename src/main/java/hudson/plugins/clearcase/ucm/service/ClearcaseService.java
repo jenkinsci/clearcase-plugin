@@ -35,5 +35,9 @@ public abstract class ClearcaseService {
     ClearcaseService(ClearTool clearTool) {
         this.clearTool = clearTool;
     }
+    
+    public ClearTool getClearTool() {
+        return clearTool;
+    }
 
 }
