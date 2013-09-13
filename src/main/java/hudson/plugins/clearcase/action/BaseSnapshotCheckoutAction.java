@@ -76,8 +76,22 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
             if (needSetCs) {
                 result = getCleartool().setcs2(viewPath, SetcsOption.CONFIGSPEC, configSpec.setLoadRules(loadRules).getRaw());
             } else {
-                // Perform a full update of the view to reevaluate config spec
-                result = getCleartool().setcs2(viewPath, SetcsOption.CURRENT, null);
+                int updateRetries = 2;
+                while (updateRetries-- > 0) {
+                    try {
+                        // Perform a full update of the view to reevaluate
+                        // config spec
+                        result = getCleartool().setcs2(viewPath,SetcsOption.CURRENT, null);
+                        break;
+                    } catch (IOException ioExc) {
+                        try {
+                            // probably the reason is previous updated was interrupted, calling update will clean it
+                            getCleartool().update2(viewPath, loadRules);
+                        } catch (IOException ioExc2) {
+                            // skip silently - update may throw an exception but it will clear the view and allow setcs to proceed
+                        }
+                    }
+                }
                 String[] addedLoadRules = loadRulesDelta.getAdded();
                 if (!ArrayUtils.isEmpty(addedLoadRules)) {
                     // Config spec haven't changed, but there are new load rules
