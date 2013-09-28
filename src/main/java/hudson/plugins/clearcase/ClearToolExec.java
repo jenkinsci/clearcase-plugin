@@ -1072,7 +1072,7 @@ public abstract class ClearToolExec implements ClearTool {
         }
         PrintStream logger = getLauncher().getListener().getLogger();
         logger.println("Running cleartool setcs, this operation may take a while");
-        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes".getBytes()), workingDirectory, false, null, false);
+        String output = runAndProcessOutput(cmd, new ByteArrayInputStream("yes\nyes\n".getBytes()), workingDirectory, false, null, false);
         if (configSpecFile != null) {
             configSpecFile.delete();
         }
