@@ -44,7 +44,7 @@ import org.apache.commons.lang.StringUtils;
 public class ActivitiesDelta {
     public final static ActivitiesDelta EMPTY            = new ActivitiesDelta();
 
-    private final static Pattern        ACTIVITY_PATTERN = Pattern.compile("(.*) \"(.*)\"");
+    private final static Pattern        ACTIVITY_PATTERN = Pattern.compile("^([^ ]*) \"(.*)\"$");
     private static final String         LEFT_PREFIX      = "<< ";
     private final static Logger         LOG              = Logger.getLogger(ActivitiesDelta.class.getName());
     private static final String         RIGHT_PREFIX     = ">> ";
