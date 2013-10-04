@@ -73,6 +73,9 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
         }
         try {
             CleartoolUpdateResult result = null;
+            // ends the view server, useful if a previous update has been killed
+            getCleartool().endViewServer(viewTag);
+            
             if (needSetCs) {
                 result = getCleartool().setcs2(viewPath, SetcsOption.CONFIGSPEC, configSpec.setLoadRules(loadRules).getRaw());
             } else {

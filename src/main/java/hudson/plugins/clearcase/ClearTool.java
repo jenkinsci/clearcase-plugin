@@ -165,6 +165,14 @@ public interface ClearTool {
      *            the view tag
      */
     void endView(String viewTag) throws IOException, InterruptedException;
+    
+    /**
+     * Ends the view, with -server option
+     * 
+     * @param viewTag
+     *            the view tag
+     */
+    void endViewServer(String viewTag) throws IOException, InterruptedException;
 
     /**
      * Gets the view UUID, for thorough view deletion.

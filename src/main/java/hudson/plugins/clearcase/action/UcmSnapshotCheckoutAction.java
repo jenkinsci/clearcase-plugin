@@ -66,6 +66,8 @@ public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
         } else {
             ConfigSpec viewConfigSpec = new ConfigSpec(ct.catcs(viewTag), launcher.isUnix());
             SnapshotCheckoutAction.LoadRulesDelta loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
+            // ends the view server, useful if a previous update has been killed
+            getCleartool().endViewServer(viewTag);
             if (!ArrayUtils.isEmpty(loadRulesDelta.getRemoved())) {
                 try {
                     ct.setcs2(viewPath, SetcsOption.CONFIGSPEC, viewConfigSpec.setLoadRules(loadRules).getRaw());

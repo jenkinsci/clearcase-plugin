@@ -219,8 +219,20 @@ public abstract class ClearToolExec implements ClearTool {
 
     @Override
     public void endView(String viewTag) throws IOException, InterruptedException {
+        endView(viewTag, false);
+    }
+    
+    @Override
+    public void endViewServer(String viewTag) throws IOException, InterruptedException {
+        endView(viewTag, true);
+    }
+    
+    private void endView(String viewTag, boolean server) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("endview");
+        if (server) {
+            cmd.add("-server");
+        }
         cmd.add(viewTag);
 
         String output = runAndProcessOutput(cmd, null, null, false, null, true);
