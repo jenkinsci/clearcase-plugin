@@ -51,6 +51,7 @@ import hudson.scm.ChangeLogSet.Entry;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -232,18 +233,20 @@ public class UcmHistoryAction extends AbstractHistoryAction {
         Baseline[] oldBaselines = getOldBaseline().getBaselines();
         Baseline[] newBaselines = getNewBaseline().getBaselines();
         TaskListener listener = cleartool.getLauncher().getListener();
+        PrintStream logger = listener.getLogger();
         if (Arrays.equals(oldBaselines, newBaselines)) {
             String message = "Baselines are identical : " + StringUtils.join(oldBaselines, ", ");
             LOG.fine(message);
-            listener.getLogger().println(message);
+            logger.println(message);
             return false;
         }
         String oldBaselinesMessage = "Old baselines : " + StringUtils.join(oldBaselines, ", ");
         LOG.fine(oldBaselinesMessage);
-        listener.getLogger().println(oldBaselinesMessage);
+        logger.println(oldBaselinesMessage);
         String newBaselinesMessage = "New baselines : " + StringUtils.join(newBaselines, ", ");
         LOG.fine(newBaselinesMessage);
-        listener.getLogger().println(newBaselinesMessage);
+        logger.println(newBaselinesMessage);
+        logger.println("REASON: Baselines changed.");
         return true;
     }
 
