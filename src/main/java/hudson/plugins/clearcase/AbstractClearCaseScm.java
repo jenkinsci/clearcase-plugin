@@ -874,6 +874,7 @@ public abstract class AbstractClearCaseScm extends SCM {
             }
             logger.println("Checking if there are changes in history");
             if (historyAction.hasChanges(buildTime, viewPath, viewTag, branchNames, viewPaths)) {
+                logger.println("REASON: Found changes in history");
                 change = Change.SIGNIFICANT;
             } else {
                 change = Change.NONE;
