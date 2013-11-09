@@ -855,6 +855,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         String viewTag = getViewName(variableResolver);
         logger.println("Checking view validity");
         if (isViewInvalid(build, variableResolver, clearToolLauncher, workspace, viewTag)) {
+            logger.println("REASON: View is invalid");
             return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), Change.INCOMPARABLE);
         }
         HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build, /* getUseRecurseForPolling() */
