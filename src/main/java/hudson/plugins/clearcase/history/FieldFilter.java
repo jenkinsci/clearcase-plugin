@@ -29,6 +29,7 @@
 
 package hudson.plugins.clearcase.history;
 
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +37,8 @@ import java.util.regex.Pattern;
  * @author hlyh
  */
 public abstract class FieldFilter implements Filter {
+    private static final Logger LOGGER = Logger.getLogger(FieldFilter.class.getName()); 
+    
     public enum Type {
         Contains, ContainsIgnoreCase, ContainsRegxp, DoesNotContain, DoesNotContainIgnoreCase, DoesNotContainRegxp, EndsWith, EndsWithIgnoreCase, Equals, EqualsIgnoreCase, NotEquals, NotEqualsIgnoreCase, StartsWith, StartsWithIgnoreCase
     }
@@ -101,7 +104,7 @@ public abstract class FieldFilter implements Filter {
         case DoesNotContain:
             return !(value.contains(patternText));
         case DoesNotContainIgnoreCase:
-            System.out.println(value.toLowerCase() + " <>" + patternText);
+            LOGGER.fine(value.toLowerCase() + " <>" + patternText);
             return !(value.toLowerCase().contains(patternText));
         case ContainsRegxp:
             Matcher m = pattern.matcher(value);
