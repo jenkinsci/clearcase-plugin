@@ -109,15 +109,8 @@ public class ClearCasePublisher extends Notifier implements Serializable {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        try {
-            ClearCaseReportAction action = new ClearCaseReportAction(build);
-            build.getActions().add(action);
-
-        } catch (Exception e) {
-            // failure to parse should not fail the build
-            e.printStackTrace();
-        }
-
+        ClearCaseReportAction action = new ClearCaseReportAction(build);
+        build.getActions().add(action);
         return true;
     }
 
