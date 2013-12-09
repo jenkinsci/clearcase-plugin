@@ -874,6 +874,8 @@ public abstract class ClearToolExec implements ClearTool {
         }
         return version;
     }
+    
+    private static final String FILE_DESCRIPTOR_LEAK = "Process leaked file descriptors.";
 
     /**
      * @param launcher
@@ -901,10 +903,12 @@ public abstract class ClearToolExec implements ClearTool {
         String line = reader.readLine();
         StringBuilder builder = new StringBuilder();
         while (line != null) {
-            if (builder.length() > 0) {
-                builder.append("\n");
+            if (!line.startsWith(FILE_DESCRIPTOR_LEAK)) {
+                if (builder.length() > 0) {
+                    builder.append("\n");
+                }
+                builder.append(line);
             }
-            builder.append(line);
             line = reader.readLine();
         }
         reader.close();
@@ -1035,15 +1039,17 @@ public abstract class ClearToolExec implements ClearTool {
         try {
             String line = reader.readLine();
             while (line != null) {
-                Matcher matcher = viewListPattern.matcher(line);
-                if (matcher.find() && matcher.groupCount() == 3) {
-                    if ((!onlyStarMarked) || (onlyStarMarked && matcher.group(1).equals("*"))) {
-                        String vob = matcher.group(2);
-                        int pos = Math.max(vob.lastIndexOf('\\'), vob.lastIndexOf('/'));
-                        if (pos != -1) {
-                            vob = vob.substring(pos + 1);
+                if (!line.startsWith(FILE_DESCRIPTOR_LEAK)) {
+                    Matcher matcher = viewListPattern.matcher(line);
+                    if (matcher.find() && matcher.groupCount() == 3) {
+                        if ((!onlyStarMarked) || (onlyStarMarked && matcher.group(1).equals("*"))) {
+                            String vob = matcher.group(2);
+                            int pos = Math.max(vob.lastIndexOf('\\'), vob.lastIndexOf('/'));
+                            if (pos != -1) {
+                                vob = vob.substring(pos + 1);
+                            }
+                            views.add(vob);
                         }
-                        views.add(vob);
                     }
                 }
                 line = reader.readLine();

@@ -292,6 +292,24 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
         assertEquals("The fourth view name is incorrect", "qeeefff_HUDSON_SHORT_CS_TEST", views.get(3));
         verify(ccLauncher).run(eq(new String[] { "lsview" }), any(InputStream.class), any(OutputStream.class), (FilePath) isNull(), eq(true));
     }
+    
+    @Test
+    public void testListViewsWithLeakedFileDescriptor() throws Exception {
+        when(ccLauncher.run(eq(new String[] { "lsview" }), any(InputStream.class), any(OutputStream.class), (FilePath) isNull(), eq(true))).thenAnswer(
+                new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsview-2.log"), Boolean.TRUE));
+        List<String> views = clearToolExec.lsview(false);
+        assertEquals("The view list should contain 1 item", 1, views.size());
+        verify(ccLauncher).run(eq(new String[] { "lsview" }), any(InputStream.class), any(OutputStream.class), (FilePath) isNull(), eq(true));
+    } 
+    
+    @Test
+    public void testListCurrentViewWithLeakedFileDescriptor() throws Exception {
+        when(ccLauncher.getWorkspace()).thenReturn(workspace);
+        when(ccLauncher.run(eq(new String[] { "lsview", "-cview", "-s" }), any(InputStream.class), any(OutputStream.class), any(FilePath.class), eq(true))).thenAnswer(
+                new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lscurrentview-1.log"), Boolean.TRUE));
+        String viewTag = clearToolExec.lscurrentview("viewpath");
+        assertEquals("viewTag", viewTag);
+    }
 
     @Test
     public void testListVobs() throws Exception {
