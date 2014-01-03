@@ -221,12 +221,12 @@ public abstract class ClearToolExec implements ClearTool {
     public void endView(String viewTag) throws IOException, InterruptedException {
         endView(viewTag, false);
     }
-    
+
     @Override
     public void endViewServer(String viewTag) throws IOException, InterruptedException {
         endView(viewTag, true);
     }
-    
+
     private void endView(String viewTag, boolean server) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("endview");
@@ -308,12 +308,12 @@ public abstract class ClearToolExec implements ClearTool {
     public Reader lsactivity(String activity, String commandFormat, String viewPath) throws IOException, InterruptedException {
         return lsactivity(viewPath, "-fmt", commandFormat, activity);
     }
-    
+
     @Override
     public Reader lsactivityIn(String streamSelector, String commandFormat, String viewPath) throws IOException, InterruptedException {
         return lsactivity(viewPath, "-fmt", commandFormat, "-in", streamSelector);
     }
-    
+
     private Reader lsactivity(String viewPath, String... args) throws IOException, InterruptedException {
         ArgumentListBuilder cmd = new ArgumentListBuilder();
         cmd.add("lsactivity");
@@ -756,7 +756,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     * 
+     *
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     @Override
@@ -772,7 +772,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     /**
      * To set the config spec of a snapshot view, you must be in or under the snapshot view root directory.
-     * 
+     *
      * @see http://www.ipnom.com/ClearCase-Commands/setcs.html
      */
     public void setcsCurrent(String viewPath) throws IOException, InterruptedException {
@@ -874,8 +874,8 @@ public abstract class ClearToolExec implements ClearTool {
         }
         return version;
     }
-    
-    private static final String FILE_DESCRIPTOR_LEAK = "Process leaked file descriptors.";
+
+    private static final String FILE_DESCRIPTOR_LEAK = "Process leaked file descriptors. See http://wiki.jenkins-ci.org/display/JENKINS/Spawning+processes+from+build for more information";
 
     /**
      * @param launcher
@@ -998,7 +998,7 @@ public abstract class ClearToolExec implements ClearTool {
     /**
      * Work around for a CCase bug with hijacked directories: in the case where a directory was hijacked, cleartool is not able to remove it when it is not
      * empty, we detect this and remove the hijacked directories explicitly, then we relaunch the update.
-     * 
+     *
      * @param viewPath
      * @param filePath
      * @param exceptions
