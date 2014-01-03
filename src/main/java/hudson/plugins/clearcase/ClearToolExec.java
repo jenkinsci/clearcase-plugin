@@ -903,7 +903,8 @@ public abstract class ClearToolExec implements ClearTool {
         String line = reader.readLine();
         StringBuilder builder = new StringBuilder();
         while (line != null) {
-            if (!line.startsWith(FILE_DESCRIPTOR_LEAK)) {
+            line = StringUtils.removeEnd(line, FILE_DESCRIPTOR_LEAK);
+            if (StringUtils.isNotEmpty(line)) {
                 if (builder.length() > 0) {
                     builder.append("\n");
                 }
@@ -1039,17 +1040,16 @@ public abstract class ClearToolExec implements ClearTool {
         try {
             String line = reader.readLine();
             while (line != null) {
-                if (!line.startsWith(FILE_DESCRIPTOR_LEAK)) {
-                    Matcher matcher = viewListPattern.matcher(line);
-                    if (matcher.find() && matcher.groupCount() == 3) {
-                        if ((!onlyStarMarked) || (onlyStarMarked && matcher.group(1).equals("*"))) {
-                            String vob = matcher.group(2);
-                            int pos = Math.max(vob.lastIndexOf('\\'), vob.lastIndexOf('/'));
-                            if (pos != -1) {
-                                vob = vob.substring(pos + 1);
-                            }
-                            views.add(vob);
+                line = StringUtils.removeEnd(line, FILE_DESCRIPTOR_LEAK);
+                Matcher matcher = viewListPattern.matcher(line);
+                if (matcher.find() && matcher.groupCount() == 3) {
+                    if ((!onlyStarMarked) || (onlyStarMarked && matcher.group(1).equals("*"))) {
+                        String vob = matcher.group(2);
+                        int pos = Math.max(vob.lastIndexOf('\\'), vob.lastIndexOf('/'));
+                        if (pos != -1) {
+                            vob = vob.substring(pos + 1);
                         }
+                        views.add(vob);
                     }
                 }
                 line = reader.readLine();
