@@ -39,10 +39,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -53,7 +53,7 @@ public class BaselineService extends ClearcaseService {
     @SuppressWarnings("unused")
     private static final Logger   LOG          = Logger.getLogger(BaselineService.class.getName());
 
-    private Map<String, Baseline> baselinePool = new HashMap<String, Baseline>();
+    private Map<String, Baseline> baselinePool = new WeakHashMap<String, Baseline>();
 
     BaselineService(ClearTool clearTool) {
         super(clearTool);
@@ -110,7 +110,7 @@ public class BaselineService extends ClearcaseService {
 
     /**
      * For the given baseline, returns the list of baselines it depends on.
-     * 
+     *
      * @param baseline
      * @return
      * @throws IOException
