@@ -57,7 +57,7 @@ public abstract class UcmWorkflow {
         return getFacadeService(clearTool).getAllRootDirsFor(streamSelector);
     }
 
-    public FacadeService getFacadeService(ClearTool clearTool) {
+    protected FacadeService getFacadeService(ClearTool clearTool) {
         return new FacadeService(clearTool);
     }
 
