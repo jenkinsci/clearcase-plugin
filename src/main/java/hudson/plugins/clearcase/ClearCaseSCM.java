@@ -385,6 +385,13 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return configSpec;
     }
 
+    public String getConfigSpec(VariableResolver<String> variableResolver) {
+        if (variableResolver != null) {
+            return Util.replaceMacro(configSpec, variableResolver);
+        }
+        return configSpec;
+    }
+
     public String getConfigSpecFileName() {
         return configSpecFileName;
     }
@@ -483,7 +490,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         boolean ret = false;
         Launcher launcher = cclauncher.getLauncher();
         // get user configured config spec
-        ConfigSpec actualConfigSpec = new ConfigSpec(configSpec, launcher.isUnix());
+        ConfigSpec actualConfigSpec = new ConfigSpec(getConfigSpec(variableResolver), launcher.isUnix());
         // get real view config spec
         ClearTool cleartool = createClearTool(variableResolver, cclauncher);
         PrintStream logger = launcher.getListener().getLogger();
