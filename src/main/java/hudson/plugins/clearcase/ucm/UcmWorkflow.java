@@ -23,7 +23,6 @@
  */
 package hudson.plugins.clearcase.ucm;
 
-import hudson.Launcher;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.plugins.clearcase.ClearTool;
@@ -38,15 +37,8 @@ import hudson.scm.SCMRevisionState;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.logging.Logger;
 
 public abstract class UcmWorkflow {
-    private static final Logger          LOG   = Logger.getLogger(UcmWorkflow.class.getName());
-
-    private Map<Launcher, FacadeService> cache = new WeakHashMap<Launcher, FacadeService>();
-
     public abstract CheckoutAction createCheckoutAction(ClearTool cleartool, String stream, String[] viewPaths, String viewPath,
             ViewStorage decoratedViewStorage, AbstractBuild<?, ?> abstractBuild) throws IOException, InterruptedException;
 
@@ -65,15 +57,8 @@ public abstract class UcmWorkflow {
         return getFacadeService(clearTool).getAllRootDirsFor(streamSelector);
     }
 
-    public FacadeService getFacadeService(ClearTool clearTool) {
-        Launcher launcher = clearTool.getLauncher().getLauncher();
-        if (!cache.containsKey(launcher)) {
-            LOG.fine("Cache miss for " + launcher);
-            cache.put(launcher, new FacadeService(clearTool));
-        } else {
-            LOG.fine("Cache hit for " + launcher);
-        }
-        return cache.get(launcher);
+    protected FacadeService getFacadeService(ClearTool clearTool) {
+        return new FacadeService(clearTool);
     }
 
     protected UcmRevisionState toUcm(SCMRevisionState oldBaseline) {

@@ -312,6 +312,15 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testListCurrentViewWithLeakedFileDescriptor2() throws Exception {
+        when(ccLauncher.getWorkspace()).thenReturn(workspace);
+        when(ccLauncher.run(eq(new String[] { "lsview", "-cview", "-s" }), any(InputStream.class), any(OutputStream.class), any(FilePath.class), eq(true))).thenAnswer(
+                new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lscurrentview-2.log"), Boolean.TRUE));
+        String viewTag = clearToolExec.lscurrentview("viewpath");
+        assertEquals("viewTag", viewTag);
+    }
+
+    @Test
     public void testListVobs() throws Exception {
         when(ccLauncher.run(eq(new String[] { "lsvob" }), any(InputStream.class), any(OutputStream.class), (FilePath) isNull(), eq(true))).thenAnswer(
                 new StreamCopyAction(2, ClearToolExecTest.class.getResourceAsStream("ct-lsvob-1.log"), Boolean.TRUE));
