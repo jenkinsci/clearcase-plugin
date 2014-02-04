@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.Build;
+import hudson.model.TaskListener;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
@@ -58,6 +59,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.Bug;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -80,6 +82,9 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
     private Computer                            computer;
     @Mock
     private Launcher                            launcher;
+
+    @Mock
+    private TaskListener                        taskListener;
 
     private Node                                node;
     private AbstractProject                     project;
@@ -337,5 +342,20 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         assertEquals("The env var VIEWNAME wasn't set", "viewpath", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
         assertEquals("The env var VIEWPATH wasn't set", "/hudson/jobs/job/workspace/viewpath",
                 env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
+    }
+
+    @Test
+    @Bug(21626)
+    public void configSpecWithParameterShouldntBeConsideredChanged() throws Exception {
+        ClearCaseSCMDummy scm = new ClearCaseSCMDummy("","","configspec", "", false, "", false, "", "", false, false, false, "", "", false, false, cleartool, clearCaseScmDescriptor, computer, "", null);
+        Map<String, String> m = new HashMap<String,String>();
+        m.put("name", "jenkins");
+        VariableResolver<String> vr = new VariableResolver.ByMap<String>(m);
+        scm.setConfigSpec("Hello ${name}");
+        when(cleartool.catcs("")).thenReturn("Hello jenkins");
+        when(clearToolLauncher.getLauncher()).thenReturn(launcher);
+        when(launcher.getListener()).thenReturn(taskListener);
+        when(taskListener.getLogger()).thenReturn(System.out);
+        assertFalse("config spec should be the same",scm.hasNewConfigSpec(vr, clearToolLauncher));
     }
 }
