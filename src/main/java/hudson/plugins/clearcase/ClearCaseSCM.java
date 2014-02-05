@@ -498,7 +498,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             String cs = getConfigSpecFromFile(getConfigSpecFileName(variableResolver), launcher);
             if (cs != null) {
                 // get new config spec
-                ConfigSpec fileConfigSpec = new ConfigSpec(cs, launcher.isUnix());
+                ConfigSpec fileConfigSpec = new ConfigSpec(Util.replaceMacro(cs, variableResolver), launcher.isUnix());
                 ret = !viewConfigSpec.stripLoadRules().equals(fileConfigSpec.stripLoadRules());
                 logger.println("[INFO] CSPEC changed = " + ret);
                 if (ret) {

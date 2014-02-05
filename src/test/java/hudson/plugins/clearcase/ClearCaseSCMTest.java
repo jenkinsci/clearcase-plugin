@@ -358,4 +358,24 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(taskListener.getLogger()).thenReturn(System.out);
         assertFalse("config spec should be the same",scm.hasNewConfigSpec(vr, clearToolLauncher));
     }
+
+    @Test
+    @Bug(21626)
+    public void configSpecLoadedFromAFileWithParameterShouldntBeConsideredChanged() throws Exception {
+        ClearCaseSCMBuilder builder = new ClearCaseSCMBuilder();
+        builder.viewTag = "";
+        builder.configspec = "Hello jenkins";
+        builder.extractConfigSpec = true;
+        builder.configSpecFileName = "src/test/resources/hudson/plugins/clearcase/configspec.txt";
+        builder.cleartool = cleartool;
+        ClearCaseSCM scm = builder.build();
+        Map<String, String> m = new HashMap<String,String>();
+        m.put("name", "jenkins");
+        VariableResolver<String> vr = new VariableResolver.ByMap<String>(m);
+        when(cleartool.catcs("")).thenReturn("Hello jenkins");
+        when(clearToolLauncher.getLauncher()).thenReturn(launcher);
+        when(launcher.getListener()).thenReturn(taskListener);
+        when(taskListener.getLogger()).thenReturn(System.out);
+        assertFalse("config spec should be the same",scm.hasNewConfigSpec(vr, clearToolLauncher));
+    }
 }
