@@ -59,6 +59,21 @@ public class ClearCaseSCMDummy extends ClearCaseSCM {
         this.overrideComputer = overrideComputer;
     }
 
+    public ClearCaseSCMDummy(String branch, String label, boolean extractConfigSpec, String configSpecFileName, boolean refreshConfigSpec,
+            String refreshConfigSpecCommand, String configSpec, String viewTag, boolean useupdate, boolean extractLoadRules, String loadRules,
+            boolean useOtherLoadRulesForPolling, String loadRulesForPolling, boolean usedynamicview, String viewdrive, String mkviewoptionalparam,
+            boolean filterOutDestroySubBranchEvent, boolean doNotUpdateConfigSpec, boolean rmviewonrename, String excludedRegions, String multiSitePollBuffer,
+            boolean useTimeRule, boolean createDynView, String viewPath, ChangeSetLevel changeset, ViewStorage viewStorage, ClearTool cleartool,
+            ClearCaseScmDescriptor clearCaseScmDescriptor, Computer overrideComputer) {
+        super(branch, label, extractConfigSpec, configSpecFileName, refreshConfigSpec, refreshConfigSpecCommand, configSpec, viewTag,
+                useupdate, extractLoadRules, loadRules, useOtherLoadRulesForPolling, loadRulesForPolling, usedynamicview, viewdrive, mkviewoptionalparam,
+                filterOutDestroySubBranchEvent, doNotUpdateConfigSpec, rmviewonrename, excludedRegions, multiSitePollBuffer, useTimeRule, createDynView,
+                viewPath, changeset, viewStorage);
+        this.cleartool = cleartool;
+        this.clearCaseScmDescriptor = clearCaseScmDescriptor;
+        this.overrideComputer = overrideComputer;
+    }
+
     @Override
     public HistoryAction createHistoryAction(VariableResolver variableResolver, ClearToolLauncher launcher, AbstractBuild build, SCMRevisionState baseline,
             boolean useRecurse) throws IOException, InterruptedException {
