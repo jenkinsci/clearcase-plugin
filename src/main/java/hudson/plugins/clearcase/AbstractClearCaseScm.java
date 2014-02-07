@@ -313,8 +313,19 @@ public abstract class AbstractClearCaseScm extends SCM {
       return builtOn.createLauncher(StreamTaskListener.NULL).isUnix();
     }
 
-    public abstract SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-    InterruptedException;
+    @Override
+    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
+    InterruptedException {
+        return createRevisionState(build, launcher, taskListener, getBuildTime(build));
+    }
+
+    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
+    InterruptedException {
+        return createRevisionState(build, launcher, taskListener, new Date());
+    }
+
+    protected abstract SCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date)
+        throws IOException, InterruptedException;
 
     @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException,

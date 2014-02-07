@@ -331,18 +331,6 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-    InterruptedException {
-        return createRevisionState(build, launcher, taskListener, getBuildTime(build));
-    }
-
-    @Override
-    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-    InterruptedException {
-        return createRevisionState(build, launcher, taskListener, new Date());
-    }
-
-    @Override
     public Filter configureFilters(VariableResolver<String> variableResolver, AbstractBuild build, Launcher launcher) throws IOException, InterruptedException {
         Filter filter = super.configureFilters(variableResolver, build, launcher);
         if (StringUtils.isNotBlank(label)) {
@@ -545,7 +533,8 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         return baseline == null || !(baseline instanceof ClearCaseSCMRevisionState);
     }
 
-    private AbstractClearCaseSCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date)
+    @Override
+    protected SCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date)
             throws IOException, InterruptedException {
         ClearCaseSCMRevisionState revisionState = new ClearCaseSCMRevisionState(date);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);

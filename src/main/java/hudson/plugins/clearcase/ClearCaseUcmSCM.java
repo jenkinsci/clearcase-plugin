@@ -157,18 +157,6 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
     }
 
     @Override
-    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-    InterruptedException {
-        return createRevisionState(build, launcher, taskListener, getBuildTime(build));
-    }
-
-    @Override
-    public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
-    InterruptedException {
-        return createRevisionState(build, launcher, taskListener, new Date());
-    }
-
-    @Override
     public ChangeLogParser createChangeLogParser() {
         return new UcmChangeLogParser();
     }
@@ -325,7 +313,8 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         return baseline == null;
     }
 
-    private SCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date) throws IOException,
+    @Override
+    protected SCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date) throws IOException,
     InterruptedException {
         ClearTool clearTool = createClearTool(build, launcher);
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
