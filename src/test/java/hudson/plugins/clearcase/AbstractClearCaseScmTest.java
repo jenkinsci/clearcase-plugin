@@ -228,12 +228,14 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
     private BuildListener                     taskListener;
 
     @Test
-    public void assertBuildEnvVarsUsesNormalizedViewName() throws IOException, InterruptedException {
+    public void assertBuildEnvVarsUsesNormalizedViewNameUnix() throws IOException, InterruptedException {
 
         when(build.getBuiltOn()).thenReturn(node);
         when(build.getProject()).thenReturn(project);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
+        when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(true);
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
         when(project.getFullName()).thenReturn("CCHudson");
@@ -244,7 +246,7 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         env.put("NODE_NAME", "test-node");
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasn't set", "viewname-CCHudson-test-node", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
-        assertEquals("The env var VIEWPATH wasn't set", "/hudson/jobs/job/workspace" + File.separator + "viewname-CCHudson-test-node",
+        assertEquals("The env var VIEWPATH wasn't set", "/hudson/jobs/job/workspace/viewname-CCHudson-test-node",
                 env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
@@ -590,6 +592,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
+        when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(true);
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
@@ -600,7 +604,28 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         scm.generateNormalizedViewName(build);
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
-        assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace" + File.separator + "viewname",
+        assertEquals("The env var VIEWPATH wasnt set", "/hudson/jobs/job/workspace/viewname",
+                env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
+    }
+
+    @Test
+    public void testBuildEnvVarsWindows() throws IOException, InterruptedException {
+        when(build.getBuiltOn()).thenReturn(node);
+        when(node.toComputer()).thenReturn(computer);
+        when(node.getNodeName()).thenReturn("test-node");
+        when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(false);
+        when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
+        when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
+        when(computer.getSystemProperties()).thenReturn(System.getProperties());
+
+        AbstractClearCaseScm scm = new AbstractClearCaseScmDummy("viewname", "vob", "");
+        Map<String, String> env = new HashMap<String, String>();
+        env.put("WORKSPACE", "D:\\jenkins\\workspace");
+        scm.generateNormalizedViewName(build);
+        scm.buildEnvVars(build, env);
+        assertEquals("The env var VIEWNAME wasnt set", "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
+        assertEquals("The env var VIEWPATH wasnt set", "D:\\jenkins\\workspace\\viewname",
                 env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
@@ -609,6 +634,8 @@ public class AbstractClearCaseScmTest extends AbstractWorkspaceTest {
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
+        when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(true);
         when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());

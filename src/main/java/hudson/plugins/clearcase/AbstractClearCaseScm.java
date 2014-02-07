@@ -291,17 +291,26 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (normalizedViewName != null) {
             env.put(CLEARCASE_VIEWTAG_ENVSTR, normalizedViewName);
         }
+        boolean isUnix = isRunningOnUnix(build);
         if (normalizedViewPath != null) {
             env.put(CLEARCASE_VIEWNAME_ENVSTR, normalizedViewPath);
             if (isUseDynamicView()) {
-                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + File.separator + normalizedViewPath);
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, viewDrive + PathUtil.fileSepForOS(isUnix) + normalizedViewPath);
             } else {
                 String workspace = env.get("WORKSPACE");
                 if (workspace != null) {
-                    env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + File.separator + normalizedViewPath);
+                    env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + PathUtil.fileSepForOS(isUnix) + normalizedViewPath);
                 }
             }
         }
+    }
+
+    private boolean isRunningOnUnix(AbstractBuild<?, ?> build) {
+      Node builtOn = build.getBuiltOn();
+      if (builtOn == null) {
+        return false;
+      }
+      return builtOn.createLauncher(StreamTaskListener.NULL).isUnix();
     }
 
     public abstract SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,

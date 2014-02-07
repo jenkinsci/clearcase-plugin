@@ -40,6 +40,7 @@ import hudson.model.Build;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.model.TaskListener;
 import hudson.plugins.clearcase.action.BaseSnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
@@ -218,6 +219,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
+        when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(true);
         when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
@@ -231,7 +234,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWTAG wasnt set", "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWTAG_ENVSTR));
         assertEquals("The env var VIEWNAME wasnt set", "viewpath", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
-        assertEquals("The env var VIEWPATH wasnt set", "/views" + File.separator + "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
+        assertEquals("The env var VIEWPATH wasnt set", "/views/viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
     }
 
     @Test
@@ -239,6 +242,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
+        when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(true);
         when(build.getParent()).thenReturn(project);
         when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
         AbstractClearCaseScm scm = new ClearCaseSCMDummy("branch", "label", "configspec", "viewname", true, "", true, null, null, false, false, false, "", "",
@@ -315,6 +320,8 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(build.getBuiltOn()).thenReturn(node);
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
+        when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
+        when(launcher.isUnix()).thenReturn(true);
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
 
@@ -328,7 +335,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         scm.buildEnvVars(build, env);
         assertEquals("The env var VIEWTAG wasn't set", "viewname", env.get(AbstractClearCaseScm.CLEARCASE_VIEWTAG_ENVSTR));
         assertEquals("The env var VIEWNAME wasn't set", "viewpath", env.get(AbstractClearCaseScm.CLEARCASE_VIEWNAME_ENVSTR));
-        assertEquals("The env var VIEWPATH wasn't set", "/hudson/jobs/job/workspace" + File.separator + "viewpath",
+        assertEquals("The env var VIEWPATH wasn't set", "/hudson/jobs/job/workspace/viewpath",
                 env.get(AbstractClearCaseScm.CLEARCASE_VIEWPATH_ENVSTR));
     }
 }
