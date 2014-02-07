@@ -321,11 +321,23 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     public SCMRevisionState calcRevisionsFromPoll(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener) throws IOException,
     InterruptedException {
-        return createRevisionState(build, launcher, taskListener, new Date());
+        Date referenceDate;
+        if (isMultiSiteSupportEnabled()) {
+          referenceDate = getBuildTime(build);
+        } else {
+          referenceDate = new Date();
+        }
+        return createRevisionState(build, launcher, taskListener, referenceDate);
     }
 
-    protected abstract SCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date)
-        throws IOException, InterruptedException;
+    private boolean isMultiSiteSupportEnabled() {
+      return getMultiSitePollBuffer() > 0;
+    }
+
+    protected SCMRevisionState createRevisionState(AbstractBuild<?, ?> build, Launcher launcher, TaskListener taskListener, Date date)
+        throws IOException, InterruptedException {
+      throw new IllegalStateException();
+    }
 
     @Override
     public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException,
