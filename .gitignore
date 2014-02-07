@@ -1,8 +1,12 @@
+# Maven
 /target
-/bin
-/work
-/.classpath
-/.project
-/.settings
 /release.properties
 /*.releaseBackup
+# Eclipse
+/bin
+/.classpath
+/.project
+/.factorypath
+/.settings
+# Jenkins
+/work
