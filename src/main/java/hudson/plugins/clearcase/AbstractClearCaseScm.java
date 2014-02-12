@@ -47,6 +47,7 @@ import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.ucm.UcmWorkflow;
+import hudson.plugins.clearcase.util.BuildUtils;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.plugins.clearcase.viewstorage.ServerViewStorage;
@@ -291,7 +292,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (normalizedViewName != null) {
             env.put(CLEARCASE_VIEWTAG_ENVSTR, normalizedViewName);
         }
-        boolean isUnix = isRunningOnUnix(build);
+        boolean isUnix = BuildUtils.isRunningOnUnix(build);
         if (normalizedViewPath != null) {
             env.put(CLEARCASE_VIEWNAME_ENVSTR, normalizedViewPath);
             if (isUseDynamicView()) {
@@ -303,14 +304,6 @@ public abstract class AbstractClearCaseScm extends SCM {
                 }
             }
         }
-    }
-
-    private boolean isRunningOnUnix(AbstractBuild<?, ?> build) {
-      Node builtOn = build.getBuiltOn();
-      if (builtOn == null) {
-        return false;
-      }
-      return builtOn.createLauncher(StreamTaskListener.NULL).isUnix();
     }
 
     @Override

@@ -43,6 +43,7 @@ import hudson.plugins.clearcase.history.Filter;
 import hudson.plugins.clearcase.history.FilterChain;
 import hudson.plugins.clearcase.history.HistoryAction;
 import hudson.plugins.clearcase.history.LabelFilter;
+import hudson.plugins.clearcase.util.BuildUtils;
 import hudson.plugins.clearcase.util.BuildVariableResolver;
 import hudson.plugins.clearcase.util.PathUtil;
 import hudson.plugins.clearcase.viewstorage.ViewStorage;
@@ -317,7 +318,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         super.buildEnvVars(build, env);
         if (isUseDynamicView()) {
             if (getViewDrive() != null) {
-                env.put(CLEARCASE_VIEWPATH_ENVSTR, getViewDrive() + File.separator + getNormalizedViewName());
+                env.put(CLEARCASE_VIEWPATH_ENVSTR, getViewDrive() + PathUtil.fileSepForOS(BuildUtils.isRunningOnUnix(build)) + getNormalizedViewName());
             } else {
                 env.remove(CLEARCASE_VIEWPATH_ENVSTR);
             }
