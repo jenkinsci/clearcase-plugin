@@ -876,7 +876,12 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
 
         VariableResolver<String> variableResolver = new BuildVariableResolver(build);
-        ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, launcher);
+        Node node = build.getBuiltOn();
+        Launcher buildLauncher = launcher;
+        if (node != null) {
+          buildLauncher = node.createLauncher(listener);
+        }
+        ClearToolLauncher clearToolLauncher = createClearToolLauncher(listener, workspace, buildLauncher);
 
         // check if config spec was updated
         boolean hasNewCS = hasNewConfigSpec(variableResolver, clearToolLauncher);
@@ -888,7 +893,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         logger.println("Checking view validity");
         if (isViewInvalid(build, variableResolver, clearToolLauncher, workspace, viewTag)) {
             logger.println("REASON: View is invalid");
-            return new PollingResult(baseline, calcRevisionsFromPoll(build, launcher, listener), Change.INCOMPARABLE);
+            return new PollingResult(baseline, calcRevisionsFromPoll(build, buildLauncher, listener), Change.INCOMPARABLE);
         }
         HistoryAction historyAction = createHistoryAction(variableResolver, clearToolLauncher, build, /* getUseRecurseForPolling() */
                 baseline, useOtherLoadRulesForPolling);
@@ -896,7 +901,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (historyAction != null) {
             String viewPath = getViewPath(variableResolver);
             String[] branchNames = getBranchNames(variableResolver);
-            String[] viewPaths = getViewPaths(launcher, baseline, build, variableResolver);
+            String[] viewPaths = getViewPaths(buildLauncher, baseline, build, variableResolver);
             LOG.log(Level.FINE, "loadRules={0}", (viewPaths == null ? null : Arrays.asList(viewPaths)));
             Date buildTime;
             if (baseline instanceof BuildTimeBased) {
