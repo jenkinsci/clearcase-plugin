@@ -180,7 +180,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         IsUnix() {
         }
 
-        @Override
+
         public Boolean call() throws IOException {
             return File.pathSeparatorChar == ':';
         }
@@ -224,6 +224,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private String                        viewDrive;
     private String                        viewName;
     private String                        viewPath;
+    private String[]					  loadRules;
     private ViewStorage                   viewStorage;
     @Deprecated
     private transient ViewStorageFactory  viewStorageFactory;
@@ -408,6 +409,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
         String filterRegexp = "";
         String[] viewPaths = getViewPaths(variableResolver, build, launcher, false);
+        loadRules = viewPaths;
         if (viewPaths != null) {
             filterRegexp = getViewPathsRegexp(viewPaths, launcher.isUnix());
         }
@@ -562,13 +564,16 @@ public abstract class AbstractClearCaseScm extends SCM {
 
     @Override
     public FilePath getModuleRoot(FilePath workspace, AbstractBuild build) {
+    	return getModuleRoot(workspace, build, loadRules);
+    }
+    public FilePath getModuleRoot(FilePath workspace, AbstractBuild build, String[] loadRules) {
         if (useDynamicView) {
             String normViewName = getNormalizedViewName();
-            return new FilePath(workspace.getChannel(), viewDrive).child(normViewName);
+              return new FilePath(workspace.getChannel(), viewDrive).child(normViewName).child(loadRules[0]);
         }
         String normViewPath = getNormalizedViewPath();
         if (normViewPath != null) {
-            return workspace.child(normViewPath);
+            return workspace.child(normViewPath).child(loadRules[0]);
         }
         if (build == null) {
             normViewPath = getViewPath();
@@ -576,12 +581,12 @@ public abstract class AbstractClearCaseScm extends SCM {
             normViewPath = getViewPath(new BuildVariableResolver(build));
         }
         if (normViewPath != null) {
-            return workspace.child(normViewPath);
+            return workspace.child(normViewPath).child(loadRules[0]);
         }
         // Should never happen, because viewName must not be null, and if viewpath is null, then it is made equal to viewName
         throw new IllegalStateException("View path name cannot be null. There is a bug inside AbstractClearCaseScm.");
     }
-
+    
     public int getMultiSitePollBuffer() {
 
         return multiSitePollBuffer;
@@ -618,8 +623,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         }
         return normalized;
     }
-
-    /**
+    /**    
      * Return string array containing the paths in the view that should be used when polling for changes.
      * 
      * @param variableResolver
