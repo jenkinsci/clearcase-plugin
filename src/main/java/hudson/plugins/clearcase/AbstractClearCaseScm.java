@@ -203,7 +203,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private boolean                       filteringOutDestroySubBranchEvent;
     private boolean                       freezeCode;
     private String                        loadRules;
-    private String[]					  loadRulesForModuleRoot={""};
+    private String[]					  loadRulesForModuleRoot = {};
     private String                        loadRulesForPolling;
     private String                        mkviewOptionalParam;
     private int                           multiSitePollBuffer;
@@ -301,9 +301,11 @@ public abstract class AbstractClearCaseScm extends SCM {
             } else {
                 String workspace = env.get("WORKSPACE");
                 if (workspace != null) {
-                    env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + PathUtil.fileSepForOS(isUnix) + normalizedViewPath);
-
-//                    env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + PathUtil.fileSepForOS(isUnix) + normalizedViewPath + PathUtil.fileSepForOS(isUnix) + loadRulesForModuleRoot[0]);
+                	if ( loadRulesForModuleRoot.length == 0 ) {
+                		env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + PathUtil.fileSepForOS(isUnix) + normalizedViewPath);
+                	} else {
+                		env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + PathUtil.fileSepForOS(isUnix) + normalizedViewPath + PathUtil.fileSepForOS(isUnix) + loadRulesForModuleRoot[0]);
+                	}
                 }
             }
         }
