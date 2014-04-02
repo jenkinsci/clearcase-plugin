@@ -203,7 +203,7 @@ public abstract class AbstractClearCaseScm extends SCM {
     private boolean                       filteringOutDestroySubBranchEvent;
     private boolean                       freezeCode;
     private String                        loadRules;
-    private String[]					  loadRulesForModuleRoot;
+    private String[]					  loadRulesForModuleRoot={""};
     private String                        loadRulesForPolling;
     private String                        mkviewOptionalParam;
     private int                           multiSitePollBuffer;
@@ -285,7 +285,7 @@ public abstract class AbstractClearCaseScm extends SCM {
      */
     @Override
     public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
-        @SuppressWarnings("unchecked")
+       @SuppressWarnings("unchecked")
         VariableResolver.Union<String> variableResolver = new VariableResolver.Union<String>(new BuildVariableResolver(build, true),
                 new VariableResolver.ByMap<String>(env));
         String normalizedViewName = getViewName(variableResolver);
@@ -301,7 +301,9 @@ public abstract class AbstractClearCaseScm extends SCM {
             } else {
                 String workspace = env.get("WORKSPACE");
                 if (workspace != null) {
-                    env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + PathUtil.fileSepForOS(isUnix) + normalizedViewPath + PathUtil.fileSepForOS(isUnix) + loadRulesForModuleRoot[0]);
+                    env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + PathUtil.fileSepForOS(isUnix) + normalizedViewPath);
+
+//                    env.put(CLEARCASE_VIEWPATH_ENVSTR, workspace + PathUtil.fileSepForOS(isUnix) + normalizedViewPath + PathUtil.fileSepForOS(isUnix) + loadRulesForModuleRoot[0]);
                 }
             }
         }
@@ -556,24 +558,37 @@ public abstract class AbstractClearCaseScm extends SCM {
     public String getMkviewOptionalParam() {
         return mkviewOptionalParam;
     }
-
+    
     @Override
     public FilePath getModuleRoot(FilePath workspace) {
-        return getModuleRoot(workspace, null);
+    		return getModuleRoot(workspace, null);
     }
 
     @Override
     public FilePath getModuleRoot(FilePath workspace, AbstractBuild build) {
-    	return getModuleRoot(workspace, build, loadRulesForModuleRoot);
+    	if (loadRulesForModuleRoot.length == 0) {
+    		return getModuleRoot(workspace, build, null);	
+    	} else {
+    		return getModuleRoot(workspace, build, loadRulesForModuleRoot);
+    	}  	
     }
     public FilePath getModuleRoot(FilePath workspace, AbstractBuild build, String[] loadRulesForModuleRoot) {
         if (useDynamicView) {
-            String normViewName = getNormalizedViewName();
-              return new FilePath(workspace.getChannel(), viewDrive).child(normViewName).child(loadRulesForModuleRoot[0]);
+        	String normViewName = getNormalizedViewName();
+            if (loadRulesForModuleRoot == null){
+            	return new FilePath(workspace.getChannel(), viewDrive).child(normViewName);
+            }
+            else {
+            	return new FilePath(workspace.getChannel(), viewDrive).child(normViewName).child(loadRulesForModuleRoot[0]);
+            }
         }
         String normViewPath = getNormalizedViewPath();
         if (normViewPath != null) {
-            return workspace.child(normViewPath).child(loadRulesForModuleRoot[0]);
+            if (loadRulesForModuleRoot == null){
+            	return workspace.child(normViewPath);	
+            } else {
+            	return workspace.child(normViewPath).child(loadRulesForModuleRoot[0]);
+            }
         }
         if (build == null) {
             normViewPath = getViewPath();
@@ -581,7 +596,11 @@ public abstract class AbstractClearCaseScm extends SCM {
             normViewPath = getViewPath(new BuildVariableResolver(build));
         }
         if (normViewPath != null) {
-            return workspace.child(normViewPath).child(loadRulesForModuleRoot[0]);
+        	if (loadRulesForModuleRoot == null){
+        		return workspace.child(normViewPath);
+        	} else {
+        		return workspace.child(normViewPath).child(loadRulesForModuleRoot[0]);
+        	}
         }
         // Should never happen, because viewName must not be null, and if viewpath is null, then it is made equal to viewName
         throw new IllegalStateException("View path name cannot be null. There is a bug inside AbstractClearCaseScm.");
