@@ -27,6 +27,7 @@ package hudson.plugins.clearcase.action;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import hudson.FilePath;
@@ -84,6 +85,17 @@ public class BaseSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     @After
     public void teardown() throws Exception {
         deleteWorkspace();
+    }
+
+    @Test
+    public void testEndViewIsAlwaysCalledOnce() throws Exception {
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
+        when(launcher.isUnix()).thenReturn(Boolean.FALSE);
+
+        CheckoutAction action = new BaseSnapshotCheckoutAction(cleartool, new ConfigSpec("config\r\nspec", false), new String[] { "foo" }, false, "viewpath",
+                null);
+        action.checkout(launcher, workspace, "viewname");
+        verify(cleartool,atLeastOnce()).endViewServer("viewname");
     }
 
     @Test

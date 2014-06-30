@@ -128,6 +128,17 @@ public class UcmSnapshotCheckoutActionTest extends AbstractWorkspaceTest {
     }
 
     @Test
+    public void testEndViewIsAlwaysCalled() throws Exception {
+        when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
+        when(launcher.isUnix()).thenReturn(Boolean.TRUE);
+
+        CheckoutAction action = new UcmSnapshotCheckoutAction(cleartool, "stream", new String[] { "loadrule" }, true, "viewpath", null, null);
+        action.checkout(launcher, workspace, "viewname");
+
+        verify(cleartool, atLeastOnce()).endViewServer("viewname");
+    }
+
+    @Test
     public void testFirstTime() throws Exception {
         when(cleartool.doesViewExist("viewname")).thenReturn(Boolean.FALSE);
         when(launcher.isUnix()).thenReturn(Boolean.TRUE);

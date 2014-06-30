@@ -52,53 +52,40 @@ public class UcmSnapshotCheckoutAction extends SnapshotCheckoutAction {
 
     @Override
     public boolean checkout(Launcher launcher, FilePath workspace, String viewTag) throws IOException, InterruptedException {
-        boolean viewCreated = cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, streamSelector);
-        // At this stage, we have a valid view and a valid path
-        ClearTool ct = getCleartool();
-        if (viewCreated) {
-            // If the view is brand new, we just have to add the load rules
-            try {
+        try {
+            boolean viewCreated = cleanAndCreateViewIfNeeded(workspace, viewTag, viewPath, streamSelector);
+            // At this stage, we have a valid view and a valid path
+            ClearTool ct = getCleartool();
+            if (viewCreated) {
+                // If the view is brand new, we just have to add the load rules
                 ct.update2(viewPath, loadRules);
-            } catch (IOException e) {
-                launcher.getListener().fatalError(e.toString());
-                return false;
-            }
-        } else {
-            ConfigSpec viewConfigSpec = new ConfigSpec(ct.catcs(viewTag), launcher.isUnix());
-            SnapshotCheckoutAction.LoadRulesDelta loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
-            // ends the view server, useful if a previous update has been killed
-            getCleartool().endViewServer(viewTag);
-            if (!ArrayUtils.isEmpty(loadRulesDelta.getRemoved())) {
-                try {
-                    ct.setcs2(viewPath, SetcsOption.CONFIGSPEC, viewConfigSpec.setLoadRules(loadRules).getRaw());
-                } catch (IOException e) {
-                    launcher.getListener().fatalError(e.toString());
-                    return false;
-                }
             } else {
-                String[] addedLoadRules = loadRulesDelta.getAdded();
-                if (!ArrayUtils.isEmpty(addedLoadRules)) {
-                    // Config spec haven't changed, but there are new load rules
-                    try {
+                ConfigSpec viewConfigSpec = new ConfigSpec(ct.catcs(viewTag), launcher.isUnix());
+                SnapshotCheckoutAction.LoadRulesDelta loadRulesDelta = getLoadRulesDelta(viewConfigSpec.getLoadRules(), launcher);
+                // ends the view server, useful if a previous update has been killed
+                ct.endViewServer(viewTag);
+                if (!ArrayUtils.isEmpty(loadRulesDelta.getRemoved())) {
+                    ct.setcs2(viewPath, SetcsOption.CONFIGSPEC, viewConfigSpec.setLoadRules(loadRules).getRaw());
+                } else {
+                    String[] addedLoadRules = loadRulesDelta.getAdded();
+                    if (!ArrayUtils.isEmpty(addedLoadRules)) {
+                        // Config spec haven't changed, but there are new load rules
                         ct.update2(viewPath, addedLoadRules);
-                    } catch (IOException e) {
-                        launcher.getListener().fatalError(e.toString());
-                        return false;
                     }
                 }
-            }
 
-            // Perform a full update of the view to get changes due to rebase for instance.
-            try {
+                // Perform a full update of the view to get changes due to rebase for instance.
                 if (ct.doesSetcsSupportOverride()) {
                     ct.setcs2(viewPath, SetcsOption.STREAM, null);
                 } else {
                     ct.update2(viewPath, null);
                 }
-            } catch (IOException e) {
-                launcher.getListener().fatalError(e.toString());
-                return false;
             }
+        } catch (IOException e) {
+            launcher.getListener().fatalError(e.toString());
+            return false;
+        } finally {
+            getCleartool().endViewServer(viewTag);
         }
         return true;
     }

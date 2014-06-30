@@ -94,8 +94,9 @@ public class BaseSnapshotCheckoutAction extends SnapshotCheckoutAction {
         } catch (IOException e) {
             launcher.getListener().fatalError(e.toString());
             return false;
+        } finally {
+            getCleartool().endViewServer(viewTag);
         }
-
         if (build != null) {
             // add config spec to dataAction
             ClearCaseDataAction dataAction = build.getAction(ClearCaseDataAction.class);
