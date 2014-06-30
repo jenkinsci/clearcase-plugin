@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -76,6 +77,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     protected ClearToolLauncher           launcher;
     protected String                      optionalMkviewParameters;
+    protected int                         endViewDelay;
 
     protected String                      updtFileName;
     protected VariableResolver<String>    variableResolver;
@@ -83,9 +85,14 @@ public abstract class ClearToolExec implements ClearTool {
     private transient Pattern             viewListPattern;
 
     public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters) {
+        this(variableResolver, launcher, optionalMkviewParameters, 0);
+    }
+
+    public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters, int endViewDelay) {
         this.variableResolver = variableResolver;
         this.launcher = launcher;
         this.optionalMkviewParameters = optionalMkviewParameters;
+        this.endViewDelay = endViewDelay;
     }
 
     @Override
@@ -236,6 +243,9 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add(viewTag);
 
         String output = runAndProcessOutput(cmd, null, null, false, null, true);
+        if (endViewDelay > 0) {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(endViewDelay));
+        }
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to end view tag: " + output);
         }

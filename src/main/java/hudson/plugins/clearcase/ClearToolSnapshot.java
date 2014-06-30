@@ -33,7 +33,11 @@ import hudson.util.VariableResolver;
 public class ClearToolSnapshot extends ClearToolExec {
 
     public ClearToolSnapshot(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalParameters) {
-        super(variableResolver, launcher, optionalParameters);
+        this(variableResolver, launcher, optionalParameters, 0);
+    }
+
+    public ClearToolSnapshot(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalParameters, int endViewDelay) {
+        super(variableResolver, launcher, optionalParameters, endViewDelay);
     }
 
     @Override

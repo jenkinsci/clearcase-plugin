@@ -92,6 +92,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
      */
     public static class ClearCaseScmDescriptor extends AbstractClearCaseScmDescriptor<ClearCaseSCM> implements ModelObject {
         private static final int DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW = 5;
+        private static final int DEFAULT_ENDVIEW_DELAY = 0;
 
         private int              changeLogMergeTimeWindow             = DEFAULT_CHANGE_LOG_MERGE_TIME_WINDOW;
         private String           defaultUnixDynStorageDir;
@@ -99,6 +100,11 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
         private String           defaultViewPath;
         private ViewStorage      defaultViewStorage;
         private String           defaultWinDynStorageDir;
+        /**
+         * This is a delay applied after calling the endview command as it may return before the process is really done.
+         * see https://groups.google.com/d/msg/jenkinsci-users/cWNvmxBf1WI/Z_WHm_ay4VEJ
+         */
+        private int              endViewDelay;
 
         public ClearCaseScmDescriptor() {
             super(ClearCaseSCM.class, null);
@@ -107,6 +113,7 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) {
+            req.bindJSON(this, json);
             defaultViewName = fixEmpty(req.getParameter("clearcase.defaultViewName").trim());
             defaultViewPath = fixEmpty(req.getParameter("clearcase.defaultViewPath").trim());
             defaultWinDynStorageDir = fixEmpty(req.getParameter("clearcase.defaultWinDynStorageDir").trim());
@@ -248,6 +255,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
 
         public int getLogMergeTimeWindow() {
             return changeLogMergeTimeWindow;
+        }
+
+        public int getEndViewDelay() {
+            return endViewDelay;
         }
 
         @Override

@@ -951,7 +951,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         if (isUseDynamicView()) {
             return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
         }
-        return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam);
+        return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam, PluginImpl.BASE_DESCRIPTOR.getEndViewDelay());
     }
 
     /**

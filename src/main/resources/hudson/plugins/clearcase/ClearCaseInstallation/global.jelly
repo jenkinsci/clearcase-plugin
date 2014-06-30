@@ -56,6 +56,9 @@
                 <f:textbox name="clearcase.logmergetimewindow" value="${descriptor.logMergeTimeWindow}"
                            checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Entering a merge time window is mandatory')+'&amp;value='+escape(this.value)" />
             </f:entry>
+            <f:entry title="Delay after calling endview -server" field="endViewDelay">
+                <f:textbox/>
+            </f:entry>
         </f:advanced>
     </f:section>
 </j:jelly>

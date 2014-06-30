@@ -146,6 +146,22 @@ public class ClearCaseInstallation extends ToolInstallation implements NodeSpeci
             return getCCDescriptor().getDefaultWinDynStorageDir();
         }
 
+        public int getEndViewDelay() {
+            return getCCDescriptor().getEndViewDelay();
+        }
+        
+        public FormValidation doCheckEndViewDelay(@QueryParameter String value) {
+            try {
+                int v = Integer.parseInt(value);
+                if (v < 0) {
+                    return FormValidation.error("This field must contain a positive integer.");
+                }
+            } catch (NumberFormatException e) {
+                return FormValidation.error("This field must contain a positive integer.");
+            }
+            return FormValidation.ok();
+        }
+
         @Override
         public String getDisplayName() {
             return Messages.ClearCaseInstallation_DisplayName();
