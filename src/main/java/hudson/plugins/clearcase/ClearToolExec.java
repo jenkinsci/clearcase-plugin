@@ -45,17 +45,19 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.jws.soap.SOAPBinding.Use;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.LineIterator;
@@ -272,14 +274,12 @@ public abstract class ClearToolExec implements ClearTool {
             String[] lines = output.split("\n");
             for (String line : lines) {
                 Matcher matcher = PATTERN_VIEW_UUID.matcher(line);
-                if (matcher.find() && matcher.groupCount() == 1) {
-                  resPrp.put("UUID", matcher.group(1));
-                }
+                if (matcher.find() && matcher.groupCount() == 1)
+                    resPrp.put("UUID", matcher.group(1));
 
                 matcher = PATTERN_VIEW_ACCESS_PATH.matcher(line);
-                if (matcher.find() && matcher.groupCount() == 1) {
-                  resPrp.put("STORAGE_DIR", matcher.group(1));
-                }
+                if (matcher.find() && matcher.groupCount() == 1)
+                    resPrp.put("STORAGE_DIR", matcher.group(1));
             }
         }
 
@@ -308,9 +308,8 @@ public abstract class ClearToolExec implements ClearTool {
     public void logRedundantCleartoolError(String[] cmd, Exception ex) {
         getLauncher().getListener().getLogger().println("Redundant Cleartool Error ");
 
-        if (cmd != null) {
-          getLauncher().getListener().getLogger().println("command: " + getLauncher().getCmdString(cmd));
-        }
+        if (cmd != null)
+            getLauncher().getListener().getLogger().println("command: " + getLauncher().getCmdString(cmd));
 
         getLauncher().getListener().getLogger().println(ex.getMessage());
     }
