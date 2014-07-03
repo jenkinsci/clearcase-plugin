@@ -202,12 +202,18 @@ public abstract class ClearToolExec implements ClearTool {
 
         try {
             launcher.run(cmd.toCommandArray(), null, baos, null, true);
+        }
+        catch (IOException e) {
             String cleartoolResult = baos.toString();
-            return !(cleartoolResult.contains("stream not found"));
+            if (cleartoolResult.contains("stream not found")) {
+                return false;
+            }
+            throw e;
         }
         finally {
             baos.close();
         }
+        return true;
     }
 
     @Override
