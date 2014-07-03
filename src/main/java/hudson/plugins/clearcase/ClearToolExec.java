@@ -205,10 +205,10 @@ public abstract class ClearToolExec implements ClearTool {
         }
         catch (IOException e) {
             String cleartoolResult = baos.toString();
-            if (!(cleartoolResult.contains("stream not found"))) {
-                throw e;
+            if (cleartoolResult.contains("stream not found")) {
+                return false;
             }
-            return false;
+            throw e;
         }
         finally {
             baos.close();
