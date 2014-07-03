@@ -9,7 +9,7 @@
 	<artifactId>clearcase</artifactId>
 	<packaging>hpi</packaging>
 	<name>Jenkins ClearCase Plug-in</name>
-	<version>1.6-SNAPSHOT</version>
+	<version>1.5.1</version>
 	<url>http://wiki.jenkins-ci.org/display/JENKINS/ClearCase+Plugin</url>
 	<licenses>
 		<license>
@@ -64,7 +64,7 @@
 		<connection>scm:git:https://github.com/jenkinsci/clearcase-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/jenkinsci/clearcase-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/clearcase-plugin</url>
-	  <tag>HEAD</tag>
+	  <tag>clearcase-1.5.1</tag>
   </scm>
 	<build>
 		<plugins>
