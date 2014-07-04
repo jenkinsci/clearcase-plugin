@@ -257,6 +257,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
             return changeLogMergeTimeWindow;
         }
 
+        public void setEndViewDelay(int endViewDelay) {
+            this.endViewDelay = endViewDelay;
+        }
+
         public int getEndViewDelay() {
             return endViewDelay;
         }
