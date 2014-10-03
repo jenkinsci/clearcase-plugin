@@ -272,6 +272,15 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
                 false);
         assertArrayEquals("The branch name array is incorrect", new String[] { "branchone", "branchtwo" }, scm.getBranchNames(EMPTY_VARIABLE_RESOLVER));
     }
+    
+    @Test
+    public void testGetBranchNamesParameters() {
+        AbstractClearCaseScm scm = new ClearCaseSCM("${branchNames}", "label", "configspec", "viewname", true, "", true, "/tmp/c", null, false, false,
+                false);
+        Map<String, String> data = new HashMap<String,String>();
+        data.put("branchNames", "branchone branchtwo");
+        assertArrayEquals("The branch name array is incorrect", new String[] { "branchone", "branchtwo" }, scm.getBranchNames(new VariableResolver.ByMap<String>(data)));
+    }
 
     @Test
     public void testGetConfigSpec() {
