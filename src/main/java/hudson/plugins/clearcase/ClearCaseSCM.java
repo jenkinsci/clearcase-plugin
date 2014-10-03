@@ -55,7 +55,6 @@ import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.NumberFormat;
@@ -377,10 +376,10 @@ public class ClearCaseSCM extends AbstractClearCaseScm {
     @Override
     public String[] getBranchNames(VariableResolver<String> variableResolver) {
         // split by whitespace, except "\ "
-        String[] branchArray = branch.split("(?<!\\\\)[ \\r\\n]+");
+        String[] branchArray = Util.replaceMacro(branch, variableResolver).split("(?<!\\\\)[ \\r\\n]+");
         // now replace "\ " to " ".
         for (int i = 0; i < branchArray.length; i++) {
-            branchArray[i] = Util.replaceMacro(branchArray[i].replaceAll("\\\\ ", " "), variableResolver);
+            branchArray[i] = branchArray[i].replaceAll("\\\\ ", " ");
         }
         return branchArray;
     }
