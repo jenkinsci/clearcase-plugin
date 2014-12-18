@@ -26,7 +26,8 @@
 -->
 <div>
   <p>
-    The plugin, when set to poll for changes, will check for any changes on the branch or stream in question since
+    The plugin, when set to poll for changes (i.e. non-zero value of <i>Multi-site poll buffer</i>),
+    will check for any changes on the branch or stream in question since
     the previous build started. When one or more of the branches/streams being polled against are mastered at another
     site and are synced to the site Jenkins is polling at via MultiSite, this may result in problems polling against
     changes made to remote branches/streams before the previous build started, but which weren't synced to the local
@@ -39,6 +40,7 @@
     build, etc), it should allow for guaranteeing that changes from remote sites aren't missed.
   </p>
   <p>
-    This value defaults to 0, meaning no buffer is used.
+    If this value is set to 0 (the default), no buffer is used. 
+    Also, instead of checking for changes since last build, only changes since <b>last poll</b> will be detected.
   </p>
 </div>
