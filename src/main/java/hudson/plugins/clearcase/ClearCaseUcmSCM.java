@@ -335,6 +335,7 @@ public class ClearCaseUcmSCM extends AbstractClearCaseScm {
         } else {
             streamWorkflow = new StreamUcmWorkflow();
         }
+        streamWorkflow.setChangesetLevel(getChangeset());
         streamWorkflow.setUseUpdate(isUseUpdate());
         streamWorkflow.setUseDynamicView(isUseDynamicView());
         streamWorkflow.setRecreateDynamicView(isRecreateView());
