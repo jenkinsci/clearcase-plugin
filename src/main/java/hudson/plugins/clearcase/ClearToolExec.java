@@ -77,7 +77,7 @@ public abstract class ClearToolExec implements ClearTool {
 
     protected ClearToolLauncher           launcher;
     protected String                      optionalMkviewParameters;
-    protected int                         endViewDelay;
+    protected int                         endOrRmViewDelay;
 
     protected String                      updtFileName;
     protected VariableResolver<String>    variableResolver;
@@ -88,11 +88,11 @@ public abstract class ClearToolExec implements ClearTool {
         this(variableResolver, launcher, optionalMkviewParameters, 0);
     }
 
-    public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters, int endViewDelay) {
+    public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters, int endOrRmViewDelay) {
         this.variableResolver = variableResolver;
         this.launcher = launcher;
         this.optionalMkviewParameters = optionalMkviewParameters;
-        this.endViewDelay = endViewDelay;
+        this.endOrRmViewDelay = endOrRmViewDelay;
     }
 
     @Override
@@ -249,8 +249,8 @@ public abstract class ClearToolExec implements ClearTool {
         cmd.add(viewTag);
 
         String output = runAndProcessOutput(cmd, null, null, false, null, true);
-        if (endViewDelay > 0) {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(endViewDelay));
+        if (endOrRmViewDelay > 0) {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(endOrRmViewDelay));
         }
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to end view tag: " + output);
@@ -716,6 +716,9 @@ public abstract class ClearToolExec implements ClearTool {
             launcher.getListener().getLogger().println("Removing view folder as it was not removed when the view was removed.");
             viewFilePath.deleteRecursive();
         }
+        if (endOrRmViewDelay > 0) {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(endOrRmViewDelay));
+        }
     }
 
     @Override
@@ -731,7 +734,9 @@ public abstract class ClearToolExec implements ClearTool {
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view tag: " + output);
         }
-
+        if (endOrRmViewDelay > 0) {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(endOrRmViewDelay));
+        }
     }
 
     @Override
@@ -747,7 +752,9 @@ public abstract class ClearToolExec implements ClearTool {
         if (output.contains("cleartool: Error")) {
             throw new IOException("Failed to remove view: " + output);
         }
-
+        if (endOrRmViewDelay > 0) {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(endOrRmViewDelay));
+        }
     }
 
     @Override
