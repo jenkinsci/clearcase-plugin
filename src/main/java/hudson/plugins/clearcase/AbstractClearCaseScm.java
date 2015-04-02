@@ -948,10 +948,11 @@ public abstract class AbstractClearCaseScm extends SCM {
             throws IOException, InterruptedException;
 
     protected ClearTool createClearTool(VariableResolver<String> variableResolver, ClearToolLauncher launcher) {
+        int endViewDelay = PluginImpl.BASE_DESCRIPTOR.getEndViewDelay();
         if (isUseDynamicView()) {
-            return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam());
+            return new ClearToolDynamic(variableResolver, launcher, getViewDrive(), getMkviewOptionalParam(), endViewDelay);
         }
-        return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam, PluginImpl.BASE_DESCRIPTOR.getEndViewDelay());
+        return new ClearToolSnapshot(variableResolver, launcher, mkviewOptionalParam, endViewDelay);
     }
 
     /**

@@ -35,7 +35,11 @@ public class ClearToolDynamic extends ClearToolExec {
     private transient String viewDrive;
 
     public ClearToolDynamic(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String viewDrive, String optionalMkviewParameters) {
-        super(variableResolver, launcher, optionalMkviewParameters);
+        this(variableResolver, launcher, viewDrive, optionalMkviewParameters, 0);
+    }
+    
+    public ClearToolDynamic(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String viewDrive, String optionalMkviewParameters, int endViewDelay) {
+        super(variableResolver, launcher, optionalMkviewParameters, endViewDelay);
         this.viewDrive = viewDrive;
     }
 

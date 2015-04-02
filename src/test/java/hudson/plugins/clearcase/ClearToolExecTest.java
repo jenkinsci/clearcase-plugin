@@ -69,7 +69,7 @@ public class ClearToolExecTest extends AbstractWorkspaceTest {
     private static class ClearToolImpl extends ClearToolExec {
 
         public ClearToolImpl(ClearToolLauncher launcher) {
-            super(null, launcher, null);
+            super(null, launcher, null, 0);
         }
 
         @Override

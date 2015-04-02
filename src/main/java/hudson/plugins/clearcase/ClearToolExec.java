@@ -84,6 +84,7 @@ public abstract class ClearToolExec implements ClearTool {
     private transient CleartoolVersion    version;
     private transient Pattern             viewListPattern;
 
+    @Deprecated
     public ClearToolExec(VariableResolver<String> variableResolver, ClearToolLauncher launcher, String optionalMkviewParameters) {
         this(variableResolver, launcher, optionalMkviewParameters, 0);
     }
