@@ -114,6 +114,12 @@ public class HistoryEntry {
         return versionId;
     }
 
+    public boolean doesVersionIdEndWith(String suffix) {
+        if (versionId == null)
+            return false;
+        return versionId.endsWith(suffix);
+    }
+
     @Override
     public int hashCode() {
         int hash = 5;

@@ -38,6 +38,7 @@ public class EntryListAdapter {
             HistoryEntry historyEntry = new HistoryEntry();
             historyEntry.setActivityHeadline(activity.getHeadline());
             historyEntry.setActivityName(activity.getSelector());
+            historyEntry.setEvent("ucm activity");
             historyEntries.add(historyEntry);
         }
         return historyEntries;

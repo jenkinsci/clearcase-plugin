@@ -33,6 +33,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @author hlyh
  */
@@ -79,38 +81,37 @@ public abstract class FieldFilter implements Filter {
     }
 
     public boolean accept(String value) {
-
         switch (type) {
         case Equals:
-            return value.equals(patternText);
+            return StringUtils.equals(value, patternText);
         case EqualsIgnoreCase:
-            return value.toLowerCase().equals(patternText);
+            return StringUtils.equalsIgnoreCase(value, patternText);
         case NotEquals:
-            return !(value.equals(patternText));
+            return !StringUtils.equals(value, patternText);
         case NotEqualsIgnoreCase:
-            return !(value.toLowerCase().equals(patternText));
+            return !StringUtils.equalsIgnoreCase(value, patternText);
         case StartsWith:
-            return value.startsWith(patternText);
+            return value != null && value.startsWith(patternText);
         case StartsWithIgnoreCase:
-            return value.toLowerCase().startsWith(patternText);
+            return value != null && value.toLowerCase().startsWith(patternText);
         case EndsWith:
-            return value.endsWith(patternText);
+            return value != null && value.endsWith(patternText);
         case EndsWithIgnoreCase:
-            return value.toLowerCase().endsWith(patternText);
+            return value != null && value.toLowerCase().endsWith(patternText);
         case Contains:
-            return value.contains(patternText);
+            return StringUtils.contains(value, patternText);
         case ContainsIgnoreCase:
-            return value.toLowerCase().contains(patternText);
+            return StringUtils.contains(StringUtils.lowerCase(value), patternText);
         case DoesNotContain:
-            return !(value.contains(patternText));
+            return !StringUtils.contains(value, patternText);
         case DoesNotContainIgnoreCase:
-            LOGGER.fine(value.toLowerCase() + " <>" + patternText);
-            return !(value.toLowerCase().contains(patternText));
+            LOGGER.fine(StringUtils.lowerCase(value) + " <>" + patternText);
+            return !StringUtils.contains(StringUtils.lowerCase(value), patternText);
         case ContainsRegxp:
-            Matcher m = pattern.matcher(value);
+            Matcher m = pattern.matcher(StringUtils.defaultString(value));
             return m.find();
         case DoesNotContainRegxp:
-            Matcher m2 = pattern.matcher(value);
+            Matcher m2 = pattern.matcher(StringUtils.defaultString(value));
             return !m2.find();
         }
         return true;

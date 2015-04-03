@@ -57,6 +57,17 @@ public class FieldFilterTest {
     private static final String PATTERN_REGXP = "F[a-z]*";
 
     private static final String PATTERN_UC    = "FilterTest";
+    
+    /**
+     * Make sure that each criteria is able to handle null gracefully
+     */
+    @Test
+    public void testNullSafety() {
+        for (FieldFilter.Type type : FieldFilter.Type.values()) {
+            FieldFilter filter = new FieldFilterDummy(type, PATTERN);
+            filter.accept((String) null);
+        }
+    }
 
     @Test
     public void testContainsFiltered() {
