@@ -87,6 +87,8 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jenkinsci.remoting.Role;
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -183,6 +185,11 @@ public abstract class AbstractClearCaseScm extends SCM {
         @Override
         public Boolean call() throws IOException {
             return File.pathSeparatorChar == ':';
+        }
+
+        @Override
+        public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+            roleChecker.check(this, Role.UNKNOWN);
         }
     }
 

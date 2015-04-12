@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.509.2</version>
+		<version>1.580.3</version>
 	</parent>
 
 	<artifactId>clearcase</artifactId>
@@ -75,10 +75,6 @@
 				<configuration>
 					<compatibleSinceVersion>1.0</compatibleSinceVersion>
 				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>2.5</version>
 			</plugin>
 		</plugins>
 	</build>
