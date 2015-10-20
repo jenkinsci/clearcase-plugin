@@ -61,9 +61,9 @@
 		</dependency>
 	</dependencies>
 	<scm>
-		<connection>scm:git:https://github.com/jenkinsci/clearcase-plugin.git</connection>
-		<developerConnection>scm:git:https://github.com/jenkinsci/clearcase-plugin.git</developerConnection>
-		<url>https://github.com/jenkinsci/clearcase-plugin</url>
+		<connection>scm:git:ssh://github.com/praqma/clearcase-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/praqma/clearcase-plugin.git</developerConnection>
+		<url>https://github.com/praqma/clearcase-plugin</url>
 	  <tag>HEAD</tag>
   </scm>
 	<build>
