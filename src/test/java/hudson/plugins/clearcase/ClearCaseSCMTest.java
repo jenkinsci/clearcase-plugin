@@ -225,7 +225,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
         when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
-        when(launcher.isUnix()).thenReturn(true);
+        when(node.toComputer().isUnix()).thenReturn(true);
         when(build.getBuildVariables()).thenReturn(new HashMap<String, String>());
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
@@ -335,7 +335,7 @@ public class ClearCaseSCMTest extends AbstractWorkspaceTest {
         when(node.toComputer()).thenReturn(computer);
         when(node.getNodeName()).thenReturn("test-node");
         when(node.createLauncher(any(TaskListener.class))).thenReturn(launcher);
-        when(launcher.isUnix()).thenReturn(true);
+        when(node.toComputer().isUnix()).thenReturn(true);
         when(build.getEnvironment(any(LogTaskListener.class))).thenReturn(new EnvVars("JOB_NAME", "Hudson", "TEST_VARIABLE", "result-of-test"));
         when(computer.getSystemProperties()).thenReturn(System.getProperties());
 
