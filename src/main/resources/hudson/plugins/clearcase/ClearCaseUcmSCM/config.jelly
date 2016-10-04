@@ -56,7 +56,7 @@
     But this causes the artifacts from the
     previous build to remain when a new build starts.
   </f:entry>
-  <f:entry title="Changeset" field="changeset" help="/plugin/clearcase/ucm/help-changeset.html">
+  <f:entry title="Changeset" field="ucm.changeset" help="/plugin/clearcase/ucm/help-changeset.html">
 	<f:enum>  
  	       ${it.toString()}  
         </f:enum>  
