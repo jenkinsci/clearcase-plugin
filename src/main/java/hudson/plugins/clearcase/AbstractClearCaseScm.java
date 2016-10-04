@@ -155,7 +155,7 @@ public abstract class AbstractClearCaseScm extends SCM {
         private String name;
 
         @DataBoundConstructor
-        private ChangeSetLevel(String name) {
+        public ChangeSetLevel(String name) {
             this.name = name;
         }
 
