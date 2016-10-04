@@ -90,6 +90,7 @@ import org.apache.commons.lang.Validate;
 import org.jenkinsci.remoting.Role;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Abstract class for ClearCase SCM. The class contains the logic around checkout and polling, the deriving classes only have to implement the specific checkout
@@ -153,6 +154,7 @@ public abstract class AbstractClearCaseScm extends SCM {
 
         private String name;
 
+        @DataBoundConstructor
         private ChangeSetLevel(String name) {
             this.name = name;
         }
