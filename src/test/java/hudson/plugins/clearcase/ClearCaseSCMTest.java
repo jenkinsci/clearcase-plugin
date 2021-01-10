@@ -41,7 +41,6 @@ import hudson.model.TaskListener;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
-import hudson.model.TaskListener;
 import hudson.plugins.clearcase.action.BaseSnapshotCheckoutAction;
 import hudson.plugins.clearcase.base.BaseHistoryAction;
 import hudson.plugins.clearcase.history.Filter;
@@ -50,7 +49,6 @@ import hudson.plugins.clearcase.viewstorage.ViewStorage;
 import hudson.util.LogTaskListener;
 import hudson.util.VariableResolver;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
