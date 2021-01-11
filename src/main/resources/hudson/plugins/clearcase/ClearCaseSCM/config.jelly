@@ -21,9 +21,7 @@
     CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
   -->
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-  xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-
+  <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:local="/lib/clearcase">
 
   <f:entry title="View tag" help="/plugin/clearcase/viewtag.html">
     <f:textbox name="cc.viewname"
@@ -36,8 +34,6 @@
   </f:entry>
 
   <f:block>
-  <table>
-
   <f:optionalBlock name="cc.getConfigSpecFromFile"
                    title="Get config spec from a file"
                    help="/plugin/clearcase/base/get-cs-from-file.html"
@@ -45,21 +41,19 @@
    	<f:entry title="File name" help="/plugin/clearcase/base/cs-file-name.html">
      <f:textbox name="cc.configSpecFileName" value="${scm.configSpecFileName}"
 		checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Config spec file is mandatory')+'&amp;value='+escape(this.value)" />
-   	</f:entry>  
+   	</f:entry>
     <f:block>
-    <table>
       <f:optionalBlock name="cc.refreshConfigSpec"
                        title="Refresh config spec"
                        help="/plugin/clearcase/base/refresh-cs.html"
                        checked="${scm.refreshConfigSpec}" >
         <f:entry title="Refresh command" help="/plugin/clearcase/base/refresh-command.html">
         	<f:textbox name="cc.refreshConfigSpecCommand" value="${scm.refreshConfigSpecCommand}"
-        	checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Refresh command is mandatory')+'&amp;value='+escape(this.value)" />       
-        </f:entry>  
+        	checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Refresh command is mandatory')+'&amp;value='+escape(this.value)" />
+        </f:entry>
       </f:optionalBlock>
-    </table>
     </f:block>
-  </f:optionalBlock>    
+  </f:optionalBlock>
 
   <f:entry title="Config spec" help="/plugin/clearcase/configspec.html">
     <f:textarea name="cc.configspec" value="${scm.configSpec}"
@@ -69,7 +63,7 @@
   <f:optionalBlock name="cc.extractLoadRules"
                    title="Get load rules from config spec"
                    help="/plugin/clearcase/base/get-load-rules-from-cs.html"
-                   checked="${scm.extractLoadRules}" negative="true">	  
+                   checked="${scm.extractLoadRules}" negative="true">
 	<f:entry title="Load rules" help="/plugin/clearcase/loadrules.html">
 	  <f:textarea name="cc.loadrules" value="${scm.loadRules}"
 		checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules are mandatory')+'&amp;value='+escape(this.value)" />
@@ -79,14 +73,13 @@
   <f:optionalBlock name="cc.useOtherLoadRulesForPolling"
                    title="Use other load rules for polling"
                    help="/plugin/clearcase/base/use-other-load-rules-for-polling.html"
-                   checked="${scm.useOtherLoadRulesForPolling}" >   
+                   checked="${scm.useOtherLoadRulesForPolling}" >
   <f:entry title="Load rules for polling" help="/plugin/clearcase/loadrules-for-polling.html">
     <f:textarea name="cc.loadRulesForPolling" value="${scm.loadRulesForPolling}"
     checkUrl="'${rootURL}/scm/ClearCaseSCM/mandatoryCheck?errorText='+escape('Load rules for polling are mandatory')+'&amp;value='+escape(this.value)" />
   </f:entry>
   </f:optionalBlock>
 
-  </table>
   </f:block>
 
   <f:entry title="Use update">
@@ -97,12 +90,12 @@
     previous build to remain when a new build starts.
   </f:entry>
   <f:entry title="Changeset" field="cc.changeset" help="/plugin/clearcase/base/help-changeset.html">
-    <table>
+    <local:blockWrapper>
       <f:radioBlock name="cc.changeset" title="No History" checked="${scm.changeset.name eq 'no'}" value="no"/>
       <f:radioBlock name="cc.changeset" title="Current branch" checked="${scm.changeset eq null || scm.changeset.name eq 'branch'}" value="branch"/>
       <f:radioBlock name="cc.changeset" title="Use updt file" checked="${scm.changeset.name eq 'updt'}" value="updt"/>
-    </table>
-  </f:entry> 
+    </local:blockWrapper>
+  </f:entry>
 
   <f:entry title="Branch(es)" help="/plugin/clearcase/branch.html">
     <f:expandableTextbox name="cc.branch" value="${scm.branch}" />
@@ -140,7 +133,7 @@
       <f:textbox name="cc.multiSitePollBuffer" value="${scm.multiSitePollBuffer}" />
     </f:entry>
     <f:block>
-      <table>
+      <local:blockWrapper>
         <f:optionalBlock name="cc.usedynamicview" title="Use dynamic view"
           checked="${scm.useDynamicView}" help="/plugin/clearcase/dynamicview.html">
           <f:entry title="View root" help="/plugin/clearcase/viewdrive.html">
@@ -156,7 +149,7 @@
             </j:choose>
           </f:entry>
           <f:block>
-            <table>
+            <div>
               <f:optionalBlock name="cc.createDynView"
                 title="Let Jenkins manage the view lifecycle"
                 checked="${scm.createDynView}" help="/plugin/clearcase/manageviewlifecycle.html">
@@ -171,9 +164,8 @@
                     value="${h.defaulted(scm.unixDynStorageDir, descriptor.defaultUnixDynStorageDir)}" />
                 </f:entry>
               </f:optionalBlock>
-            </table>
+            </div>
           </f:block>
-
 
           <f:entry title="Use time rule in config spec">
             <f:checkbox name="cc.useTimeRule" checked="${scm.useTimeRule}" />
@@ -194,7 +186,7 @@
           </f:entry>
 
         </f:optionalBlock>
-      </table>
+      </local:blockWrapper>
     </f:block>
   </f:advanced>
 </j:jelly>

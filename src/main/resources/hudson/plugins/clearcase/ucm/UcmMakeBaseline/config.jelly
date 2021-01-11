@@ -24,7 +24,8 @@
     THE SOFTWARE.
 
 -->
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:local="/lib/clearcase">
 
     <f:entry title="Baseline name pattern" help="/plugin/clearcase/ucm/mkbl/name.html">
         <f:textbox name="mkbl.namepattern" value="${h.defaulted(instance.namePattern, '${JOB_NAME}-${BUILD_NUMBER}')}" />    
@@ -35,25 +36,25 @@
     </f:entry>
 
     <f:nested>
-        <table>
+        <local:blockWrapper>
             <f:optionalBlock name="mkbl.promote" title="Promote the baseline on success"
                              checked="${h.defaultToTrue(instance.promote)}" help="/plugin/clearcase/ucm/mkbl/promote.html">
                 <f:entry title="Baseline promotion level" help="/plugin/clearcase/ucm/mkbl/promotion_level.html">
                     <f:textbox name="mkbl.promotionLevel" value="${h.defaulted(instance.promotionLevel, 'BUILT')}" />
                 </f:entry>
             </f:optionalBlock>
-        </table>
+        </local:blockWrapper>
     </f:nested>
 
     <f:nested>
-        <table>
+        <local:blockWrapper>
             <f:optionalBlock name="mkbl.demote" title="Demote the baseline on failure"
                              checked="${h.defaultToTrue(instance.demote)}" help="/plugin/clearcase/ucm/mkbl/demote.html">
                 <f:entry title="Baseline demotion level" help="/plugin/clearcase/ucm/mkbl/demotion_level.html">
                     <f:textbox name="mkbl.demotionLevel" value="${h.defaulted(instance.demotionLevel, 'REJECTED')}" />
                 </f:entry>
             </f:optionalBlock>
-        </table>
+        </local:blockWrapper>
     </f:nested>
 
 	<f:entry title="Lock stream" help="/plugin/clearcase/ucm/mkbl/lock.html">
@@ -73,14 +74,14 @@
 	</f:entry>
 	
     <f:nested>
-	  <table>	
+	  <local:blockWrapper>
          <f:optionalBlock name="mkbl.rebaseDynamicView" title="Rebase a dynamic view"
                        checked="${instance.rebaseDynamicView}" help="/plugin/clearcase/ucm/mkbl/rebase.html">
 		    <f:entry title="Dynamic view to rebase" help="/plugin/clearcase/ucm/mkbl/dynamicView.html">
         		<f:textbox name="mkbl.dynamicViewName" value="${instance.dynamicViewName}" />       
     		</f:entry>
 	     </f:optionalBlock>
-	  </table>
+	  </local:blockWrapper>
     </f:nested>
 	
 </j:jelly>

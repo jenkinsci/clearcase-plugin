@@ -27,36 +27,38 @@
 <!--
   Displays the ClearCase change log.
 -->
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt"
+         xmlns:local="/lib/clearcase">
   <j:choose>
     <j:when test="${it.emptySet}">
       No changes from last build.
     </j:when>
     <j:otherwise>
-    <table class="pane" style="border:none">
+    <local:blockWrapperPane>
     <j:forEach var="cs" items="${it.logs}" varStatus="loop">
-      <tr class="pane">
-        <td class="changeset" colspan="2">
+      <local:rowWrapper>
+        <local:cellWrapperTwo>
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
             <b>${loop.index + 1}. <a href="${rootURL}/${cs.author.url}/">${cs.author}</a> on ${cs.dateStr}</b><br/>
             ${cs.msgAnnotated}
           </div>
-        </td>
-      </tr>
+        </local:cellWrapperTwo>
+      </local:rowWrapper>
 
       <j:forEach var="element" items="${cs.elements}">
-        <tr>
-        	<td align="right">
+        <local:rowWrapper>
+        	<local:cellWrapper>
         		<j:if test="${element.editType!=null}">
         			<t:editTypeIcon type="${element.editType}" />
         		</j:if>
-        	</td>
-        	<td>${element.file}@@${element.version} - ${element.action}</td>
-        </tr>
+        	</local:cellWrapper>
+        	<local:cellWrapper>${element.file}@@${element.version} - ${element.action}</local:cellWrapper>
+        </local:rowWrapper>
       </j:forEach>
     </j:forEach>
-    </table>
+    </local:blockWrapperPane>
     
 	</j:otherwise>
   </j:choose>

@@ -25,47 +25,43 @@
 -->
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-  xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <l:layout>
+  xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:local="/lib/clearcase">
+  <l:layout title="ClearCase Report">
     <st:include it="${it.owner}" page="sidepanel.jelly" />
     <l:main-panel>
       <h2>ClearCase Information</h2>
       <j:choose>
         <j:when test="${it.cspec}">
           <h3>Config Spec.</h3>
-          <table class="pane">
-            <tbody>
-              <tr>
-                <td class="pane">
-                  ${it.configSpecHtml}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <local:blockWrapperPane>
+            <local:rowWrapper>
+              <local:cellWrapper>
+                ${it.configSpecHtml}
+              </local:cellWrapper>
+            </local:rowWrapper>
+          </local:blockWrapperPane>
         </j:when>
         <j:otherwise>
           <h3>Stream: ${it.stream}</h3>
           <j:choose>
             <j:when test="${it.baselineInfo}">
               <h3>Baseline list:</h3>
-              <table class="pane">
-                <tbody>
-                  <tr>
-                    <td class="pane-header">Component</td>
-                    <td class="pane-header">Baseline</td>
-                  </tr>
-                  <j:forEach var="i" items="${it.baselines}">
-                    <tr>
-                      <td class="pane">
-                        ${i.componentName}
-                      </td>
-                      <td class="pane">
-                        ${i.baselineName}
-                      </td>
-                    </tr>
-                  </j:forEach>
-                </tbody>
-              </table>
+              <local:blockWrapper>
+                <local:rowWrapper>
+                  <local:cellWrapperPaneHeader>Component</local:cellWrapperPaneHeader>
+                  <local:cellWrapperPaneHeader>Baseline</local:cellWrapperPaneHeader>
+                </local:rowWrapper>
+                <j:forEach var="i" items="${it.baselines}">
+                  <local:rowWrapper>
+                    <local:cellWrapperPane>
+                      ${i.componentName}
+                    </local:cellWrapperPane>
+                    <local:cellWrapperPane>
+                      ${i.baselineName}
+                    </local:cellWrapperPane>
+                  </local:rowWrapper>
+                </j:forEach>
+              </local:blockWrapper>
             </j:when>
           </j:choose>
         </j:otherwise>
