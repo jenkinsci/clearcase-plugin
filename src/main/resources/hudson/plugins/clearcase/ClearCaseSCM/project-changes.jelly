@@ -34,7 +34,9 @@
   The 'builds' variable contains the collection of AbstractBuild objects
   for which the change should be displayed.
 -->
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+         xmlns:i="jelly:fmt" xmlns:local="/lib/clearcase">
   <j:choose>
     <j:when test="${empty(builds)}">
       No builds.
@@ -47,16 +49,16 @@
           <h2><a href="${b.number}/changes">${b.displayName}
             (<i:formatDate value="${b.timestamp.time}" type="both" dateStyle="medium" timeStyle="medium"/>)</a></h2>
 
-            <table>
+            <local:blockWrapper>
             <j:forEach var="c" items="${b.changeSet.iterator()}" varStatus="loop">
-              <tr>
-              	<td>
+              <local:rowWrapper>
+              	<local:cellWrapper>
               		${loop.index + 1}. 
-              	</td>
-              	<td>
+              	</local:cellWrapper>
+              	<local:cellWrapper>
                 	<a href="${rootURL}/${c.author.url}/">${c.author}</a>
-				</td>
-				<td><i>
+				</local:cellWrapper>
+				<local:cellWrapper><i>
                 <j:set var="cslink" value="${browser.getChangeSetLink(c)}"/>
                 <j:choose>
                   <j:when test="${cslink!=null}">
@@ -66,13 +68,13 @@
                     <a href="${b.number}/changes#detail${loop.index}">detail</a>
                   </j:otherwise>
                 </j:choose>
-				</i></td>
-                <td>
+				</i></local:cellWrapper>
+                <local:cellWrapper>
                 	${c.msgAnnotated}
-                </td>
-              </tr>
+                </local:cellWrapper>
+              </local:rowWrapper>
             </j:forEach>
-          </table>
+          </local:blockWrapper>
         </j:if>
       </j:forEach>
       <j:if test="${!hadChanges}">

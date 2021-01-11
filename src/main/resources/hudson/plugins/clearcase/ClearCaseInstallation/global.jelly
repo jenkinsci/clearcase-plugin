@@ -24,16 +24,16 @@
   - THE SOFTWARE.
   -->
 
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:local="/lib/clearcase">
     <f:section title="${%ClearCase}">
         <!-- ClearCase installation -->
         <f:entry title="${%ClearCase installation}">
             <f:repeatable name="clearcaseinstall" var="instance" items="${descriptor.installations}" minimum="1" noAddButton="true">
-                <table width="100%">
+                <local:blockWrapper>
                     <f:entry field="home" title="${%Installation folder}" help="/plugin/clearcase/installationFolder.html">
                         <f:textbox/>
                     </f:entry>
-                </table>
+                </local:blockWrapper>
             </f:repeatable>
         </f:entry>
 
