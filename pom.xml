@@ -31,14 +31,14 @@
 	</developers>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<powermock.version>1.5</powermock.version>
+		<powermock.version>1.5.6</powermock.version>
 		<maven-hpi-plugin.version>1.96</maven-hpi-plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>[4.13.1,)</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
