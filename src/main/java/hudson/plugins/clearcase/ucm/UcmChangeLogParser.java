@@ -25,6 +25,8 @@
 package hudson.plugins.clearcase.ucm;
 
 import hudson.model.AbstractBuild;
+import hudson.plugins.clearcase.ClearCaseChangeLogSet;
+import hudson.plugins.clearcase.util.DigesterUtil;
 import hudson.scm.ChangeLogParser;
 
 import java.io.File;
@@ -33,7 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;
 
 /**
@@ -74,7 +76,8 @@ public class UcmChangeLogParser extends ChangeLogParser {
         ArrayList<UcmActivity> history = new ArrayList<UcmActivity>();
 
         // Parse the change log file.
-        Digester digester = new Digester();
+        boolean secure = (!Boolean.getBoolean(UcmChangeLogParser.class.getName() + ".UNSAFE"));
+        Digester digester = DigesterUtil.createDigester( secure);
         digester.setClassLoader(UcmChangeLogSet.class.getClassLoader());
         digester.push(history);
         digester.addObjectCreate("*/entry", UcmActivity.class);

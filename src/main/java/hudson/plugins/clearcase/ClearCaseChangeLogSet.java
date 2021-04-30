@@ -25,6 +25,7 @@
 package hudson.plugins.clearcase;
 
 import hudson.model.AbstractBuild;
+import hudson.plugins.clearcase.util.DigesterUtil;
 import hudson.scm.ChangeLogSet;
 
 import java.io.File;
@@ -38,7 +39,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;
 
 /**
@@ -189,7 +190,8 @@ public class ClearCaseChangeLogSet extends ChangeLogSet<ClearCaseChangeLogEntry>
         ArrayList<ClearCaseChangeLogEntry> history = new ArrayList<ClearCaseChangeLogEntry>();
 
         // Parse the change log file.
-        Digester digester = new Digester();
+        boolean secure = (!Boolean.getBoolean(ClearCaseChangeLogSet.class.getName() + ".UNSAFE"));
+        Digester digester = DigesterUtil.createDigester( secure);
         digester.setClassLoader(ClearCaseChangeLogSet.class.getClassLoader());
         digester.push(history);
         digester.addObjectCreate("*/entry", ClearCaseChangeLogEntry.class);
