@@ -9,7 +9,7 @@
 	<artifactId>clearcase</artifactId>
 	<packaging>hpi</packaging>
 	<name>Jenkins ClearCase Plug-in</name>
-	<version>1.6.6</version>
+	<version>1.6.7</version>
 	<url>https://plugins.jenkins.io/clearcase/</url>
 	<licenses>
 		<license>
@@ -69,7 +69,7 @@
 		<connection>scm:git:ssh://github.com/praqma/clearcase-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/praqma/clearcase-plugin.git</developerConnection>
 		<url>https://github.com/praqma/clearcase-plugin</url>
-	  <tag>clearcase-1.6.6</tag>
+	  <tag>clearcase-1.6.7</tag>
   </scm>
 	<build>
 		<plugins>
